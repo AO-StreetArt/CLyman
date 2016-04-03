@@ -1,0 +1,3 @@
+*.o
+event_test
+obj_test
