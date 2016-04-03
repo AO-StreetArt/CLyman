@@ -242,7 +242,7 @@ void Obj3::initialize_matrices()
 	initialize_buffers();
 }
 
-void Obj3::apply_transforms()
+void Obj3::apply_transforms(ObjectDelegate& dispatch)
 {
 	//Update the transformation matrix
 	Matrix4f result;
@@ -291,4 +291,12 @@ void Obj3::apply_transforms()
 	initialize_buffers();
 
 	//Send out an event
+	Stringbuffer buf;
+	buf = to_json();
+	dispatch[OBJ_PUSH]( buf.GetString() );
+}
+
+StringBuffer Obj3::to_json()
+{
+//TO-DO
 }

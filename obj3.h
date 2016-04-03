@@ -7,6 +7,7 @@
 #include "list.h"
 #include "event_dispatcher.h"
 #include "FastDelegate.h"
+#include "rapidjson/stringbuffer.h"
 
 class Obj3
 {
@@ -100,7 +101,7 @@ class Obj3
 		bool resize(float x, float y, float z) {if (is_locked==false) {scale_object(x, y, z); return true;} else {return false;}}
 		
 		//Apply Transforms in Buffers
-		void apply_transforms();
+		void apply_transforms(ObjectDelegate& dispatch);
 
 		//Methods for controlling scene list
 		//Not included in locks as the scene list
@@ -175,6 +176,9 @@ class Obj3
 		//Lock Methods
 		bool lock(std::string device_id) {is_locked=true;lock_owner=device_id;return true;}
 		bool unlock(std::string device_id) {if (lock_owner==device_id) {is_locked=false;lock_owner="";return true;} else {return false;}}
+
+		//Convert the object to JSON
+		StringBuffer to_json();
 
 };
 #endif

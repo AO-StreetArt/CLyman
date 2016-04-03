@@ -1,5 +1,5 @@
 #include <zmq.hpp>
-#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
 
 class ZMQClient
 {
@@ -8,5 +8,5 @@ zmq::socket_t socket (context, ZMQ_REQ);
 
 public:
 	ZMQClient (std::string conn) {socket.connect (conn);}
-	void send_msg (Document obj_doc);
+	void send_msg (StringBuffer buf);
 };

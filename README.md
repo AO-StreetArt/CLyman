@@ -1,8 +1,8 @@
-h1. Project CLyman
+# Project CLyman
 
 This is a C++ microservice which synchronizes high-level object attributes across many user devices.
 
-h2. Dependency Resolution
+## Dependency Resolution
 
 This service depends on Eigen, a C++ Linear Algebra library.  This can be downloaded from the [Eigen] (http://eigen.tuxfamily.org/index.php?title=Main_Page) site.  Getting it into your include path can be accomplished on Linux/OSX by moving the Eigen folder into the /usr/local/include directory, or by manually linking with -I.
 
@@ -12,7 +12,7 @@ Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:g
 
 You will also need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson)
 
-h2. Compilation Steps
+## Compilation Steps
 
 Note: These steps assume that all header dependencies have been moved to the user's include path manually.  Otherwise, please be sure to include the correct libraries with -I.
 
