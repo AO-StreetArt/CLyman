@@ -36,3 +36,10 @@ g++ -c -o event_dispatcher_test.o event_dispatcher_test.cpp
 
 (Also optional) build the event test app
 g++ -o event_test event_dispatcher.o event_dispatcher_test.o
+
+
+Now, we get to build the main test app:
+
+g++ -c -I /usr/local/lib -I /usr/local/include -llog4cpp -lpthread -lzmq -o main_class_test.o main_class_test.cpp
+
+g++ -o main_test -I /usr/local/lib -I usr/local/include -llog4cpp -lpthread -lzmq event_dispatcher.o main_class_test.o

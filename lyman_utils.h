@@ -7,8 +7,7 @@
 #include <sstream>
 
 #include "FastDelegate.h"
-#include "obj3.h"
-
+#include <zmq.hpp>
 #include <string>
 #include <strings.h>
 #include <stdint.h>

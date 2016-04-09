@@ -8,6 +8,7 @@
 #include "event_dispatcher.h"
 #include "FastDelegate.h"
 #include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 class Obj3
 {
@@ -156,16 +157,20 @@ class Obj3
 		float get_locx() {return location(0);}
 		float get_locy() {return location(1);}
 		float get_locz() {return location(2);}
+		float get_loc(int xyz) {return location(xyz);}
 		float get_rotex() {return rotation_euler(0);}
 		float get_rotey() {return rotation_euler(1);}
 		float get_rotez() {return rotation_euler(2);}
+		float get_rote(int xyz) {return rotation_euler(xyz);}
 		float get_rotqw() {return rotation_quaternion(0);}
 		float get_rotqx() {return rotation_quaternion(1);}
 		float get_rotqy() {return rotation_quaternion(2);}
 		float get_rotqz() {return rotation_quaternion(3);}
+		float get_rotq(int wxyz) {return rotation_quaternion(wxyz);}
 		float get_sclx() {return scale(0);}
 		float get_scly() {return scale(1);}
 		float get_sclz() {return scale(2);}
+		float get_scl(int xyz) {return scale(xyz);}
 		Eigen::Vector3f get_loc() {return location;}
 		Eigen::Vector3f get_rote() {return rotation_euler;}
 		Eigen::Vector4f get_rotq() {return rotation_quaternion;}

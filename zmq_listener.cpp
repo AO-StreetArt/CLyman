@@ -1,6 +1,6 @@
 #include "zmq_listener.h"
 
-void ZMQListener::listen(ObjectDelegate& dispatch)
+void ZMQListener::listen(ObjectDelegate (&dispatch)[12], std::string conn)
 {
 int current_event_type;
 
@@ -9,6 +9,11 @@ int response_size;
 response_size=7;
 std::string resp;
 
+//Connect to the ZMQ Socket
+zmq::context_t context(1);
+zmq::socket_t socket(context, ZMQ_REP);
+socket.bind(conn);
+
 while (true) {
 	zmq::message_t request;
 
@@ -16,11 +21,27 @@ while (true) {
 	socket.recv (&request);
 
 	//Convert the 0MQ message into a string to be passed on the event
-	std::str req_string;
+	std::string req_string;
 	req_string = hexDump (request);
 	const char * req_ptr = req_string.c_str();
 
 	//TO-DO: Process the message header and set current_event_type
+	if (req_string=="OBJ_UPD") {
+		current_event_type=OBJ_UPD;
+	}
+	else if (req_string=="OBJ_CRT") {
+		current_event_type=OBJ_CRT;
+	}
+	else if (req_string=="OBJ_GET") {
+		current_event_type=OBJ_GET;
+	}
+	else if (req_string=="OBJ_DEL") {
+		current_event_type=OBJ_DEL;
+	}
+	else {
+		current_event_type=-1;
+	}
+
 
 	//Emit an event based on the event type
 	if (current_event_type==OBJ_UPD) {

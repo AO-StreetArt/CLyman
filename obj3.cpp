@@ -298,5 +298,92 @@ void Obj3::apply_transforms(ObjectDelegate& dispatch)
 
 StringBuffer Obj3::to_json()
 {
-//TO-DO
+	//Initialize the string buffer and writer
+	StringBuffer s;
+	Writer<StringBuffer> writer(s);
+
+	//Start writing the object
+	//Syntax taken directly from 
+	//simplewriter.cpp in rapidjson examples
+
+	writer.StartObject();
+	writer.Key("key");
+	writer.String( get_key() );
+
+	writer.Key("name");
+	writer.String( get_name() );
+
+	writer.Key("type");
+	writer.String( get_type() );
+
+	writer.Key("subtype");
+	writer.String( get_subtype() );
+
+	int i;
+	int j;
+
+	writer.Key("location");
+	writer.StartArray();
+	for (i=0; i<3; i++) {
+		writer.Double( get_loc(i) );
+	}
+	writer.EndArray();
+
+	writer.Key("rotation_euclidean");
+	writer.StartArray();
+        for (i=0; i<3; i++) {
+                writer.Double( get_rote(i) );
+        }
+        writer.EndArray();
+
+	writer.Key("rotation_quaternion");
+	writer.StartArray();
+        for (i=0; i<4; i++) {
+                writer.Double( get_rotq(i) );
+        }
+        writer.EndArray();
+
+	writer.Key("scale");
+	writer.StartArray();
+        for (i=0; i<3; i++) {
+                writer.Double( get_scl(i) );
+        }
+        writer.EndArray();
+
+	writer.Key("transform");
+	writer.StartArray();
+	
+        for (i=0; i<4; i++) {
+		writer.StartArray();
+		for (j=0; j<4; j++) {
+                	writer.Double( transform_matrix(i)(j) );
+		}
+		writer.EndArray();
+        }
+
+        writer.EndArray();
+
+	writer.Key("bounding_box");
+	for (i=0; i<4; i++) {
+                writer.StartArray();
+                for (j=0; j<8; j++) {
+                        writer.Double( bounding_box(i)(j) );
+                }
+                writer.EndArray();
+        }
+
+        writer.EndArray();
+
+	writer.Key("scenes");
+	writer.StartArray();
+        for (i=0; i<num_scenes(); i++) {
+                writer.Double( get_scene(i) );
+        }
+        writer.EndArray();
+
+	writer.EndObject();
+
+	//The Stringbuffer now contains a json message
+	//of the object
+	return s;
 }

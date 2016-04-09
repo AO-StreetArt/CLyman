@@ -1,3 +1,6 @@
 *.o
 event_test
 obj_test
+test_client
+main_test
+*.log

@@ -6,18 +6,12 @@
 
 #include "event_dispatcher.h"
 #include "FastDelegate.h"
-#include "Obj3.h"
 #include "lyman_utils.h"
 
 class ZMQListener
 {
-//  Prepare our context and socket
-zmq::context_t context (1);
-zmq::socket_t socket (context, ZMQ_REP);
-
 public:
-	ZMQListener (std::string conn) {socket.bind (conn);}
-	void listen(ObjectDelegate& dispatch);
+	void listen(ObjectDelegate (&dispatch)[12], std::string conn);
 };
 
 #endif
