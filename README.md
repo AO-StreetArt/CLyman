@@ -12,6 +12,8 @@ Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:g
 
 You will also need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson)
 
+For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourceforge.net/)
+
 ## Compilation Steps
 
 Note: These steps assume that all header dependencies have been moved to the user's include path manually.  Otherwise, please be sure to include the correct libraries with -I.
