@@ -1,4 +1,4 @@
-//This is the outline for the main structural code of the module
+//This is the  main structural code of the module
 //It is built to allow for real-time messaging without the need
 //For polling, using a Dispatcher Pattern
 
@@ -17,6 +17,10 @@
 #include "log4cpp/Layout.hh"
 #include "log4cpp/BasicLayout.hh"
 #include "log4cpp/Priority.hh"
+
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 //Events
 
@@ -51,6 +55,9 @@ log.addAppender(appender);
 
 //Set up internal variables
 int current_event_type;
+int msg_type;
+rapidjson::Document d;
+rapidjson::Value& s;
 char resp[8]={'n','i','l','r','e','s','p','\0'};
 log.info("Internal Variables Intialized");
 
@@ -86,19 +93,24 @@ while (true) {
 	log.debug("Conversion to C String performed with result: %s", req_ptr);
         
 	//Process the message header and set current_event_type
-        if (req_string=="OBJ_UPD") {
+
+	d.parse(req_ptr);
+	s = d["message_type"];
+	msg_type = s.GetInt();
+
+        if (msg_type == OBJ_UPD) {
                 current_event_type=OBJ_UPD;
 		log.debug("Current Event Type set to Object Update");
         }
-        else if (req_string=="OBJ_CRT") {
+        else if (msg_type == OBJ_CRT) {
                 current_event_type=OBJ_CRT;
 		log.debug("Current Event Type set to Object Create");
         }
-        else if (req_string=="OBJ_GET") {
+        else if (msg_type == OBJ_GET) {
                 current_event_type=OBJ_GET;
 		log.debug("Current Event Type set to Object Get");
         }
-	else if (req_string=="OBJ_DEL") {
+	else if (msg_type == OBJ_DEL) {
                 current_event_type=OBJ_DEL;
 		log.debug("Current Event Type set to Object Delete");
         }
