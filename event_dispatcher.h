@@ -22,6 +22,9 @@ extern const int OBJ_GET;
 extern const int OBJ_DEL;
 extern const int OBJ_PUSH;
 
+/*Typedef to be utilized for the Object Delegate*/
+typedef fastdelegate::FastDelegate1<const char *> ObjectDelegate;
+
 //We can create an event dispatcher like this:
 //fastdelegate::FastDelegate1<Obj3> signal[12];
 

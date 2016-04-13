@@ -9,6 +9,32 @@
 
 using namespace Eigen;
 
+bool Obj3::transform_object(Matrix4f trans_matrix)
+{
+	Matrix4f result_matrix;
+	result_matrix = trans_matrix * transform_buffer;
+	transform_buffer = result_matrix;
+	return true;
+}
+
+bool Obj3::transform_object(float trans_matrix[])
+{
+	Matrix4f tran_matrix;
+	int i, j;
+	for (i=0;i<4;i=i+1)
+	{
+		for (j=0;j<4;j=j+1)
+		{
+			tran_matrix(i, j) = trans_matrix[(4 * i) + j];
+		}
+	}
+
+	Matrix4f result_matrix;
+        result_matrix = trans_matrix * transform_buffer;
+	transform_buffer = result_matrix;
+	return true;
+}
+
 void Obj3::translate_object(float x, float y, float z, std::string locality)
 {
 	//Variable Declarations
@@ -382,6 +408,10 @@ StringBuffer Obj3::to_json()
         writer.EndArray();
 
 	writer.EndObject();
+
+	writer.Key("is_locked");
+	if (is_locked() == true) {writer.String("True");}
+	else {writer.String("False");}
 
 	//The Stringbuffer now contains a json message
 	//of the object

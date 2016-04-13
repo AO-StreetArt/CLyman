@@ -54,9 +54,6 @@ std::string hexDump( zmq::message_t & aMessage ) {
   return msg;
 }
 
-/*Typedef to be utilized for the Object Delegate*/
-typedef fastdelegate::FastDelegate1<const char *> ObjectDelegate;
-
 /* Big Ints to do time calculations */
 typedef long long int64; typedef unsigned long long uint64;
 

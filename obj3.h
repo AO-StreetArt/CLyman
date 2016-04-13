@@ -1,3 +1,7 @@
+//The Obj3 object acts as an ORM for the JSON Documents
+//In the Database, and is loaded/saved by the respective
+//implementation of the db_admin.h interface
+
 //OBJ3.H
 #ifndef OBJ3_H
 #define OBJ3_H
@@ -20,14 +24,22 @@ class Obj3
 		std::string subtype;	
 		std::string owner;
 
-		//Float Matrices for location, rotation, & scaling
+		//Externally Referenceable data
+		//Float Matrix for location
 		Eigen::Vector3f location;
+
+		//Transform Matrix
+                Eigen::Matrix4f transform_matrix;
+
+		//Bounding Box
+                Eigen::MatrixXf bounding_box;
+
+		//Attributes that should not be referenced
+		//if object is transformed by matrix directly
+		//Float Matrices for rotation, & scaling
 		Eigen::Vector3f rotation_euler;
 		Eigen::Vector4f rotation_quaternion;
 		Eigen::Vector3f scale;
-
-		//Transform Matrix
-		Eigen::Matrix4f transform_matrix;
 
 		//Transform Buffers
 		Eigen::Vector3f location_buffer;
@@ -35,9 +47,6 @@ class Obj3
                 Eigen::Vector4f rotationq_buffer;
                 Eigen::Vector3f scale_buffer;
 		Eigen::Matrix4f transform_buffer;
-
-		//Bounding Box
-		Eigen::MatrixXf bounding_box;
 
 		//Private constructor for internal matrices
 		void initialize_matrices();
@@ -70,9 +79,19 @@ class Obj3
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner) {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = new List <std::string>;}
 
 		//Matrix Constructors
+		//Location only
+		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3f ilocation)
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = new List <std::string>;location=ilocation;}
+
+		//Location & Bounding Box
+		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3f ilocation, Eigen::MatrixXf ibounding_box)
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = new List <std::string>;location=ilocation;bounding_box=ibounding_box;}
+
+		//Location, Rotation, Scale
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3f ilocation, Eigen::Vector3f irotatione, Eigen::Vector4f irotationq, Eigen::Vector3f iscale) 
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = new List <std::string>;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scale=iscale;}
 
+		//Location, Rotation, Scale, Bounding Box
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3f ilocation, Eigen::Vector3f irotatione, Eigen::Vector4f irotationq, Eigen::Vector3f iscale, Eigen::MatrixXf ibounding_box)
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = new List <std::string>;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scale=iscale;bounding_box=ibounding_box;}
 
@@ -80,6 +99,11 @@ class Obj3
 		~Obj3() {delete scene_list;}
 
 		//Transformation Methods
+
+		//Transform
+		bool transform_object(Matrix4f trans_matrix);
+		
+		bool transform_object(float trans_matrix[]);
 
 		//Translation
 		bool translate(float x, float y, float z, std::string locality, std::string device_id) {if (is_locked==false || lock_owner==device_id) {translate_object(x, y, z, locality); return true;} else {return false;}}
@@ -181,6 +205,7 @@ class Obj3
 		//Lock Methods
 		bool lock(std::string device_id) {is_locked=true;lock_owner=device_id;return true;}
 		bool unlock(std::string device_id) {if (lock_owner==device_id) {is_locked=false;lock_owner="";return true;} else {return false;}}
+		bool is_locked() {if (is_locked==false) {return false;} else {return true;}}
 
 		//Convert the object to JSON
 		StringBuffer to_json();

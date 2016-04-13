@@ -2,6 +2,10 @@
 
 This is a C++ microservice which synchronizes high-level object attributes across many user devices.
 
+This project is currently under heavy development.  Functionality & API are subject to change.
+
+
+
 ## Dependency Resolution
 
 This service depends on Eigen, a C++ Linear Algebra library.  This can be downloaded from the [Eigen] (http://eigen.tuxfamily.org/index.php?title=Main_Page) site.  Getting it into your include path can be accomplished on Linux/OSX by moving the Eigen folder into the /usr/local/include directory, or by manually linking with -I.
@@ -13,6 +17,12 @@ Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:g
 You will also need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson)
 
 For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourceforge.net/)
+
+You will need both Redis and Couchbase drivers installed, (once initial development is done, you will be able to choose whether to deploy to one or the other)
+
+Redis drivers can be found [here] (https://github.com/hmartiro/redox)
+
+Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)
 
 ## Compilation Steps
 
