@@ -21,6 +21,9 @@ std::cout << obj.get_rotq() << std::endl;
 std::cout << obj.get_scl() << std::endl;
 std::cout << obj.get_transform() << std::endl;
 std::cout << obj.get_bounding_box() << std::endl;
+
+std::cout << "Object in JSON Format" << std::endl;
+std::cout << obj.to_json() << std::endl;
 }
 
 int main()

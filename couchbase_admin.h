@@ -1,5 +1,15 @@
+//This is the Couchbase DB Admin
+//This implements the DB Admin interface
+
+//However, it also requires you to implement
+//Additional callback functions unique to
+//the couchbase engine, which are called upon
+//completion of the asynchronous threads
+
 #include "db_admin.h"
 #include <iostream>
+#include <string>
+#include <stdio.h>
 
 #include "log4cpp/Category.hh"
 #include "log4cpp/Appender.hh"
@@ -16,26 +26,25 @@ extern "C"
 
 class CouchbaseAdmin: public DBAdmin
 {
-int private_key_length;
 lcb_t private_instance;
-log4cpp::Category& private_log;
+bool authentication_active;
+const char * password;
+void initialize (const char * conn);
 public:
 	//Constructor & Destructor
-	CouchbaseAdmin ( const char * conn, int key_length, log4cpp::Category& log );
+	CouchbaseAdmin ( const char * conn );
+	CouchbaseAdmin ( const char * conn, const char * pswd );
 	~CouchbaseAdmin ();
 
-	//Load/Save an object
+	//Object CRUD Operations
 	Obj3 load_object ( const char * key );
 	void save_object ( Obj3& obj );
+	void create_object ( Obj3& obj );
+	void delete_object ( const char * key );
 
 	//Get the instance, needed for binding callbacks
 	lcb_t get_instance ();
 
 	//Blocking call until the transaction stack is empty
 	void wait ();
-
-	//Methods to prevent duplication of singleton
-	//intentionally deleted
-	CouchBaseAdmin ( CouchbaseAdmin const& ) = delete;
-	void operator = ( CouchbaseAdmin const& ) = delete;
 }

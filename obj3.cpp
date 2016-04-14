@@ -8,6 +8,7 @@
 #define PI 3.14159265358979323846
 
 using namespace Eigen;
+using namespace rapidjson;
 
 bool Obj3::transform_object(Matrix4f trans_matrix)
 {
@@ -30,7 +31,7 @@ bool Obj3::transform_object(float trans_matrix[])
 	}
 
 	Matrix4f result_matrix;
-        result_matrix = trans_matrix * transform_buffer;
+        result_matrix = tran_matrix * transform_buffer;
 	transform_buffer = result_matrix;
 	return true;
 }
@@ -268,7 +269,7 @@ void Obj3::initialize_matrices()
 	initialize_buffers();
 }
 
-void Obj3::apply_transforms(ObjectDelegate& dispatch)
+void Obj3::apply_transforms()
 {
 	//Update the transformation matrix
 	Matrix4f result;
@@ -315,14 +316,9 @@ void Obj3::apply_transforms(ObjectDelegate& dispatch)
 
 	//Reset the buffers
 	initialize_buffers();
-
-	//Send out an event
-	Stringbuffer buf;
-	buf = to_json();
-	dispatch[OBJ_PUSH]( buf.GetString() );
 }
 
-StringBuffer Obj3::to_json()
+const char* Obj3::to_json()
 {
 	//Initialize the string buffer and writer
 	StringBuffer s;
@@ -334,16 +330,20 @@ StringBuffer Obj3::to_json()
 
 	writer.StartObject();
 	writer.Key("key");
-	writer.String( get_key() );
+	std::string key = get_key();
+	writer.String( key.c_str(), (SizeType)key.length() );
 
 	writer.Key("name");
-	writer.String( get_name() );
+	std::string name = get_name();
+	writer.String( name.c_str(), (SizeType)name.length() );
 
 	writer.Key("type");
-	writer.String( get_type() );
+	std::string type = get_type();
+	writer.String( type.c_str(), (SizeType)type.length() );
 
 	writer.Key("subtype");
-	writer.String( get_subtype() );
+	std::string subtype = get_subtype();
+	writer.String( subtype.c_str(), (SizeType)subtype.length() );
 
 	int i;
 	int j;
@@ -351,30 +351,9 @@ StringBuffer Obj3::to_json()
 	writer.Key("location");
 	writer.StartArray();
 	for (i=0; i<3; i++) {
-		writer.Double( get_loc(i) );
+		writer.Double( static_cast<double>(get_loc(i)) );
 	}
 	writer.EndArray();
-
-	writer.Key("rotation_euclidean");
-	writer.StartArray();
-        for (i=0; i<3; i++) {
-                writer.Double( get_rote(i) );
-        }
-        writer.EndArray();
-
-	writer.Key("rotation_quaternion");
-	writer.StartArray();
-        for (i=0; i<4; i++) {
-                writer.Double( get_rotq(i) );
-        }
-        writer.EndArray();
-
-	writer.Key("scale");
-	writer.StartArray();
-        for (i=0; i<3; i++) {
-                writer.Double( get_scl(i) );
-        }
-        writer.EndArray();
 
 	writer.Key("transform");
 	writer.StartArray();
@@ -382,20 +361,9 @@ StringBuffer Obj3::to_json()
         for (i=0; i<4; i++) {
 		writer.StartArray();
 		for (j=0; j<4; j++) {
-                	writer.Double( transform_matrix(i)(j) );
+                	writer.Double( static_cast<double>(transform_matrix(i, j) ));
 		}
 		writer.EndArray();
-        }
-
-        writer.EndArray();
-
-	writer.Key("bounding_box");
-	for (i=0; i<4; i++) {
-                writer.StartArray();
-                for (j=0; j<8; j++) {
-                        writer.Double( bounding_box(i)(j) );
-                }
-                writer.EndArray();
         }
 
         writer.EndArray();
@@ -403,17 +371,24 @@ StringBuffer Obj3::to_json()
 	writer.Key("scenes");
 	writer.StartArray();
         for (i=0; i<num_scenes(); i++) {
-                writer.Double( get_scene(i) );
+		std::string sc = get_scene(i);
+                writer.String( sc.c_str(), (SizeType)sc.length() );
         }
         writer.EndArray();
 
-	writer.EndObject();
+	writer.Key("locked");
+	if (is_locked == true) {
+		std::string l = "True";
+		writer.String(l.c_str(), (SizeType) l.length());
+	}
+	else {
+		std::string l = "False";
+		writer.String(l.c_str(), (SizeType) l.length());
+	}
 
-	writer.Key("is_locked");
-	if (is_locked() == true) {writer.String("True");}
-	else {writer.String("False");}
+	writer.EndObject();
 
 	//The Stringbuffer now contains a json message
 	//of the object
-	return s;
+	return s.GetString();
 }

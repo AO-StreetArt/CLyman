@@ -13,10 +13,11 @@
 #include "FastDelegate.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+#include <iostream>
 
 class Obj3
 {
-	private:	
+	private:
 		//String Attributes
 		std::string name;
 		std::string key;
@@ -101,7 +102,7 @@ class Obj3
 		//Transformation Methods
 
 		//Transform
-		bool transform_object(Matrix4f trans_matrix);
+		bool transform_object(Eigen::Matrix4f trans_matrix);
 		
 		bool transform_object(float trans_matrix[]);
 
@@ -126,7 +127,7 @@ class Obj3
 		bool resize(float x, float y, float z) {if (is_locked==false) {scale_object(x, y, z); return true;} else {return false;}}
 		
 		//Apply Transforms in Buffers
-		void apply_transforms(ObjectDelegate& dispatch);
+		void apply_transforms();
 
 		//Methods for controlling scene list
 		//Not included in locks as the scene list
@@ -205,10 +206,10 @@ class Obj3
 		//Lock Methods
 		bool lock(std::string device_id) {is_locked=true;lock_owner=device_id;return true;}
 		bool unlock(std::string device_id) {if (lock_owner==device_id) {is_locked=false;lock_owner="";return true;} else {return false;}}
-		bool is_locked() {if (is_locked==false) {return false;} else {return true;}}
+		bool locked() {if (is_locked==false) {return false;} else {return true;}}
 
 		//Convert the object to JSON
-		StringBuffer to_json();
+		const char* to_json();
 
 };
 #endif

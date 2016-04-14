@@ -28,17 +28,14 @@ Couchbase drivers can be found [here] (http://developer.couchbase.com/documentat
 
 Note: These steps assume that all header dependencies have been moved to the user's include path manually.  Otherwise, please be sure to include the correct libraries with -I.
 
-First, compile the list class
-g++ -c -o list.o list.cpp
-
-Then, compile the object class:
+First, compile the object class:
 g++ -c -o obj3.o obj3.cpp 
 
 We can compile the Object tests here (note that this step is optional):
 g++ -c -o obj3_test.o obj3_test.cpp
 
 Here we can build the test app (again, optional):
-g++ -o obj_test list.o obj3.o obj3_test.o
+g++ -o obj_test obj3.o obj3_test.o
 
 Now, we build the event_dispatcher:
 g++ -c -o event_dispatcher.o event_dispatcher.cpp
