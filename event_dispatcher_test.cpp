@@ -3,7 +3,6 @@
 
 #include "event_dispatcher.h"
 #include "FastDelegate.h"
-#include "lyman_utils.h"
 
 void simple_func(std::string str)
 {

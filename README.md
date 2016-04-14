@@ -52,3 +52,7 @@ Now, we get to build the main test app:
 g++ -c -I /usr/local/lib -I /usr/local/include -llog4cpp -lpthread -lzmq -o main_class_test.o main_class_test.cpp
 
 g++ -o main_test -I /usr/local/lib -I usr/local/include -llog4cpp -lpthread -lzmq event_dispatcher.o main_class_test.o
+
+We then build the couchbase admin:
+
+g++ -c -lcouchbase -o couchbase_admin.o couchbase_admin.cpp
