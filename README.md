@@ -12,7 +12,7 @@ This service depends on Eigen, a C++ Linear Algebra library.  This can be downlo
 
 You will also need the FastDelegates code from [here] (http://www.codeproject.com/KB/cpp/FastDelegate/FastDelegate_src.zip).  You can include the two files in the /usr/local/include directory on Linux, or manually link with -I.
 
-Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:get-the-software).
+Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:get-the-software). Be sure to get the C++ Drivers in addition to the software.
 
 You will also need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson)
 
