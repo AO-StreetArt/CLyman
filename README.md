@@ -55,4 +55,4 @@ g++ -o main_test -I /usr/local/lib -I usr/local/include -llog4cpp -lpthread -lzm
 
 We then build the couchbase admin:
 
-g++ -c -lcouchbase -o couchbase_admin.o couchbase_admin.cpp
+g++ -c -lcouchbase -o couchbase_admin.o couchbase_admin.cpp -std=c++11
