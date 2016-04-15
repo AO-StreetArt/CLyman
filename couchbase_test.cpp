@@ -1,5 +1,5 @@
 #include "couchbase_admin.h"
-#include "Obj3.h"
+#include "obj3.h"
 #include <libcouchbase/couchbase.h>
 
 static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
@@ -18,11 +18,11 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 int main ()
 {
 //Create an object
-name = "Test Object";
-key = "abcdef-9876543";
-type = "Mesh";
-subtype = "Cube";
-owner = "zxywvut-1234567";
+std::string name = "Test Object";
+std::string key = "abcdef-9876543";
+std::string type = "Mesh";
+std::string subtype = "Cube";
+std::string owner = "zxywvut-1234567";
 
 Obj3 obj (name, key, type, subtype, owner);
 
@@ -36,21 +36,21 @@ lcb_set_store_callback(cb.get_instance(), storage_callback);
 lcb_set_get_callback(cb.get_instance(), get_callback);
 
 //Write the object to the DB
-cb.create_object (&obj);
+cb.create_object ( obj );
 cb.wait();
 
 //Get the object from the DB
-cb.load_object ( key );
+cb.load_object ( key.c_str() );
 cb.wait();
 
 //Update the object in the DB
 obj.set_name ( "Weeee" );
-cb.save_object ( &obj );
-cb.wait()
+cb.save_object ( obj );
+cb.wait();
 
 //Delete the object
-cb.delete_boject ( obj.get_key().c_str() );
-cb.wait()
+cb.delete_object ( obj.get_key().c_str() );
+cb.wait();
 
 std::cout << "Object deleted" << std::endl;
 

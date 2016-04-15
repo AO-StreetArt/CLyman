@@ -62,6 +62,11 @@ We then build the couchbase admin:
 g++ -c -lcouchbase -o couchbase_admin.o couchbase_admin.cpp -std=c++11
 
 
-Next step is to build ZMQ Client & Listener:
+Next step is to build ZMQ Client:
 
 g++ -I /usr/local/lib -c -lzmq -o zmq_client.o zmq_client.cpp
+
+
+We can build the couchbase tests:
+
+g++ -c -o couchbase_test.o -lcouchbase couchbase_test.cpp -std=c++11
