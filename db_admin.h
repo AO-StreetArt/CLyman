@@ -8,7 +8,8 @@
 class DBAdmin
 {
 public:
-
+	DBAdmin() {}
+	~DBAdmin() {}
 	//Basic CRUD Operations
 	virtual Obj3 load_object ( const char * key ) = 0;
 	virtual void save_object ( Obj3& obj ) = 0;
@@ -21,6 +22,4 @@ public:
 
 	//Methods to prevent duplication of singleton
         //intentionally deleted
-        DBAdmin ( DBAdmin const& ) = delete;
-        void operator = ( DBAdmin const& ) = delete;
 };

@@ -47,4 +47,4 @@ public:
 
 	//Blocking call until the transaction stack is empty
 	void wait ();
-}
+};

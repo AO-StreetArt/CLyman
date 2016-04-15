@@ -1,6 +1,6 @@
 #include "couchbase_admin.h"
 
-CouchbaseAdmin::initialize (const char * conn)
+void CouchbaseAdmin::initialize (const char * conn)
 {
 	//Initializing
         printf("DB: Couchbase Admin Initializing");
@@ -52,8 +52,9 @@ CouchbaseAdmin::~CouchbaseAdmin ()
 Obj3 CouchbaseAdmin::load_object ( const char * key )
 {
 	printf("DB: Object being loaded with key:");
-	printf(key);
+	printf("%s", key);
 	//Initialize the variables
+	lcb_error_t err;
 	lcb_get_cmd_t gcmd;
 	const lcb_get_cmd_t *gcmdlist = &gcmd;
 	gcmd.v.v0.key = key;
@@ -73,15 +74,16 @@ Obj3 CouchbaseAdmin::load_object ( const char * key )
 void CouchbaseAdmin::save_object ( Obj3& obj )
 {
 	lcb_store_cmd_t scmd;
+	lcb_error_t err;
         const lcb_store_cmd_t *scmdlist = &scmd;
-        std::string key = obj.get_key()
+        std::string key = obj.get_key();
         scmd.v.v0.key = key.c_str();
         scmd.v.v0.nkey = key.length();
         const char * object_string = obj.to_json();
         scmd.v.v0.bytes = object_string;
         scmd.v.v0.nbytes = strlen(object_string);
         scmd.v.v0.operation = LCB_REPLACE;
-        err = lcb_store(instance, NULL, 1, &scmdlist);
+        err = lcb_store(private_instance, NULL, 1, &scmdlist);
         if (err != LCB_SUCCESS) {
                 printf("Couldn't schedule storage operation!\n");
                 exit(1);
@@ -90,30 +92,32 @@ void CouchbaseAdmin::save_object ( Obj3& obj )
 
 void CouchbaseAdmin::create_object ( Obj3& obj )
 {
+	lcb_error_t err;
 	lcb_store_cmd_t scmd;
 	const lcb_store_cmd_t *scmdlist = &scmd;
-	std::string key = obj.get_key()
+	std::string key = obj.get_key();
 	scmd.v.v0.key = key.c_str();
 	scmd.v.v0.nkey = key.length();
 	const char * object_string = obj.to_json();
 	scmd.v.v0.bytes = object_string;
 	scmd.v.v0.nbytes = strlen(object_string);
 	scmd.v.v0.operation = LCB_SET;
-	err = lcb_store(instance, NULL, 1, &scmdlist);
+	err = lcb_store(private_instance, NULL, 1, &scmdlist);
 	if (err != LCB_SUCCESS) {
 		printf("Couldn't schedule storage operation!\n");
 		exit(1);
 	}
 }
 
-void CouchbaseAdmin::delete_object ( const char * key )
+void CouchbaseAdmin::delete_object ( const char * key ) {
+	lcb_error_t err;
 	lcb_remove_cmd_t cmd;
 	const lcb_remove_cmd_t *cmdlist = &cmd;
 	cmd.v.v0.key = key;
 	cmd.v.v0.nkey = strlen(key);
-	err = lcb_remove(instance, NULL, 1, &cmdlist);
+	err = lcb_remove(private_instance, NULL, 1, &cmdlist);
 	if (err != LCB_SUCCESS) {
-		printf("Couldn't schedule remove operation: %s\n", lcb_strerror(instance, err));
+		printf("Couldn't schedule remove operation: %s\n", lcb_strerror(private_instance, err));
 	} 
 }
 

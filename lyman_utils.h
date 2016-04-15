@@ -11,6 +11,7 @@
 #include <string>
 #include <strings.h>
 #include <stdint.h>
+#include <stdio.h>
 
 //Convert a zmq message to std::string
 std::string hexDump( zmq::message_t & aMessage ) {
@@ -31,7 +32,7 @@ std::string hexDump( zmq::message_t & aMessage ) {
     // run through the valid data in the buffer
     for (const char *p = buff; p <= end; ++p) {
       // generate the hex code for the byte and add it
-      snprintf(hex, 3, "%02x", (uint8_t)(*p));
+      printf(hex, 3, "%02x", (uint8_t)(*p));
       msg.append(hex).append(" ");
       // if it's printable, add it to the ascii part, otherwise, put a '.'
       if (isprint(*p)) {

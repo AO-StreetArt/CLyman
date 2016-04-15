@@ -49,9 +49,13 @@ g++ -o event_test event_dispatcher.o event_dispatcher_test.o
 
 Now, we get to build the main test app:
 
-g++ -c -I /usr/local/lib -I /usr/local/include -llog4cpp -lpthread -lzmq -o main_class_test.o main_class_test.cpp
+g++ -c -llog4cpp -lpthread -lzmq -o main_class_test.o main_class_test.cpp
 
-g++ -o main_test -I /usr/local/lib -I usr/local/include -llog4cpp -lpthread -lzmq event_dispatcher.o main_class_test.o
+g++ -o main_test event_dispatcher.o main_class_test.o -llog4cpp -lpthread -lzmq
+
+And the test client:
+
+g++ test_client.cpp -o test_client -lzmq
 
 We then build the couchbase admin:
 

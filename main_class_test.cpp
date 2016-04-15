@@ -81,7 +81,8 @@ while (true) {
         //Convert the 0MQ message into a string to be passed on the event
         std::string req_string;
         req_string = hexDump (request);
-	req_string.erase(0,58);
+	req_string.erase(0,46);
+	
         const char * req_ptr = req_string.c_str();
 	log.debug("Conversion to C String performed with result: %s", req_ptr);
         
