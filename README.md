@@ -70,3 +70,7 @@ g++ -I /usr/local/lib -c -lzmq -o zmq_client.o zmq_client.cpp
 We can build the couchbase tests:
 
 g++ -c -o couchbase_test.o -lcouchbase couchbase_test.cpp -std=c++11
+
+And the couchbase test app:
+
+g++ -o cb_test event_dispatcher.o couchbase_admin.o couchbase_test.o obj3.o -lcouchbase -std=c++11
