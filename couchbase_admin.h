@@ -29,9 +29,9 @@ public:
 	~CouchbaseAdmin ();
 
 	//Object CRUD Operations
-	Obj3 load_object ( const char * key );
-	void save_object ( Obj3& obj );
-	void create_object ( Obj3& obj );
+	void load_object ( const char * key );
+	void save_object ( Obj3 const *obj );
+	void create_object ( Obj3 const *obj );
 	void delete_object ( const char * key );
 
 	//Get the instance, needed for binding callbacks

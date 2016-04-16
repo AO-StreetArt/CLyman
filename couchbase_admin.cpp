@@ -49,10 +49,10 @@ CouchbaseAdmin::~CouchbaseAdmin ()
 	lcb_destroy(private_instance);
 }
 
-Obj3 CouchbaseAdmin::load_object ( const char * key )
+void CouchbaseAdmin::load_object ( const char * key )
 {
 	printf("DB: Object being loaded with key:");
-	printf("%s", key);
+	printf(key);
 	//Initialize the variables
 	lcb_error_t err;
 	lcb_get_cmd_t gcmd;
@@ -66,20 +66,17 @@ Obj3 CouchbaseAdmin::load_object ( const char * key )
 		printf("DB: Couldn't schedule get operation!");
 		exit(1);
 	}
-
-	//This is a non-blocking call, wait can be called to wait until
-	//the transaction stack is clear
 }
 
-void CouchbaseAdmin::save_object ( Obj3& obj )
+void CouchbaseAdmin::save_object ( Obj3 const *obj )
 {
 	lcb_store_cmd_t scmd;
 	lcb_error_t err;
         const lcb_store_cmd_t *scmdlist = &scmd;
-        std::string key = obj.get_key();
+        std::string key = obj->get_key();
         scmd.v.v0.key = key.c_str();
         scmd.v.v0.nkey = key.length();
-        const char * object_string = obj.to_json();
+        const char * object_string = obj->to_json();
         scmd.v.v0.bytes = object_string;
         scmd.v.v0.nbytes = strlen(object_string);
         scmd.v.v0.operation = LCB_REPLACE;
@@ -90,15 +87,16 @@ void CouchbaseAdmin::save_object ( Obj3& obj )
         }	
 }
 
-void CouchbaseAdmin::create_object ( Obj3& obj )
+void CouchbaseAdmin::create_object ( Obj3 const *obj )
 {
+	printf("Create Object Called\n");
 	lcb_error_t err;
 	lcb_store_cmd_t scmd;
 	const lcb_store_cmd_t *scmdlist = &scmd;
-	std::string key = obj.get_key();
+	std::string key = obj->get_key();
 	scmd.v.v0.key = key.c_str();
 	scmd.v.v0.nkey = key.length();
-	const char * object_string = obj.to_json();
+	const char * object_string = obj->to_json();
 	scmd.v.v0.bytes = object_string;
 	scmd.v.v0.nbytes = strlen(object_string);
 	scmd.v.v0.operation = LCB_SET;
@@ -130,4 +128,5 @@ void CouchbaseAdmin::wait ()
 {
 	printf("DB: Clear Function Stack Called");
 	lcb_wait(private_instance);
+	printf("Done waiting");
 }

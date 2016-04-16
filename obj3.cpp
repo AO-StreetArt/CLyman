@@ -318,7 +318,7 @@ void Obj3::apply_transforms()
 	initialize_buffers();
 }
 
-const char* Obj3::to_json()
+const char* Obj3::to_json() const
 {
 	//Initialize the string buffer and writer
 	StringBuffer s;
