@@ -7,9 +7,9 @@
 //completion of the asynchronous threads
 
 #include "db_admin.h"
-#include <iostream>
 #include <string>
-#include <stdio.h>
+#include <stdlib.h>
+#include "logging.h"
 
 extern "C"
 {

@@ -16,6 +16,8 @@
 #include <iostream>
 #include <vector>
 
+#include "logging.h"
+
 class Obj3
 {
 	private:

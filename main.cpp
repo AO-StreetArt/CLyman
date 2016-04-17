@@ -10,34 +10,30 @@
 #include "FastDelegate.h"
 #include "lyman_utils.h"
 
-#include "log4cpp/Category.hh"
-#include "log4cpp/Appender.hh"
-#include "log4cpp/FileAppender.hh"
-#include "log4cpp/OstreamAppender.hh"
-#include "log4cpp/Layout.hh"
-#include "log4cpp/BasicLayout.hh"
-#include "log4cpp/Priority.hh"
-
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
+#include "logging.h"
+
+#include <fstream>
+
 //Events
 
 void create_object(const char *str) {
-	std::cout << "Create object called with string: " << str << std::endl;
+	logging->info("Create object called with string: ");
 }
 
 void update_object(const char *str) {
-	std::cout << "Update object called with string: " << str << std::endl;
+	logging->info("Update object called with string: ");
 }
 
 void get_object(const char *str) {
-	std::cout << "Get object called with string: " << str << std::endl;
+	logging->info("Get object called with string: ");
 }
 
 void delete_object(const char *str) {
-	std::cout << "Delete object called with string: " << str << std::endl;
+	logging->info("Delete object called with string: ");
 }
 
 //Main Method
@@ -46,12 +42,55 @@ int main()
 {
 
 //Set up logging
-log4cpp::Appender *appender = new log4cpp::FileAppender("default", "program.log");
-appender->setLayout(new log4cpp::BasicLayout());
+//This reads the logging configuration file
+init_log();
 
-log4cpp::Category& log = log4cpp::Category::getRoot();
-log.setPriority(log4cpp::Priority::DEBUG);
-log.addAppender(appender);
+//Read the application configuration file
+
+//Declare Variables to store the values from the file
+std::string DB_ConnStr;
+bool DB_AuthActive;
+std::string DB_Pswd;
+std::string 0MQ_OBConnStr;
+std::string 0MQ_IBConnStr;
+
+//Open the file
+log->info("Opening lyman.properties");
+std::string line;
+ifstream file ("lyman.properties");
+
+if (file.is_open()) {
+	while (getline (file, line) ) {
+		//Read a line from the property file
+		log->debug("Line read from configuration file:");
+		log->debug(line);
+		int eq_pos = line.find("=", 0);
+		std::string var_name = line.substr(0, eq_pos);
+		std::string var_value = line.substr(eq_pos, line.length() - eq_pos);
+		log->debug(var_name);
+		log->debug(var_value);
+		if (var_name=="DB_ConnectionString") {
+			DB_ConnStr=var_value;
+		}
+		else if (var_name=="DB_AuthenticationActive") {
+			if (var_value=="True") {
+				DB_AuthActive=true;
+			}
+			else {
+				DB_AuthActive=false;
+			}
+		}
+		else if (var_name=="DB_Password") {
+			DB_Pswd=var_value;
+		}
+		else if (var_name=="0MQ_OutboundConnectionString") {
+			0MQ_OBConnStr = var_value;
+		}
+		else if (var_name=="0MQ_InboundConnectionString") {
+			0MQ_IBConnStr = var_value;
+		}
+	file.close();
+}
 
 //Set up internal variables
 int current_event_type;
@@ -59,38 +98,38 @@ int msg_type;
 rapidjson::Document d;
 rapidjson::Value& s;
 char resp[8]={'n','i','l','r','e','s','p','\0'};
-log.info("Internal Variables Intialized");
+logging->info("Internal Variables Intialized");
 
 //Set up the Event Dispatcher
 ObjectDelegate dispatch[12];
-log.info("Event Dispatcher Intialized");
+logging->info("Event Dispatcher Intialized");
 
 //Bind the local functions
 dispatch[OBJ_CRT].bind(&create_object);
 dispatch[OBJ_UPD].bind(&update_object);
 dispatch[OBJ_GET].bind(&get_object);
 dispatch[OBJ_DEL].bind(&delete_object);
-log.info("Local Event Functions bound");
+logging->info("Local Event Functions bound");
 
 //Connect to the ZMQ Socket
 zmq::context_t context(1);
 zmq::socket_t socket(context, ZMQ_REP);
 socket.bind("tcp://*:5555");
-log.info("ZMQ Socket Open, opening request loop");
+logging->info("ZMQ Socket Open, opening request loop");
 
 while (true) {
         zmq::message_t request;
 
         //  Wait for next request from client
         socket.recv (&request);
-	log.info("Request Recieved");
+	logging->info("Request Recieved");
 
         //Convert the 0MQ message into a string to be passed on the event
         std::string req_string;
         req_string = hexDump (request);
 	req_string.erase(0,58);
         const char * req_ptr = req_string.c_str();
-	log.debug("Conversion to C String performed with result: %s", req_ptr);
+	logging->debug("Conversion to C String performed with result: %s", req_ptr);
         
 	//Process the message header and set current_event_type
 
@@ -100,23 +139,23 @@ while (true) {
 
         if (msg_type == OBJ_UPD) {
                 current_event_type=OBJ_UPD;
-		log.debug("Current Event Type set to Object Update");
+		logging->debug("Current Event Type set to Object Update");
         }
         else if (msg_type == OBJ_CRT) {
                 current_event_type=OBJ_CRT;
-		log.debug("Current Event Type set to Object Create");
+		logging->debug("Current Event Type set to Object Create");
         }
         else if (msg_type == OBJ_GET) {
                 current_event_type=OBJ_GET;
-		log.debug("Current Event Type set to Object Get");
+		logging->debug("Current Event Type set to Object Get");
         }
 	else if (msg_type == OBJ_DEL) {
                 current_event_type=OBJ_DEL;
-		log.debug("Current Event Type set to Object Delete");
+		logging->debug("Current Event Type set to Object Delete");
         }
         else {
                 current_event_type=-1;
-		log.error("Current Event Type not found");
+		logging->error("Current Event Type not found");
         }
 
 
@@ -130,7 +169,7 @@ while (true) {
 		resp[4]='e';
 		resp[5]='s';
 		resp[6]='s';
-		log.debug("Object Update Event Emitted, response: %s", resp);
+		logging->debug("Object Update Event Emitted, response: %s", resp);
         }
         else if (current_event_type==OBJ_CRT) {
                 dispatch[OBJ_CRT]( req_ptr );
@@ -141,7 +180,7 @@ while (true) {
                 resp[4]='e';
                 resp[5]='s';
                 resp[6]='s';
-		log.debug("Object Create Event Emitted, response: %s", resp);
+		logging->debug("Object Create Event Emitted, response: %s", resp);
         }
 	else if (current_event_type==OBJ_GET) {
                 dispatch[OBJ_GET]( req_ptr );
@@ -152,7 +191,7 @@ while (true) {
                 resp[4]='e';
                 resp[5]='s';
                 resp[6]='s';
-		log.debug("Object Get Event Emitted, response: %s", resp);
+		logging->debug("Object Get Event Emitted, response: %s", resp);
         }
         else if (current_event_type==OBJ_DEL) {
                 dispatch[OBJ_DEL]( req_ptr );
@@ -163,7 +202,7 @@ while (true) {
                 resp[4]='e';
                 resp[5]='s';
                 resp[6]='s';
-		log.debug("Object Delete Event Emitted, response: %s", resp);
+		logging->debug("Object Delete Event Emitted, response: %s", resp);
         }
         else
         {
@@ -174,7 +213,7 @@ while (true) {
                 resp[4]='u';
                 resp[5]='r';
                 resp[6]='e';
-		log.error("Object Event not Emitted, response: %s", resp);
+		logging->error("Object Event not Emitted, response: %s", resp);
         }
 
         //  Send reply back to client
@@ -185,8 +224,9 @@ while (true) {
 
 	//Send the response
         socket.send (reply);
-	log.debug("Response Sent");
+	logging->debug("Response Sent");
         }
+end_log();
 return 0;
 }
 

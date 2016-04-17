@@ -3,7 +3,7 @@
 void CouchbaseAdmin::initialize (const char * conn)
 {
 	//Initializing
-        printf("DB: Couchbase Admin Initializing");
+        logging->info("CB_Admin:DB: Couchbase Admin Initializing");
         struct lcb_create_st cropts;
         cropts.version = 3; 
         cropts.v.v3.connstr = conn;
@@ -18,7 +18,7 @@ void CouchbaseAdmin::initialize (const char * conn)
         private_instance=instance;
         err = lcb_create(&private_instance, &cropts);
         if (err != LCB_SUCCESS) {
-                printf("DB: Couldn't create instance!");
+                logging->error("CB_Admin:DB: Couldn't create instance!");
                 exit(1);
         }
 
@@ -26,7 +26,7 @@ void CouchbaseAdmin::initialize (const char * conn)
         lcb_connect(private_instance);
         lcb_wait(private_instance);
         if ( (err = lcb_get_bootstrap_status(private_instance)) != LCB_SUCCESS ) {
-                printf("DB: Couldn't bootstrap!");
+                logging->error("CB_Admin:DB: Couldn't bootstrap!");
                 exit(1);
         }
 }
@@ -51,8 +51,8 @@ CouchbaseAdmin::~CouchbaseAdmin ()
 
 void CouchbaseAdmin::load_object ( const char * key )
 {
-	printf("DB: Object being loaded with key:");
-	printf(key);
+	logging->info("CB_Admin:DB: Object being loaded with key:");
+	logging->info(key);
 	//Initialize the variables
 	lcb_error_t err;
 	lcb_get_cmd_t gcmd;
@@ -63,13 +63,14 @@ void CouchbaseAdmin::load_object ( const char * key )
 	//Schedule a Get operation
 	err = lcb_get(private_instance, NULL, 1, &gcmdlist);
 	if (err != LCB_SUCCESS) {
-		printf("DB: Couldn't schedule get operation!");
+		logging->error("CB_Admin:DB: Couldn't schedule get operation!");
 		exit(1);
 	}
 }
 
 void CouchbaseAdmin::save_object ( Obj3 const *obj )
 {
+	logging->info("CB_Admin:DB: Object being saved");
 	lcb_store_cmd_t scmd;
 	lcb_error_t err;
         const lcb_store_cmd_t *scmdlist = &scmd;
@@ -82,14 +83,14 @@ void CouchbaseAdmin::save_object ( Obj3 const *obj )
         scmd.v.v0.operation = LCB_REPLACE;
         err = lcb_store(private_instance, NULL, 1, &scmdlist);
         if (err != LCB_SUCCESS) {
-                printf("Couldn't schedule storage operation!\n");
+                logging->error("CB_Admin:Couldn't schedule storage operation!");
                 exit(1);
         }	
 }
 
 void CouchbaseAdmin::create_object ( Obj3 const *obj )
 {
-	printf("Create Object Called\n");
+	logging->info("CB_Admin:Create Object Called");
 	lcb_error_t err;
 	lcb_store_cmd_t scmd;
 	const lcb_store_cmd_t *scmdlist = &scmd;
@@ -102,12 +103,14 @@ void CouchbaseAdmin::create_object ( Obj3 const *obj )
 	scmd.v.v0.operation = LCB_SET;
 	err = lcb_store(private_instance, NULL, 1, &scmdlist);
 	if (err != LCB_SUCCESS) {
-		printf("Couldn't schedule storage operation!\n");
+		logging->error("CB_Admin:Couldn't schedule storage operation!");
 		exit(1);
 	}
 }
 
 void CouchbaseAdmin::delete_object ( const char * key ) {
+	logging->info("CB_Admin:Delete Object Called with key: ")
+	logging->info(key);
 	lcb_error_t err;
 	lcb_remove_cmd_t cmd;
 	const lcb_remove_cmd_t *cmdlist = &cmd;
@@ -115,7 +118,8 @@ void CouchbaseAdmin::delete_object ( const char * key ) {
 	cmd.v.v0.nkey = strlen(key);
 	err = lcb_remove(private_instance, NULL, 1, &cmdlist);
 	if (err != LCB_SUCCESS) {
-		printf("Couldn't schedule remove operation: %s\n", lcb_strerror(private_instance, err));
+		logging->error("CB_Admin:Couldn't schedule remove operation: ");
+		logging->error( lcb_strerror(private_instance, err));
 	} 
 }
 
@@ -126,7 +130,7 @@ lcb_t CouchbaseAdmin::get_instance ()
 
 void CouchbaseAdmin::wait ()
 {
-	printf("DB: Clear Function Stack Called");
+	logging->info("CB_Admin:DB: Clear Function Stack Called");
 	lcb_wait(private_instance);
-	printf("Done waiting");
+	logging->info("CB_Admin:Done waiting");
 }

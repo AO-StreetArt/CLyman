@@ -1,4 +1,7 @@
 #include <zmq.hpp>
+#include "logging.h"
+#include <string.h>
+#include "lyman_utils.h"
 
 class ZMQClient
 {

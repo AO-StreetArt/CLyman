@@ -12,6 +12,7 @@ using namespace rapidjson;
 
 bool Obj3::transform_object(Matrix4f trans_matrix)
 {
+	logging->info("Obj3:Transform Object Called with Matrix4f");
 	Matrix4f result_matrix;
 	result_matrix = trans_matrix * transform_buffer;
 	transform_buffer = result_matrix;
@@ -20,6 +21,7 @@ bool Obj3::transform_object(Matrix4f trans_matrix)
 
 bool Obj3::transform_object(float trans_matrix[])
 {
+	logging->info("Obj3:Transform Object called with float[]");
 	Matrix4f tran_matrix;
 	int i, j;
 	for (i=0;i<4;i=i+1)
@@ -38,6 +40,7 @@ bool Obj3::transform_object(float trans_matrix[])
 
 void Obj3::translate_object(float x, float y, float z, std::string locality)
 {
+	logging->info("Obj3:Translate Object called");
 	//Variable Declarations
 	Matrix4f tran_matrix;
 	Matrix4f result_matrix;
@@ -80,6 +83,7 @@ void Obj3::translate_object(float x, float y, float z, std::string locality)
 
 void Obj3::rotateq_object(float x, float y, float z, float theta, std::string locality)
 {
+logging->info("Obj3:RotateQ Object Called");
 Matrix4f tran_matrix;
 Matrix4f result_matrix;
 
@@ -132,6 +136,7 @@ rotationq_buffer = result;
 
 void Obj3::rotatee_object(float x, float y, float z, std::string locality)
 {
+logging->info("Obj3:RotateE Object Called");
 //Variable Declarations
 Matrix4f xtran_matrix;
 Matrix4f ytran_matrix;
@@ -191,6 +196,7 @@ rotatione_buffer(2) = r_z;
 
 void Obj3::scale_object(float x, float y, float z)
 {
+	logging->info("Obj3:Scale Object Called");
 	//Variable Declarations
         Matrix4f tran_matrix;
         Matrix4f result_matrix;
@@ -221,6 +227,7 @@ void Obj3::scale_object(float x, float y, float z)
 
 void Obj3::initialize_buffers()
 {
+	logging->info("Obj3:Initialize Buffers Called");
 	transform_buffer = Matrix4f::Zero(4, 4);
 	transform_buffer(0, 0) = 1.0;
         transform_buffer(1, 1) = 1.0;
@@ -236,6 +243,7 @@ void Obj3::initialize_buffers()
 
 void Obj3::initialize_matrices()
 {
+	logging->info("Obj3:Intialize Matrices Called");
 	//Set initial values with function calls
 	bounding_box = MatrixXf::Zero(4, 8);
 	scale = Vector3f::Constant(3, 1.0);
@@ -271,6 +279,7 @@ void Obj3::initialize_matrices()
 
 void Obj3::apply_transforms()
 {
+	logging->info("Obj3:Apply Transforms Called");
 	//Update the transformation matrix
 	Matrix4f result;
 	result = transform_buffer * transform_matrix;
@@ -320,6 +329,7 @@ void Obj3::apply_transforms()
 
 const char* Obj3::to_json() const
 {
+	logging->info("Obj3:To JSON Called");
 	//Initialize the string buffer and writer
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);

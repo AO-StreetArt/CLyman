@@ -6,6 +6,8 @@ ZMQClient::ZMQClient (std::string conn)
 	zmq::context_t context (1);
 	zmq::socket_t socket (context, ZMQ_REQ);
 	internal_socket=&socket;
+	internal_socket.connect (conn);
+	logging->info("ZMQ:Outbound ZMQ Socket Bound");
 }
 
 void ZMQClient::send_msg (const char * msg)
@@ -25,5 +27,11 @@ void ZMQClient::send_msg (const char * msg)
 	zmq::message_t reply;
 	internal_socket->recv (&reply);
 
-	//TO-DO: Process the reply
+	//Process the reply
+	std::string r_str = hexDump(&reply);
+
+	logging->info("ZMQ:Message Sent:")
+	logging->info(msg);
+	logging->info("ZMQ:Response Recieved:");
+	logging->info(r_str);
 }
