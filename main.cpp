@@ -18,7 +18,38 @@
 
 #include <fstream>
 
-//Events
+#include "couchbase_admin.h"
+#include "zmq_client.h"
+
+//TO-DO:Couchbase Callbacks
+static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
+   lcb_error_t err, const lcb_store_resp_t *resp)
+{
+	if (err == LCB_SUCCESS) { 
+		logging->info("Stored:");
+		logging->info( (char*)resp->v.v0.key );
+	}
+	else {
+		logging->error("Couldn't store item:"); 
+		logging->error(lcb_strerror(instance, err));
+	}
+}
+
+static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
+   const lcb_get_resp_t *resp)
+{
+	if (err == LCB_SUCCESS) {
+		logging->info("Retrieved: ");
+		logging->info( (char*)resp->v.v0.key );
+		logging->info( (char*)resp->v.v0.bytes );
+	}
+	else {
+		logging->error("Couldn't retrieve item:");
+        	logging->error(lcb_strerror(instance, err));
+	}
+}
+
+//TO-DO:Event Callbacks
 
 void create_object(const char *str) {
 	logging->info("Create object called with string: ");
@@ -100,6 +131,14 @@ rapidjson::Value& s;
 char resp[8]={'n','i','l','r','e','s','p','\0'};
 logging->info("Internal Variables Intialized");
 
+//Set up the Couchbase Connection
+CouchbaseAdmin cb ( DB_ConnStr );
+logging->info("Connected to Couchbase DB");
+
+//Bind Couchbase Callbacks
+lcb_set_store_callback(cb.get_instance(), storage_callback);
+lcb_set_get_callback(cb.get_instance(), get_callback);
+
 //Set up the Event Dispatcher
 ObjectDelegate dispatch[12];
 logging->info("Event Dispatcher Intialized");
@@ -111,10 +150,16 @@ dispatch[OBJ_GET].bind(&get_object);
 dispatch[OBJ_DEL].bind(&delete_object);
 logging->info("Local Event Functions bound");
 
-//Connect to the ZMQ Socket
+//Set up the outbound ZMQ Client
+//By setting it up this way, we ensure that we can
+//call it from within the callbacks
+init_zmqo (0MQ_OBConnStr);
+logging->info("Connected to Outbound 0MQ Socket");
+
+//Connect to the inbound ZMQ Socket
 zmq::context_t context(1);
 zmq::socket_t socket(context, ZMQ_REP);
-socket.bind("tcp://*:5555");
+socket.bind(0MQ_IBConnStr);
 logging->info("ZMQ Socket Open, opening request loop");
 
 while (true) {
