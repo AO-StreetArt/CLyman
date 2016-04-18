@@ -13,6 +13,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifndef LYMAN_UTILS
+#define LYMAN_UTILS
+
 //Convert a zmq message to std::string
 std::string hexDump( zmq::message_t & aMessage ) {
   // I'm going to build a hex/ascii dump like you've seen so many times before
@@ -100,4 +103,4 @@ inline uint64 GetTimeMs64()
 #endif
 }
 
-
+#endif
