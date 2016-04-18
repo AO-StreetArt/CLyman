@@ -18,6 +18,8 @@ For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourcefor
 
 You will need Couchbase drivers installed.  Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)
 
+While a running instance of Couchbase is not necessary to build the application, it is advised for testing purposes (if you have no instance to connect to, whether locally or otherwise, you can't run this service).
+
 ## Compilation Steps
 
 Note: These steps assume that all header dependencies have been moved to the user's include path manually.  Otherwise, please be sure to include the correct libraries with -I.
