@@ -5,11 +5,6 @@
 #ifndef EVENT_DISPATCHER_H
 #define EVENT_DISPATCHER_H
 
-#include <string>
-
-#include "FastDelegate.h"
-#include "rapidjson/document.h"
-
 //This defines a set of universal event types
 //Another file can retrieve these with the following
 //added at the top of the file:
@@ -22,21 +17,5 @@ extern const int OBJ_CRT;
 extern const int OBJ_GET;
 extern const int OBJ_DEL;
 extern const int OBJ_PUSH;
-
-/*Typedef to be utilized for the Object Delegate*/
-typedef fastdelegate::FastDelegate1<const char *> ObjectDelegate;
-typedef fastdelegate::FastDelegate1<rapidjson::Document> DocumentDelegate;
-
-//Define the global event dispatcher to be utilized
-extern DocumentDelegate doc_dispatch[12];
-
-//We can create an event dispatcher like this:
-//fastdelegate::FastDelegate1<Obj3> signal[12];
-
-//We can bind a function to an event with the below syntax:
-//signal[event_type_int].bind(func_pointer);
-
-//We can emit an event with the below syntax:
-//signal[event_type_int](*obj);
 
 #endif

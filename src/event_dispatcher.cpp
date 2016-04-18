@@ -7,6 +7,3 @@ const int OBJ_CRT = 1;
 const int OBJ_GET = 2;
 const int OBJ_DEL = 3;
 const int OBJ_PUSH = 4;
-
-//Event Dispatcher Declaration
-DocumentDelegate doc_dispatch[12];

@@ -109,7 +109,7 @@ void CouchbaseAdmin::create_object ( Obj3 const *obj )
 }
 
 void CouchbaseAdmin::delete_object ( const char * key ) {
-	logging->info("CB_Admin:Delete Object Called with key: ")
+	logging->info("CB_Admin:Delete Object Called with key: ");
 	logging->info(key);
 	lcb_error_t err;
 	lcb_remove_cmd_t cmd;
