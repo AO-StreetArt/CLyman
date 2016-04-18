@@ -1,6 +1,6 @@
 # Project CLyman
 
-This is a C++ microservice which synchronizes high-level object attributes across many user devices.
+This is a C++ microservice which synchronizes high-level 3-D object attributes across many user devices.  The goal is to synchronize the position, rotation, and scale of virtual objects projected into a real space, across many different user devices.
 
 This project is currently under heavy development.  Functionality & API are subject to change.
 
@@ -9,8 +9,6 @@ This project is currently under heavy development.  Functionality & API are subj
 ## Dependency Resolution
 
 This service depends on Eigen, a C++ Linear Algebra library.  This can be downloaded from the [Eigen] (http://eigen.tuxfamily.org/index.php?title=Main_Page) site.  Getting it into your include path can be accomplished on Linux/OSX by moving the Eigen folder into the /usr/local/include directory, or by manually linking with -I.
-
-You will also need the FastDelegates code from [here] (http://www.codeproject.com/KB/cpp/FastDelegate/FastDelegate_src.zip).  You can include the two files in the /usr/local/include directory on Linux, or manually link with -I.
 
 Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:get-the-software). Be sure to get the C++ Drivers in addition to the software.
 
@@ -30,15 +28,15 @@ Note: The Tests listed currently fails as the logging module is not initalized.
 
 We start by compiling the logging module:
 
-g++ -c -llog4cpp -o logging.o logging.cpp
+g++ -c -llog4cpp -o logging.o logging.cpp -std=c++11
 
 Then, compile the object class:
 
-g++ -c -o obj3.o obj3.cpp
+g++ -c -o obj3.o obj3.cpp -std=c++11
 
 Now, we build the event_dispatcher:
 
-g++ -c -o event_dispatcher.o event_dispatcher.cpp
+g++ -c -o event_dispatcher.o event_dispatcher.cpp -std=c++11
 
 We then build the couchbase admin:
 
@@ -46,8 +44,19 @@ g++ -c -lcouchbase -o couchbase_admin.o couchbase_admin.cpp -std=c++11
 
 Next step is to build ZMQ Client:
 
-g++ -lzmq -I /usr/local/lib -c -o zmq_client.o zmq_client.cpp
+g++ -lzmq -I /usr/local/lib -c -o zmq_client.o zmq_client.cpp -std=c++11
 
+Now, we need to move all the .o files up into the main directory to link against the main.cpp file.  On Linux, you can use the following:
+
+mv *.o ../
+
+We compile the main object with:
+
+g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp -I /usr/local/lib main.cpp -std=c++11
+
+Finally, we compile the main app with:
+
+g++ -o lyman -lzmq -lcouchbase -lpthread -log4cpp -I /usr/local/lib logging.o event_dispatcher.o obj3.o zmq_client.o couchbase_admin.o main.o -std=c++11
 
 ### Tests
 
