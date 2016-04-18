@@ -44,19 +44,15 @@ g++ -c -lcouchbase -o couchbase_admin.o couchbase_admin.cpp -std=c++11
 
 Next step is to build ZMQ Client:
 
-g++ -lzmq -I /usr/local/lib -c -o zmq_client.o zmq_client.cpp -std=c++11
-
-Now, we need to move all the .o files up into the main directory to link against the main.cpp file.  On Linux, you can use the following:
-
-mv *.o ../
+g++ -lzmq -c -o zmq_client.o zmq_client.cpp -std=c++11
 
 We compile the main object with:
 
-g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp -I /usr/local/lib main.cpp -std=c++11
+g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp main.cpp -std=c++11
 
 Finally, we compile the main app with:
 
-g++ -o lyman -lzmq -lcouchbase -lpthread -log4cpp -I /usr/local/lib logging.o event_dispatcher.o obj3.o zmq_client.o couchbase_admin.o main.o -std=c++11
+g++ -o lyman logging.o event_dispatcher.o obj3.o zmq_client.o couchbase_admin.o main.o -std=c++11 -lzmq -lcouchbase -lpthread -llog4cpp
 
 ### Tests
 
