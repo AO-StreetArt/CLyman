@@ -13,6 +13,7 @@
 #include "src/couchbase_admin.h"
 #include "src/list.h"
 #include "src/zmq_client.h"
+#include "src/lyman_utils.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
