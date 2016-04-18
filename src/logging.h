@@ -8,7 +8,6 @@
 
 extern log4cpp::Category *logging;
 
-void init_log();
 void end_log();
 
 #endif

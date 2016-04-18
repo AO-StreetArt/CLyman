@@ -18,54 +18,63 @@ You will also need RapidJSON which can be found [here] (https://github.com/miloy
 
 For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourceforge.net/)
 
-You will need both Redis and Couchbase drivers installed, (once initial development is done, you will be able to choose whether to deploy to one or the other)
-
-Redis drivers can be found [here] (https://github.com/hmartiro/redox)
-
-Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)
+You will need Couchbase drivers installed.  Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)
 
 ## Compilation Steps
 
 Note: These steps assume that all header dependencies have been moved to the user's include path manually.  Otherwise, please be sure to include the correct libraries with -I.
 
-First, compile the object class:
-g++ -c -o obj3.o obj3.cpp 
+Note: The Tests listed currently fails as the logging module is not initalized.
 
-We can compile the Object tests here (note that this step is optional):
-g++ -c -o obj3_test.o obj3_test.cpp
+### Main App
 
-Here we can build the test app (again, optional):
-g++ -o obj_test obj3.o obj3_test.o
+We start by compiling the logging module:
+
+g++ -c -llog4cpp -o logging.o logging.cpp
+
+Then, compile the object class:
+
+g++ -c -o obj3.o obj3.cpp
 
 Now, we build the event_dispatcher:
+
 g++ -c -o event_dispatcher.o event_dispatcher.cpp
-
-(Again, optional) Build the event dispatcher tests:
-g++ -c -o event_dispatcher_test.o event_dispatcher_test.cpp
-
-(Also optional) build the event test app
-g++ -o event_test event_dispatcher.o event_dispatcher_test.o
-
-
-Now, we get to build the main test app:
-
-g++ -c -llog4cpp -lpthread -lzmq -o main_class_test.o main_class_test.cpp
-
-g++ -o main_test event_dispatcher.o main_class_test.o -llog4cpp -lpthread -lzmq
-
-And the test client:
-
-g++ test_client.cpp -o test_client -lzmq
 
 We then build the couchbase admin:
 
 g++ -c -lcouchbase -o couchbase_admin.o couchbase_admin.cpp -std=c++11
 
-
 Next step is to build ZMQ Client:
 
-g++ -I /usr/local/lib -c -lzmq -o zmq_client.o zmq_client.cpp
+g++ -lzmq -I /usr/local/lib -c -o zmq_client.o zmq_client.cpp
 
+
+### Tests
+
+We can compile the Object tests here:
+g++ -c -o obj3_test.o obj3_test.cpp
+
+Here we can build the test app:
+
+g++ -lpthread -llog4cpp -o obj_test logging.o obj3.o obj3_test.o
+
+Build the event dispatcher tests:
+
+g++ -c -o event_dispatcher_test.o event_dispatcher_test.cpp
+
+build the event test app
+
+g++ -o event_test event_dispatcher.o event_dispatcher_test.o
+
+Now, we get to build the main test app:
+
+g++ -c -llog4cpp -lpthread -lzmq -I /usr/local/lib -o main_class_test.o main_class_test.cpp
+
+g++ -o main_test event_dispatcher.o main_class_test.o -llog4cpp -lpthread -lzmq
+
+And the test client:
+
+g++ -I /usr/local/lib test_client.cpp -o test_client -lzmq
 
 We can build the couchbase tests:
 
