@@ -148,7 +148,7 @@ if (file.is_open()) {
 		if (keep_going==true) {
 			int eq_pos = line.find("=", 0);
 			std::string var_name = line.substr(0, eq_pos);
-			std::string var_value = line.substr(eq_pos, line.length() - eq_pos);
+			std::string var_value = line.substr(eq_pos+1, line.length() - eq_pos);
 			logging->debug(var_name);
 			logging->debug(var_value);
 			if (var_name=="DB_ConnectionString") {

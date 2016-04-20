@@ -10,7 +10,6 @@
 #include <Eigen/Dense>
 #include "list.h"
 #include "event_dispatcher.h"
-#include "FastDelegate.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include <iostream>

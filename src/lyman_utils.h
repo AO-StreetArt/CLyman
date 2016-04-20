@@ -6,7 +6,6 @@
 #endif
 #include <sstream>
 
-#include "FastDelegate.h"
 #include <zmq.hpp>
 #include <string>
 #include <strings.h>
@@ -17,7 +16,7 @@
 #define LYMAN_UTILS
 
 //Convert a zmq message to std::string
-std::string hexDump( zmq::message_t & aMessage ) {
+inline std::string hexDump( zmq::message_t & aMessage ) {
   // I'm going to build a hex/ascii dump like you've seen so many times before
   std::string  msg;
   std::string  ascii;
