@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <Eigen/Dense>
 
 #include "src/event_dispatcher.h"
 #include "src/obj3.h"
@@ -41,16 +42,78 @@ CouchbaseAdmin *cb;
 //Global Outbound ZMQ Dispatcher
 ZMQClient *zmqo;
 
-//TO-DO:Couchbase Callbacks
+//Is a key present in the smart update buffer?
+//TO-DO: How to compare two character arrays?
+int find_key_in_active_updates(const char * key) {
+  list_length = active_updates->length();
+  int i;
+  Obj3 *temp_obj;
+  for (i = 0; i < list_length; i=i+1) {
+    temp_obj = &(active_updates->get(i));
+    if (temp_obj->get_key == key) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+//Build Obj3 from a Rapidjson Document
+Obj3 build_object(rapidjson::Document& d) {
+    std::string new_name="";
+    std::string new_type="";
+    std::string new_subtype="";
+    std::string new_lock_id="";
+    Eigen::Vector3d new_location;
+    Eigen::Vector3d new_rotation_e;
+    Eigen::Vector4d new_rotation_q;
+    Eigen::Vector3d new_scale;
+    Eigen::Matrix4d new_transform;
+    Eigen::MatrixXd new_bounding_box;
+    if (d.HasMember("name")) {
+      new_name = d["name"];
+    }
+    if (d.HasMember("type")) {
+      new_type = d["type"];
+    }
+    if (d.HasMember("subtype")) {
+      new_subtype = d["subtype"];
+    }
+    if (d.HasMember("lock_device_id")) {
+      new_lock_id = d["lock_device_id"];
+    }
+    if (d.HasMember("location")) {
+      //Read the array values and stuff them into new_location
+    }
+    if (d.HasMember("rotation_euler")) {
+      //Read the array values and stuff them into new_rotation_e
+    }
+    if (d.HasMember("rotation_quaternion")) {
+      //Read the array values and stuff them into new_rotation_q
+    }
+    if (d.HasMember("scale")) {
+      //Read the array values and stuff them into new_scale
+    }
+    if (d.HasMember("transform")) {
+      //Read the array values and stuff them into new_transform
+    }
+    if (d.HasMember("bounding_box")) {
+      //Read the array values and stuff them into new_bounding_box
+    }
+
+    //TO-DO: Build the Obj3 and return it from the populated values
+}
+
+//Couchbase Callbacks
 static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
    lcb_error_t err, const lcb_store_resp_t *resp)
 {
-	if (err == LCB_SUCCESS) { 
+	if (err == LCB_SUCCESS) {
 		logging->info("Stored:");
 		logging->info( (char*)resp->v.v0.key );
+    zmqo->send_msg((char*)resp);
 	}
 	else {
-		logging->error("Couldn't store item:"); 
+		logging->error("Couldn't store item:");
 		logging->error(lcb_strerror(instance, err));
 	}
 }
@@ -59,9 +122,19 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
    const lcb_get_resp_t *resp)
 {
 	if (err == LCB_SUCCESS) {
-		logging->info("Retrieved: ");
+    logging->info("Retrieved: ");
 		logging->info( (char*)resp->v.v0.key );
 		logging->info( (char*)resp->v.v0.bytes );
+    const char *k = resp->v.v0.key;
+    key_index = find_key_in_active_updates(k);
+    if (key_index > -1) {
+      //TO-DO: We need to update the object in the DB, then output the object
+      //On the Outbound ZeroMQ port.
+    }
+    else {
+      //Output the object on the Outbound ZeroMQ port
+      zmqo->send_msg((char*)resp);
+    }
 	}
 	else {
 		logging->error("Couldn't retrieve item:");
@@ -69,21 +142,71 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 	}
 }
 
-//TO-DO: Document Event Callbacks
+//Document Event Callbacks
 void create_objectd(rapidjson::Document& d) {
         logging->info("Create object called with document: ");
+
+        //If we don't have a key in the message, we can't do anything
+        if (d.HasMember("key")) {
+          Obj3 new_obj = build_object (d);
+          Obj3 *obj_ptr = &new_obj;
+          cb->create_object (obj_ptr);
+        }
+        else {
+          logging->error("Message Recieved without key");
+        }
 }
 
 void update_objectd(rapidjson::Document& d) {
         logging->info("Update object called with document: ");
+        if (d.HasMember("key")) {
+          //Update the object in the DB
+          if (SmartUpdatesActive) {
+            //We start by writing the object into the smart update buffer
+            //then, we can issue a get call
+            //upon returning, the get callback should check the smart update buffer
+            //for a matching key.  If it is found, we update the DB Entry.  Else,
+            //We simply output the value retrieved from the DB
+
+            //TO-DO: Check if the object already exists in the smart update buffer.
+            //If so, reject the update.
+            Obj3 smart_obj = build_object (d);
+            active_updates->append(smart_obj);
+            cb->get(d["key"]);
+          }
+          else {
+            //If smart updates are disabled, we can just write the value directly
+            //To the DB
+            Obj3 new_obj = build_object (d);
+            Obj3 *obj_ptr = &new_obj;
+            cb->save_object (obj_ptr);
+          }
+        }
+        else {
+          logging->error("Message Recieved without key");
+        }
 }
 
 void get_objectd(rapidjson::Document& d) {
         logging->info("Get object called with document: ");
+        if (d.HasMember("key")) {
+          //Get the object from the DB
+          cb->load_object( d["key"] );
+        }
+        else {
+          logging->error("Message Recieved without key");
+        }
 }
 
 void delete_objectd(rapidjson::Document& d) {
         logging->info("Delete object called with document: ");
+        if (d.HasMember("key")) {
+          //Delete the object from the DB
+          cb->delete_object( d["key"] );
+        }
+        else {
+          logging->error("Message Recieved without key");
+        }
 }
 
 //Main Method
@@ -95,7 +218,7 @@ int main()
 //This reads the logging configuration file
 std::string initFileName = "log4cpp.properties";
 try {
-        log4cpp::PropertyConfigurator::configure(initFileName);     
+        log4cpp::PropertyConfigurator::configure(initFileName);
 }
 catch ( log4cpp::ConfigureFailure &e ) {
         std::cout << "[log4cpp::ConfigureFailure] caught while reading" << initFileName << std::endl;
@@ -240,7 +363,7 @@ while (true) {
         const char * req_ptr = req_string.c_str();
 	logging->debug("Conversion to C String performed with result: ");
 	logging->debug(req_ptr);
-        
+
 	//Process the message header and set current_event_type
 
 	d.Parse(req_ptr);
@@ -344,4 +467,3 @@ while (true) {
 end_log();
 return 0;
 }
-
