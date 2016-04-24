@@ -48,12 +48,12 @@ ZMQClient *zmqo;
 
 //Is a key present in the smart update buffer?
 int find_key_in_active_updates(const char * key) {
-  list_length = active_updates->length();
+  int list_length = active_updates->length();
   int i;
   Obj3 *temp_obj;
   for (i = 0; i < list_length; i=i+1) {
     temp_obj = &(active_updates->get(i));
-    if (strcomp(temp_obj->get_key(), key) == 0) {
+    if (std::strcomp(temp_obj->get_key(), key) == 0) {
       return i;
     }
   }
@@ -93,17 +93,23 @@ Obj3 build_object(rapidjson::Document& d) {
     new_bounding_box(1, 7) = 1.0;
     new_bounding_box(2, 7) = 1.0;
 
+    rapidjson::Value *val;
+
     if (d.HasMember("name")) {
-      new_name = d["name"];
+      val = &d["name"];
+      new_name = val.GetString();
     }
     if (d.HasMember("type")) {
-      new_type = d["type"];
+      val = &d["type"];
+      new_type = val.GetString();
     }
     if (d.HasMember("subtype")) {
-      new_subtype = d["subtype"];
+      val = &d["subtype"];
+      new_subtype = val.GetString();
     }
     if (d.HasMember("lock_device_id")) {
-      new_lock_id = d["lock_device_id"];
+      val = &d["lock_device_id"];
+      new_lock_id = val.GetString();
     }
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
@@ -366,16 +372,20 @@ void get_objectd(rapidjson::Document& d) {
               temp_obj = &(active_updates->get(key_index));
 
               //Return the object on the outbound ZMQ Port
-              zmqo->send_msg(temp_obj->to_json_msg(2);
+              zmqo->send_msg(temp_obj->to_json_msg(2));
             }
             else {
               //Otherwise, Get the object from the DB
-              cb->load_object( d["key"] );
+              rapidjson::Value *val;
+              val = &d["key"];
+              cb->load_object( val->GetString() );
             }
           }
           else {
             //Otherwise, Get the object from the DB
-            cb->load_object( d["key"] );
+            rapidjson::Value *val;
+            val = &d["key"];
+            cb->load_object( val->GetString() );
           }
         }
         else {
@@ -387,14 +397,16 @@ void delete_objectd(rapidjson::Document& d) {
         logging->info("Delete object called with document: ");
         if (d.HasMember("key")) {
 
+          rapidjson::Value *val;
+          val = &d["key"];
           //Delete the object from the DB
-          cb->delete_object( d["key"] );
+          cb->delete_object( val->GetString() );
 
           //Output a delete message on the outbound ZMQ Port
 
           //Initialize the string buffer and writer
-          StringBuffer s;
-          Writer<StringBuffer> writer(s);
+          rapidjson::StringBuffer s;
+          rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
           writer.StartObject();
 
@@ -402,14 +414,14 @@ void delete_objectd(rapidjson::Document& d) {
           writer.Uint(3);
 
           writer.Key("key");
-          std::string key = d["key"];
-          writer.String( key.c_str(), (SizeType)key.length() );
+          std::string key = val->GetString();
+          writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
 
           writer.EndObject();
 
           //The Stringbuffer now contains a json message
           //of the object
-          zmqo->send_msg(s.GetString());
+          zmqo->send_msg(val->GetString());
 
         }
         else {

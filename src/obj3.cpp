@@ -196,7 +196,7 @@ void Obj3::initialize_matrices()
 	bounding_box = MatrixXd::Zero(4, 8);
 	location = Vector3d::Zero(3);
 	rotation_euler = Vector3d::Zero(3);
-	rotation_quaternion = Vector3d::Zero(4);
+	rotation_quaternion = Vector4d::Zero(4);
 	scaling = Vector3d::Zero(3);
 	transform_matrix = Matrix4d::Zero(4, 4);
 
