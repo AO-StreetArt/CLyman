@@ -30,6 +30,9 @@ class Obj3
 		//Externally Referenceable data
 		//Float Matrix for location
 		Eigen::Vector3d location;
+		Eigen::Vector3d rotation_euler;
+		Eigen::Vector4d rotation_quaternion;
+		Eigen::Vector3d scaling;
 
 		//Transform Matrix
                 Eigen::Matrix4d transform_matrix;
@@ -37,18 +40,7 @@ class Obj3
 		//Bounding Box
                 Eigen::MatrixXd bounding_box;
 
-		//Attributes that should not be referenced
-		//if object is transformed by matrix directly
-		//Float Matrices for rotation, & scaling
-		Eigen::Vector3d rotation_euler;
-		Eigen::Vector4d rotation_quaternion;
-		Eigen::Vector3d scale;
-
 		//Transform Buffers
-		Eigen::Vector3d location_buffer;
-                Eigen::Vector3d rotatione_buffer;
-                Eigen::Vector4d rotationq_buffer;
-                Eigen::Vector3d scale_buffer;
 		Eigen::Matrix4d transform_buffer;
 
 		//Private constructor for internal matrices
@@ -65,10 +57,10 @@ class Obj3
 		std::string lock_owner;
 
 		//Internal Transformation methods
-		void translate_object(float x, float y, float z, std::string locality);
-		void rotatee_object(float x, float y, float z, std::string locality);
-		void rotateq_object(float x, float y, float z, float theta, std::string locality);
-		void scale_object(float x, float y, float z);
+		void translate_object(double x, double y, double z, std::string locality);
+		void rotatee_object(double x, double y, double z, std::string locality);
+		void rotateq_object(double x, double y, double z, double theta, std::string locality);
+		void scale_object(double x, double y, double z);
 
 	public:
 		//Constructors & Destructor
@@ -90,40 +82,40 @@ class Obj3
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::MatrixXd ibounding_box)
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;bounding_box=ibounding_box;}
 
-		//Location, Rotation, Scale
-		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scale=iscale;}
+		//Location, Transform, & Bounding Box
+                Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;transform_matrix=new_transform;bounding_box=ibounding_box;}
 
-		//Location, Rotation, Scale, Bounding Box
-		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scale=iscale;bounding_box=ibounding_box;}
+		//Location, Rotation, Scale, Transform, & Bounding Box
+                Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=new_transform;bounding_box=ibounding_box;}
 
 		//Transformation Methods
 
 		//Transform
 		bool transform_object(Eigen::Matrix4d trans_matrix);
 
-		bool transform_object(float trans_matrix[]);
+		bool transform_object(double trans_matrix[]);
 
 		//Translation
-		bool translate(float x, float y, float z, std::string locality, std::string device_id) {if (is_locked==false || lock_owner==device_id) {translate_object(x, y, z, locality); return true;} else {return false;}}
+		bool translate(double x, double y, double z, std::string locality, std::string device_id) {if (is_locked==false || lock_owner==device_id) {translate_object(x, y, z, locality); return true;} else {return false;}}
 
-		bool translate(float x, float y, float z, std::string locality) {if (is_locked==false) {translate_object(x, y, z, locality); return true;} else {return false;}}
+		bool translate(double x, double y, double z, std::string locality) {if (is_locked==false) {translate_object(x, y, z, locality); return true;} else {return false;}}
 
 		//Rotation Quaternion
-		bool rotateq(float x, float y, float z, float theta, std::string locality, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotateq_object(x, y, z, theta, locality);return true;} else {return false;}}
+		bool rotateq(double x, double y, double z, float theta, std::string locality, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotateq_object(x, y, z, theta, locality);return true;} else {return false;}}
 
-		bool rotateq(float x, float y, float z, float theta, std::string locality) {if (is_locked==false) {rotateq_object(x, y, z, theta, locality);return true;} else {return false;}}
+		bool rotateq(double x, double y, double z, float theta, std::string locality) {if (is_locked==false) {rotateq_object(x, y, z, theta, locality);return true;} else {return false;}}
 
 		//Rotation Euler
-		bool rotatee(float x, float y, float z, std::string locality, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotatee_object(x, y, z, locality); return true;} else {return false;}}
+		bool rotatee(double x, double y, double z, std::string locality, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotatee_object(x, y, z, locality); return true;} else {return false;}}
 
-		bool rotatee(float x, float y, float z, std::string locality) {if (is_locked==false) {rotatee_object(x, y, z, locality); return true;} else {return false;}}
+		bool rotatee(double x, double y, double z, std::string locality) {if (is_locked==false) {rotatee_object(x, y, z, locality); return true;} else {return false;}}
 
 		//Scale
-		bool resize(float x, float y, float z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {scale_object(x, y, z); return true;} else {return false;}}
+		bool resize(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {scale_object(x, y, z); return true;} else {return false;}}
 
-		bool resize(float x, float y, float z) {if (is_locked==false) {scale_object(x, y, z); return true;} else {return false;}}
+		bool resize(double x, double y, double z) {if (is_locked==false) {scale_object(x, y, z); return true;} else {return false;}}
 
 		//Apply Transforms in Buffers
 		void apply_transforms();
@@ -178,27 +170,27 @@ class Obj3
 		std::string get_key() const {return key;}
 		std::string get_type() const {return type;}
 		std::string get_subtype() const {return subtype;}
-		float get_locx() const {return location(0);}
-		float get_locy() const {return location(1);}
-		float get_locz() const {return location(2);}
-		float get_loc(int xyz) const {return location(xyz);}
-		float get_rotex() const {return rotation_euler(0);}
-		float get_rotey() const {return rotation_euler(1);}
-		float get_rotez() const {return rotation_euler(2);}
-		float get_rote(int xyz) const {return rotation_euler(xyz);}
-		float get_rotqw() const {return rotation_quaternion(0);}
-		float get_rotqx() const {return rotation_quaternion(1);}
-		float get_rotqy() const {return rotation_quaternion(2);}
-		float get_rotqz() const {return rotation_quaternion(3);}
-		float get_rotq(int wxyz) const {return rotation_quaternion(wxyz);}
-		float get_sclx() const {return scale(0);}
-		float get_scly() const {return scale(1);}
-		float get_sclz() const {return scale(2);}
-		float get_scl(int xyz) const {return scale(xyz);}
+		double get_locx() const {return location(0);}
+		double get_locy() const {return location(1);}
+		double get_locz() const {return location(2);}
+		double get_loc(int xyz) const {return location(xyz);}
+		double get_rotex() const {return rotation_euler(0);}
+                double get_rotey() const {return rotation_euler(1);}
+                double get_rotez() const {return rotation_euler(2);}
+                double get_rote(int xyz) const {return rotation_euler(xyz);}
+		double get_rotqw() const {return rotation_quaternion(0);}
+		double get_rotqx() const {return rotation_quaternion(1);}
+                double get_rotqy() const {return rotation_quaternion(2);}
+                double get_rotqz() const {return rotation_quaternion(3);}
+                double get_rotq(int wxyz) const {return rotation_quaternion(wxyz);}
+		double get_sclx() const {return scaling(0);}
+                double get_scly() const {return scaling(1);}
+                double get_sclz() const {return scaling(2);}
+                double get_scl(int xyz) const {return scaling(xyz);}
 		Eigen::Vector3d get_loc() const {return location;}
 		Eigen::Vector3d get_rote() const {return rotation_euler;}
 		Eigen::Vector4d get_rotq() const {return rotation_quaternion;}
-		Eigen::Vector3d get_scl() const {return scale;}
+		Eigen::Vector3d get_scl() const {return scaling;}
 		Eigen::Matrix4d get_transform() const {return transform_matrix;}
 		Eigen::MatrixXd get_bounding_box() const {return bounding_box;}
 
@@ -209,6 +201,7 @@ class Obj3
 
 		//Convert the object to JSON
 		const char* to_json() const;
-
+		//Convert the object to JSON Message
+                const char* to_json_msg(int msg_type) const;
 };
 #endif

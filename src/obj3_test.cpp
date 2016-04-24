@@ -16,9 +16,6 @@ std::cout << obj.get_type() << std::endl;
 std::cout << obj.get_subtype() << std::endl;
 
 std::cout << obj.get_loc() << std::endl;
-std::cout << obj.get_rote() << std::endl;
-std::cout << obj.get_rotq() << std::endl;
-std::cout << obj.get_scl() << std::endl;
 std::cout << obj.get_transform() << std::endl;
 std::cout << obj.get_bounding_box() << std::endl;
 

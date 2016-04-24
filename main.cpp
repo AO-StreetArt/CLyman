@@ -42,15 +42,18 @@ CouchbaseAdmin *cb;
 //Global Outbound ZMQ Dispatcher
 ZMQClient *zmqo;
 
+//-----------------------
+//----Utility Methods----
+//-----------------------
+
 //Is a key present in the smart update buffer?
-//TO-DO: How to compare two character arrays?
 int find_key_in_active_updates(const char * key) {
   list_length = active_updates->length();
   int i;
   Obj3 *temp_obj;
   for (i = 0; i < list_length; i=i+1) {
     temp_obj = &(active_updates->get(i));
-    if (temp_obj->get_key == key) {
+    if (strcomp(temp_obj->get_key(), key) == 0) {
       return i;
     }
   }
@@ -63,12 +66,33 @@ Obj3 build_object(rapidjson::Document& d) {
     std::string new_type="";
     std::string new_subtype="";
     std::string new_lock_id="";
-    Eigen::Vector3d new_location;
-    Eigen::Vector3d new_rotation_e;
-    Eigen::Vector4d new_rotation_q;
-    Eigen::Vector3d new_scale;
-    Eigen::Matrix4d new_transform;
-    Eigen::MatrixXd new_bounding_box;
+    Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
+    Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
+    Eigen::Vector3d new_rotationq=Eigen::Vector3d::Zero(3);
+    Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
+    Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
+    Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
+
+    //Transform and buffer
+    new_transform(0, 0) = 1.0;
+    new_transform(1, 1) = 1.0;
+    new_transform(2, 2) = 1.0;
+    new_transform(3, 3) = 1.0;
+
+    //Bounding Box
+    new_bounding_box(0, 1) = 1.0;
+    new_bounding_box(1, 2) = 1.0;
+    new_bounding_box(0, 3) = 1.0;
+    new_bounding_box(1, 3) = 1.0;
+    new_bounding_box(2, 4) = 1.0;
+    new_bounding_box(0, 5) = 1.0;
+    new_bounding_box(2, 5) = 1.0;
+    new_bounding_box(1, 6) = 1.0;
+    new_bounding_box(2, 6) = 1.0;
+    new_bounding_box(0, 7) = 1.0;
+    new_bounding_box(1, 7) = 1.0;
+    new_bounding_box(2, 7) = 1.0;
+
     if (d.HasMember("name")) {
       new_name = d["name"];
     }
@@ -83,34 +107,99 @@ Obj3 build_object(rapidjson::Document& d) {
     }
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
+	const rapidjson::Value& loc = d["location"];
+	if (loc.IsArray()) {
+		int j=0;
+		for (rapidjson::SizeType i = 0; i < loc.Size();i++) {
+			new_location(j) = loc[i].GetDouble();
+			j++;
+		}
+	}
     }
     if (d.HasMember("rotation_euler")) {
-      //Read the array values and stuff them into new_rotation_e
+      //Read the array values and stuff them into new_location
+        const rapidjson::Value& rote = d["rotation_euler"];
+        if (rote.IsArray()) {
+                int j=0;
+                for (rapidjson::SizeType i = 0; i < rote.Size();i++) {
+                        new_rotatione(j) = rote[i].GetDouble();
+                        j++;
+                }
+        }
     }
     if (d.HasMember("rotation_quaternion")) {
-      //Read the array values and stuff them into new_rotation_q
+      //Read the array values and stuff them into new_location
+        const rapidjson::Value& rotq = d["rotation_quaternion"];
+        if (rotq.IsArray()) {
+                int j=0;
+                for (rapidjson::SizeType i = 0; i < rotq.Size();i++) {
+                        new_rotationq(j) = rotq[i].GetDouble();
+                        j++;
+                }
+        }
     }
     if (d.HasMember("scale")) {
-      //Read the array values and stuff them into new_scale
+      //Read the array values and stuff them into new_location
+        const rapidjson::Value& scl = d["scale"];
+        if (scl.IsArray()) {
+                int j=0;
+                for (rapidjson::SizeType i = 0; i < scl.Size();i++) {
+                        new_scale(j) = scl[i].GetDouble();
+                        j++;
+                }
+        }
     }
     if (d.HasMember("transform")) {
       //Read the array values and stuff them into new_transform
+	const rapidjson::Value& tran = d["transform"];
+	if (tran.IsArray()) {
+                int j=0;
+                for (rapidjson::SizeType i = 0; i < tran.Size();i++) {
+                        new_transform(j, i) = tran[i].GetDouble();
+                        if (i == 3 || i % 4 == 3) {
+				j++;
+			}
+                }
+        }
     }
     if (d.HasMember("bounding_box")) {
       //Read the array values and stuff them into new_bounding_box
+	const rapidjson::Value& bb = d["bounding_box"];
+        if (bb.IsArray()) {
+                int j=0;
+                for (rapidjson::SizeType i = 0; i < a.Size();i++) {
+                        new_bounding_box(j, i) = bb[i].GetDouble();
+                        if (i == 3 || i % 4 == 3 ) {
+                                j++;
+                        }
+                }
+        }
     }
 
-    //TO-DO: Build the Obj3 and return it from the populated values
+    //Build the Obj3 and return it from the populated values
+    Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+    return object;
 }
 
+//-----------------------
+//---Callback Methods----
+//-----------------------
+
 //Couchbase Callbacks
+
+//The storage callback is simple and outputs a message on the ZMQ
+//Port assuming that an update has been made
 static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
    lcb_error_t err, const lcb_store_resp_t *resp)
 {
 	if (err == LCB_SUCCESS) {
 		logging->info("Stored:");
 		logging->info( (char*)resp->v.v0.key );
-    zmqo->send_msg((char*)resp);
+
+                rapidjson::Document temp_d;
+                temp_d.Parse((char*)resp->v.v0.bytes);
+                Obj3 new_obj = build_object (temp_d);
+                zmqo->send_msg(new_obj.to_json_msg(2));
 	}
 	else {
 		logging->error("Couldn't store item:");
@@ -118,6 +207,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 	}
 }
 
+//The get callback has the complex logic for the smart updates
 static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
    const lcb_get_resp_t *resp)
 {
@@ -126,14 +216,74 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 		logging->info( (char*)resp->v.v0.key );
 		logging->info( (char*)resp->v.v0.bytes );
     const char *k = resp->v.v0.key;
-    key_index = find_key_in_active_updates(k);
+    if (SmartUpdatesActive) {
+    int key_index = find_key_in_active_updates(k);
     if (key_index > -1) {
-      //TO-DO: We need to update the object in the DB, then output the object
+      //We need to update the object in the DB, then output the object
       //On the Outbound ZeroMQ port.
+
+      //Let's get the object out of the active update list
+      Obj3 *temp_obj;
+      temp_obj = &(active_updates->get(key_index));
+
+      //Then, let's get and parse the response from the database
+      rapidjson::Document temp_d;
+      temp_d.Parse((char*)resp->v.v0.bytes);
+      Obj3 new_obj = build_object (temp_d);
+
+      //Now, we can compare the two and apply any updates from the
+      //object list to the object returned from the database
+
+      //First, we apply any matrix transforms present
+      if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
+        new_obj.translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+      }
+	
+      if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
+       new_obj.rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
+      }
+
+      if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
+       new_obj.rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
+      }
+
+      if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
+        new_obj.resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+      }
+
+      new_obj.transform_object(temp_obj->get_transform());
+
+      new_obj.apply_transforms();
+
+      //Next, we write any string attributes
+      if (temp_obj->get_owner() != "") {
+        new_obj.set_owner(temp_obj->get_owner());
+      }
+
+      if (temp_obj->get_name() != "") {
+        new_obj.set_name(temp_obj->get_name());
+      }
+
+      if (temp_obj->get_type() != "") {
+        new_obj.set_type(temp_obj->get_type());
+      }
+
+      if (temp_obj->get_subtype() != "") {
+        new_obj.set_subtype(temp_obj->get_subtype());
+      }     
+
+      //Finally, we write the result back to the database
+      Obj3 *obj_ptr = &new_obj;
+      cb->save_object (obj_ptr);
+
+    }
     }
     else {
       //Output the object on the Outbound ZeroMQ port
-      zmqo->send_msg((char*)resp);
+      rapidjson::Document temp_d;
+      temp_d.Parse((char*)resp->v.v0.bytes);
+      Obj3 new_obj = build_object (temp_d);
+      zmqo->send_msg(new_obj.to_json_msg(1));
     }
 	}
 	else {
@@ -146,14 +296,18 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 void create_objectd(rapidjson::Document& d) {
         logging->info("Create object called with document: ");
 
-        //If we don't have a key in the message, we can't do anything
-        if (d.HasMember("key")) {
+        if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
+
+          //Output a message on the outbound ZMQ Port
           Obj3 new_obj = build_object (d);
+          zmqo->send_msg(new_obj.to_json_msg(0));
+          
+          //Save the object to the couchbase DB
           Obj3 *obj_ptr = &new_obj;
           cb->create_object (obj_ptr);
         }
         else {
-          logging->error("Message Recieved without key");
+          logging->error("Create Message recieved without location, bounding box, or scene");
         }
 }
 
@@ -164,15 +318,25 @@ void update_objectd(rapidjson::Document& d) {
           if (SmartUpdatesActive) {
             //We start by writing the object into the smart update buffer
             //then, we can issue a get call
-            //upon returning, the get callback should check the smart update buffer
-            //for a matching key.  If it is found, we update the DB Entry.  Else,
-            //We simply output the value retrieved from the DB
+            
+            //upon returning, the get callback should 
+            //check the smart update buffer for a matching key.
 
-            //TO-DO: Check if the object already exists in the smart update buffer.
+            //If it is found, we update the DB Entry.  
+            //Else, we simply output the value retrieved from the DB
+
+            //Check if the object already exists in the smart update buffer.
             //If so, reject the update.
-            Obj3 smart_obj = build_object (d);
-            active_updates->append(smart_obj);
-            cb->get(d["key"]);
+	    Obj3 temp_obj = build_object (d);
+            if (find_key_in_active_updates(k) == -1) {
+              active_updates->append(temp_obj);
+              cb->get(d["key"]);
+            }
+            else {
+              logging->error("Collision in Active Update Buffer Detected");
+              logging->error("Key:");
+              logging->error(temp_obj.get_key());
+            }
           }
           else {
             //If smart updates are disabled, we can just write the value directly
@@ -190,8 +354,29 @@ void update_objectd(rapidjson::Document& d) {
 void get_objectd(rapidjson::Document& d) {
         logging->info("Get object called with document: ");
         if (d.HasMember("key")) {
-          //Get the object from the DB
-          cb->load_object( d["key"] );
+          //Check the Active Update Buffer for inflight transactions
+          //If we have any, then we should pull the value from there
+          //And return it. 
+          if (SmartUpdatesActive) {
+            int key_index = find_key_in_active_updates(k);
+            if (key_index > -1) {
+
+              //:Pull the value from the update buffer
+              Obj3 *temp_obj;
+              temp_obj = &(active_updates->get(key_index));
+
+              //Return the object on the outbound ZMQ Port
+              zmqo->send_msg(temp_obj->to_json_msg(2);
+            }
+            else {
+              //Otherwise, Get the object from the DB
+              cb->load_object( d["key"] );
+            }
+          }
+          else {
+            //Otherwise, Get the object from the DB
+            cb->load_object( d["key"] );
+          }
         }
         else {
           logging->error("Message Recieved without key");
@@ -201,15 +386,40 @@ void get_objectd(rapidjson::Document& d) {
 void delete_objectd(rapidjson::Document& d) {
         logging->info("Delete object called with document: ");
         if (d.HasMember("key")) {
+
           //Delete the object from the DB
           cb->delete_object( d["key"] );
+
+          //Output a delete message on the outbound ZMQ Port
+
+          //Initialize the string buffer and writer
+          StringBuffer s;
+          Writer<StringBuffer> writer(s);
+
+          writer.StartObject();
+
+          writer.Key("message_type");
+          writer.Uint(3);
+
+          writer.Key("key");
+          std::string key = d["key"];
+          writer.String( key.c_str(), (SizeType)key.length() );
+
+          writer.EndObject();
+
+          //The Stringbuffer now contains a json message
+          //of the object
+          zmqo->send_msg(s.GetString());
+
         }
         else {
           logging->error("Message Recieved without key");
         }
 }
 
-//Main Method
+//-----------------------
+//------Main Method------
+//-----------------------
 
 int main()
 {
