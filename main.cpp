@@ -4,6 +4,8 @@
 
 #include <zmq.hpp>
 #include <string>
+#include <string.h>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -50,10 +52,12 @@ ZMQClient *zmqo;
 int find_key_in_active_updates(const char * key) {
   int list_length = active_updates->length();
   int i;
+  Obj3 tobj;
   Obj3 *temp_obj;
   for (i = 0; i < list_length; i=i+1) {
-    temp_obj = &(active_updates->get(i));
-    if (std::strcomp(temp_obj->get_key(), key) == 0) {
+    tobj = active_updates->get(i);
+    temp_obj = &tobj;
+    if (strcmp(temp_obj->get_key().c_str(), key) == 0) {
       return i;
     }
   }
@@ -63,12 +67,14 @@ int find_key_in_active_updates(const char * key) {
 //Build Obj3 from a Rapidjson Document
 Obj3 build_object(rapidjson::Document& d) {
     std::string new_name="";
+    std::string new_key="";
+    std::string new_owner="";
     std::string new_type="";
     std::string new_subtype="";
     std::string new_lock_id="";
     Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
     Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
-    Eigen::Vector3d new_rotationq=Eigen::Vector3d::Zero(3);
+    Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(3);
     Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
     Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
     Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
@@ -97,19 +103,27 @@ Obj3 build_object(rapidjson::Document& d) {
 
     if (d.HasMember("name")) {
       val = &d["name"];
-      new_name = val.GetString();
+      new_name = val->GetString();
+    }
+    if (d.HasMember("key")) {
+      val = &d["key"];
+      new_key = val->GetString();
+    }
+    if (d.HasMember("owner")) {
+      val = &d["owner_device_id"];
+      new_owner = val->GetString();
     }
     if (d.HasMember("type")) {
       val = &d["type"];
-      new_type = val.GetString();
+      new_type = val->GetString();
     }
     if (d.HasMember("subtype")) {
       val = &d["subtype"];
-      new_subtype = val.GetString();
+      new_subtype = val->GetString();
     }
     if (d.HasMember("lock_device_id")) {
       val = &d["lock_device_id"];
-      new_lock_id = val.GetString();
+      new_lock_id = val->GetString();
     }
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
@@ -173,7 +187,7 @@ Obj3 build_object(rapidjson::Document& d) {
 	const rapidjson::Value& bb = d["bounding_box"];
         if (bb.IsArray()) {
                 int j=0;
-                for (rapidjson::SizeType i = 0; i < a.Size();i++) {
+                for (rapidjson::SizeType i = 0; i < bb.Size();i++) {
                         new_bounding_box(j, i) = bb[i].GetDouble();
                         if (i == 3 || i % 4 == 3 ) {
                                 j++;
@@ -201,11 +215,6 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 	if (err == LCB_SUCCESS) {
 		logging->info("Stored:");
 		logging->info( (char*)resp->v.v0.key );
-
-                rapidjson::Document temp_d;
-                temp_d.Parse((char*)resp->v.v0.bytes);
-                Obj3 new_obj = build_object (temp_d);
-                zmqo->send_msg(new_obj.to_json_msg(2));
 	}
 	else {
 		logging->error("Couldn't store item:");
@@ -221,7 +230,8 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
     logging->info("Retrieved: ");
 		logging->info( (char*)resp->v.v0.key );
 		logging->info( (char*)resp->v.v0.bytes );
-    const char *k = resp->v.v0.key;
+    const char *k = (char*)resp->v.v0.key;
+    const char *resp_obj = (char*)resp->v.v0.bytes;
     if (SmartUpdatesActive) {
     int key_index = find_key_in_active_updates(k);
     if (key_index > -1) {
@@ -230,11 +240,13 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 
       //Let's get the object out of the active update list
       Obj3 *temp_obj;
-      temp_obj = &(active_updates->get(key_index));
+      Obj3 tobj;
+      tobj = active_updates->get(key_index);
+      temp_obj = &tobj;
 
       //Then, let's get and parse the response from the database
       rapidjson::Document temp_d;
-      temp_d.Parse((char*)resp->v.v0.bytes);
+      temp_d.Parse(resp_obj);
       Obj3 new_obj = build_object (temp_d);
 
       //Now, we can compare the two and apply any updates from the
@@ -280,6 +292,10 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 
       //Finally, we write the result back to the database
       Obj3 *obj_ptr = &new_obj;
+
+      //And output the message on the ZMQ Port
+      zmqo->send_msg(new_obj.to_json_msg(2));
+
       cb->save_object (obj_ptr);
 
     }
@@ -334,9 +350,11 @@ void update_objectd(rapidjson::Document& d) {
             //Check if the object already exists in the smart update buffer.
             //If so, reject the update.
 	    Obj3 temp_obj = build_object (d);
-            if (find_key_in_active_updates(k) == -1) {
+            const char *temp_key = temp_obj.get_key().c_str();
+            if (find_key_in_active_updates(temp_key) == -1) {
               active_updates->append(temp_obj);
-              cb->get(d["key"]);
+
+              cb->load_object(temp_key);
             }
             else {
               logging->error("Collision in Active Update Buffer Detected");
@@ -349,6 +367,9 @@ void update_objectd(rapidjson::Document& d) {
             //To the DB
             Obj3 new_obj = build_object (d);
             Obj3 *obj_ptr = &new_obj;
+
+            zmqo->send_msg(new_obj.to_json_msg(2));
+
             cb->save_object (obj_ptr);
           }
         }
@@ -360,32 +381,29 @@ void update_objectd(rapidjson::Document& d) {
 void get_objectd(rapidjson::Document& d) {
         logging->info("Get object called with document: ");
         if (d.HasMember("key")) {
+	  rapidjson::Value *rkey;
+          rkey = &d["key"];
           //Check the Active Update Buffer for inflight transactions
           //If we have any, then we should pull the value from there
           //And return it. 
           if (SmartUpdatesActive) {
-            int key_index = find_key_in_active_updates(k);
+            int key_index = find_key_in_active_updates(rkey->GetString());
             if (key_index > -1) {
 
               //:Pull the value from the update buffer
-              Obj3 *temp_obj;
-              temp_obj = &(active_updates->get(key_index));
+              Obj3 tobj = active_updates->get(key_index);
 
               //Return the object on the outbound ZMQ Port
-              zmqo->send_msg(temp_obj->to_json_msg(2));
+              zmqo->send_msg(tobj.to_json_msg(2));
             }
             else {
               //Otherwise, Get the object from the DB
-              rapidjson::Value *val;
-              val = &d["key"];
-              cb->load_object( val->GetString() );
+              cb->load_object( rkey->GetString() );
             }
           }
           else {
             //Otherwise, Get the object from the DB
-            rapidjson::Value *val;
-            val = &d["key"];
-            cb->load_object( val->GetString() );
+            cb->load_object( rkey->GetString() );
           }
         }
         else {
