@@ -15,46 +15,18 @@
 #ifndef LYMAN_UTILS
 #define LYMAN_UTILS
 
-//Convert a zmq message to std::string
-inline std::string hexDump( zmq::message_t & aMessage ) {
-  // I'm going to build a hex/ascii dump like you've seen so many times before
-  std::string  msg;
-  std::string  ascii;
-  // get the pointer to the start of the message's payload - and it's size
-  char *buff = (char *)aMessage.data();
-  int   size = aMessage.size();
-  char *end  = buff + size - 1;
-  // see if it's the trivial case
-  if (buff == NULL) {
-    msg.append("NULL");
-  } else {
-    // get a place to hold the conversion of each byte
-    char   hex[3];
-    bzero(hex, 3);
-    // run through the valid data in the buffer
-    for (const char *p = buff; p <= end; ++p) {
-      // generate the hex code for the byte and add it
-      printf(hex, 3, "%02x", (uint8_t)(*p));
-      msg.append(hex).append(" ");
-      // if it's printable, add it to the ascii part, otherwise, put a '.'
-      if (isprint(*p)) {
-        ascii.append(p, 1);
-      } else {
-        ascii.append(".");
-      }
-      // see if we have a complete line
-      if (ascii.size() >= 19) {
-        msg.append(" ").append(ascii).append("\n");
-        ascii.clear();
-      }
+//Trims Strings
+inline std::string left_trim_string (std::string str) {
+    size_t start_pos = str.find_first_not_of(" \t");
+    if (std::string::npos != start_pos) {
+        str = str.substr(start_pos);
     }
-    // if we have anything left, put it on the line as well
-    if (ascii.size() > 0) {
-      msg.append((19 - ascii.length())*3 + 1, ' ').append(ascii);
-    }
-  }
+    return str;
+}
 
-  return msg;
+//Convert a ZMQ Message to a std::string
+inline std::string hexDump ( zmq::message_t &aMessage ) {
+return std::string(static_cast<char*>(aMessage.data()), aMessage.size());
 }
 
 /* Big Ints to do time calculations */

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <exception>
 #include <Eigen/Dense>
 
 #include "src/event_dispatcher.h"
@@ -66,6 +67,7 @@ int find_key_in_active_updates(const char * key) {
 
 //Build Obj3 from a Rapidjson Document
 Obj3 build_object(rapidjson::Document& d) {
+    if (d.IsObject()) {
     std::string new_name="";
     std::string new_key="";
     std::string new_owner="";
@@ -200,6 +202,7 @@ Obj3 build_object(rapidjson::Document& d) {
     Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
     return object;
 }
+}
 
 //-----------------------
 //---Callback Methods----
@@ -303,7 +306,14 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
     else {
       //Output the object on the Outbound ZeroMQ port
       rapidjson::Document temp_d;
-      temp_d.Parse((char*)resp->v.v0.bytes);
+      try {
+          temp_d.Parse((char*)resp->v.v0.bytes);
+      }
+      catch (std::exception& e) {
+          //Catch a possible exception and write it to the logs
+          logging->error("Exception Occurred parsing message from DB");
+          logging->error(e.what());
+      }
       Obj3 new_obj = build_object (temp_d);
       zmqo->send_msg(new_obj.to_json_msg(1));
     }
@@ -598,15 +608,20 @@ while (true) {
 
         //Convert the OMQ message into a string to be passed on the event
         std::string req_string;
-        req_string = hexDump (request);
-	req_string.erase(0,58);
+        req_string = left_trim_string (hexDump (request));
         const char * req_ptr = req_string.c_str();
 	logging->debug("Conversion to C String performed with result: ");
 	logging->debug(req_ptr);
 
 	//Process the message header and set current_event_type
-
-	d.Parse(req_ptr);
+        try {
+	    d.Parse(req_ptr);
+        }
+        catch (std::exception& e) {
+            logging->error("Exception occurred while parsing inbound document:");
+            logging->error(e.what());
+        }
+        //TO-DO: Catch a possible error and write to logs
 	s = &d["message_type"];
 	msg_type = s->GetInt();
 
