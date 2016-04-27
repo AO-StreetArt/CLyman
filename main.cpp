@@ -67,7 +67,9 @@ int find_key_in_active_updates(const char * key) {
 
 //Build Obj3 from a Rapidjson Document
 Obj3 build_object(rapidjson::Document& d) {
+    logging->debug("Build Object Called");
     if (d.IsObject()) {
+    logging->debug("Object-Format Message Detected");
     std::string new_name="";
     std::string new_key="";
     std::string new_owner="";
@@ -76,10 +78,11 @@ Obj3 build_object(rapidjson::Document& d) {
     std::string new_lock_id="";
     Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
     Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
-    Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(3);
+    Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
     Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
     Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
     Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
+    logging->debug("New Variables Declared");
 
     //Transform and buffer
     new_transform(0, 0) = 1.0;
@@ -112,7 +115,7 @@ Obj3 build_object(rapidjson::Document& d) {
       new_key = val->GetString();
     }
     if (d.HasMember("owner")) {
-      val = &d["owner_device_id"];
+      val = &d["owner"];
       new_owner = val->GetString();
     }
     if (d.HasMember("type")) {
@@ -177,12 +180,13 @@ Obj3 build_object(rapidjson::Document& d) {
 	if (tran.IsArray()) {
                 int j=0;
                 for (rapidjson::SizeType i = 0; i < tran.Size();i++) {
-                        new_transform(j, i) = tran[i].GetDouble();
+                        new_transform(i%4, j) = tran[i].GetDouble();
                         if (i == 3 || i % 4 == 3) {
 				j++;
 			}
                 }
         }
+        logging->debug("Transform Matrix Parsed");
     }
     if (d.HasMember("bounding_box")) {
       //Read the array values and stuff them into new_bounding_box
@@ -190,16 +194,34 @@ Obj3 build_object(rapidjson::Document& d) {
         if (bb.IsArray()) {
                 int j=0;
                 for (rapidjson::SizeType i = 0; i < bb.Size();i++) {
-                        new_bounding_box(j, i) = bb[i].GetDouble();
-                        if (i == 3 || i % 4 == 3 ) {
-                                j++;
+                        if (j < 8 && i ) {
+                            new_bounding_box(i%4, j) = bb[i].GetDouble();
+                            if (i == 3 || i % 4 == 3 ) {
+                                   j++;
+                            }
                         }
+                }
+        }
+        logging->debug("Bounding Box Parsed");
+    }
+
+    if (d.HasMember("scenes")) {
+      //Read the array values and stuff them into new_location
+        const rapidjson::Value& sc = d["scenes"];
+        std::vector<std::string> scene_list;
+        if (sc.IsArray()) {
+                for (rapidjson::SizeType i = 0; i < sc.Size();i++) {
+                        scene_list.push_back(sc[i].GetString());
                 }
         }
     }
 
+
+    logging->debug("Variables Filled");
+
     //Build the Obj3 and return it from the populated values
     Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+    logging->debug("Obj3 Built");
     return object;
 }
 }
