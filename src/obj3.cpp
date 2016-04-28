@@ -315,7 +315,8 @@ const char* Obj3::to_json() const
 
 const char* Obj3::to_json_msg(int msg_type) const
 {
-        logging->info("Obj3:To JSON Called");
+        logging->info("Obj3:To JSON Called on object");
+        logging->info(get_key());
         //Initialize the string buffer and writer
         StringBuffer s;
         Writer<StringBuffer> writer(s);

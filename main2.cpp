@@ -43,11 +43,39 @@ List<Obj3> *active_updates;
 CouchbaseAdmin *cb;
 
 //Global Outbound ZMQ Dispatcher
-ZMQClient *zmqo;
+zmq::socket_t *zmqo;
 
 //-----------------------
 //----Utility Methods----
 //-----------------------
+
+void send_zmqo_message(const char * msg)
+{
+        //Get the size of the buffer being passed in
+        int buffer_size;
+        buffer_size = strlen(msg);
+
+        //Set up the message to go out on 0MQ
+        zmq::message_t request (buffer_size);
+        memcpy (request.data (), msg, buffer_size);
+
+        //Send the message
+        zmqo->send (request);
+
+        //  Get the reply.
+        zmq::message_t reply;
+        zmq::message_t *rep_ptr;
+        rep_ptr = &reply;
+        zmqo->recv (rep_ptr);
+
+        //Process the reply
+        std::string r_str = hexDump(reply);
+
+        logging->info("ZMQ:Message Sent:");
+        logging->info(msg);
+        logging->info("ZMQ:Response Recieved:");
+        logging->info(r_str);
+}
 
 //Is a key present in the smart update buffer?
 int find_key_in_active_updates(const char * key) {
@@ -66,7 +94,7 @@ int find_key_in_active_updates(const char * key) {
 }
 
 //Build Obj3 from a Rapidjson Document
-Obj3 build_object(rapidjson::Document& d) {
+Obj3 build_object(const rapidjson::Document& d) {
     logging->debug("Build Object Called");
     if (d.IsObject()) {
     logging->debug("Object-Format Message Detected");
@@ -104,31 +132,35 @@ Obj3 build_object(rapidjson::Document& d) {
     new_bounding_box(1, 7) = 1.0;
     new_bounding_box(2, 7) = 1.0;
 
-    rapidjson::Value *val;
-
     if (d.HasMember("name")) {
-      val = &d["name"];
-      new_name = val->GetString();
+      const rapidjson::Value *name_val;
+      name_val = &d["name"];
+      new_name = name_val->GetString();
     }
     if (d.HasMember("key")) {
-      val = &d["key"];
-      new_key = val->GetString();
+      const rapidjson::Value *key_val;
+      key_val = &d["key"];
+      new_key = key_val->GetString();
     }
     if (d.HasMember("owner")) {
-      val = &d["owner"];
-      new_owner = val->GetString();
+      const rapidjson::Value *owner_val;
+      owner_val = &d["owner"];
+      new_owner = owner_val->GetString();
     }
     if (d.HasMember("type")) {
-      val = &d["type"];
-      new_type = val->GetString();
+      const rapidjson::Value *type_val;
+      type_val = &d["type"];
+      new_type = type_val->GetString();
     }
     if (d.HasMember("subtype")) {
-      val = &d["subtype"];
-      new_subtype = val->GetString();
+      const rapidjson::Value *subtype_val;
+      subtype_val = &d["subtype"];
+      new_subtype = subtype_val->GetString();
     }
     if (d.HasMember("lock_device_id")) {
-      val = &d["lock_device_id"];
-      new_lock_id = val->GetString();
+      const rapidjson::Value *lock_val;
+      lock_val = &d["lock_device_id"];
+      new_lock_id = lock_val->GetString();
     }
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
@@ -319,7 +351,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
       Obj3 *obj_ptr = &new_obj;
 
       //And output the message on the ZMQ Port
-      zmqo->send_msg(new_obj.to_json_msg(2));
+      send_zmqo_message(new_obj.to_json_msg(2));
 
       cb->save_object (obj_ptr);
 
@@ -337,7 +369,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
           logging->error(e.what());
       }
       Obj3 new_obj = build_object (temp_d);
-      zmqo->send_msg(new_obj.to_json_msg(1));
+      send_zmqo_message(new_obj.to_json_msg(1));
     }
 	}
 	else {
@@ -354,7 +386,11 @@ void create_objectd(rapidjson::Document& d) {
 
           //Output a message on the outbound ZMQ Port
           Obj3 new_obj = build_object (d);
-          zmqo->send_msg(new_obj.to_json_msg(0));
+          const char * o_json_msg;
+          o_json_msg = new_obj.to_json_msg(0);
+          logging->debug("Sending Message: ");
+          logging->debug(o_json_msg);
+          send_zmqo_message(o_json_msg);
           
           //Save the object to the couchbase DB
           Obj3 *obj_ptr = &new_obj;
@@ -400,7 +436,7 @@ void update_objectd(rapidjson::Document& d) {
             Obj3 new_obj = build_object (d);
             Obj3 *obj_ptr = &new_obj;
 
-            zmqo->send_msg(new_obj.to_json_msg(2));
+            send_zmqo_message(new_obj.to_json_msg(2));
 
             cb->save_object (obj_ptr);
           }
@@ -426,7 +462,7 @@ void get_objectd(rapidjson::Document& d) {
               Obj3 tobj = active_updates->get(key_index);
 
               //Return the object on the outbound ZMQ Port
-              zmqo->send_msg(tobj.to_json_msg(2));
+              send_zmqo_message(tobj.to_json_msg(2));
             }
             else {
               //Otherwise, Get the object from the DB
@@ -471,7 +507,7 @@ void delete_objectd(rapidjson::Document& d) {
 
           //The Stringbuffer now contains a json message
           //of the object
-          zmqo->send_msg(val->GetString());
+          send_zmqo_message(val->GetString());
 
         }
         else {
@@ -606,13 +642,16 @@ logging->info("Connected to Couchbase DB");
 lcb_set_store_callback(cb->get_instance(), storage_callback);
 lcb_set_get_callback(cb->get_instance(), get_callback);
 
+zmq::context_t context(1);
+
 //Set up the outbound ZMQ Client
-ZMQClient zout (OMQ_OBConnStr);
+zmq::socket_t zout(context, ZMQ_REQ);
+logging->info("0MQ Constructor Called");
+zout.connect(OMQ_OBConnStr);
 zmqo = &zout;
 logging->info("Connected to Outbound OMQ Socket");
 
 //Connect to the inbound ZMQ Socket
-zmq::context_t context(1);
 zmq::socket_t socket(context, ZMQ_REP);
 socket.bind(OMQ_IBConnStr);
 logging->info("ZMQ Socket Open, opening request loop");

@@ -5,9 +5,9 @@
 
 class ZMQClient
 {
-zmq::socket_t *internal_socket;
+zmq::socket_t internal_socket;
+zmq::context_t internal_context;
 public:
 	ZMQClient (std::string conn);
-	~ZMQClient () {delete internal_socket;}
 	void send_msg (const char * msg);
 };

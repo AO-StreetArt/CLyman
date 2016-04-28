@@ -4,6 +4,7 @@
 #include "obj3.h"
 #include <string>
 #include <math.h>
+#include "logging.h"
 
 using namespace Eigen;
 
@@ -21,10 +22,32 @@ std::cout << obj.get_bounding_box() << std::endl;
 
 std::cout << "Object in JSON Format" << std::endl;
 std::cout << obj.to_json() << std::endl;
+
+std::cout << "Object in JSON Message" << std::endl;
+std::cout << obj.to_json_msg(0) << std::endl;
 }
 
 int main()
 {
+
+std::string initFileName = "../log4cpp.properties";
+try {
+        log4cpp::PropertyConfigurator::configure(initFileName);
+}
+catch ( log4cpp::ConfigureFailure &e ) {
+        std::cout << "[log4cpp::ConfigureFailure] caught while reading" << initFileName << std::endl;
+        std::cout << e.what();
+        exit(1);
+}
+
+log4cpp::Category& root = log4cpp::Category::getRoot();
+
+log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
+
+log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
+
+logging = &log;
+
 std::string name;
 std::string key;
 std::string type;

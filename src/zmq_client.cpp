@@ -1,12 +1,11 @@
 #include "zmq_client.h"
 
 ZMQClient::ZMQClient (std::string conn)
-{
 	//Set the internal socket
-	zmq::context_t context (1);
-	zmq::socket_t socket (context, ZMQ_REQ);
-	internal_socket=&socket;
-	internal_socket->connect (conn);
+	:internal_context(1)
+	, internal_socket (internal_context, ZMQ_REQ)
+{
+	internal_socket.connect (conn);
 	logging->info("ZMQ:Outbound ZMQ Socket Bound");
 }
 
@@ -21,13 +20,13 @@ void ZMQClient::send_msg (const char * msg)
 	memcpy (request.data (), msg, buffer_size);
 
 	//Send the message
-	internal_socket->send (request);
+	internal_socket.send (request);
 
 	//  Get the reply.
 	zmq::message_t reply;
 	zmq::message_t *rep_ptr;
 	rep_ptr = &reply;
-	internal_socket->recv (rep_ptr);
+	internal_socket.recv (rep_ptr);
 
 	//Process the reply
 	std::string r_str = hexDump(reply);
