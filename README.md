@@ -24,8 +24,6 @@ While a running instance of Couchbase is not necessary to build the application,
 
 Note: These steps assume that all header dependencies have been moved to the user's include path manually.  Otherwise, please be sure to include the correct libraries with -I.
 
-Note: The Tests listed currently fails as the logging module is not initalized.
-
 ### Main App
 
 We start by compiling the logging module:
@@ -44,10 +42,6 @@ We then build the couchbase admin:
 
 g++ -c -lcouchbase -o couchbase_admin.o couchbase_admin.cpp -std=c++11
 
-Next step is to build ZMQ Client:
-
-g++ -lzmq -c -o zmq_client.o zmq_client.cpp -std=c++11
-
 We compile the main object with:
 
 g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp main.cpp -std=c++11
@@ -63,21 +57,13 @@ g++ -c -o obj3_test.o obj3_test.cpp
 
 Here we can build the test app:
 
-g++ -lpthread -llog4cpp -o obj_test logging.o obj3.o obj3_test.o
-
-Build the event dispatcher tests:
-
-g++ -c -o event_dispatcher_test.o event_dispatcher_test.cpp
-
-build the event test app
-
-g++ -o event_test event_dispatcher.o event_dispatcher_test.o
+g++ -lpthread -llog4cpp -o obj_test ../logging.o ../obj3.o obj3_test.o
 
 Now, we get to build the main test app:
 
 g++ -c -llog4cpp -lpthread -lzmq -I /usr/local/lib -o main_class_test.o main_class_test.cpp
 
-g++ -o main_test event_dispatcher.o main_class_test.o -llog4cpp -lpthread -lzmq
+g++ -o main_test ../event_dispatcher.o main_class_test.o -llog4cpp -lpthread -lzmq
 
 And the test client:
 
@@ -89,4 +75,4 @@ g++ -c -o couchbase_test.o -lcouchbase couchbase_test.cpp -std=c++11
 
 And the couchbase test app:
 
-g++ -o cb_test event_dispatcher.o couchbase_admin.o couchbase_test.o obj3.o -lcouchbase -std=c++11
+g++ -o cb_test event_dispatcher.o ../couchbase_admin.o couchbase_test.o ../obj3.o -lcouchbase -std=c++11
