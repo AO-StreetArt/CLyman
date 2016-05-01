@@ -16,7 +16,6 @@
 #include "src/obj3.h"
 #include "src/couchbase_admin.h"
 #include "src/list.h"
-#include "src/zmq_client.h"
 #include "src/lyman_utils.h"
 
 #include "rapidjson/document.h"
@@ -48,6 +47,10 @@ zmq::socket_t *zmqo;
 //-----------------------
 //----Utility Methods----
 //-----------------------
+
+void send_zmqo_str_message(std::string msg) {
+	send_zmqo_message(msg.c_str());
+}
 
 void send_zmqo_message(const char * msg)
 {
@@ -351,7 +354,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
       Obj3 *obj_ptr = &new_obj;
 
       //And output the message on the ZMQ Port
-      send_zmqo_message(new_obj.to_json_msg(2));
+      send_zmqo_str_message(new_obj.to_json_msg(2));
 
       cb->save_object (obj_ptr);
 
@@ -369,7 +372,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
           logging->error(e.what());
       }
       Obj3 new_obj = build_object (temp_d);
-      send_zmqo_message(new_obj.to_json_msg(1));
+      send_zmqo_str_message(new_obj.to_json_msg(1));
     }
 	}
 	else {
@@ -386,11 +389,7 @@ void create_objectd(rapidjson::Document& d) {
 
           //Output a message on the outbound ZMQ Port
           Obj3 new_obj = build_object (d);
-          const char * o_json_msg;
-          o_json_msg = new_obj.to_json_msg(0);
-          logging->debug("Sending Message: ");
-          logging->debug(o_json_msg);
-          send_zmqo_message(o_json_msg);
+          send_zmqo_str_message(new_obj.to_json_msg(0));
           
           //Save the object to the couchbase DB
           Obj3 *obj_ptr = &new_obj;
@@ -436,7 +435,7 @@ void update_objectd(rapidjson::Document& d) {
             Obj3 new_obj = build_object (d);
             Obj3 *obj_ptr = &new_obj;
 
-            send_zmqo_message(new_obj.to_json_msg(2));
+            send_zmqo_str_message(new_obj.to_json_msg(2));
 
             cb->save_object (obj_ptr);
           }
@@ -462,7 +461,7 @@ void get_objectd(rapidjson::Document& d) {
               Obj3 tobj = active_updates->get(key_index);
 
               //Return the object on the outbound ZMQ Port
-              send_zmqo_message(tobj.to_json_msg(2));
+              send_zmqo_str_message(tobj.to_json_msg(2));
             }
             else {
               //Otherwise, Get the object from the DB

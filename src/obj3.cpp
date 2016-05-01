@@ -232,90 +232,86 @@ void Obj3::apply_transforms()
 	initialize_buffers();
 }
 
-const char* Obj3::to_json() const
+std::string Obj3::to_json() const
 {
-	logging->info("Obj3:To JSON Called");
-	//Initialize the string buffer and writer
-	StringBuffer s;
-	Writer<StringBuffer> writer(s);
+        logging->info("Obj3:To JSON message Called on object");
+        logging->info(get_key());
+        //Initialize the string buffer and writer
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
 
-	//Start writing the object
-	//Syntax taken directly from
-	//simplewriter.cpp in rapidjson examples
+        //Start writing the object
+        //Syntax taken directly from
+        //simplewriter.cpp in rapidjson examples
 
-	writer.StartObject();
+        writer.StartObject();
 
-	writer.Key("key");
-	std::string key = get_key();
-	writer.String( key.c_str(), (SizeType)key.length() );
+        writer.Key("key");
+        std::string key = get_key();
+        writer.String( key.c_str(), (SizeType)key.length() );
 
 	writer.Key("owner");
         std::string owner_dev = get_owner();
         writer.String( owner_dev.c_str(), (SizeType)owner_dev.length() );
 
-	writer.Key("name");
-	std::string name = get_name();
-	writer.String( name.c_str(), (SizeType)name.length() );
+        writer.Key("name");
+        std::string name = get_name();
+        writer.String( name.c_str(), (SizeType)name.length() );
 
-	writer.Key("type");
-	std::string type = get_type();
-	writer.String( type.c_str(), (SizeType)type.length() );
+        writer.Key("type");
+        std::string type = get_type();
+        writer.String( type.c_str(), (SizeType)type.length() );
 
-	writer.Key("subtype");
-	std::string subtype = get_subtype();
-	writer.String( subtype.c_str(), (SizeType)subtype.length() );
+        writer.Key("subtype");
+        std::string subtype = get_subtype();
+        writer.String( subtype.c_str(), (SizeType)subtype.length() );
 
-	int i;
-	int j;
+        int i;
+        int j;
 
-	writer.Key("location");
-	writer.StartArray();
-	for (i=0; i<3; i++) {
-		writer.Double( static_cast<double>(get_loc(i)) );
-	}
-	writer.EndArray();
+        writer.Key("location");
+        writer.StartArray();
+        for (i=0; i<3; i++) {
+                writer.Double( static_cast<double>(get_loc(i)) );
+        }
+        writer.EndArray();
 
-	writer.Key("transform");
+        writer.Key("transform");
 	writer.StartArray();
 
         for (i=0; i<4; i++) {
-		writer.StartArray();
-		for (j=0; j<4; j++) {
-                	writer.Double( static_cast<double>(transform_matrix(i, j) ));
-		}
-		writer.EndArray();
+                writer.StartArray();
+                for (j=0; j<4; j++) {
+                        writer.Double( static_cast<double>(transform_matrix(i, j) ));
+                }
+                writer.EndArray();
         }
 
         writer.EndArray();
 
-	writer.Key("scenes");
-	writer.StartArray();
+        writer.Key("scenes");
+        writer.StartArray();
         for (i=0; i<num_scenes(); i++) {
-		std::string sc = get_scene(i);
+                std::string sc = get_scene(i);
                 writer.String( sc.c_str(), (SizeType)sc.length() );
         }
         writer.EndArray();
 
-	writer.Key("locked");
-	if (is_locked == true) {
-		std::string l = "True";
-		writer.String(l.c_str(), (SizeType) l.length());
-	}
-	else {
-		std::string l = "False";
-		writer.String(l.c_str(), (SizeType) l.length());
-	}
+        writer.Key("locked");
+		writer.Bool(is_locked);
 
-	writer.EndObject();
+        writer.EndObject();
 
-	//The Stringbuffer now contains a json message
-	//of the object
-	return s.GetString();
+        //The Stringbuffer now contains a json message
+        //of the object
+		const char* ret_val = s.GetString();
+		std::string ret_string (ret_val);
+        return ret_string;
 }
 
-const char* Obj3::to_json_msg(int msg_type) const
+std::string Obj3::to_json_msg(int msg_type) const
 {
-        logging->info("Obj3:To JSON Called on object");
+        logging->info("Obj3:To JSON message Called on object");
         logging->info(get_key());
         //Initialize the string buffer and writer
         StringBuffer s;
@@ -382,19 +378,13 @@ const char* Obj3::to_json_msg(int msg_type) const
         writer.EndArray();
 
         writer.Key("locked");
-        if (is_locked == true) {
-                std::string l = "True";
-                writer.String(l.c_str(), (SizeType) l.length());
-        }
-        else {
-                std::string l = "False";
-                writer.String(l.c_str(), (SizeType) l.length());
-        }
+		writer.Bool(is_locked);
 
         writer.EndObject();
 
         //The Stringbuffer now contains a json message
         //of the object
-        return s.GetString();
+		const char* ret_val = s.GetString();
+		std::string ret_string (ret_val);
+        return ret_string;
 }
-

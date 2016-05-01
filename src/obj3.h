@@ -8,7 +8,6 @@
 
 #include <string>
 #include <Eigen/Dense>
-#include "list.h"
 #include "event_dispatcher.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -204,8 +203,8 @@ class Obj3
 		bool locked() const {if (is_locked==false) {return false;} else {return true;}}
 
 		//Convert the object to JSON
-		const char* to_json() const;
+		std::string to_json() const;
 		//Convert the object to JSON Message
-                const char* to_json_msg(int msg_type) const;
+        std::string to_json_msg(int msg_type) const;
 };
 #endif

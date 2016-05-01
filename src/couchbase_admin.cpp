@@ -77,7 +77,8 @@ void CouchbaseAdmin::save_object ( Obj3 const *obj )
         std::string key = obj->get_key();
         scmd.v.v0.key = key.c_str();
         scmd.v.v0.nkey = key.length();
-        const char * object_string = obj->to_json();
+		std::string obj_json_str = obj->to_json();
+        const char * object_string = obj_json_str.c_str();
         scmd.v.v0.bytes = object_string;
         scmd.v.v0.nbytes = strlen(object_string);
         scmd.v.v0.operation = LCB_REPLACE;
@@ -97,7 +98,8 @@ void CouchbaseAdmin::create_object ( Obj3 const *obj )
 	std::string key = obj->get_key();
 	scmd.v.v0.key = key.c_str();
 	scmd.v.v0.nkey = key.length();
-	const char * object_string = obj->to_json();
+	std::string obj_json_str = obj->to_json();
+	const char * object_string = obj_json_str.c_str();
 	scmd.v.v0.bytes = object_string;
 	scmd.v.v0.nbytes = strlen(object_string);
 	scmd.v.v0.operation = LCB_SET;
