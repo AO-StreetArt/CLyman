@@ -19,7 +19,6 @@ void CouchbaseAdmin::initialize (const char * conn)
         err = lcb_create(&private_instance, &cropts);
         if (err != LCB_SUCCESS) {
                 logging->error("CB_Admin:DB: Couldn't create instance!");
-                exit(1);
         }
 
         //Connecting
@@ -27,7 +26,6 @@ void CouchbaseAdmin::initialize (const char * conn)
         lcb_wait(private_instance);
         if ( (err = lcb_get_bootstrap_status(private_instance)) != LCB_SUCCESS ) {
                 logging->error("CB_Admin:DB: Couldn't bootstrap!");
-                exit(1);
         }
 }
 
@@ -64,7 +62,6 @@ void CouchbaseAdmin::load_object ( const char * key )
 	err = lcb_get(private_instance, NULL, 1, &gcmdlist);
 	if (err != LCB_SUCCESS) {
 		logging->error("CB_Admin:DB: Couldn't schedule get operation!");
-		exit(1);
 	}
 }
 
@@ -85,20 +82,19 @@ void CouchbaseAdmin::save_object ( Obj3 const *obj )
         err = lcb_store(private_instance, NULL, 1, &scmdlist);
         if (err != LCB_SUCCESS) {
                 logging->error("CB_Admin:Couldn't schedule storage operation!");
-                exit(1);
         }	
 }
 
-void CouchbaseAdmin::create_object ( Obj3 const *obj )
+void CouchbaseAdmin::create_object ( Obj3 const obj )
 {
 	logging->info("CB_Admin:Create Object Called");
 	lcb_error_t err;
 	lcb_store_cmd_t scmd;
 	const lcb_store_cmd_t *scmdlist = &scmd;
-	std::string key = obj->get_key();
+	std::string key = obj.get_key();
 	scmd.v.v0.key = key.c_str();
 	scmd.v.v0.nkey = key.length();
-	std::string obj_json_str = obj->to_json();
+	std::string obj_json_str = obj.to_json();
 	const char * object_string = obj_json_str.c_str();
 	scmd.v.v0.bytes = object_string;
 	scmd.v.v0.nbytes = strlen(object_string);
@@ -106,7 +102,6 @@ void CouchbaseAdmin::create_object ( Obj3 const *obj )
 	err = lcb_store(private_instance, NULL, 1, &scmdlist);
 	if (err != LCB_SUCCESS) {
 		logging->error("CB_Admin:Couldn't schedule storage operation!");
-		exit(1);
 	}
 }
 

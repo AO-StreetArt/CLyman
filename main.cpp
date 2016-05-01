@@ -33,6 +33,8 @@ std::string OMQ_IBConnStr;
 bool SmartUpdatesActive;
 int AUB_StartSize;
 int AUB_StepSize;
+std::string hex_counter;
+int key_counter;
 
 //Global Object List
 //Necessary to implement smart updates
@@ -47,10 +49,6 @@ zmq::socket_t *zmqo;
 //-----------------------
 //----Utility Methods----
 //-----------------------
-
-void send_zmqo_str_message(std::string msg) {
-	send_zmqo_message(msg.c_str());
-}
 
 void send_zmqo_message(const char * msg)
 {
@@ -78,6 +76,10 @@ void send_zmqo_message(const char * msg)
         logging->info(msg);
         logging->info("ZMQ:Response Recieved:");
         logging->info(r_str);
+}
+
+void send_zmqo_str_message(std::string msg) {
+	send_zmqo_message(msg.c_str());
 }
 
 //Is a key present in the smart update buffer?
@@ -387,13 +389,21 @@ void create_objectd(rapidjson::Document& d) {
 
         if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
 
-          //Output a message on the outbound ZMQ Port
+		//Iterate the Hex Counter value
+		key_counter++;
+
+          //Build the object and the key
           Obj3 new_obj = build_object (d);
+	  const char *keystr = itoa(key_counter);
+	  std::string new_key (keystr);
+	  new_obj.set_key(new_key);
+
+	  //Output a message on the outbound ZMQ Port
           send_zmqo_str_message(new_obj.to_json_msg(0));
           
           //Save the object to the couchbase DB
-          Obj3 *obj_ptr = &new_obj;
-          cb->create_object (obj_ptr);
+//          Obj3 *obj_ptr = &new_obj;
+          cb->create_object (new_obj);
         }
         else {
           logging->error("Create Message recieved without location, bounding box, or scene");
@@ -553,6 +563,46 @@ SmartUpdatesActive=false;
 AUB_StartSize=25;
 AUB_StepSize=15;
 
+hex_counter="0x00"
+key_counter=0x00
+
+//Open the key counter file
+logging->info("Opening counter.properties");
+std::string counter_line;
+std::ifstream c_file ("counter.properties");
+
+if (c_file.is_open()) {
+        while (getline (c_file, counter_line) ) {
+                //Read a line from the property file
+                logging->debug("Line read from configuration file:");
+                logging->debug(counter_line);
+
+                //Figure out if we have a blank or comment line
+                bool k_going = true;
+                if (counter_line.length() > 0) {
+                        if (line[0] == '/' && line[1] == '/') {
+                                k_going=false;
+                        }
+                }
+                else {
+                        k_going=false;
+                }
+
+                if (k_going==true) {
+			try {
+				hex_counter=line;
+				key_counter=std::stoi(hex_counter, 0, hex_counter.length());
+			}
+			catch (std::exception& e) {
+				logging->error("Exception encountered parsing hex counter value");
+				logging->error(e.what());
+			}
+		}
+	}
+        c_file.close();
+}
+
+
 //Open the file
 logging->info("Opening lyman.properties");
 std::string line;
@@ -701,6 +751,23 @@ while (true) {
                 current_event_type=OBJ_DEL;
 		logging->debug("Current Event Type set to Object Delete");
         }
+	//Shutdown Message
+	else if (msg_type == 999) {
+		end_log();
+		std::ofstream myfile;
+		myfile.open("counters.tmp");
+		myfile << std::itoa(key_counter);
+		myfile << "\n";
+		int result;
+		result = rename("counters.tmp", "counters.properties");
+		if (result == 0) {
+			logging->info("File Renamed");
+		}
+		else {
+			logging->error("Counter File Rename unsuccessful");
+		}
+		return 0;
+	}
         else {
                 current_event_type=-1;
 		logging->error("Current Event Type not found");
@@ -779,6 +846,6 @@ while (true) {
         socket.send (reply);
 	logging->debug("Response Sent");
         }
-end_log();
+
 return 0;
 }

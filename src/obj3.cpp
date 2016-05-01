@@ -234,7 +234,7 @@ void Obj3::apply_transforms()
 
 std::string Obj3::to_json() const
 {
-        logging->info("Obj3:To JSON message Called on object");
+        logging->info("Obj3:To JSON Called on object");
         logging->info(get_key());
         //Initialize the string buffer and writer
         StringBuffer s;
@@ -306,6 +306,8 @@ std::string Obj3::to_json() const
         //of the object
 		const char* ret_val = s.GetString();
 		std::string ret_string (ret_val);
+	logging->debug("JSON Returned:");
+	logging->debug(ret_val);
         return ret_string;
 }
 

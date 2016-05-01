@@ -48,7 +48,7 @@ g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp main.cpp -std=c++11
 
 Finally, we compile the main app with:
 
-g++ -o lyman src/logging.o src/event_dispatcher.o src/obj3.o src/zmq_client.o src/couchbase_admin.o main.o -std=c++11 -lzmq -lcouchbase -lpthread -llog4cpp
+g++ -o lyman src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o main.o -std=c++11 -lzmq -lcouchbase -lpthread -llog4cpp
 
 ### Tests
 
