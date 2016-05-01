@@ -3,12 +3,14 @@
 //For polling, using a Dispatcher Pattern
 
 #include <zmq.hpp>
+#include <sstream>
 #include <string>
 #include <string.h>
 #include <cstring>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <stdlib.h>
 #include <exception>
 #include <Eigen/Dense>
 
@@ -394,9 +396,9 @@ void create_objectd(rapidjson::Document& d) {
 
           //Build the object and the key
           Obj3 new_obj = build_object (d);
-	  const char *keystr = itoa(key_counter);
-	  std::string new_key (keystr);
-	  new_obj.set_key(new_key);
+		  std::ostringstream ss;
+		  ss << key_counter;
+	  new_obj.set_key(ss.str());
 
 	  //Output a message on the outbound ZMQ Port
           send_zmqo_str_message(new_obj.to_json_msg(0));
@@ -563,8 +565,8 @@ SmartUpdatesActive=false;
 AUB_StartSize=25;
 AUB_StepSize=15;
 
-hex_counter="0x00"
-key_counter=0x00
+hex_counter="0x00";
+key_counter=0x00;
 
 //Open the key counter file
 logging->info("Opening counter.properties");
@@ -580,7 +582,7 @@ if (c_file.is_open()) {
                 //Figure out if we have a blank or comment line
                 bool k_going = true;
                 if (counter_line.length() > 0) {
-                        if (line[0] == '/' && line[1] == '/') {
+                        if (counter_line[0] == '/' && counter_line[1] == '/') {
                                 k_going=false;
                         }
                 }
@@ -590,7 +592,7 @@ if (c_file.is_open()) {
 
                 if (k_going==true) {
 			try {
-				hex_counter=line;
+				hex_counter=counter_line;
 				key_counter=std::stoi(hex_counter, 0, hex_counter.length());
 			}
 			catch (std::exception& e) {
@@ -660,10 +662,10 @@ if (file.is_open()) {
                         	}
 			}
 			else if (var_name=="ActiveUpdateBuffer_StartSize") {
-				AUB_StartSize = std::atoi(var_value.c_str());
+				AUB_StartSize = atoi(var_value.c_str());
 			}
 			else if (var_name=="ActiveUpdateBuffer_StepSize") {
-				AUB_StepSize = std::atoi(var_value.c_str());
+				AUB_StepSize = atoi(var_value.c_str());
 			}
 		}
 	}
@@ -756,7 +758,11 @@ while (true) {
 		end_log();
 		std::ofstream myfile;
 		myfile.open("counters.tmp");
-		myfile << std::itoa(key_counter);
+
+		std::ostringstream ss;
+		ss << key_counter;
+
+		myfile << ss.str();
 		myfile << "\n";
 		int result;
 		result = rename("counters.tmp", "counters.properties");
@@ -766,6 +772,22 @@ while (true) {
 		else {
 			logging->error("Counter File Rename unsuccessful");
 		}
+		resp[0]='s';
+		resp[1]='u';
+		resp[2]='c';
+		resp[3]='c';
+		resp[4]='e';
+		resp[5]='s';
+		resp[6]='s';
+
+		//  Send reply back to client
+		zmq::message_t reply (8);
+
+		//Prepare return data
+		memcpy (reply.data (), resp, 8);
+		//Send the response
+        socket.send (reply);
+		logging->debug("Response Sent, terminating");
 		return 0;
 	}
         else {
