@@ -1,5 +1,5 @@
-#include "couchbase_admin.h"
-#include "obj3.h"
+#include "../couchbase_admin.h"
+#include "../obj3.h"
 #include <libcouchbase/couchbase.h>
 
 static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
@@ -22,6 +22,25 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 
 int main ()
 {
+
+std::string initFileName = "../log4cpp.properties";
+try {
+	log4cpp::PropertyConfigurator::configure(initFileName);
+}
+catch ( log4cpp::ConfigureFailure &e ) {
+	printf("[log4cpp::ConfigureFailure] caught while reading Logging Configuration File");
+	printf(e.what());
+	exit(1);
+}
+
+log4cpp::Category& root = log4cpp::Category::getRoot();
+
+log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
+
+log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
+
+logging = &log;
+
 //Create an object
 std::string name = "Test Object";
 std::string key = "abcdef-9876542";
