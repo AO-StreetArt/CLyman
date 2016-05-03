@@ -280,11 +280,9 @@ std::string Obj3::to_json() const
 	writer.StartArray();
 
         for (i=0; i<4; i++) {
-                writer.StartArray();
                 for (j=0; j<4; j++) {
                         writer.Double( static_cast<double>(transform_matrix(i, j) ));
                 }
-                writer.EndArray();
         }
 
         writer.EndArray();
@@ -362,11 +360,9 @@ std::string Obj3::to_json_msg(int msg_type) const
 	writer.StartArray();
 
         for (i=0; i<4; i++) {
-                writer.StartArray();
                 for (j=0; j<4; j++) {
                         writer.Double( static_cast<double>(transform_matrix(i, j) ));
                 }
-                writer.EndArray();
         }
 
         writer.EndArray();
