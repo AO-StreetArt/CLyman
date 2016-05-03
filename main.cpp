@@ -867,6 +867,7 @@ while (true) {
 	//Send the response
         socket.send (reply);
 	logging->debug("Response Sent");
+		cb->wait();
         }
 
 return 0;
