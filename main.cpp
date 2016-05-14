@@ -358,9 +358,10 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
       Obj3 *obj_ptr = &new_obj;
 
       //And output the message on the ZMQ Port
-      send_zmqo_str_message(new_obj.to_json_msg(2));
+      send_zmqo_str_message(new_obj.to_json_msg(OBJ_UPD));
 
       cb->save_object (obj_ptr);
+	  cb->wait();
 
     }
     }
@@ -376,7 +377,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
           logging->error(e.what());
       }
       Obj3 new_obj = build_object (temp_d);
-      send_zmqo_str_message(new_obj.to_json_msg(1));
+      send_zmqo_str_message(new_obj.to_json_msg(OBJ_GET));
     }
 	}
 	else {
@@ -401,7 +402,7 @@ void create_objectd(rapidjson::Document& d) {
 	  new_obj.set_key(ss.str());
 
 	  //Output a message on the outbound ZMQ Port
-          send_zmqo_str_message(new_obj.to_json_msg(0));
+          send_zmqo_str_message(new_obj.to_json_msg(OBJ_CRT));
           
           //Save the object to the couchbase DB
 //          Obj3 *obj_ptr = &new_obj;
@@ -447,7 +448,7 @@ void update_objectd(rapidjson::Document& d) {
             Obj3 new_obj = build_object (d);
             Obj3 *obj_ptr = &new_obj;
 
-            send_zmqo_str_message(new_obj.to_json_msg(2));
+            send_zmqo_str_message(new_obj.to_json_msg(OBJ_UPD));
 
             cb->save_object (obj_ptr);
           }
@@ -473,7 +474,7 @@ void get_objectd(rapidjson::Document& d) {
               Obj3 tobj = active_updates->get(key_index);
 
               //Return the object on the outbound ZMQ Port
-              send_zmqo_str_message(tobj.to_json_msg(2));
+              send_zmqo_str_message(tobj.to_json_msg(OBJ_UPD));
             }
             else {
               //Otherwise, Get the object from the DB
