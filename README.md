@@ -10,7 +10,7 @@ This project is currently under heavy development.  Functionality & API are subj
 
 This service depends on Eigen, a C++ Linear Algebra library.  This can be downloaded from the [Eigen] (http://eigen.tuxfamily.org/index.php?title=Main_Page) site.  Getting it into your include path can be accomplished on Linux/OSX by moving the Eigen folder into the /usr/local/include directory, or by manually linking with -I.
 
-Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:get-the-software). Be sure to get the C++ Drivers in addition to the software.
+Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:get-the-software). Be sure to get the [C++ Drivers] (https://github.com/zeromq/cppzmq) in addition to the software.
 
 You will also need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson)
 
@@ -22,39 +22,24 @@ While a running instance of Couchbase is not necessary to build the application,
 
 ## Compilation Steps
 
-Note: These steps assume that all header dependencies have been moved to the user's include path manually.  Otherwise, please be sure to include the correct libraries with -I.
+Note: These steps assume that all header dependencies have been moved to the user's include path manually.  The simplest way to accomplish this on a Linux system is by moving the required dependencies into /usr/local/include, but this may vary.  Please consult the documentation for your particular distribution.
 
 ### Main App
 
-Unix users should be able to execute the bash script contained with the below command:
+Unix users should be able to execute the bash script contained with the below commands:
 
-./build_project.sh`
+`sudo chmod +755 build_project.sh`
+
+`./build_project.sh`
 
 Which will build the project modules.
 
 ### Tests
 
-We can compile the Object tests here:
-g++ -c -o obj3_test.o obj3_test.cpp
+Unix users should be able to execute the bash script contained with the below commands:
 
-Here we can build the test app:
+`sudo chmod +755 build_tests.sh`
 
-g++ -lpthread -llog4cpp -o obj_test ../logging.o ../obj3.o obj3_test.o
+`./build_tests.sh`
 
-Now, we get to build the main test app:
-
-g++ -c -llog4cpp -lpthread -lzmq -I /usr/local/lib -o main_class_test.o main_class_test.cpp
-
-g++ -o main_test ../event_dispatcher.o main_class_test.o -llog4cpp -lpthread -lzmq
-
-And the test client:
-
-g++ -I /usr/local/lib test_client.cpp -o test_client -lzmq
-
-We can build the couchbase tests:
-
-g++ -c -o couchbase_test.o -lcouchbase couchbase_test.cpp -std=c++11
-
-And the couchbase test app:
-
-g++ -o cb_test event_dispatcher.o ../couchbase_admin.o couchbase_test.o ../obj3.o -lcouchbase -std=c++11
+Which will build the test modules.
