@@ -28,7 +28,7 @@ Note: These steps assume that all header dependencies have been moved to the use
 
 Unix users should be able to execute the bash script contained with the below command:
 
-`source ./build_project.sh`
+./build_project.sh`
 
 Which will build the project modules.
 
