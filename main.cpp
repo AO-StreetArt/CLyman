@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <exception>
 #include <Eigen/Dense>
+#include <map>
 
 #include "src/event_dispatcher.h"
 #include "src/obj3.h"
@@ -40,7 +41,8 @@ int key_counter;
 
 //Global Object List
 //Necessary to implement smart updates
-List<Obj3> *active_updates;
+std::map<std::string, Obj3> smart_update_buffer;
+//List<Obj3> *active_updates;
 
 //Global Couchbase Admin Object
 CouchbaseAdmin *cb;
@@ -85,19 +87,13 @@ void send_zmqo_str_message(std::string msg) {
 }
 
 //Is a key present in the smart update buffer?
-int find_key_in_active_updates(const char * key) {
-  int list_length = active_updates->length();
-  int i;
-  Obj3 tobj;
-  Obj3 *temp_obj;
-  for (i = 0; i < list_length; i=i+1) {
-    tobj = active_updates->get(i);
-    temp_obj = &tobj;
-    if (strcmp(temp_obj->get_key().c_str(), key) == 0) {
-      return i;
-    }
+bool is_key_in_smart_update_buffer(const char * key) {
+  if (smart_update_buffer.find(key) == smart_update_buffer.end()) {
+    return false;
   }
-  return -1;
+  else {
+    return true;
+  }
 }
 
 //Build Obj3 from a Rapidjson Document
@@ -297,15 +293,17 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
     const char *k = (char*)resp->v.v0.key;
     const char *resp_obj = (char*)resp->v.v0.bytes;
     if (SmartUpdatesActive) {
-    int key_index = find_key_in_active_updates(k);
-    if (key_index > -1) {
+    bool is_key_in_buf = is_key_in_smart_update_buffer(k);
+    //int key_index = find_key_in_active_updates(k);
+    if (is_key_in_buf) {
       //We need to update the object in the DB, then output the object
       //On the Outbound ZeroMQ port.
 
       //Let's get the object out of the active update list
       Obj3 *temp_obj;
       Obj3 tobj;
-      tobj = active_updates->get(key_index);
+      tobj = smart_update_buffer[k];
+      //tobj = active_updates->get(key_index);
       temp_obj = &tobj;
 
       //Then, let's get and parse the response from the database
@@ -320,7 +318,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
       if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
         new_obj.translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
       }
-	
+
       if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
        new_obj.rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
       }
@@ -352,7 +350,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 
       if (temp_obj->get_subtype() != "") {
         new_obj.set_subtype(temp_obj->get_subtype());
-      }     
+      }
 
       //Finally, we write the result back to the database
       Obj3 *obj_ptr = &new_obj;
@@ -403,7 +401,7 @@ void create_objectd(rapidjson::Document& d) {
 
 	  //Output a message on the outbound ZMQ Port
           send_zmqo_str_message(new_obj.to_json_msg(OBJ_CRT));
-          
+
           //Save the object to the couchbase DB
 //          Obj3 *obj_ptr = &new_obj;
           cb->create_object (new_obj);
@@ -420,20 +418,19 @@ void update_objectd(rapidjson::Document& d) {
           if (SmartUpdatesActive) {
             //We start by writing the object into the smart update buffer
             //then, we can issue a get call
-            
-            //upon returning, the get callback should 
+
+            //upon returning, the get callback should
             //check the smart update buffer for a matching key.
 
-            //If it is found, we update the DB Entry.  
+            //If it is found, we update the DB Entry.
             //Else, we simply output the value retrieved from the DB
 
             //Check if the object already exists in the smart update buffer.
             //If so, reject the update.
 	    Obj3 temp_obj = build_object (d);
             const char *temp_key = temp_obj.get_key().c_str();
-            if (find_key_in_active_updates(temp_key) == -1) {
-              active_updates->append(temp_obj);
-
+            if (is_key_in_smart_update_buffer(temp_key) == false) {
+              smart_update_buffer[temp_key] = temp_obj;
               cb->load_object(temp_key);
             }
             else {
@@ -465,20 +462,27 @@ void get_objectd(rapidjson::Document& d) {
           rkey = &d["key"];
           //Check the Active Update Buffer for inflight transactions
           //If we have any, then we should pull the value from there
-          //And return it. 
-          if (SmartUpdatesActive) {
-            int key_index = find_key_in_active_updates(rkey->GetString());
-            if (key_index > -1) {
+          //And return it.
 
-              //:Pull the value from the update buffer
-              Obj3 tobj = active_updates->get(key_index);
+          //TO-DO: I question this decision.  The buffer will likely
+          //contain partial updates, which will result in the output
+          //not being able to guarantee all object attributes within
+          //a message.
+          std::string rk_str = rkey->GetString();
+          const char * rkc_str = rk_str.c_str();
+          if (SmartUpdatesActive) {
+            //int key_index = find_key_in_active_updates(rkey->GetString());
+            if (is_key_in_smart_update_buffer(rkc_str)) {
+
+              //Pull the value from the update buffer
+              Obj3 tobj = smart_update_buffer[rk_str];
 
               //Return the object on the outbound ZMQ Port
               send_zmqo_str_message(tobj.to_json_msg(OBJ_UPD));
             }
             else {
               //Otherwise, Get the object from the DB
-              cb->load_object( rkey->GetString() );
+              cb->load_object( rkc_str );
             }
           }
           else {
@@ -682,8 +686,8 @@ char resp[8]={'n','i','l','r','e','s','p','\0'};
 logging->info("Internal Variables Intialized");
 
 //Active Update List
-List<Obj3> up_list (AUB_StartSize, AUB_StepSize);
-active_updates = &up_list;
+//List<Obj3> up_list (AUB_StartSize, AUB_StepSize);
+//active_updates = &up_list;
 
 //Set up the Couchbase Connection
 CouchbaseAdmin c ( DB_ConnStr.c_str() );
