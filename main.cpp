@@ -41,7 +41,6 @@ int key_counter;
 //Global Object List
 //Necessary to implement smart updates
 std::map<std::string, Obj3> smart_update_buffer;
-//List<Obj3> *active_updates;
 
 //Global Couchbase Admin Object
 CouchbaseAdmin *cb;
@@ -292,17 +291,18 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
     const char *k = (char*)resp->v.v0.key;
     const char *resp_obj = (char*)resp->v.v0.bytes;
     if (SmartUpdatesActive) {
+    logging->debug("Smart Update Logic Activated");
     bool is_key_in_buf = is_key_in_smart_update_buffer(k);
-    //int key_index = find_key_in_active_updates(k);
     if (is_key_in_buf) {
       //We need to update the object in the DB, then output the object
       //On the Outbound ZeroMQ port.
+
+      logging->debug("Object found in Smart Update Buffer");
 
       //Let's get the object out of the active update list
       Obj3 *temp_obj;
       Obj3 tobj;
       tobj = smart_update_buffer[k];
-      //tobj = active_updates->get(key_index);
       temp_obj = &tobj;
 
       //Then, let's get and parse the response from the database
@@ -310,26 +310,33 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
       temp_d.Parse(resp_obj);
       Obj3 new_obj = build_object (temp_d);
 
+      logging->debug("Database Object Parsed");
+
       //Now, we can compare the two and apply any updates from the
       //object list to the object returned from the database
 
       //First, we apply any matrix transforms present
       if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
+        logging->debug("Location Transformation Detected");
         new_obj.translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
       }
 
       if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
+        logging->debug("Euler Rotation Transformation Detected");
        new_obj.rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
       }
 
       if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
+       logging->debug("Quaternion Rotation Transformation Detected");
        new_obj.rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
       }
 
       if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
+        logging->debug("Scale Transformation Detected");
         new_obj.resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
       }
 
+      logging->debug("Applying Transform Matrix and full transform stack");
       new_obj.transform_object(temp_obj->get_transform());
 
       new_obj.apply_transforms();
@@ -462,11 +469,6 @@ void get_objectd(rapidjson::Document& d) {
           //Check the Active Update Buffer for inflight transactions
           //If we have any, then we should pull the value from there
           //And return it.
-
-          //TO-DO: I question this decision.  The buffer will likely
-          //contain partial updates, which will result in the output
-          //not being able to guarantee all object attributes within
-          //a message.
           std::string rk_str = rkey->GetString();
           const char * rkc_str = rk_str.c_str();
           if (SmartUpdatesActive) {
