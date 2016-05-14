@@ -18,7 +18,6 @@
 #include "src/event_dispatcher.h"
 #include "src/obj3.h"
 #include "src/couchbase_admin.h"
-#include "src/list.h"
 #include "src/lyman_utils.h"
 
 #include "rapidjson/document.h"
