@@ -386,3 +386,47 @@ std::string Obj3::to_json_msg(int msg_type) const
 		std::string ret_string (ret_val);
         return ret_string;
 }
+
+std::string Obj3::to_protobuf_msg(int msg_type) const {
+	protoObj3::Obj3 new_proto;
+	new_proto.set_message_type(msg_type);
+	new_proto.set_key(get_key());
+	new_proto.set_name(get_name());
+	new_proto.set_type(get_type());
+	new_proto.set_subtype(get_subtype());
+	new_proto.set_owner(get_owner());
+	new_proto.set_lock_device_id(lock_owner);
+	protoObj3::Obj3_Vertex3 loc = new_proto.location();
+	loc.set_x(get_locx());
+	loc.set_y(get_locy());
+	loc.set_z(get_locz());
+	// protoObj3::Obj3_Vertex3 rote = new_proto.rotation_euler();
+	// rote.set_x(get_rotex());
+	// rote.set_y(get_rotey());
+	// rote.set_z(get_rotez());
+	// protoObj3::Obj3_Vertex4 rotq = new_proto.rotation_quaternion();
+	// rotq.set_w(get_rotqw());
+	// rotq.set_x(get_rotqx());
+	// rotq.set_y(get_rotqy());
+	// rotq.set_z(get_rotqz());
+	// protoObj3::Obj3_Vertex3 scl = new_proto.scale();
+	// scl.set_x(get_sclx());
+	// scl.set_y(get_scly());
+	// scl.set_z(get_sclz());
+	protoObj3::Obj3_Matrix4& trn = new_proto.transform();
+	int i = 0;
+	for (i = 0; i < 4; i++) {
+		protoObj3::Obj3_Vertex4* c1 = trn.add_col();
+		c1->set_w(transform_matrix(0, i));
+		c1->set_x(transform_matrix(1, i));
+		c1->set_y(transform_matrix(2, i));
+		c1->set_z(transform_matrix(3, i));
+	}
+	int i = 0;
+	for (i = 0; i < num_scenes(); i++) {
+		new_proto.add_scene(get_scene(i))
+	}
+	std::string wstr;
+  new_proto.SerializeToString(&wstr);
+	return wstr;
+}

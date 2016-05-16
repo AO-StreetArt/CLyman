@@ -13,6 +13,7 @@
 #include "rapidjson/writer.h"
 #include <iostream>
 #include <vector>
+#include "Obj3.pb.cc"
 
 #include "logging.h"
 
@@ -206,5 +207,8 @@ class Obj3
 		std::string to_json() const;
 		//Convert the object to JSON Message
         std::string to_json_msg(int msg_type) const;
+
+		//Convert the object to a protocol buffer message
+		std::string to_protobuf_msg(int msg_type) const;
 };
 #endif

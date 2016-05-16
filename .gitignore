@@ -7,3 +7,5 @@ cb_test
 lyman
 *.log
 *.log.*
+*.cc
+*.pb.*
