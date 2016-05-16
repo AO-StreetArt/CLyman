@@ -1,0 +1,36 @@
+package protoObj3;
+
+message Obj3 {
+  required int32 message_type = 1;
+  optional string key = 2;
+  optional string name = 3;
+  optional string type = 4;
+  optional string subtype = 5;
+  optional string owner = 6;
+  optional string lock_device_id = 7;
+
+  message Vertex3 {
+    optional double x = 1;
+    optional double y = 2;
+    optional double z = 3;
+  }
+
+  message Vertex4 {
+    optional double w = 1;
+    optional double x = 2;
+    optional double y = 3;
+    optional double z = 4;
+  }
+
+  message Matrix4 {
+    repeated Vertex4 col = 1;
+  }
+
+  optional Vertex3 location = 8;
+  optional Vertex3 rotation_euler = 9;
+  optional Vertex4 rotation_quaternion = 10;
+  optional Vertex3 scale = 11;
+  optional Matrix4 transform = 12;
+  optional Matrix4 bounding_box = 13;
+  repeated string scenes = 14;
+}
