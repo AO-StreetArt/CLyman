@@ -1030,7 +1030,12 @@ while (true) {
 
         //Emit an event based on the event type & build the response message
         if (current_event_type==OBJ_UPD) {
+          if (MessageFormatJSON) {
 		update_objectd( d );
+  }
+  else if (MessageFormatProtoBuf) {
+    update_objectpb(new_proto);
+  }
                 resp[0]='s';
 		resp[1]='u';
 		resp[2]='c';
@@ -1040,9 +1045,15 @@ while (true) {
 		resp[6]='s';
 		logging->debug("Object Update Event Emitted, response:");
 		logging->debug(resp);
+
         }
         else if (current_event_type==OBJ_CRT) {
+          if (MessageFormatJSON) {
 		create_objectd( d );
+  }
+  else if (MessageFormatProtoBuf) {
+    create_objectpb(new_proto);
+  }
 		resp[0]='s';
                 resp[1]='u';
                 resp[2]='c';
@@ -1054,7 +1065,12 @@ while (true) {
 		logging->debug(resp);
         }
 	else if (current_event_type==OBJ_GET) {
+    if (MessageFormatJSON) {
 		get_objectd( d );
+  }
+  else if (MessageFormatProtoBuf) {
+    get_objectpb (new_proto);
+  }
 		resp[0]='s';
                 resp[1]='u';
                 resp[2]='c';
@@ -1066,7 +1082,12 @@ while (true) {
 		logging->debug(resp);
         }
         else if (current_event_type==OBJ_DEL) {
+          if (MessageFormatJSON) {
 		delete_objectd( d );
+  }
+  else if (MessageFormatProtoBuf) {
+    delete_objectpb(new_proto);
+  }
 		resp[0]='s';
                 resp[1]='u';
                 resp[2]='c';
