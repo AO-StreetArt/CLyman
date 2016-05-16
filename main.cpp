@@ -109,6 +109,7 @@ Obj3 build_proto_object(protoObj3::Obj3 buffer) {
   Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
   Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
   Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
+  std::vector<std::string> scene_list;
   logging->debug("New Variables Declared");
 
   //scale
@@ -185,7 +186,7 @@ if (buffer.has_transform()) {
   protoObj3::Obj3_Matrix4 trn = buffer.transform();
   int i = 0;
   for (i=0; i < trn.col_size(); i++) {
-    protoObj3::Obj3_Vector4 c = trn.col(i);
+    protoObj3::Obj3_Vertex4 c = trn.col(i);
     new_transform(0, i) = c.w();
     new_transform(1, i) = c.x();
     new_transform(2, i) = c.y();
@@ -197,7 +198,7 @@ if (buffer.has_bounding_box()) {
   protoObj3::Obj3_Matrix4 bb = buffer.transform();
   int i = 0;
   for (i=0; i < bb.col_size(); i++) {
-    protoObj3::Obj3_Vector4* c = bb.col(i);
+    protoObj3::Obj3_Vertex4 c = bb.col(i);
     new_bounding_box(0, i) = c.w();
     new_bounding_box(1, i) = c.x();
     new_bounding_box(2, i) = c.y();
@@ -231,6 +232,7 @@ Obj3 build_object(const rapidjson::Document& d) {
     std::string new_type="";
     std::string new_subtype="";
     std::string new_lock_id="";
+    std::vector<std::string> scene_list;
     Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
     Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
     Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
@@ -372,7 +374,6 @@ Obj3 build_object(const rapidjson::Document& d) {
     if (d.HasMember("scenes")) {
       //Read the array values and stuff them into new_location
         const rapidjson::Value& sc = d["scenes"];
-        std::vector<std::string> scene_list;
         if (sc.IsArray()) {
                 for (rapidjson::SizeType i = 0; i < sc.Size();i++) {
                         scene_list.push_back(sc[i].GetString());
@@ -552,9 +553,6 @@ void cr_obj_global(Obj3 new_obj) {
 
   //Save the object to the couchbase DB
   cb->create_object (new_obj);
-  else {
-    logging->error("Create Message recieved without location, bounding box, or scene");
-  }
 }
 
 void create_objectd(rapidjson::Document& d) {
@@ -566,6 +564,9 @@ void create_objectd(rapidjson::Document& d) {
           Obj3 new_obj = build_object (d);
           cr_obj_global(new_obj);
         }
+        else {
+          logging->error("Create Message recieved without location, bounding box, or scene");
+        }
 }
 
 void create_objectpb(protoObj3::Obj3 p_obj) {
@@ -576,6 +577,9 @@ void create_objectpb(protoObj3::Obj3 p_obj) {
           //Build the object and the key
           Obj3 new_obj = build_proto_object (p_obj);
           cr_obj_global(new_obj);
+        }
+        else {
+          logging->error("Create Message recieved without location, bounding box, or scene");
         }
 }
 
@@ -606,16 +610,16 @@ void upd_obj_global(Obj3 temp_obj) {
   else {
     //If smart updates are disabled, we can just write the value directly
     //To the DB
-    // Obj3 *obj_ptr = &new_obj;
+    Obj3 *obj_ptr = &temp_obj;
 
     if (MessageFormatJSON) {
-      send_zmqo_str_message(new_obj.to_json_msg(OBJ_UPD));
+      send_zmqo_str_message(temp_obj.to_json_msg(OBJ_UPD));
     }
     else if (MessageFormatProtoBuf) {
-      send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_UPD));
+      send_zmqo_str_message(temp_obj.to_protobuf_msg(OBJ_UPD));
     }
 
-    cb->save_object (new_obj);
+    cb->save_object (obj_ptr);
   }
 }
 
@@ -662,7 +666,7 @@ void get_obj_global(std::string rk_str) {
   }
   else {
     //Otherwise, Get the object from the DB
-    cb->load_object( rkey->GetString() );
+    cb->load_object( rkc_str );
   }
 }
 
@@ -694,7 +698,8 @@ void get_objectd(rapidjson::Document& d) {
 }
 
 void del_obj_global(std::string key) {
-  cb->delete_object( key );
+  const char * kc_str = key.c_str();
+  cb->delete_object( kc_str );
 
   //Output a delete message on the outbound ZMQ Port
 
@@ -708,14 +713,13 @@ void del_obj_global(std::string key) {
   writer.Uint(3);
 
   writer.Key("key");
-  std::string key = val->GetString();
   writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
 
   writer.EndObject();
 
   //The Stringbuffer now contains a json message
   //of the object
-  send_zmqo_message(val->GetString());
+  send_zmqo_message(kc_str);
 }
 
 void delete_objectpb(protoObj3::Obj3 p_obj) {

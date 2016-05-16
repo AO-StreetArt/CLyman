@@ -13,7 +13,7 @@
 #include "rapidjson/writer.h"
 #include <iostream>
 #include <vector>
-#include "Obj3.pb.cc"
+#include "Obj3.pb.h"
 
 #include "logging.h"
 
