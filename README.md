@@ -18,6 +18,10 @@ For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourcefor
 
 You will need Couchbase drivers installed.  Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)
 
+You will need the protocol buffer libraries, which can be installed on man linux systems with a variant of the below command:
+
+`sudo apt-get install libprotobuf-dev protobuf-compiler`
+
 While a running instance of Couchbase is not necessary to build the application, it is advised for testing purposes (if you have no instance to connect to, whether locally or otherwise, you can't run this service).
 
 ## Compilation Steps
