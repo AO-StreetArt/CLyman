@@ -48,3 +48,30 @@ Unix users should be able to execute the bash script contained with the below co
 `./build_tests.sh`
 
 Which will build the test modules.
+
+## Use & Configuration
+
+### Use
+
+This is designed to be used as a microservice within a larger architecture.  This will take in CRUD messages for objects in 3 space, and track location, rotation, and scaling.  It will also ensure that any updates are sent out on a separate port to allow streaming to all user devices.
+
+The main service can be started with:
+
+`./lyman`
+
+The properties file, lyman.properties can be edited in any text editor.  Below you can find a summary of the options:
+
+### Configuration
+
+#### DB
+* DB_ConnectionString - The string used to connect to the couchbase instance (example: couchbase://localhost/default)
+* DB_AuthenticationActive - True or False, whether or not Database Authentication is active on the couchbase server
+* DB_Password - If DB Authentication is active, then this is used as the password to connect to the couchbase instance
+
+#### 0MQ
+* 0MQ_OutboundConnectionString - The connectivity string for the outbound 0MQ Port
+* 0MQ_InboundConnectionString - The connectivity string for the inbound 0MQ Port
+
+#### Behavior
+* SmartUpdatesActive - True if we want to allow partial messages, and only update fields included in the partial messages.  False if we want to enforce full replace update messages.
+* MessageFormat - json to take in and read out JSON Format, protocol-buffer to take in and read out Google Protocol Buffer Format
