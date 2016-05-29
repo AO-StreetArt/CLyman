@@ -54,34 +54,34 @@ zmq::socket_t *zmqo;
 
 void send_zmqo_message(const char * msg)
 {
-        //Get the size of the buffer being passed in
-        int buffer_size;
-        buffer_size = strlen(msg);
+  //Get the size of the buffer being passed in
+  int buffer_size;
+  buffer_size = strlen(msg);
 
-        //Set up the message to go out on 0MQ
-        zmq::message_t request (buffer_size);
-        memcpy (request.data (), msg, buffer_size);
+  //Set up the message to go out on 0MQ
+  zmq::message_t request (buffer_size);
+  memcpy (request.data (), msg, buffer_size);
 
-        //Send the message
-        zmqo->send (request);
+  //Send the message
+  zmqo->send (request);
 
-        //  Get the reply.
-        zmq::message_t reply;
-        zmq::message_t *rep_ptr;
-        rep_ptr = &reply;
-        zmqo->recv (rep_ptr);
+  //  Get the reply.
+  zmq::message_t reply;
+  zmq::message_t *rep_ptr;
+  rep_ptr = &reply;
+  zmqo->recv (rep_ptr);
 
-        //Process the reply
-        std::string r_str = hexDump(reply);
+  //Process the reply
+  std::string r_str = hexDump(reply);
 
-        logging->info("ZMQ:Message Sent:");
-        logging->info(msg);
-        logging->info("ZMQ:Response Recieved:");
-        logging->info(r_str);
+  logging->info("ZMQ:Message Sent:");
+  logging->info(msg);
+  logging->info("ZMQ:Response Recieved:");
+  logging->info(r_str);
 }
 
 void send_zmqo_str_message(std::string msg) {
-	send_zmqo_message(msg.c_str());
+  send_zmqo_message(msg.c_str());
 }
 
 //Is a key present in the smart update buffer?
@@ -137,81 +137,81 @@ Obj3 build_proto_object(protoObj3::Obj3 buffer) {
   new_bounding_box(1, 7) = 1.0;
   new_bounding_box(2, 7) = 1.0;
 
-//Perform the Conversion
-if (buffer.has_name()) {
-  new_name = buffer.name();
-}
-if (buffer.has_key()) {
-  new_key = buffer.key();
-}
-if (buffer.has_owner()) {
-  new_owner = buffer.owner();
-}
-if (buffer.has_type()) {
-  new_type = buffer.type();
-}
-if (buffer.has_subtype()) {
-  new_subtype = buffer.subtype();
-}
-if (buffer.has_lock_device_id()) {
-  new_lock_id = buffer.lock_device_id();
-}
-if (buffer.has_location()) {
-  protoObj3::Obj3_Vertex3 loc = buffer.location();
-  new_location(0) = loc.x();
-  new_location(1) = loc.y();
-  new_location(2) = loc.z();
-}
-if (buffer.has_rotation_euler()) {
-  protoObj3::Obj3_Vertex3 rote = buffer.rotation_euler();
-  new_rotatione(0) = rote.x();
-  new_rotatione(1) = rote.y();
-  new_rotatione(2) = rote.z();
+  //Perform the Conversion
+  if (buffer.has_name()) {
+    new_name = buffer.name();
+  }
+  if (buffer.has_key()) {
+    new_key = buffer.key();
+  }
+  if (buffer.has_owner()) {
+    new_owner = buffer.owner();
+  }
+  if (buffer.has_type()) {
+    new_type = buffer.type();
+  }
+  if (buffer.has_subtype()) {
+    new_subtype = buffer.subtype();
+  }
+  if (buffer.has_lock_device_id()) {
+    new_lock_id = buffer.lock_device_id();
+  }
+  if (buffer.has_location()) {
+    protoObj3::Obj3_Vertex3 loc = buffer.location();
+    new_location(0) = loc.x();
+    new_location(1) = loc.y();
+    new_location(2) = loc.z();
+  }
+  if (buffer.has_rotation_euler()) {
+    protoObj3::Obj3_Vertex3 rote = buffer.rotation_euler();
+    new_rotatione(0) = rote.x();
+    new_rotatione(1) = rote.y();
+    new_rotatione(2) = rote.z();
 
-}
-if (buffer.has_rotation_quaternion()) {
-  protoObj3::Obj3_Vertex4 rotq = buffer.rotation_quaternion();
-  new_rotationq(0) = rotq.w();
-  new_rotationq(1) = rotq.x();
-  new_rotationq(2) = rotq.y();
-  new_rotationq(3) = rotq.z();
-}
-if (buffer.has_scale()) {
-  protoObj3::Obj3_Vertex3 scl = buffer.scale();
-  new_scale(0) = scl.x();
-  new_scale(1) = scl.y();
-  new_scale(2) = scl.z();
-}
-if (buffer.has_transform()) {
-  protoObj3::Obj3_Matrix4 trn = buffer.transform();
-  int i = 0;
-  for (i=0; i < trn.col_size(); i++) {
-    protoObj3::Obj3_Vertex4 c = trn.col(i);
-    new_transform(0, i) = c.w();
-    new_transform(1, i) = c.x();
-    new_transform(2, i) = c.y();
-    new_transform(3, i) = c.z();
   }
+  if (buffer.has_rotation_quaternion()) {
+    protoObj3::Obj3_Vertex4 rotq = buffer.rotation_quaternion();
+    new_rotationq(0) = rotq.w();
+    new_rotationq(1) = rotq.x();
+    new_rotationq(2) = rotq.y();
+    new_rotationq(3) = rotq.z();
+  }
+  if (buffer.has_scale()) {
+    protoObj3::Obj3_Vertex3 scl = buffer.scale();
+    new_scale(0) = scl.x();
+    new_scale(1) = scl.y();
+    new_scale(2) = scl.z();
+  }
+  if (buffer.has_transform()) {
+    protoObj3::Obj3_Matrix4 trn = buffer.transform();
+    int i = 0;
+    for (i=0; i < trn.col_size(); i++) {
+      protoObj3::Obj3_Vertex4 c = trn.col(i);
+      new_transform(0, i) = c.w();
+      new_transform(1, i) = c.x();
+      new_transform(2, i) = c.y();
+      new_transform(3, i) = c.z();
+    }
     logging->debug("Transform Matrix Parsed");
-}
-if (buffer.has_bounding_box()) {
-  protoObj3::Obj3_Matrix4 bb = buffer.transform();
-  int i = 0;
-  for (i=0; i < bb.col_size(); i++) {
-    protoObj3::Obj3_Vertex4 c = bb.col(i);
-    new_bounding_box(0, i) = c.w();
-    new_bounding_box(1, i) = c.x();
-    new_bounding_box(2, i) = c.y();
-    new_bounding_box(3, i) = c.z();
   }
+  if (buffer.has_bounding_box()) {
+    protoObj3::Obj3_Matrix4 bb = buffer.transform();
+    int i = 0;
+    for (i=0; i < bb.col_size(); i++) {
+      protoObj3::Obj3_Vertex4 c = bb.col(i);
+      new_bounding_box(0, i) = c.w();
+      new_bounding_box(1, i) = c.x();
+      new_bounding_box(2, i) = c.y();
+      new_bounding_box(3, i) = c.z();
+    }
     logging->debug("Bounding Box Parsed");
-}
-if (buffer.scenes_size() > 0) {
-  int j = 0;
-  for (j=0; j< buffer.scenes_size(); j++) {
-    scene_list.push_back(buffer.scenes(j));
   }
-}
+  if (buffer.scenes_size() > 0) {
+    int j = 0;
+    for (j=0; j< buffer.scenes_size(); j++) {
+      scene_list.push_back(buffer.scenes(j));
+    }
+  }
 
   logging->debug("Variables Filled");
 
@@ -223,8 +223,8 @@ if (buffer.scenes_size() > 0) {
 
 //Build Obj3 from a Rapidjson Document
 Obj3 build_object(const rapidjson::Document& d) {
-    logging->debug("Build Object Called");
-    if (d.IsObject()) {
+  logging->debug("Build Object Called");
+  if (d.IsObject()) {
     logging->debug("Object-Format Message Detected");
     std::string new_name="";
     std::string new_key="";
@@ -298,87 +298,87 @@ Obj3 build_object(const rapidjson::Document& d) {
     }
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
-	const rapidjson::Value& loc = d["location"];
-	if (loc.IsArray()) {
-		int j=0;
-		for (rapidjson::SizeType i = 0; i < loc.Size();i++) {
-			new_location(j) = loc[i].GetDouble();
-			j++;
-		}
-	}
+      const rapidjson::Value& loc = d["location"];
+      if (loc.IsArray()) {
+        int j=0;
+        for (rapidjson::SizeType i = 0; i < loc.Size();i++) {
+          new_location(j) = loc[i].GetDouble();
+          j++;
+        }
+      }
     }
     if (d.HasMember("rotation_euler")) {
       //Read the array values and stuff them into new_location
-        const rapidjson::Value& rote = d["rotation_euler"];
-        if (rote.IsArray()) {
-                int j=0;
-                for (rapidjson::SizeType i = 0; i < rote.Size();i++) {
-                        new_rotatione(j) = rote[i].GetDouble();
-                        j++;
-                }
+      const rapidjson::Value& rote = d["rotation_euler"];
+      if (rote.IsArray()) {
+        int j=0;
+        for (rapidjson::SizeType i = 0; i < rote.Size();i++) {
+          new_rotatione(j) = rote[i].GetDouble();
+          j++;
         }
+      }
     }
     if (d.HasMember("rotation_quaternion")) {
       //Read the array values and stuff them into new_location
-        const rapidjson::Value& rotq = d["rotation_quaternion"];
-        if (rotq.IsArray()) {
-                int j=0;
-                for (rapidjson::SizeType i = 0; i < rotq.Size();i++) {
-                        new_rotationq(j) = rotq[i].GetDouble();
-                        j++;
-                }
+      const rapidjson::Value& rotq = d["rotation_quaternion"];
+      if (rotq.IsArray()) {
+        int j=0;
+        for (rapidjson::SizeType i = 0; i < rotq.Size();i++) {
+          new_rotationq(j) = rotq[i].GetDouble();
+          j++;
         }
+      }
     }
     if (d.HasMember("scale")) {
       //Read the array values and stuff them into new_location
-        const rapidjson::Value& scl = d["scale"];
-        if (scl.IsArray()) {
-                int j=0;
-                for (rapidjson::SizeType i = 0; i < scl.Size();i++) {
-                        new_scale(j) = scl[i].GetDouble();
-                        j++;
-                }
+      const rapidjson::Value& scl = d["scale"];
+      if (scl.IsArray()) {
+        int j=0;
+        for (rapidjson::SizeType i = 0; i < scl.Size();i++) {
+          new_scale(j) = scl[i].GetDouble();
+          j++;
         }
+      }
     }
     if (d.HasMember("transform")) {
       //Read the array values and stuff them into new_transform
-	const rapidjson::Value& tran = d["transform"];
-	if (tran.IsArray()) {
-                int j=0;
-                for (rapidjson::SizeType i = 0; i < tran.Size();i++) {
-                        new_transform(i%4, j) = tran[i].GetDouble();
-                        if (i == 3 || i % 4 == 3) {
-				j++;
-			}
-                }
+      const rapidjson::Value& tran = d["transform"];
+      if (tran.IsArray()) {
+        int j=0;
+        for (rapidjson::SizeType i = 0; i < tran.Size();i++) {
+          new_transform(i%4, j) = tran[i].GetDouble();
+          if (i == 3 || i % 4 == 3) {
+            j++;
+          }
         }
-        logging->debug("Transform Matrix Parsed");
+      }
+      logging->debug("Transform Matrix Parsed");
     }
     if (d.HasMember("bounding_box")) {
       //Read the array values and stuff them into new_bounding_box
-	const rapidjson::Value& bb = d["bounding_box"];
-        if (bb.IsArray()) {
-                int j=0;
-                for (rapidjson::SizeType i = 0; i < bb.Size();i++) {
-                        if (j < 8 && i ) {
-                            new_bounding_box(i%4, j) = bb[i].GetDouble();
-                            if (i == 3 || i % 4 == 3 ) {
-                                   j++;
-                            }
-                        }
-                }
+      const rapidjson::Value& bb = d["bounding_box"];
+      if (bb.IsArray()) {
+        int j=0;
+        for (rapidjson::SizeType i = 0; i < bb.Size();i++) {
+          if (j < 8 && i ) {
+            new_bounding_box(i%4, j) = bb[i].GetDouble();
+            if (i == 3 || i % 4 == 3 ) {
+              j++;
+            }
+          }
         }
-        logging->debug("Bounding Box Parsed");
+      }
+      logging->debug("Bounding Box Parsed");
     }
 
     if (d.HasMember("scenes")) {
       //Read the array values and stuff them into new_location
-        const rapidjson::Value& sc = d["scenes"];
-        if (sc.IsArray()) {
-                for (rapidjson::SizeType i = 0; i < sc.Size();i++) {
-                        scene_list.push_back(sc[i].GetString());
-                }
+      const rapidjson::Value& sc = d["scenes"];
+      if (sc.IsArray()) {
+        for (rapidjson::SizeType i = 0; i < sc.Size();i++) {
+          scene_list.push_back(sc[i].GetString());
         }
+      }
     }
 
 
@@ -388,7 +388,7 @@ Obj3 build_object(const rapidjson::Document& d) {
     Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
     logging->debug("Obj3 Built");
     return object;
-}
+  }
 }
 
 //-----------------------
@@ -397,735 +397,787 @@ Obj3 build_object(const rapidjson::Document& d) {
 
 //Couchbase Callbacks
 
-//The storage callback is simple and outputs a message on the ZMQ
-//Port assuming that an update has been made
+//The storage callback is simple, just logging the storage act and result
 static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
-   lcb_error_t err, const lcb_store_resp_t *resp)
-{
-	if (err == LCB_SUCCESS) {
-		logging->info("Stored:");
-		logging->info( (char*)resp->v.v0.key );
-	}
-	else {
-		logging->error("Couldn't store item:");
-		logging->error(lcb_strerror(instance, err));
-	}
-}
-
-//The get callback has the complex logic for the smart updates
-static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
-   const lcb_get_resp_t *resp)
-{
-	if (err == LCB_SUCCESS) {
-    logging->info("Retrieved: ");
-		logging->info( (char*)resp->v.v0.key );
-		logging->info( (char*)resp->v.v0.bytes );
-    const char *k = (char*)resp->v.v0.key;
-    const char *resp_obj = (char*)resp->v.v0.bytes;
-    if (SmartUpdatesActive) {
-    logging->debug("Smart Update Logic Activated");
-    bool is_key_in_buf = is_key_in_smart_update_buffer(k);
-    if (is_key_in_buf) {
-      //We need to update the object in the DB, then output the object
-      //On the Outbound ZeroMQ port.
-
-      logging->debug("Object found in Smart Update Buffer");
-
-      //Let's get the object out of the active update list
-      Obj3 *temp_obj;
-      Obj3 tobj;
-      tobj = smart_update_buffer[k];
-      temp_obj = &tobj;
-
-      //Then, let's get and parse the response from the database
-      rapidjson::Document temp_d;
-      temp_d.Parse(resp_obj);
-      Obj3 new_obj = build_object (temp_d);
-
-      logging->debug("Database Object Parsed");
-
-      //Now, we can compare the two and apply any updates from the
-      //object list to the object returned from the database
-
-      //First, we apply any matrix transforms present
-      if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
-        logging->debug("Location Transformation Detected");
-        new_obj.translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
-      }
-
-      if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
-        logging->debug("Euler Rotation Transformation Detected");
-       new_obj.rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
-      }
-
-      if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
-       logging->debug("Quaternion Rotation Transformation Detected");
-       new_obj.rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
-      }
-
-      if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
-        logging->debug("Scale Transformation Detected");
-        new_obj.resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
-      }
-
-      logging->debug("Applying Transform Matrix and full transform stack");
-      new_obj.transform_object(temp_obj->get_transform());
-
-      new_obj.apply_transforms();
-
-      //Next, we write any string attributes
-      if (temp_obj->get_owner() != "") {
-        new_obj.set_owner(temp_obj->get_owner());
-      }
-
-      if (temp_obj->get_name() != "") {
-        new_obj.set_name(temp_obj->get_name());
-      }
-
-      if (temp_obj->get_type() != "") {
-        new_obj.set_type(temp_obj->get_type());
-      }
-
-      if (temp_obj->get_subtype() != "") {
-        new_obj.set_subtype(temp_obj->get_subtype());
-      }
-
-      //Finally, we write the result back to the database
-      Obj3 *obj_ptr = &new_obj;
-
-      //And output the message on the ZMQ Port
-      if (MessageFormatJSON) {
-        send_zmqo_str_message(new_obj.to_json_msg(OBJ_UPD));
-      }
-      else if (MessageFormatProtoBuf) {
-        send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_UPD));
-      }
-
-      cb->save_object (obj_ptr);
-	  cb->wait();
-
-    }
+  lcb_error_t err, const lcb_store_resp_t *resp)
+  {
+    if (err == LCB_SUCCESS) {
+      logging->info("Stored:");
+      logging->info( (char*)resp->v.v0.key );
     }
     else {
-      //Output the object on the Outbound ZeroMQ port
-      rapidjson::Document temp_d;
+      logging->error("Couldn't store item:");
+      logging->error(lcb_strerror(instance, err));
+    }
+  }
+
+  //The get callback has the complex logic for the smart updates
+  static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
+    const lcb_get_resp_t *resp)
+    {
+      if (err == LCB_SUCCESS) {
+        logging->info("Retrieved: ");
+        logging->info( (char*)resp->v.v0.key );
+        logging->info( (char*)resp->v.v0.bytes );
+        const char *k = (char*)resp->v.v0.key;
+        const char *resp_obj = (char*)resp->v.v0.bytes;
+        if (SmartUpdatesActive) {
+          logging->debug("Smart Update Logic Activated");
+          //Then, let's get and parse the response from the database
+          rapidjson::Document temp_d;
+          temp_d.Parse(resp_obj);
+          Obj3 new_obj = build_object (temp_d);
+          const char *temp_key = new_obj.get_key().c_str();
+          logging->debug("Database Object Parsed");
+          bool is_key_in_buf = is_key_in_smart_update_buffer(temp_key);
+          if (is_key_in_buf) {
+            //We need to update the object in the DB, then output the object
+            //On the Outbound ZeroMQ port.
+
+            logging->debug("Object found in Smart Update Buffer");
+
+            //Let's get the object out of the active update list
+            Obj3 *temp_obj;
+            Obj3 tobj;
+            tobj = smart_update_buffer[k];
+            temp_obj = &tobj;
+
+            //Now, we can compare the two and apply any updates from the
+            //object list to the object returned from the database
+
+            //First, we apply any matrix transforms present
+            if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
+              logging->debug("Location Transformation Detected");
+              new_obj.translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+            }
+
+            if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
+              logging->debug("Euler Rotation Transformation Detected");
+              new_obj.rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
+            }
+
+            if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
+              logging->debug("Quaternion Rotation Transformation Detected");
+              new_obj.rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
+            }
+
+            if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
+              logging->debug("Scale Transformation Detected");
+              new_obj.resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+            }
+
+            logging->debug("Applying Transform Matrix and full transform stack");
+            new_obj.transform_object(temp_obj->get_transform());
+
+            new_obj.apply_transforms();
+
+            //Next, we write any string attributes
+            if (temp_obj->get_owner() != "") {
+              new_obj.set_owner(temp_obj->get_owner());
+            }
+
+            if (temp_obj->get_name() != "") {
+              new_obj.set_name(temp_obj->get_name());
+            }
+
+            if (temp_obj->get_type() != "") {
+              new_obj.set_type(temp_obj->get_type());
+            }
+
+            if (temp_obj->get_subtype() != "") {
+              new_obj.set_subtype(temp_obj->get_subtype());
+            }
+
+            //Finally, we write the result back to the database
+            Obj3 *obj_ptr = &new_obj;
+
+            //And output the message on the ZMQ Port
+            if (MessageFormatJSON) {
+              send_zmqo_str_message(new_obj.to_json_msg(OBJ_UPD));
+            }
+            else if (MessageFormatProtoBuf) {
+              send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_UPD));
+            }
+
+            //Remove the element from the smart updbate buffer
+            smart_update_buffer.erase(k);
+
+            cb->save_object (obj_ptr);
+            cb->wait();
+
+          }
+          else {
+            logging->error("Active Updates enabled but object not found in smart update buffer");
+          }
+        }
+        else {
+          //Output the object on the Outbound ZeroMQ port
+          rapidjson::Document temp_d;
+          try {
+            temp_d.Parse((char*)resp->v.v0.bytes);
+          }
+          catch (std::exception& e) {
+            //Catch a possible exception and write it to the logs
+            logging->error("Exception Occurred parsing message from DB");
+            logging->error(e.what());
+          }
+          Obj3 new_obj = build_object (temp_d);
+          if (MessageFormatJSON) {
+            send_zmqo_str_message(new_obj.to_json_msg(OBJ_GET));
+          }
+          else if (MessageFormatProtoBuf) {
+            send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_GET));
+          }
+        }
+      }
+      else {
+        logging->error("Couldn't retrieve item:");
+        logging->error(lcb_strerror(instance, err));
+      }
+    }
+
+    //Callbacks for the main loop to hit directly
+
+    //Document Event Callbacks
+
+    //Global Object Creation
+    void cr_obj_global(Obj3 new_obj) {
+      //Iterate the Hex Counter value
+      key_counter++;
+
+      std::ostringstream ss;
+      ss << key_counter;
+      new_obj.set_key(ss.str());
+
+      //Output a message on the outbound ZMQ Port
+      if (MessageFormatJSON) {
+        send_zmqo_str_message(new_obj.to_json_msg(OBJ_CRT));
+      }
+      else if (MessageFormatProtoBuf) {
+        send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_CRT));
+      }
+
+      //Save the object to the couchbase DB
+      cb->create_object (new_obj);
+    }
+
+    //Create Object from a Rapidjson Document
+    void create_objectd(rapidjson::Document& d) {
+      logging->info("Create object called with document: ");
+
+      if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
+
+        //Build the object and the key
+        Obj3 new_obj = build_object (d);
+        cr_obj_global(new_obj);
+      }
+      else {
+        logging->error("Create Message recieved without location, bounding box, or scene");
+      }
+    }
+
+    //Create Object from a Protobuffer object
+    void create_objectpb(protoObj3::Obj3 p_obj) {
+      logging->info("Create object called with buffer: ");
+
+      if (p_obj.has_location() && p_obj.has_bounding_box() && p_obj.scenes_size() > 0) {
+
+        //Build the object and the key
+        Obj3 new_obj = build_proto_object (p_obj);
+        cr_obj_global(new_obj);
+      }
+      else {
+        logging->error("Create Message recieved without location, bounding box, or scene");
+      }
+    }
+
+    //Global Update Object
+    void upd_obj_global(Obj3 temp_obj) {
+      if (SmartUpdatesActive) {
+        //We start by writing the object into the smart update buffer
+        //then, we can issue a get call
+
+        //upon returning, the get callback should
+        //check the smart update buffer for a matching key.
+
+        //If it is found, we update the DB Entry.
+        //Else, we simply output the value retrieved from the DB
+
+        //Check if the object already exists in the smart update buffer.
+        //If so, reject the update.
+        const char * temp_key = temp_obj.get_key().c_str();
+        if (is_key_in_smart_update_buffer(temp_key) == false) {
+          smart_update_buffer[temp_key] = temp_obj;
+          cb->load_object(temp_key);
+          cb->wait();
+        }
+        else {
+          logging->error("Collision in Active Update Buffer Detected");
+          Obj3 sub_obj = smart_update_buffer[temp_key];
+          logging->error(sub_obj.to_json());
+        }
+      }
+      else {
+        //If smart updates are disabled, we can just write the value directly
+        //To the DB
+        Obj3 *obj_ptr = &temp_obj;
+
+        if (MessageFormatJSON) {
+          send_zmqo_str_message(temp_obj.to_json_msg(OBJ_UPD));
+        }
+        else if (MessageFormatProtoBuf) {
+          send_zmqo_str_message(temp_obj.to_protobuf_msg(OBJ_UPD));
+        }
+
+        cb->save_object (obj_ptr);
+      }
+    }
+
+    //Update Object called with a Rapidjson Document
+    void update_objectd(rapidjson::Document& d) {
+      logging->info("Update object called with document: ");
+      if (d.HasMember("key")) {
+        Obj3 temp_obj = build_object (d);
+        upd_obj_global(temp_obj);
+      }
+    }
+
+    //Update Object called with a Protobuffer object
+    void update_objectpb(protoObj3::Obj3 p_obj) {
+      logging->info("Update object called with buffer: ");
+      if (p_obj.has_key()) {
+        Obj3 temp_obj = build_proto_object (p_obj);
+        upd_obj_global(temp_obj);
+      }
+    }
+
+    //Get Object Global
+    void get_obj_global(std::string rk_str) {
+      const char * rkc_str = rk_str.c_str();
+      //Check the Active Update Buffer for inflight transactions
+      //If we have any, then we should pull the value from there
+      //And return it.
+      if (SmartUpdatesActive) {
+        //int key_index = find_key_in_active_updates(rkey->GetString());
+        if (is_key_in_smart_update_buffer(rkc_str)) {
+
+          //Pull the value from the update buffer
+          Obj3 tobj = smart_update_buffer[rk_str];
+
+          //Return the object on the outbound ZMQ Port
+          if (MessageFormatJSON) {
+            send_zmqo_str_message(tobj.to_json_msg(OBJ_UPD));
+          }
+          else if (MessageFormatProtoBuf) {
+            send_zmqo_str_message(tobj.to_protobuf_msg(OBJ_UPD));
+          }
+        }
+        else {
+          //Otherwise, Get the object from the DB
+          cb->load_object( rkc_str );
+        }
+      }
+      else {
+        //Otherwise, Get the object from the DB
+        cb->load_object( rkc_str );
+      }
+    }
+
+    //Get object Protobuffer
+    void get_objectpb(protoObj3::Obj3 p_obj) {
+      logging->info("Get object called with buffer: ");
+      if (p_obj.has_key()) {
+        std::string rk_str = p_obj.key();
+        get_obj_global(rk_str);
+      }
+      else {
+        logging->error("Message Recieved without key");
+      }
+    }
+
+    //Get Object Rapidson Document
+    void get_objectd(rapidjson::Document& d) {
+      logging->info("Get object called with document: ");
+      if (d.HasMember("key")) {
+        rapidjson::Value *rkey;
+        rkey = &d["key"];
+        //Check the Active Update Buffer for inflight transactions
+        //If we have any, then we should pull the value from there
+        //And return it.
+        std::string rk_str = rkey->GetString();
+        get_obj_global(rk_str);
+      }
+      else {
+        logging->error("Message Recieved without key");
+      }
+    }
+
+    //Delete Object Global
+    void del_obj_global(std::string key) {
+      const char * kc_str = key.c_str();
+      cb->delete_object( kc_str );
+
+      //Output a delete message on the outbound ZMQ Port
+
+      //Initialize the string buffer and writer
+      rapidjson::StringBuffer s;
+      rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+
+      writer.StartObject();
+
+      writer.Key("message_type");
+      writer.Uint(3);
+
+      writer.Key("key");
+      writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
+
+      writer.EndObject();
+
+      //The Stringbuffer now contains a json message
+      //of the object
+      send_zmqo_message(kc_str);
+    }
+
+    //Delete Object Protobuffer
+    void delete_objectpb(protoObj3::Obj3 p_obj) {
+      logging->info("Delete object called with buffer: ");
+      if (p_obj.has_key()) {
+        std::string k = p_obj.key();
+        del_obj_global(k);
+      }
+      else {
+        logging->error("Message Recieved without key");
+      }
+    }
+
+    //Delete Object Rapidjson Document
+    void delete_objectd(rapidjson::Document& d) {
+      logging->info("Delete object called with document: ");
+      if (d.HasMember("key")) {
+        rapidjson::Value *val;
+        val = &d["key"];
+        del_obj_global(val->GetString());
+      }
+      else {
+        logging->error("Message Recieved without key");
+      }
+    }
+
+    //-----------------------
+    //------Main Method------
+    //-----------------------
+
+    int main()
+    {
+
+      //Set up logging
+      //This reads the logging configuration file
+      std::string initFileName = "log4cpp.properties";
       try {
-          temp_d.Parse((char*)resp->v.v0.bytes);
-      }
-      catch (std::exception& e) {
-          //Catch a possible exception and write it to the logs
-          logging->error("Exception Occurred parsing message from DB");
-          logging->error(e.what());
-      }
-      Obj3 new_obj = build_object (temp_d);
-      if (MessageFormatJSON) {
-        send_zmqo_str_message(new_obj.to_json_msg(OBJ_GET));
-      }
-      else if (MessageFormatProtoBuf) {
-        send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_GET));
-      }
-    }
-	}
-	else {
-		logging->error("Couldn't retrieve item:");
-        	logging->error(lcb_strerror(instance, err));
-	}
-}
-
-
-
-//Document Event Callbacks
-void cr_obj_global(Obj3 new_obj) {
-  //Iterate the Hex Counter value
-  key_counter++;
-
-  std::ostringstream ss;
-  ss << key_counter;
-  new_obj.set_key(ss.str());
-
-  //Output a message on the outbound ZMQ Port
-  if (MessageFormatJSON) {
-    send_zmqo_str_message(new_obj.to_json_msg(OBJ_CRT));
-  }
-  else if (MessageFormatProtoBuf) {
-    send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_CRT));
-  }
-
-  //Save the object to the couchbase DB
-  cb->create_object (new_obj);
-}
-
-void create_objectd(rapidjson::Document& d) {
-        logging->info("Create object called with document: ");
-
-        if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
-
-          //Build the object and the key
-          Obj3 new_obj = build_object (d);
-          cr_obj_global(new_obj);
-        }
-        else {
-          logging->error("Create Message recieved without location, bounding box, or scene");
-        }
-}
-
-void create_objectpb(protoObj3::Obj3 p_obj) {
-        logging->info("Create object called with buffer: ");
-
-        if (p_obj.has_location() && p_obj.has_bounding_box() && p_obj.scenes_size() > 0) {
-
-          //Build the object and the key
-          Obj3 new_obj = build_proto_object (p_obj);
-          cr_obj_global(new_obj);
-        }
-        else {
-          logging->error("Create Message recieved without location, bounding box, or scene");
-        }
-}
-
-void upd_obj_global(Obj3 temp_obj) {
-  if (SmartUpdatesActive) {
-    //We start by writing the object into the smart update buffer
-    //then, we can issue a get call
-
-    //upon returning, the get callback should
-    //check the smart update buffer for a matching key.
-
-    //If it is found, we update the DB Entry.
-    //Else, we simply output the value retrieved from the DB
-
-    //Check if the object already exists in the smart update buffer.
-    //If so, reject the update.
-    const char * temp_key = temp_obj.get_key().c_str();
-    if (is_key_in_smart_update_buffer(temp_key) == false) {
-      smart_update_buffer[temp_key] = temp_obj;
-      cb->load_object(temp_key);
-    }
-    else {
-      logging->error("Collision in Active Update Buffer Detected");
-      logging->error("Key:");
-      logging->error(temp_obj.get_key());
-    }
-  }
-  else {
-    //If smart updates are disabled, we can just write the value directly
-    //To the DB
-    Obj3 *obj_ptr = &temp_obj;
-
-    if (MessageFormatJSON) {
-      send_zmqo_str_message(temp_obj.to_json_msg(OBJ_UPD));
-    }
-    else if (MessageFormatProtoBuf) {
-      send_zmqo_str_message(temp_obj.to_protobuf_msg(OBJ_UPD));
-    }
-
-    cb->save_object (obj_ptr);
-  }
-}
-
-void update_objectd(rapidjson::Document& d) {
-        logging->info("Update object called with document: ");
-        if (d.HasMember("key")) {
-          Obj3 temp_obj = build_object (d);
-          upd_obj_global(temp_obj);
-        }
-}
-
-void update_objectpb(protoObj3::Obj3 p_obj) {
-        logging->info("Update object called with buffer: ");
-        if (p_obj.has_key()) {
-          Obj3 temp_obj = build_proto_object (p_obj);
-          upd_obj_global(temp_obj);
-        }
-}
-
-void get_obj_global(std::string rk_str) {
-  const char * rkc_str = rk_str.c_str();
-  //Check the Active Update Buffer for inflight transactions
-  //If we have any, then we should pull the value from there
-  //And return it.
-  if (SmartUpdatesActive) {
-    //int key_index = find_key_in_active_updates(rkey->GetString());
-    if (is_key_in_smart_update_buffer(rkc_str)) {
-
-      //Pull the value from the update buffer
-      Obj3 tobj = smart_update_buffer[rk_str];
-
-      //Return the object on the outbound ZMQ Port
-      if (MessageFormatJSON) {
-        send_zmqo_str_message(tobj.to_json_msg(OBJ_UPD));
-      }
-      else if (MessageFormatProtoBuf) {
-        send_zmqo_str_message(tobj.to_protobuf_msg(OBJ_UPD));
-      }
-    }
-    else {
-      //Otherwise, Get the object from the DB
-      cb->load_object( rkc_str );
-    }
-  }
-  else {
-    //Otherwise, Get the object from the DB
-    cb->load_object( rkc_str );
-  }
-}
-
-void get_objectpb(protoObj3::Obj3 p_obj) {
-        logging->info("Get object called with buffer: ");
-        if (p_obj.has_key()) {
-          std::string rk_str = p_obj.key();
-          get_obj_global(rk_str);
-        }
-        else {
-          logging->error("Message Recieved without key");
-        }
-}
-
-void get_objectd(rapidjson::Document& d) {
-        logging->info("Get object called with document: ");
-        if (d.HasMember("key")) {
-	        rapidjson::Value *rkey;
-          rkey = &d["key"];
-          //Check the Active Update Buffer for inflight transactions
-          //If we have any, then we should pull the value from there
-          //And return it.
-          std::string rk_str = rkey->GetString();
-          get_obj_global(rk_str);
-        }
-        else {
-          logging->error("Message Recieved without key");
-        }
-}
-
-void del_obj_global(std::string key) {
-  const char * kc_str = key.c_str();
-  cb->delete_object( kc_str );
-
-  //Output a delete message on the outbound ZMQ Port
-
-  //Initialize the string buffer and writer
-  rapidjson::StringBuffer s;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-
-  writer.StartObject();
-
-  writer.Key("message_type");
-  writer.Uint(3);
-
-  writer.Key("key");
-  writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
-
-  writer.EndObject();
-
-  //The Stringbuffer now contains a json message
-  //of the object
-  send_zmqo_message(kc_str);
-}
-
-void delete_objectpb(protoObj3::Obj3 p_obj) {
-  logging->info("Delete object called with buffer: ");
-  if (p_obj.has_key()) {
-    std::string k = p_obj.key();
-    del_obj_global(k);
-  }
-  else {
-    logging->error("Message Recieved without key");
-  }
-}
-
-void delete_objectd(rapidjson::Document& d) {
-  logging->info("Delete object called with document: ");
-  if (d.HasMember("key")) {
-    rapidjson::Value *val;
-    val = &d["key"];
-    del_obj_global(val->GetString());
-  }
-  else {
-    logging->error("Message Recieved without key");
-  }
-}
-
-//-----------------------
-//------Main Method------
-//-----------------------
-
-int main()
-{
-
-//Set up logging
-//This reads the logging configuration file
-std::string initFileName = "log4cpp.properties";
-try {
         log4cpp::PropertyConfigurator::configure(initFileName);
-}
-catch ( log4cpp::ConfigureFailure &e ) {
+      }
+      catch ( log4cpp::ConfigureFailure &e ) {
         std::cout << "[log4cpp::ConfigureFailure] caught while reading" << initFileName << std::endl;
         std::cout << e.what();
         exit(1);
-}
+      }
 
-log4cpp::Category& root = log4cpp::Category::getRoot();
+      log4cpp::Category& root = log4cpp::Category::getRoot();
 
-log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
+      log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
 
-log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
+      log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
 
-logging = &log;
+      logging = &log;
 
-//Read the application configuration file
+      //Read the application configuration file
 
-//Default Values for Configuration Variables
-DB_ConnStr="";
-DB_AuthActive=false;
-DB_Pswd="";
-OMQ_OBConnStr="";
-OMQ_IBConnStr="";
-SmartUpdatesActive=false;
-MessageFormatJSON=true;
-MessageFormatProtoBuf=false;
+      //Default Values for Configuration Variables
+      DB_ConnStr="";
+      DB_AuthActive=false;
+      DB_Pswd="";
+      OMQ_OBConnStr="";
+      OMQ_IBConnStr="";
+      SmartUpdatesActive=false;
+      MessageFormatJSON=true;
+      MessageFormatProtoBuf=false;
 
-hex_counter="0x00";
-key_counter=0x00;
+      hex_counter="0x00";
+      key_counter=0x00;
 
-//Open the key counter file
-logging->info("Opening counter.properties");
-std::string counter_line;
-std::ifstream c_file ("counter.properties");
+      //Open the key counter file
+      logging->info("Opening counter.properties");
+      std::string counter_line;
+      std::ifstream c_file ("counter.properties");
 
-if (c_file.is_open()) {
+      if (c_file.is_open()) {
         while (getline (c_file, counter_line) ) {
-                //Read a line from the property file
-                logging->debug("Line read from configuration file:");
-                logging->debug(counter_line);
+          //Read a line from the property file
+          logging->debug("Line read from configuration file:");
+          logging->debug(counter_line);
 
-                //Figure out if we have a blank or comment line
-                bool k_going = true;
-                if (counter_line.length() > 0) {
-                        if (counter_line[0] == '/' && counter_line[1] == '/') {
-                                k_going=false;
-                        }
-                }
-                else {
-                        k_going=false;
-                }
+          //Figure out if we have a blank or comment line
+          bool k_going = true;
+          if (counter_line.length() > 0) {
+            if (counter_line[0] == '/' && counter_line[1] == '/') {
+              k_going=false;
+            }
+          }
+          else {
+            k_going=false;
+          }
 
-                if (k_going==true) {
-			try {
-				hex_counter=counter_line;
-				key_counter=std::stoi(hex_counter, 0, hex_counter.length());
-			}
-			catch (std::exception& e) {
-				logging->error("Exception encountered parsing hex counter value");
-				logging->error(e.what());
-			}
-		}
-	}
+          if (k_going==true) {
+            try {
+              hex_counter=counter_line;
+              key_counter=std::stoi(hex_counter, 0, hex_counter.length());
+            }
+            catch (std::exception& e) {
+              logging->error("Exception encountered parsing hex counter value");
+              logging->error(e.what());
+            }
+          }
+        }
         c_file.close();
-}
+      }
 
 
-//Open the file
-logging->info("Opening lyman.properties");
-std::string line;
-std::ifstream file ("lyman.properties");
+      //Open the file
+      logging->info("Opening lyman.properties");
+      std::string line;
+      std::ifstream file ("lyman.properties");
 
-if (file.is_open()) {
-	while (getline (file, line) ) {
-		//Read a line from the property file
-		logging->debug("Line read from configuration file:");
-		logging->debug(line);
+      if (file.is_open()) {
+        while (getline (file, line) ) {
+          //Read a line from the property file
+          logging->debug("Line read from configuration file:");
+          logging->debug(line);
 
-		//Figure out if we have a blank or comment line
-		bool keep_going = true;
-		if (line.length() > 0) {
-			if (line[0] == '/' && line[1] == '/') {
-				keep_going=false;
-			}
-		}
-		else {
-			keep_going=false;
-		}
+          //Figure out if we have a blank or comment line
+          bool keep_going = true;
+          if (line.length() > 0) {
+            if (line[0] == '/' && line[1] == '/') {
+              keep_going=false;
+            }
+          }
+          else {
+            keep_going=false;
+          }
 
-		if (keep_going==true) {
-			int eq_pos = line.find("=", 0);
-			std::string var_name = line.substr(0, eq_pos);
-			std::string var_value = line.substr(eq_pos+1, line.length() - eq_pos);
-			logging->debug(var_name);
-			logging->debug(var_value);
-			if (var_name=="DB_ConnectionString") {
-				DB_ConnStr=var_value;
-			}
-			else if (var_name=="DB_AuthenticationActive") {
-				if (var_value=="True") {
-					DB_AuthActive=true;
-				}
-				else {
-					DB_AuthActive=false;
-				}
-			}
-			else if (var_name=="DB_Password") {
-				DB_Pswd=var_value;
-			}
-			else if (var_name=="0MQ_OutboundConnectionString") {
-				OMQ_OBConnStr = var_value;
-			}
-			else if (var_name=="0MQ_InboundConnectionString") {
-				OMQ_IBConnStr = var_value;
-			}
-			else if (var_name=="SmartUpdatesActive") {
-				if (var_value=="True") {
-                                	SmartUpdatesActive=true;
-                        	}
-                        	else {
-                                	SmartUpdatesActive=false;
-                        	}
-			}
-      else if (var_name=="MessageFormat") {
-				if (var_value=="json") {
-          MessageFormatJSON=true;
-          MessageFormatProtoBuf=false;
+          if (keep_going==true) {
+            int eq_pos = line.find("=", 0);
+            std::string var_name = line.substr(0, eq_pos);
+            std::string var_value = line.substr(eq_pos+1, line.length() - eq_pos);
+            logging->debug(var_name);
+            logging->debug(var_value);
+            if (var_name=="DB_ConnectionString") {
+              DB_ConnStr=var_value;
+            }
+            else if (var_name=="DB_AuthenticationActive") {
+              if (var_value=="True") {
+                DB_AuthActive=true;
+              }
+              else {
+                DB_AuthActive=false;
+              }
+            }
+            else if (var_name=="DB_Password") {
+              DB_Pswd=var_value;
+            }
+            else if (var_name=="0MQ_OutboundConnectionString") {
+              OMQ_OBConnStr = var_value;
+            }
+            else if (var_name=="0MQ_InboundConnectionString") {
+              OMQ_IBConnStr = var_value;
+            }
+            else if (var_name=="SmartUpdatesActive") {
+              if (var_value=="True") {
+                SmartUpdatesActive=true;
+              }
+              else {
+                SmartUpdatesActive=false;
+              }
+            }
+            else if (var_name=="MessageFormat") {
+              if (var_value=="json") {
+                MessageFormatJSON=true;
+                MessageFormatProtoBuf=false;
+              }
+              else if (var_value=="protocol-buffer") {
+                MessageFormatJSON=false;
+                MessageFormatProtoBuf=true;
+              }
+            }
+          }
         }
-        else if (var_value=="protocol-buffer") {
-          MessageFormatJSON=false;
-          MessageFormatProtoBuf=true;
-        }
-			}
-		}
-	}
-	file.close();
-}
+        file.close();
+      }
 
-//Set up internal variables
-int current_event_type;
-int msg_type;
-rapidjson::Document d;
-rapidjson::Value *s;
-char resp[8]={'n','i','l','r','e','s','p','\0'};
-logging->info("Internal Variables Intialized");
-protoObj3::Obj3 new_proto;
+      //Set up internal variables
+      int current_event_type;
+      int msg_type;
+      rapidjson::Document d;
+      rapidjson::Value *s;
+      char resp[8]={'n','i','l','r','e','s','p','\0'};
+      logging->info("Internal Variables Intialized");
+      protoObj3::Obj3 new_proto;
 
-//Set up the Couchbase Connection
-CouchbaseAdmin c ( DB_ConnStr.c_str() );
-cb = &c;
-logging->info("Connected to Couchbase DB");
+      //Set up the Couchbase Connection
+      CouchbaseAdmin c ( DB_ConnStr.c_str() );
+      cb = &c;
+      logging->info("Connected to Couchbase DB");
 
-//Bind Couchbase Callbacks
-lcb_set_store_callback(cb->get_instance(), storage_callback);
-lcb_set_get_callback(cb->get_instance(), get_callback);
+      //Bind Couchbase Callbacks
+      lcb_set_store_callback(cb->get_instance(), storage_callback);
+      lcb_set_get_callback(cb->get_instance(), get_callback);
 
-zmq::context_t context(1);
+      zmq::context_t context(1);
 
-//Set up the outbound ZMQ Client
-zmq::socket_t zout(context, ZMQ_REQ);
-logging->info("0MQ Constructor Called");
-zout.connect(OMQ_OBConnStr);
-zmqo = &zout;
-logging->info("Connected to Outbound OMQ Socket");
+      //Set up the outbound ZMQ Client
+      zmq::socket_t zout(context, ZMQ_REQ);
+      logging->info("0MQ Constructor Called");
+      zout.connect(OMQ_OBConnStr);
+      zmqo = &zout;
+      logging->info("Connected to Outbound OMQ Socket");
 
-//Connect to the inbound ZMQ Socket
-zmq::socket_t socket(context, ZMQ_REP);
-socket.bind(OMQ_IBConnStr);
-logging->info("ZMQ Socket Open, opening request loop");
+      //Connect to the inbound ZMQ Socket
+      zmq::socket_t socket(context, ZMQ_REP);
+      socket.bind(OMQ_IBConnStr);
+      logging->info("ZMQ Socket Open, opening request loop");
 
 
-//Main Request Loop
+      //Main Request Loop
 
 
-while (true) {
+      while (true) {
         zmq::message_t request;
 
         //  Wait for next request from client
         socket.recv (&request);
-	logging->info("Request Recieved");
+        logging->info("Request Recieved");
 
         //Convert the OMQ message into a string to be passed on the event
         std::string req_string;
         req_string = left_trim_string (hexDump (request));
         const char * req_ptr = req_string.c_str();
-	logging->debug("Conversion to C String performed with result: ");
-	logging->debug(req_ptr);
+        logging->debug("Conversion to C String performed with result: ");
+        logging->debug(req_ptr);
 
-      if (MessageFormatJSON) {
-	      //Process the message header and set current_event_type
-        try {
-	         d.Parse(req_ptr);
-        }
-        catch (std::exception& e) {
+        if (MessageFormatJSON) {
+          //Process the message header and set current_event_type
+          try {
+            d.Parse(req_ptr);
+          }
+          catch (std::exception& e) {
             logging->error("Exception occurred while parsing inbound document:");
             logging->error(e.what());
-         }
-         //Catch a possible error and write to logs
-	       s = &d["message_type"];
-	       msg_type = s->GetInt();
-      }
-      else if (MessageFormatProtoBuf) {
-        try {
-          new_proto.Clear();
-	         new_proto.ParseFromString(req_string);
+          }
+          //Catch a possible error and write to logs
+          s = &d["message_type"];
+          msg_type = s->GetInt();
         }
-        catch (std::exception& e) {
+        else if (MessageFormatProtoBuf) {
+          try {
+            new_proto.Clear();
+            new_proto.ParseFromString(req_string);
+          }
+          catch (std::exception& e) {
             logging->error("Exception occurred while parsing inbound document:");
             logging->error(e.what());
-         }
-         //Catch a possible error and write to logs
-	       msg_type = new_proto.message_type();
-      }
+          }
+          //Catch a possible error and write to logs
+          msg_type = new_proto.message_type();
+        }
 
         if (msg_type == OBJ_UPD) {
-                current_event_type=OBJ_UPD;
-		logging->debug("Current Event Type set to Object Update");
+          current_event_type=OBJ_UPD;
+          logging->debug("Current Event Type set to Object Update");
         }
         else if (msg_type == OBJ_CRT) {
-                current_event_type=OBJ_CRT;
-		logging->debug("Current Event Type set to Object Create");
+          current_event_type=OBJ_CRT;
+          logging->debug("Current Event Type set to Object Create");
         }
         else if (msg_type == OBJ_GET) {
-                current_event_type=OBJ_GET;
-		logging->debug("Current Event Type set to Object Get");
+          current_event_type=OBJ_GET;
+          logging->debug("Current Event Type set to Object Get");
         }
-	else if (msg_type == OBJ_DEL) {
-                current_event_type=OBJ_DEL;
-		logging->debug("Current Event Type set to Object Delete");
+        else if (msg_type == OBJ_DEL) {
+          current_event_type=OBJ_DEL;
+          logging->debug("Current Event Type set to Object Delete");
         }
-	//Shutdown Message
-	else if (msg_type == 999) {
-		end_log();
-		std::ofstream myfile;
-		myfile.open("counters.tmp");
+        //Shutdown Message
+        else if (msg_type == 999) {
+          end_log();
+          std::ofstream myfile;
+          myfile.open("counters.tmp");
 
-		std::ostringstream ss;
-		ss << key_counter;
+          std::ostringstream ss;
+          ss << key_counter;
 
-		myfile << ss.str();
-		myfile << "\n";
-		int result;
-		result = rename("counters.tmp", "counters.properties");
-		if (result == 0) {
-			logging->info("File Renamed");
-		}
-		else {
-			logging->error("Counter File Rename unsuccessful");
-		}
-		resp[0]='s';
-		resp[1]='u';
-		resp[2]='c';
-		resp[3]='c';
-		resp[4]='e';
-		resp[5]='s';
-		resp[6]='s';
+          myfile << ss.str();
+          myfile << "\n";
+          int result;
+          result = rename("counters.tmp", "counters.properties");
+          if (result == 0) {
+            logging->info("File Renamed");
+          }
+          else {
+            logging->error("Counter File Rename unsuccessful");
+          }
+          resp[0]='s';
+          resp[1]='u';
+          resp[2]='c';
+          resp[3]='c';
+          resp[4]='e';
+          resp[5]='s';
+          resp[6]='s';
 
-		//  Send reply back to client
-		zmq::message_t reply (8);
+          //  Send reply back to client
+          zmq::message_t reply (8);
 
-		//Prepare return data
-		memcpy (reply.data (), resp, 8);
-		//Send the response
-        socket.send (reply);
-        // Optional:  Delete all global objects allocated by libprotobuf.
-      google::protobuf::ShutdownProtobufLibrary();
-		logging->debug("Response Sent, terminating");
-		return 0;
-	}
+          //Prepare return data
+          memcpy (reply.data (), resp, 8);
+          //Send the response
+          socket.send (reply);
+          // Optional:  Delete all global objects allocated by libprotobuf.
+          google::protobuf::ShutdownProtobufLibrary();
+          logging->debug("Response Sent, terminating");
+          return 0;
+        }
         else {
-                current_event_type=-1;
-		logging->error("Current Event Type not found");
+          current_event_type=-1;
+          logging->error("Current Event Type not found");
         }
 
 
         //Emit an event based on the event type & build the response message
         if (current_event_type==OBJ_UPD) {
+          resp[0]='s';
+          resp[1]='u';
+          resp[2]='c';
+          resp[3]='c';
+          resp[4]='e';
+          resp[5]='s';
+          resp[6]='s';
+          logging->debug("Object Update Event Emitted, response:");
+          logging->debug(resp);
+          //  Send reply back to client
+          zmq::message_t reply (8);
+
+          //Prepare return data
+          memcpy (reply.data (), resp, 8);
+
+          //Send the response
+          socket.send (reply);
+          logging->debug("Response Sent");
           if (MessageFormatJSON) {
-		update_objectd( d );
-  }
-  else if (MessageFormatProtoBuf) {
-    update_objectpb(new_proto);
-  }
-                resp[0]='s';
-		resp[1]='u';
-		resp[2]='c';
-		resp[3]='c';
-		resp[4]='e';
-		resp[5]='s';
-		resp[6]='s';
-		logging->debug("Object Update Event Emitted, response:");
-		logging->debug(resp);
+            update_objectd( d );
+          }
+          else if (MessageFormatProtoBuf) {
+            update_objectpb(new_proto);
+          }
 
         }
         else if (current_event_type==OBJ_CRT) {
+          resp[0]='s';
+          resp[1]='u';
+          resp[2]='c';
+          resp[3]='c';
+          resp[4]='e';
+          resp[5]='s';
+          resp[6]='s';
+          logging->debug("Object Create Event Emitted, response: ");
+          logging->debug(resp);
+          //  Send reply back to client
+          zmq::message_t reply (8);
+
+          //Prepare return data
+          memcpy (reply.data (), resp, 8);
+
+          //Send the response
+          socket.send (reply);
+          logging->debug("Response Sent");
           if (MessageFormatJSON) {
-		create_objectd( d );
-  }
-  else if (MessageFormatProtoBuf) {
-    create_objectpb(new_proto);
-  }
-		resp[0]='s';
-                resp[1]='u';
-                resp[2]='c';
-                resp[3]='c';
-                resp[4]='e';
-                resp[5]='s';
-                resp[6]='s';
-		logging->debug("Object Create Event Emitted, response: ");
-		logging->debug(resp);
+            create_objectd( d );
+          }
+          else if (MessageFormatProtoBuf) {
+            create_objectpb(new_proto);
+          }
         }
-	else if (current_event_type==OBJ_GET) {
-    if (MessageFormatJSON) {
-		get_objectd( d );
-  }
-  else if (MessageFormatProtoBuf) {
-    get_objectpb (new_proto);
-  }
-		resp[0]='s';
-                resp[1]='u';
-                resp[2]='c';
-                resp[3]='c';
-                resp[4]='e';
-                resp[5]='s';
-                resp[6]='s';
-		logging->debug("Object Get Event Emitted, response: ");
-		logging->debug(resp);
+        else if (current_event_type==OBJ_GET) {
+          resp[0]='s';
+          resp[1]='u';
+          resp[2]='c';
+          resp[3]='c';
+          resp[4]='e';
+          resp[5]='s';
+          resp[6]='s';
+          logging->debug("Object Get Event Emitted, response: ");
+          logging->debug(resp);
+          //  Send reply back to client
+          zmq::message_t reply (8);
+
+          //Prepare return data
+          memcpy (reply.data (), resp, 8);
+
+          //Send the response
+          socket.send (reply);
+          logging->debug("Response Sent");
+          if (MessageFormatJSON) {
+            get_objectd( d );
+          }
+          else if (MessageFormatProtoBuf) {
+            get_objectpb (new_proto);
+          }
         }
         else if (current_event_type==OBJ_DEL) {
+          resp[0]='s';
+          resp[1]='u';
+          resp[2]='c';
+          resp[3]='c';
+          resp[4]='e';
+          resp[5]='s';
+          resp[6]='s';
+          logging->debug("Object Delete Event Emitted, response: ");
+          logging->debug(resp);
+          //  Send reply back to client
+          zmq::message_t reply (8);
+
+          //Prepare return data
+          memcpy (reply.data (), resp, 8);
+
+          //Send the response
+          socket.send (reply);
+          logging->debug("Response Sent");
           if (MessageFormatJSON) {
-		delete_objectd( d );
-  }
-  else if (MessageFormatProtoBuf) {
-    delete_objectpb(new_proto);
-  }
-		resp[0]='s';
-                resp[1]='u';
-                resp[2]='c';
-                resp[3]='c';
-                resp[4]='e';
-                resp[5]='s';
-                resp[6]='s';
-		logging->debug("Object Delete Event Emitted, response: ");
-		logging->debug(resp);
+            delete_objectd( d );
+          }
+          else if (MessageFormatProtoBuf) {
+            delete_objectpb(new_proto);
+          }
         }
         else
         {
-		resp[0]='f';
-                resp[1]='a';
-                resp[2]='i';
-                resp[3]='l';
-                resp[4]='u';
-                resp[5]='r';
-                resp[6]='e';
-		logging->error("Object Event not Emitted, response: ");
-		logging->error(resp);
+          resp[0]='f';
+          resp[1]='a';
+          resp[2]='i';
+          resp[3]='l';
+          resp[4]='u';
+          resp[5]='r';
+          resp[6]='e';
+          logging->error("Object Event not Emitted, response: ");
+          logging->error(resp);
+          //  Send reply back to client
+          zmq::message_t reply (8);
+
+          //Prepare return data
+          memcpy (reply.data (), resp, 8);
+
+          //Send the response
+          socket.send (reply);
+          logging->debug("Response Sent");
         }
+      }
 
-        //  Send reply back to client
-        zmq::message_t reply (8);
-
-        //Prepare return data
-        memcpy (reply.data (), resp, 8);
-
-	//Send the response
-        socket.send (reply);
-	logging->debug("Response Sent");
-		cb->wait();
-        }
-
-return 0;
-}
+      return 0;
+    }

@@ -4,7 +4,7 @@ g++ -c -o src/tests/obj3_test.o src/tests/obj3_test.cpp -std=c++11
 
 #Here we can build the test app:
 
-g++ -lpthread -llog4cpp -o obj_test src/logging.o src/obj3.o src/tests/obj3_test.o -std=c++11
+g++ -lpthread -llog4cpp -o obj_test src/logging.o src/obj3.o src/tests/obj3_test.o -std=c++11 `pkg-config --cflags --libs protobuf`
 
 #Now, we get to build the main test app:
 

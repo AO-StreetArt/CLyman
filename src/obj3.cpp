@@ -388,6 +388,8 @@ std::string Obj3::to_json_msg(int msg_type) const
 }
 
 std::string Obj3::to_protobuf_msg(int msg_type) const {
+	logging->info("Obj3:To Proto message Called on object");
+	logging->info(get_key());
 	protoObj3::Obj3 new_proto;
 	new_proto.set_message_type(msg_type);
 	new_proto.set_key(get_key());
@@ -428,5 +430,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	}
 	std::string wstr;
   new_proto.SerializeToString(&wstr);
+	logging->debug("Protocol Buffer Serialized to String");
+	logging->debug(wstr);
 	return wstr;
 }
