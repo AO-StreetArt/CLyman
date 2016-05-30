@@ -64,13 +64,13 @@ mv zeromq-4.1.4 $PRE/zeromq-4.1.4
 printf "Building ZMQ"
 
 #Configure
-./$PRE/zeromq-4.1.4/configure --without-libsodium
+cd $PRE/zeromq-4.1.4 && ./configure --without-libsodium
 
 #Make
-make
+cd $PRE/zeromq-4.1.4 && make
 
 #Sudo Make Install
-sudo make install
+cd $PRE/zeromq-4.1.4 && sudo make install
 
 printf "Cloning ZMQ C++ Bindings"
 
