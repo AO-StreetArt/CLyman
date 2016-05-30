@@ -5,6 +5,10 @@
 #Based on Ubuntu 14.04 LTS
 #Not intended for use with other OS (may function correctly with Debian 7, untested)
 
+printf "Creating Dependency Folder"
+PRE=downloads
+mkdir $PRE
+
 printf "Calling apt-get update"
 
 #Update the Ubuntu Server
@@ -21,43 +25,46 @@ printf "Cloning RapidJSON"
 
 #Get the RapidJSON Dependency
 git clone https://github.com/miloyip/rapidjson.git
+mv rapidjson $PRE/rapidjson
 
 #Move the RapidJSON header files to the include path
-sudo cp -r rapidjson/include/rapidjson/ /usr/local/include
+sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
 
 printf "Pulling Down Repositories for Couchbase Client"
 
 #Get the Couchbase dependecies
-wget http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
-sudo dpkg -i couchbase-release-1.0-2-amd64.deb
+wget -P $PRE http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
+sudo dpkg -i $PRE/couchbase-release-1.0-2-amd64.deb
 
 printf "Downloading Eigen"
 
 #Get the Eigen Dependencies
-wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
+wget -P $PRE http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
 
 #Move the Eigen Header files to the include path
 
 #Unzip the Eigen directories
-tar -vxjf 3.2.8.tar.bz2
+tar -vxjf $PRE/3.2.8.tar.bz2
+mv eigen-eigen* $PRE/eigen
 
 #Move the files
-sudo cp -r eigen-eigen*/Eigen /usr/local/include
+sudo cp -r $PRE/eigen/Eigen /usr/local/include
 
 printf "Getting ZMQ"
 
 #Get the ZMQ Dependencies
-wget https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz
+wget -P $PRE https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz
 
 #Build & Install ZMQ
 
 #Unzip the ZMQ Directories
-tar -xvzf zeromq-4.1.4.tar.gz
+tar -xvzf $PRE/zeromq-4.1.4.tar.gz
+mv zeromq-4.1.4 $PRE/zeromq-4.1.4
 
 printf "Building ZMQ"
 
 #Configure
-./zeromq-4.1.4/configure --without-libsodium
+./$PRE/zeromq-4.1.4/configure --without-libsodium
 
 #Make
 make
@@ -65,14 +72,18 @@ make
 #Sudo Make Install
 sudo make install
 
+#Run ldconfig to ensure that ZMQ is on the linker path
+sudo ldconfig
+
 printf "Cloning ZMQ C++ Bindings"
 
 #Get the ZMQ C++ Bindings
 git clone https://github.com/zeromq/cppzmq.git
+mv cppzmq $PRE/cppzmq
 
 #Get ZMQ C++ Header files into include path
-sudo cp cppzmq/zmq.hpp /usr/local/include
-sudo cp cppzmq/zmq_addon.hpp /usr/local/include
+sudo cp $PRE/cppzmq/zmq.hpp /usr/local/include
+sudo cp $PRE/cppzmq/zmq_addon.hpp /usr/local/include
 
 printf "Update cache and install final dependencies through apt-get"
 
@@ -83,4 +94,3 @@ sudo apt-get update
 sudo apt-get install libcouchbase-dev libcouchbase2-bin libprotobuf-dev protobuf-compiler liblog4cpp5-dev
 
 printf "Finished installing dependencies"
-
