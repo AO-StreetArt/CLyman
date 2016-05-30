@@ -6,7 +6,7 @@
 #Not intended for use with other OS (may function correctly with Debian 7, untested)
 
 printf "Creating Dependency Folder"
-PRE=../clyman_deps
+PRE=downloads
 mkdir $PRE
 
 printf "Calling apt-get update"
@@ -64,13 +64,13 @@ mv zeromq-4.1.4 $PRE/zeromq-4.1.4
 printf "Building ZMQ"
 
 #Configure
-cd $PRE/zeromq-4.1.4 && ./configure --without-libsodium
+./$PRE/zeromq-4.1.4/configure --without-libsodium
 
 #Make
-cd $PRE/zeromq-4.1.4 && make
+make
 
 #Sudo Make Install
-cd $PRE/zeromq-4.1.4 && sudo make install
+sudo make install
 
 printf "Cloning ZMQ C++ Bindings"
 
@@ -91,4 +91,3 @@ sudo apt-get update
 sudo apt-get install libcouchbase-dev libcouchbase2-bin libprotobuf-dev protobuf-compiler liblog4cpp5-dev
 
 printf "Finished installing dependencies"
-
