@@ -6,7 +6,8 @@
 #Not intended for use with other OS (may function correctly with Debian 7, untested)
 
 printf "Creating Dependency Folder"
-mkdir deps
+PRE=../clyman_deps
+mkdir $PRE
 
 printf "Calling apt-get update"
 
@@ -23,44 +24,45 @@ sudo apt-get install build-essential libtool pkg-config autoconf automake uuid-d
 printf "Cloning RapidJSON"
 
 #Get the RapidJSON Dependency
-git clone https://github.com/miloyip/rapidjson.git deps
+git clone https://github.com/miloyip/rapidjson.git
+mv rapidjson $PRE/rapidjson
 
 #Move the RapidJSON header files to the include path
-sudo cp -r deps/rapidjson/include/rapidjson/ /usr/local/include
+sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
 
 printf "Pulling Down Repositories for Couchbase Client"
 
 #Get the Couchbase dependecies
-wget -P deps http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
-sudo dpkg -i deps/couchbase-release-1.0-2-amd64.deb
+wget -P $PRE http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
+sudo dpkg -i $PRE/couchbase-release-1.0-2-amd64.deb
 
 printf "Downloading Eigen"
 
 #Get the Eigen Dependencies
-wget -P deps http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
+wget -P $PRE http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
 
 #Move the Eigen Header files to the include path
 
 #Unzip the Eigen directories
-tar -C deps -vxjf deps/3.2.8.tar.bz2
+tar -C $PRE -vxjf deps/3.2.8.tar.bz2
 
 #Move the files
-sudo cp -r deps/eigen-eigen*/Eigen /usr/local/include
+sudo cp -r $PRE/eigen-eigen*/Eigen /usr/local/include
 
 printf "Getting ZMQ"
 
 #Get the ZMQ Dependencies
-wget -P deps https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz
+wget -P $PRE https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz
 
 #Build & Install ZMQ
 
 #Unzip the ZMQ Directories
-tar -C deps -xvzf zeromq-4.1.4.tar.gz
+tar -C $PRE/zeromq-4.1.4 -xvzf zeromq-4.1.4.tar.gz
 
 printf "Building ZMQ"
 
 #Configure
-./zeromq-4.1.4/configure --without-libsodium
+.$PRE/zeromq-4.1.4/configure --without-libsodium
 
 #Make
 make
@@ -71,11 +73,12 @@ sudo make install
 printf "Cloning ZMQ C++ Bindings"
 
 #Get the ZMQ C++ Bindings
-git clone https://github.com/zeromq/cppzmq.git deps
+git clone https://github.com/zeromq/cppzmq.git
+mv cppzmq $PRE/cppzmq
 
 #Get ZMQ C++ Header files into include path
-sudo cp deps/cppzmq/zmq.hpp /usr/local/include
-sudo cp deps/cppzmq/zmq_addon.hpp /usr/local/include
+sudo cp $PRE/cppzmq/zmq.hpp /usr/local/include
+sudo cp $PRE/cppzmq/zmq_addon.hpp /usr/local/include
 
 printf "Update cache and install final dependencies through apt-get"
 
