@@ -57,7 +57,7 @@ wget -P $PRE https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq
 #Build & Install ZMQ
 
 #Unzip the ZMQ Directories
-tar -xvzf zeromq-4.1.4.tar.gz
+tar -xvzf $PRE/zeromq-4.1.4.tar.gz
 mv zeromq-4.1.4 $PRE/zeromq-4.1.4
 
 printf "Building ZMQ"
