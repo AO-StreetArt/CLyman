@@ -72,6 +72,9 @@ make
 #Sudo Make Install
 sudo make install
 
+#Run ldconfig to ensure that ZMQ is on the linker path
+sudo ldconfig
+
 printf "Cloning ZMQ C++ Bindings"
 
 #Get the ZMQ C++ Bindings
