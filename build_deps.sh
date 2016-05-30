@@ -44,10 +44,11 @@ wget -P $PRE http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
 #Move the Eigen Header files to the include path
 
 #Unzip the Eigen directories
-tar -C $PRE -vxjf deps/3.2.8.tar.bz2
+tar -vxjf $PRE/3.2.8.tar.bz2
+mv eigen-eigen* $PRE/eigen
 
 #Move the files
-sudo cp -r $PRE/eigen-eigen*/Eigen /usr/local/include
+sudo cp -r $PRE/eigen/Eigen /usr/local/include
 
 printf "Getting ZMQ"
 
@@ -63,7 +64,7 @@ mv zeromq-4.1.4 $PRE/zeromq-4.1.4
 printf "Building ZMQ"
 
 #Configure
-.$PRE/zeromq-4.1.4/configure --without-libsodium
+./$PRE/zeromq-4.1.4/configure --without-libsodium
 
 #Make
 make
