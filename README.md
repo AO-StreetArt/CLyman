@@ -78,7 +78,21 @@ You will need to have an instance of Couchbase Server up and running as well.  I
 Otherwise, please find instructions to install and configure a Couchbase Server locally [here] (http://www.couchbase.com/get-started-developing-nosql#)
 
 ### Docker
-Docker Images coming soon!
+The Docker image for CLyman-Dev is currently under development, and the necessary pieces of it are attached.
+
+Currently, will need to be built on an individual system to allow for ssh access to app for development purposes.  Below commands have worked thus far:
+
+`docker pull awbarry00/clyman-dev`
+
+`sudo docker build -t clyman_dev_2 .`
+
+`docker run --name clyman -it -d -P clyman_dev_2`
+
+SSH access has yet to function, given below set of commands:
+
+    ssh-agent -s
+    ssh-add ssh/id_rsa
+    ssh root@localhost -p `sudo docker port ssh 22 | cut -d":" -f2`
 
 ### Production
 The current recommended deployment for production is to follow the steps required for development.  However, rather than deploying a Couchbase Server locally beside CLyman, we should be connecting to a Couchbase Cluster on a separate box.
