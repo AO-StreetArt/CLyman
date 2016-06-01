@@ -26,6 +26,8 @@
 
 #include "src/logging.h"
 
+#include "xRedisClient.h"
+
 //Declare our global config variables
 std::string DB_ConnStr;
 bool DB_AuthActive;
@@ -40,7 +42,7 @@ int key_counter;
 
 //Global Object List
 //Necessary to implement smart updates
-std::map<std::string, Obj3> smart_update_buffer;
+//std::map<std::string, Obj3> smart_update_buffer;
 
 //Global Couchbase Admin Object
 CouchbaseAdmin *cb;
@@ -48,9 +50,50 @@ CouchbaseAdmin *cb;
 //Global Outbound ZMQ Dispatcher
 zmq::socket_t *zmqo;
 
+//Smart Update Buffer
+//Replacement for std::map
+xRedisClient xRedis;
+RedisDBId dbi(&xRedis);
+
 //-----------------------
 //----Utility Methods----
 //-----------------------
+
+enum {
+ CACHE_TYPE_1,
+ CACHE_TYPE_2,
+ CACHE_TYPE_MAX,
+}
+
+RedisNode RedisList1[3]={
+	{0,"127.0.0.1", 7000, "", 2, 5, 0},
+	{1,"127.0.0.1", 7000, "", 2, 5, 0},
+	{2,"127.0.0.1", 7000, "", 2, 5, 0}
+};
+
+RedisNode RedisList2[5]=
+{
+	{0,"127.0.0.1", 7000, "", 2, 5, 0},
+	{1,"127.0.0.1", 7000, "", 2, 5, 0},
+	{2,"127.0.0.1", 7000, "", 2, 5, 0},
+	{3,"127.0.0.1", 7000, "", 2, 5, 0},
+	{4,"127.0.0.1", 7000, "", 2, 5, 0}
+};
+
+// AP Hash Function
+
+unsigned int APHash(const char *str) {
+	unsigned int hash = 0;
+	int i;
+	for (i=0; *str; i++) {
+		if ((i&  1) == 0) {
+			hash ^= ((hash << 7) ^ (*str++) ^ (hash >> 3));
+		} else {
+			hash ^= (~((hash << 11) ^ (*str++) ^ (hash >> 5)));
+		}
+	}
+	return (hash&  0x7FFFFFFF);
+}
 
 void send_zmqo_message(const char * msg)
 {
@@ -86,11 +129,11 @@ void send_zmqo_str_message(std::string msg) {
 
 //Is a key present in the smart update buffer?
 bool is_key_in_smart_update_buffer(const char * key) {
-  if (smart_update_buffer.find(key) == smart_update_buffer.end()) {
-    return false;
+  if (xRedis.exists(dbi, key) {
+	return true;
   }
   else {
-    return true;
+	return false;
   }
 }
 
@@ -439,7 +482,16 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             //Let's get the object out of the active update list
             Obj3 *temp_obj;
             Obj3 tobj;
-            tobj = smart_update_buffer[k];
+
+			char szKey[256] = (0);
+	  	    sprintf(szKey, temp_key);
+			std::string strValue;
+			xRedis.get(dbi, szKey, strValue);
+			protoObj3::Obj3 pobj;
+			pobj.ParseFromString(strValue);
+			Obj3 tobj = build_proto_obj(pobj);
+
+            //tobj = smart_update_buffer[k];
             temp_obj = &tobj;
 
             //Now, we can compare the two and apply any updates from the
@@ -500,7 +552,10 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             }
 
             //Remove the element from the smart updbate buffer
-            smart_update_buffer.erase(k);
+			char szKey[256] = (0);
+			sprintf(szKey, k);
+			xRedis.del(dbi, szKey);
+            //smart_update_buffer.erase(k);
 
             cb->save_object (obj_ptr);
             cb->wait();
@@ -607,13 +662,27 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         //If so, reject the update.
         const char * temp_key = temp_obj.get_key().c_str();
         if (is_key_in_smart_update_buffer(temp_key) == false) {
-          smart_update_buffer[temp_key] = temp_obj;
+		  char szKey[256] = (0);
+		  sprintf(szKey, temp_key);
+		  bool bRet = xRedis.set(dbi, szKey, temp_obj.to_protobuf_msg(OBJ_UPD));
+		  if (!bRet) {
+			logging->error("Error putting object to Redis Smart Update Buffer");
+			logging->error(dbi.GetErrInfo());
+		  }
+          //smart_update_buffer[temp_key] = temp_obj;
           cb->load_object(temp_key);
           cb->wait();
         }
         else {
           logging->error("Collision in Active Update Buffer Detected");
-          Obj3 sub_obj = smart_update_buffer[temp_key];
+		  char szKey[256] = (0);
+		  sprintf(szKey, temp_key);
+		  std::string strValue;
+		  xRedis.get(dbi, szKey, strValue);
+          //Obj3 sub_obj = smart_update_buffer[temp_key];
+		  protoObj3::Obj3 pobj;
+		  pobj.ParseFromString(strValue);
+		  Obj3 sub_obj = build_proto_obj(pobj);
           logging->error(sub_obj.to_json());
         }
       }
@@ -662,7 +731,16 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         if (is_key_in_smart_update_buffer(rkc_str)) {
 
           //Pull the value from the update buffer
-          Obj3 tobj = smart_update_buffer[rk_str];
+
+		  char szKey[256] = (0);
+		  sprintf(szKey, temp_key);
+		  std::string strValue;
+		  xRedis.get(dbi, szKey, strValue);
+		  protoObj3::Obj3 pobj;
+ 		  pobj.ParseFromString(strValue);
+ 		  Obj3 tobj = build_proto_obj(pobj);
+
+          //Obj3 tobj = smart_update_buffer[rk_str];
 
           //Return the object on the outbound ZMQ Port
           if (MessageFormatJSON) {
@@ -921,6 +999,13 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       char resp[8]={'n','i','l','r','e','s','p','\0'};
       logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
+
+	  //Set up Redis Connection
+	  if (SmartUpdatesActive) {
+	    xRedis.Init(CACHE_TYPE_MAX);
+		xRedis.ConnectRedisCache(RedisList1, 3, CACHE_TYPE_1);
+		xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
+	  }
 
       //Set up the Couchbase Connection
       CouchbaseAdmin c ( DB_ConnStr.c_str() );
