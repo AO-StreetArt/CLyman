@@ -129,12 +129,7 @@ void send_zmqo_str_message(std::string msg) {
 
 //Is a key present in the smart update buffer?
 bool is_key_in_smart_update_buffer(const char * key) {
-  if (xRedis.exists(dbi, key) {
-	return true;
-  }
-  else {
-	return false;
-  }
+	return xRedis.exists(dbi, key);
 }
 
 //Build Obj3 from a protocol buffer
@@ -483,16 +478,16 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             Obj3 *temp_obj;
             Obj3 tobj;
 
-			char szKey[256] = (0);
-	  	    sprintf(szKey, temp_key);
+			char szKey[256] = {0};
+	  	sprintf(szKey, temp_key);
 			std::string strValue;
 			xRedis.get(dbi, szKey, strValue);
 			protoObj3::Obj3 pobj;
 			pobj.ParseFromString(strValue);
-			Obj3 tobj = build_proto_obj(pobj);
+			Obj3 tem_obj = build_proto_object(pobj);
 
             //tobj = smart_update_buffer[k];
-            temp_obj = &tobj;
+            temp_obj = &tem_obj;
 
             //Now, we can compare the two and apply any updates from the
             //object list to the object returned from the database
@@ -552,9 +547,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             }
 
             //Remove the element from the smart updbate buffer
-			char szKey[256] = (0);
-			sprintf(szKey, k);
-			xRedis.del(dbi, szKey);
+			char sz2Key[256] = {0};
+			sprintf(sz2Key, k);
+			xRedis.del(dbi, sz2Key);
             //smart_update_buffer.erase(k);
 
             cb->save_object (obj_ptr);
@@ -662,7 +657,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         //If so, reject the update.
         const char * temp_key = temp_obj.get_key().c_str();
         if (is_key_in_smart_update_buffer(temp_key) == false) {
-		  char szKey[256] = (0);
+		  char szKey[256] = {0};
 		  sprintf(szKey, temp_key);
 		  bool bRet = xRedis.set(dbi, szKey, temp_obj.to_protobuf_msg(OBJ_UPD));
 		  if (!bRet) {
@@ -675,14 +670,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         }
         else {
           logging->error("Collision in Active Update Buffer Detected");
-		  char szKey[256] = (0);
+		  char szKey[256] = {0};
 		  sprintf(szKey, temp_key);
 		  std::string strValue;
 		  xRedis.get(dbi, szKey, strValue);
           //Obj3 sub_obj = smart_update_buffer[temp_key];
 		  protoObj3::Obj3 pobj;
 		  pobj.ParseFromString(strValue);
-		  Obj3 sub_obj = build_proto_obj(pobj);
+		  Obj3 sub_obj = build_proto_object(pobj);
           logging->error(sub_obj.to_json());
         }
       }
@@ -732,13 +727,13 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
           //Pull the value from the update buffer
 
-		  char szKey[256] = (0);
+		  char szKey[256] = {0};
 		  sprintf(szKey, temp_key);
 		  std::string strValue;
 		  xRedis.get(dbi, szKey, strValue);
 		  protoObj3::Obj3 pobj;
  		  pobj.ParseFromString(strValue);
- 		  Obj3 tobj = build_proto_obj(pobj);
+ 		  Obj3 tobj = build_proto_object(pobj);
 
           //Obj3 tobj = smart_update_buffer[rk_str];
 
