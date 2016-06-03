@@ -728,7 +728,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           //Pull the value from the update buffer
 
 		  char szKey[256] = {0};
-		  sprintf(szKey, temp_key);
+		  sprintf(szKey, rkc_str);
 		  std::string strValue;
 		  xRedis.get(dbi, szKey, strValue);
 		  protoObj3::Obj3 pobj;

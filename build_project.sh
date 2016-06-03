@@ -21,8 +21,8 @@ g++ -c -lcouchbase -o src/couchbase_admin.o src/couchbase_admin.cpp -std=c++11
 
 #We compile the main object with:
 
-g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp main.cpp -std=c++11
+g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp -lhiredis -lxredis main.cpp -std=c++11
 
 #Finally, we compile the main app with:
 
-g++ -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o main.o -std=c++11 -lzmq -lcouchbase -lpthread -llog4cpp `pkg-config --cflags --libs protobuf`
+g++ -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o main.o -std=c++11 -lzmq -lcouchbase -lpthread -llog4cpp -lhiredis -lxredis `pkg-config --cflags --libs protobuf`
