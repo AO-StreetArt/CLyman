@@ -26,7 +26,7 @@
 
 #include "src/logging.h"
 
-#include "xRedisClient.h"
+#include "xredis/xRedisClient.h"
 
 //Declare our global config variables
 std::string DB_ConnStr;
@@ -53,7 +53,7 @@ zmq::socket_t *zmqo;
 //Smart Update Buffer
 //Replacement for std::map
 xRedisClient xRedis;
-RedisDBId dbi(&xRedis);
+RedisDBIdx dbi(&xRedis);
 
 //-----------------------
 //----Utility Methods----
@@ -63,7 +63,7 @@ enum {
  CACHE_TYPE_1,
  CACHE_TYPE_2,
  CACHE_TYPE_MAX,
-}
+};
 
 RedisNode RedisList1[3]={
 	{0,"127.0.0.1", 7000, "", 2, 5, 0},
