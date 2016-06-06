@@ -25,4 +25,4 @@ g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp -lhiredis -lxredis main.c
 
 #Finally, we compile the main app with:
 
-g++ -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o main.o -std=c++11 -lzmq -lcouchbase -lpthread -llog4cpp -lhiredis -lxredis `pkg-config --cflags --libs protobuf`
+g++ -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o main.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp `pkg-config --cflags --libs protobuf hiredis` -std=c++11
