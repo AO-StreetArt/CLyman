@@ -19,6 +19,8 @@ A .proto file is included to allow generating the bindings for any language (the
 
 In addition, [0-Meter] (https://github.com/AO-StreetArt/0-Meter) has been developed to allow easy testing of the module with JSON message formats.
 
+Please note that running CLyman requires an instance of both [Couchbase DB Server 4.1] (http://www.couchbase.com/) and [Redis 3.2.0] (http://redis.io/) to connect to in order to run.  Full support for clustering of Couchbase, Redis, and CLyman itself are/will be supported.
+
 The main service can be started with:
 
 `./lyman`
@@ -114,5 +116,7 @@ This service also depends on Eigen, a C++ Linear Algebra library.  This can be d
 Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:get-the-software). Be sure to get the [C++ Drivers] (https://github.com/zeromq/cppzmq) in addition to the software.
 
 For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourceforge.net/)
+
+You will also need xRedis, which can be found [here] (https://github.com/0xsky/xredis)
 
 You will need Couchbase drivers installed.  Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)
