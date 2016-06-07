@@ -48,7 +48,7 @@ struct RedisConnChain
   int elt5;
   int elt6;
   int elt7;
-}
+};
 
 std::vector<RedisConnChain> RedisConnectionList;
 
@@ -1044,9 +1044,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  RedisNode redis_n;
 		  redis_n.dbindex = y;
 		  RedisConnChain redis_chain = RedisConnectionList[y];
-		  redis_n->host = redis_chain.ip.c_str();
+		  redis_n.host = redis_chain.ip.c_str();
 		  redis_n.port = redis_chain.port;
-		  redis_n->passwd = redis_chain.elt4;
+		  redis_n.passwd = redis_chain.elt4;
 		  redis_n.poolsize = redis_chain.elt5;
 		  redis_n.timeout = redis_chain.elt6;
 		  redis_n.role = redis_chain.elt7;
