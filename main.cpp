@@ -40,6 +40,18 @@ bool MessageFormatProtoBuf;
 std::string hex_counter;
 int key_counter;
 
+struct RedisConnChain
+{
+  std::string ip;
+  int port;
+  std::string elt4;
+  int elt5;
+  int elt6;
+  int elt7;
+}
+
+std::vector<RedisConnChain> RedisConnectionList;
+
 //Global Object List
 //Necessary to implement smart updates
 //std::map<std::string, Obj3> smart_update_buffer;
@@ -63,21 +75,6 @@ enum {
  CACHE_TYPE_1,
  CACHE_TYPE_2,
  CACHE_TYPE_MAX,
-};
-
-RedisNode RedisList1[3]={
-	{0,"127.0.0.1", 7000, "", 2, 5, 0},
-	{1,"127.0.0.1", 7000, "", 2, 5, 0},
-	{2,"127.0.0.1", 7000, "", 2, 5, 0}
-};
-
-RedisNode RedisList2[5]=
-{
-	{0,"127.0.0.1", 7000, "", 2, 5, 0},
-	{1,"127.0.0.1", 7000, "", 2, 5, 0},
-	{2,"127.0.0.1", 7000, "", 2, 5, 0},
-	{3,"127.0.0.1", 7000, "", 2, 5, 0},
-	{4,"127.0.0.1", 7000, "", 2, 5, 0}
 };
 
 // AP Hash Function
@@ -981,6 +978,47 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                 MessageFormatProtoBuf=true;
               }
             }
+			else if (var_name=="RedisConnectionString") {
+			  //Read a string in the format 127.0.0.1--7000----2--5--0
+			  RedisConnChain chain;
+			  
+			  //Retrieve the first value
+			  int spacer_position = var_value.find("--", 0);
+			  std::string str1 = var_value.substr(0, spacer_position);
+			  chain.ip = str1;
+
+			  //Retrieve the second value
+			  std::string new_value = var_value.substr(spacer_position, var_value.length() - 1);
+			  spacer_position = new_value.find("--", 0);
+			  str1 = new_value.substr(0, spacer_position);
+			  chain.port = std::stoi(str1);
+
+			  //Retrieve the third value
+			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+			  spacer_position = new_value.find"--", 0);
+			  str1 = new_value.substr(0, spacer_position);
+			  chain.attr4 = str1;
+
+			  //Retrieve the fourth value
+			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+			  spacer_position = new_value.find"--", 0);
+			  str1 = new_value.substr(0, spacer_position);
+			  chain.attr5 = std::stoi(str1);
+
+			  //Retrieve the fifth value
+			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+  			  spacer_position = new_value.find"--", 0);
+  			  str1 = new_value.substr(0, spacer_position);
+			  chain.attr6 = std::stoi(str1);
+
+			  //Retrieve the final value
+			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+			  spacer_position = new_value.find"--", 0);
+			  str1 = new_value.substr(0, spacer_position);
+			  chain.attr7 = std::stoi(str1);
+
+			  RedisConnectionList.push_back(chain);
+			}
           }
         }
         file.close();
@@ -995,11 +1033,33 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
 
+	  //Set up our Redis Connection List
+	  int conn_list_size = RedisConnectionList.size();
+	  RedisNode RedisList1[conn_list_size];
+	  {
+		int y = 0;
+		for (int y = 0; y < conn_list_size; ++y)
+		{
+		  //Pull the values from RedisConnectionList
+		  RedisNode redis_n;
+		  redis_n.dbindex = y;
+		  RedisConnChain redis_chain = RedisConnectionList[y];
+		  redis_n->host = redis_chain.ip.c_str();
+		  redis_n.port = redis_chain.port;
+		  redis_n->passwd = redis_chain.attr4;
+		  redis_n.poolsize = redis_chain.attr5;
+		  redis_n.timeout = redis_chain.attr6;
+		  redis_n.role = redis_chain.attr7;
+
+		  RedisList1[y] = redis_n;
+		}
+	  }
+
 	  //Set up Redis Connection
 	  if (SmartUpdatesActive) {
 	    xRedis.Init(CACHE_TYPE_MAX);
-		xRedis.ConnectRedisCache(RedisList1, 3, CACHE_TYPE_1);
-		xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
+		xRedis.ConnectRedisCache(RedisList1, conn_list_size, CACHE_TYPE_1);
+		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
 	  }
 
       //Set up the Couchbase Connection
