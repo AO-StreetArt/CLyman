@@ -995,27 +995,27 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 			  //Retrieve the third value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
-			  spacer_position = new_value.find"--", 0);
+			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
-			  chain.attr4 = str1;
+			  chain.elt4 = str1;
 
 			  //Retrieve the fourth value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
-			  spacer_position = new_value.find"--", 0);
+			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
-			  chain.attr5 = std::stoi(str1);
+			  chain.elt5 = std::stoi(str1);
 
 			  //Retrieve the fifth value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
-  			  spacer_position = new_value.find"--", 0);
+  			  spacer_position = new_value.find("--", 0);
   			  str1 = new_value.substr(0, spacer_position);
-			  chain.attr6 = std::stoi(str1);
+			  chain.elt6 = std::stoi(str1);
 
 			  //Retrieve the final value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
-			  spacer_position = new_value.find"--", 0);
+			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
-			  chain.attr7 = std::stoi(str1);
+			  chain.elt7 = std::stoi(str1);
 
 			  RedisConnectionList.push_back(chain);
 			}
@@ -1046,10 +1046,10 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  RedisConnChain redis_chain = RedisConnectionList[y];
 		  redis_n->host = redis_chain.ip.c_str();
 		  redis_n.port = redis_chain.port;
-		  redis_n->passwd = redis_chain.attr4;
-		  redis_n.poolsize = redis_chain.attr5;
-		  redis_n.timeout = redis_chain.attr6;
-		  redis_n.role = redis_chain.attr7;
+		  redis_n->passwd = redis_chain.elt4;
+		  redis_n.poolsize = redis_chain.elt5;
+		  redis_n.timeout = redis_chain.elt6;
+		  redis_n.role = redis_chain.elt7;
 
 		  RedisList1[y] = redis_n;
 		}
