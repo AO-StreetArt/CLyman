@@ -1046,7 +1046,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  RedisConnChain redis_chain = RedisConnectionList[y];
 		  redis_n.host = redis_chain.ip.c_str();
 		  redis_n.port = redis_chain.port;
-		  redis_n.passwd = redis_chain.elt4;
+		  redis_n.passwd = redis_chain.elt4.c_str();
 		  redis_n.poolsize = redis_chain.elt5;
 		  redis_n.timeout = redis_chain.elt6;
 		  redis_n.role = redis_chain.elt7;
