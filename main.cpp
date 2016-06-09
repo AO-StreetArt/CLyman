@@ -991,6 +991,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 			  //Retrieve the second value
 			  std::string new_value = var_value.substr(spacer_position, var_value.length() - 1);
+        logging->debug("New Search String");
+        logging->debug(new_value);
 			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
         logging->debug("Port Recovered");
@@ -999,6 +1001,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 			  //Retrieve the third value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+        logging->debug("New Search String");
+        logging->debug(new_value);
 			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
         logging->debug("Password Recovered");
@@ -1007,6 +1011,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 			  //Retrieve the fourth value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+        logging->debug("New Search String");
+        logging->debug(new_value);
 			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
         logging->debug("Value Recovered");
@@ -1015,6 +1021,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 			  //Retrieve the fifth value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+        logging->debug("New Search String");
+        logging->debug(new_value);
   			  spacer_position = new_value.find("--", 0);
   			  str1 = new_value.substr(0, spacer_position);
           logging->debug("Value Recovered");
@@ -1023,6 +1031,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 			  //Retrieve the final value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+        logging->debug("New Search String");
+        logging->debug(new_value);
 			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
         logging->debug("Value Recovered");
