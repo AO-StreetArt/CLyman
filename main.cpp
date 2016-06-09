@@ -990,7 +990,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 			  chain.ip = str1;
 
 			  //Retrieve the second value
-			  std::string new_value = var_value.substr(spacer_position, var_value.length() - 1);
+			  std::string new_value = var_value.substr(spacer_position+2, var_value.length() - 1);
         logging->debug("New Search String");
         logging->debug(new_value);
 			  spacer_position = new_value.find("--", 0);
@@ -1000,7 +1000,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 			  chain.port = std::stoi(str1);
 
 			  //Retrieve the third value
-			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+			  new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
         logging->debug("New Search String");
         logging->debug(new_value);
 			  spacer_position = new_value.find("--", 0);
@@ -1010,7 +1010,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 			  chain.elt4 = str1;
 
 			  //Retrieve the fourth value
-			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+			  new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
         logging->debug("New Search String");
         logging->debug(new_value);
 			  spacer_position = new_value.find("--", 0);
@@ -1020,7 +1020,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 			  chain.elt5 = std::stoi(str1);
 
 			  //Retrieve the fifth value
-			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+			  new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
         logging->debug("New Search String");
         logging->debug(new_value);
   			  spacer_position = new_value.find("--", 0);
@@ -1030,7 +1030,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 			  chain.elt6 = std::stoi(str1);
 
 			  //Retrieve the final value
-			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
+			  new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
         logging->debug("New Search String");
         logging->debug(new_value);
 			  spacer_position = new_value.find("--", 0);
