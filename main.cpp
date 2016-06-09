@@ -981,40 +981,52 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 			else if (var_name=="RedisConnectionString") {
 			  //Read a string in the format 127.0.0.1--7000----2--5--0
 			  RedisConnChain chain;
-			  
+
 			  //Retrieve the first value
 			  int spacer_position = var_value.find("--", 0);
 			  std::string str1 = var_value.substr(0, spacer_position);
+        logging->debug("IP Address Recovered");
+        logging->debug(str1);
 			  chain.ip = str1;
 
 			  //Retrieve the second value
 			  std::string new_value = var_value.substr(spacer_position, var_value.length() - 1);
 			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
+        logging->debug("Port Recovered");
+        logging->debug(str1);
 			  chain.port = std::stoi(str1);
 
 			  //Retrieve the third value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
 			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
+        logging->debug("Password Recovered");
+        logging->debug(str1);
 			  chain.elt4 = str1;
 
 			  //Retrieve the fourth value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
 			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
+        logging->debug("Value Recovered");
+        logging->debug(str1);
 			  chain.elt5 = std::stoi(str1);
 
 			  //Retrieve the fifth value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
   			  spacer_position = new_value.find("--", 0);
   			  str1 = new_value.substr(0, spacer_position);
+          logging->debug("Value Recovered");
+          logging->debug(str1);
 			  chain.elt6 = std::stoi(str1);
 
 			  //Retrieve the final value
 			  new_value = new_value.substr(spacer_position, new_value.length() - 1);
 			  spacer_position = new_value.find("--", 0);
 			  str1 = new_value.substr(0, spacer_position);
+        logging->debug("Value Recovered");
+        logging->debug(str1);
 			  chain.elt7 = std::stoi(str1);
 
 			  RedisConnectionList.push_back(chain);
