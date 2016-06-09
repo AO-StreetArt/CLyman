@@ -1072,15 +1072,19 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  redis_n.poolsize = redis_chain.elt5;
 		  redis_n.timeout = redis_chain.elt6;
 		  redis_n.role = redis_chain.elt7;
+      logging->debug("Line added to Redis Configuration List with IP:");
+      logging->debug(redis_n.host);
 
 		  RedisList1[y] = redis_n;
 		}
 	  }
+    logging->info("Redis Connection List Built");
 
 	  //Set up Redis Connection
 	  if (SmartUpdatesActive) {
 	    xRedis.Init(CACHE_TYPE_MAX);
 		xRedis.ConnectRedisCache(RedisList1, conn_list_size, CACHE_TYPE_1);
+    logging->info("Connected to Redis");
 		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
 	  }
 
