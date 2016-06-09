@@ -635,6 +635,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       }
       else {
         logging->error("Create Message recieved without location, bounding box, or scene");
+        logging->debug(p_obj.key());
+        logging->debug(p_obj.name());
+        logging->debug(p_obj.location());
+        logging->debug(p_obj.bounding_box());
+        for (int m = 0; m < p_obj.scenes_size(); ++m)
+        {
+          logging.debug(p_obj.scenes(m));
+        }
       }
     }
 
