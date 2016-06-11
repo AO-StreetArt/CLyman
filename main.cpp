@@ -1094,8 +1094,12 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 	  //Set up Redis Connection
 	  if (SmartUpdatesActive) {
 	    xRedis.Init(CACHE_TYPE_MAX);
-		xRedis.ConnectRedisCache(RedisList1, conn_list_size, CACHE_TYPE_1);
-    logging->info("Connected to Redis");
+		bool redis_conn = xRedis.ConnectRedisCache(RedisList1, conn_list_size, CACHE_TYPE_1);
+		if redis_conn:
+    		logging->info("Connected to Redis");
+		else:
+			logging->error("Failed to connect to Redis");
+			logging->error(conn_list_size);
 		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
 	  }
 
