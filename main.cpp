@@ -65,7 +65,7 @@ zmq::socket_t *zmqo;
 //Smart Update Buffer
 //Replacement for std::map
 xRedisClient xRedis;
-RedisDBIdx *dbi;
+RedisDBIdx dbi;
 
 //-----------------------
 //----Utility Methods----
@@ -1102,7 +1102,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 			logging->error("Failed to connect to Redis");
 		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
 		RedisDBIdx d(&xRedis);
-		dbi = &d;
+		dbi = d;
 		}
 	  }
 
