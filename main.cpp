@@ -698,6 +698,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         }
 
         cb->save_object (obj_ptr);
+		cb->wait();
       }
     }
 
@@ -752,11 +753,13 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         else {
           //Otherwise, Get the object from the DB
           cb->load_object( rkc_str );
+		  cb->wait();
         }
       }
       else {
         //Otherwise, Get the object from the DB
         cb->load_object( rkc_str );
+		cb->wait();
       }
     }
 
@@ -793,6 +796,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void del_obj_global(std::string key) {
       const char * kc_str = key.c_str();
       cb->delete_object( kc_str );
+	  cb->wait();
 
       //Output a delete message on the outbound ZMQ Port
 
