@@ -606,6 +606,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       //Save the object to the couchbase DB
       cb->create_object (new_obj);
+	  cb->wait();
     }
 
     //Create Object from a Rapidjson Document
