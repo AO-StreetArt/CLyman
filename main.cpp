@@ -1100,7 +1100,6 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		}
 		else {
 			logging->error("Failed to connect to Redis");
-			logging->error(conn_list_size);
 		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
 		}
 	  }
