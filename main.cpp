@@ -65,7 +65,7 @@ zmq::socket_t *zmqo;
 //Smart Update Buffer
 //Replacement for std::map
 xRedisClient xRedis;
-RedisDBIdx *dbi;
+RedisDBIdx* dbi;
 
 //-----------------------
 //----Utility Methods----
