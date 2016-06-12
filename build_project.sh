@@ -20,7 +20,7 @@ g++ -c -o src/event_dispatcher.o src/event_dispatcher.cpp -std=c++11
 g++ -c -lcouchbase -o src/couchbase_admin.o src/couchbase_admin.cpp -std=c++11
 
 #Now, we build the Redis Admin
-g++ -c -o xredis_admin.o -lpthread -lxredis -llog4cpp xredis_admin.cpp `pkg-config --cflags --libs hiredis` -std=c++11
+g++ -c -o src/xredis_admin.o -lpthread -lxredis -llog4cpp src/xredis_admin.cpp `pkg-config --cflags --libs hiredis` -std=c++11
 
 #We compile the main object with:
 
