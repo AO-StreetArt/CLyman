@@ -4,7 +4,6 @@
 #include <string.h>
 #include <string>
 #include "logging.h"
-#include "smart_update_admin.h"
 
 class xRedisAdmin
 {
