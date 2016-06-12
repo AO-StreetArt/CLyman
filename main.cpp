@@ -18,6 +18,7 @@
 #include "src/event_dispatcher.h"
 #include "src/obj3.h"
 #include "src/couchbase_admin.h"
+#include "src/xredis_admin.h"
 #include "src/lyman_utils.h"
 
 #include "rapidjson/document.h"
@@ -25,8 +26,6 @@
 #include "rapidjson/stringbuffer.h"
 
 #include "src/logging.h"
-
-#include "xredis/xRedisClient.h"
 
 //Declare our global config variables
 std::string DB_ConnStr;
