@@ -64,8 +64,7 @@ zmq::socket_t *zmqo;
 
 //Smart Update Buffer
 //Replacement for std::map
-xRedisClient xRedis;
-RedisDBIdx* dbi;
+xRedisAdmin *xRedis;
 
 //-----------------------
 //----Utility Methods----
@@ -126,7 +125,7 @@ void send_zmqo_str_message(std::string msg) {
 
 //Is a key present in the smart update buffer?
 bool is_key_in_smart_update_buffer(const char * key) {
-	return xRedis.exists(*dbi, key);
+	return xRedis->exists(key);
 }
 
 //Build Obj3 from a protocol buffer
@@ -475,82 +474,83 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             Obj3 *temp_obj;
             Obj3 tobj;
 
-			char szKey[256] = {0};
-	  	sprintf(szKey, temp_key);
-			std::string strValue;
-			xRedis.get(*dbi, szKey, strValue);
-			protoObj3::Obj3 pobj;
-			pobj.ParseFromString(strValue);
-			Obj3 tem_obj = build_proto_object(pobj);
+			const char * strValue = xRedis->load(szKey);
+			if (strValue != NULL) {
+  			protoObj3::Obj3 pobj;
+			std::string stringval (strValue, strlen(strValue));
+  			pobj.ParseFromString(stringval);
+  			Obj3 tem_obj = build_proto_object(pobj);
 
-            //tobj = smart_update_buffer[k];
-            temp_obj = &tem_obj;
+              //tobj = smart_update_buffer[k];
+              temp_obj = &tem_obj;
 
-            //Now, we can compare the two and apply any updates from the
-            //object list to the object returned from the database
+              //Now, we can compare the two and apply any updates from the
+              //object list to the object returned from the database
 
-            //First, we apply any matrix transforms present
-            if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
-              logging->debug("Location Transformation Detected");
-              new_obj.translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+              //First, we apply any matrix transforms present
+              if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
+                logging->debug("Location Transformation Detected");
+                new_obj.translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+              }
+
+              if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
+                logging->debug("Euler Rotation Transformation Detected");
+                new_obj.rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
+              }
+
+              if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
+                logging->debug("Quaternion Rotation Transformation Detected");
+                new_obj.rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
+              }
+
+              if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
+                logging->debug("Scale Transformation Detected");
+                new_obj.resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+              }
+
+              logging->debug("Applying Transform Matrix and full transform stack");
+              new_obj.transform_object(temp_obj->get_transform());
+
+              new_obj.apply_transforms();
+
+              //Next, we write any string attributes
+              if (temp_obj->get_owner() != "") {
+                new_obj.set_owner(temp_obj->get_owner());
+              }
+
+              if (temp_obj->get_name() != "") {
+                new_obj.set_name(temp_obj->get_name());
+              }
+
+              if (temp_obj->get_type() != "") {
+                new_obj.set_type(temp_obj->get_type());
+              }
+
+              if (temp_obj->get_subtype() != "") {
+                new_obj.set_subtype(temp_obj->get_subtype());
+              }
+
+              //Finally, we write the result back to the database
+              Obj3 *obj_ptr = &new_obj;
+
+              //And output the message on the ZMQ Port
+              if (MessageFormatJSON) {
+                send_zmqo_str_message(new_obj.to_json_msg(OBJ_UPD));
+              }
+              else if (MessageFormatProtoBuf) {
+                send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_UPD));
+              }
+
+              //Remove the element from the smart updbate buffer
+  			xRedis->del(k);
+              //smart_update_buffer.erase(k);
+
+              cb->save_object (obj_ptr);
+              cb->wait();
             }
-
-            if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
-              logging->debug("Euler Rotation Transformation Detected");
-              new_obj.rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
+            else {
+              logging->error("Unable to load object and perform smart update");
             }
-
-            if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
-              logging->debug("Quaternion Rotation Transformation Detected");
-              new_obj.rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
-            }
-
-            if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
-              logging->debug("Scale Transformation Detected");
-              new_obj.resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
-            }
-
-            logging->debug("Applying Transform Matrix and full transform stack");
-            new_obj.transform_object(temp_obj->get_transform());
-
-            new_obj.apply_transforms();
-
-            //Next, we write any string attributes
-            if (temp_obj->get_owner() != "") {
-              new_obj.set_owner(temp_obj->get_owner());
-            }
-
-            if (temp_obj->get_name() != "") {
-              new_obj.set_name(temp_obj->get_name());
-            }
-
-            if (temp_obj->get_type() != "") {
-              new_obj.set_type(temp_obj->get_type());
-            }
-
-            if (temp_obj->get_subtype() != "") {
-              new_obj.set_subtype(temp_obj->get_subtype());
-            }
-
-            //Finally, we write the result back to the database
-            Obj3 *obj_ptr = &new_obj;
-
-            //And output the message on the ZMQ Port
-            if (MessageFormatJSON) {
-              send_zmqo_str_message(new_obj.to_json_msg(OBJ_UPD));
-            }
-            else if (MessageFormatProtoBuf) {
-              send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_UPD));
-            }
-
-            //Remove the element from the smart updbate buffer
-			char sz2Key[256] = {0};
-			sprintf(sz2Key, k);
-			xRedis.del(*dbi, sz2Key);
-            //smart_update_buffer.erase(k);
-
-            cb->save_object (obj_ptr);
-            cb->wait();
 
           }
           else {
@@ -661,9 +661,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         //If so, reject the update.
         const char * temp_key = temp_obj.get_key().c_str();
         if (is_key_in_smart_update_buffer(temp_key) == false) {
-		  char szKey[256] = {0};
-		  sprintf(szKey, temp_key);
-		  bool bRet = xRedis.set(*dbi, szKey, temp_obj.to_protobuf_msg(OBJ_UPD));
+		  bool bRet = xRedis->save(temp_key, temp_obj.to_protobuf_msg(OBJ_UPD));
 		  if (!bRet) {
 			logging->error("Error putting object to Redis Smart Update Buffer");
 			logging->error(dbi->GetErrInfo());
@@ -674,13 +672,12 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         }
         else {
           logging->error("Collision in Active Update Buffer Detected");
-		  char szKey[256] = {0};
-		  sprintf(szKey, temp_key);
-		  std::string strValue;
-		  xRedis.get(*dbi, szKey, strValue);
+		  const char * strValue;
+		  strValue = xRedis->load(temp_key);
           //Obj3 sub_obj = smart_update_buffer[temp_key];
 		  protoObj3::Obj3 pobj;
-		  pobj.ParseFromString(strValue);
+		  std::string stringval (strValue, strlen(StrValue));
+		  pobj.ParseFromString(stringval);
 		  Obj3 sub_obj = build_proto_object(pobj);
           logging->error(sub_obj.to_json());
         }
@@ -731,11 +728,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         if (is_key_in_smart_update_buffer(rkc_str)) {
 
           //Pull the value from the update buffer
-
-		  char szKey[256] = {0};
-		  sprintf(szKey, rkc_str);
-		  std::string strValue;
-		  xRedis.get(*dbi, szKey, strValue);
+		  const char * strValue = xRedis->load(rkc_str);
+		  if (strValue != NULL)
+		  {
 		  protoObj3::Obj3 pobj;
  		  pobj.ParseFromString(strValue);
  		  Obj3 tobj = build_proto_object(pobj);
@@ -749,6 +744,12 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           else if (MessageFormatProtoBuf) {
             send_zmqo_str_message(tobj.to_protobuf_msg(OBJ_UPD));
           }
+		  }
+		  else {
+			logging->error("Unable to load object from Redis Cache, trying to retrieve from DB");
+			cb->load_object(rkc_str);
+			cb->wait();
+		  }
         }
         else {
           //Otherwise, Get the object from the DB
@@ -1093,18 +1094,11 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 	  //Set up Redis Connection
 	  if (SmartUpdatesActive) {
-	    xRedis.Init(CACHE_TYPE_MAX);
-		bool redis_conn = xRedis.ConnectRedisCache(RedisList1, conn_list_size, CACHE_TYPE_1);
-		if (redis_conn) {
-    		logging->info("Connected to Redis");
-		}
-		else {
-			logging->error("Failed to connect to Redis");
+	  	x = xRedisAdmin (RedisList1, conn_list_size);
+		xRedis = &x;
 		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
-		RedisDBIdx d(&xRedis);
-		dbi = &d;
+		logging->info("Connected to Redis");
 		}
-	  }
 
       //Set up the Couchbase Connection
       CouchbaseAdmin c ( DB_ConnStr.c_str() );
