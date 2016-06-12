@@ -473,7 +473,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             Obj3 *temp_obj;
             Obj3 tobj;
 
-			const char * strValue = xRedis->load(szKey);
+			const char * strValue = xRedis->load(temp_key);
 			if (strValue != NULL) {
   			protoObj3::Obj3 pobj;
 			std::string stringval (strValue, strlen(strValue));
@@ -660,10 +660,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         //If so, reject the update.
         const char * temp_key = temp_obj.get_key().c_str();
         if (is_key_in_smart_update_buffer(temp_key) == false) {
-		  bool bRet = xRedis->save(temp_key, temp_obj.to_protobuf_msg(OBJ_UPD));
+		  bool bRet = xRedis->save(temp_key, temp_obj.to_protobuf_msg(OBJ_UPD).c_str());
 		  if (!bRet) {
 			logging->error("Error putting object to Redis Smart Update Buffer");
-			logging->error(dbi->GetErrInfo());
 		  }
           //smart_update_buffer[temp_key] = temp_obj;
           cb->load_object(temp_key);
@@ -675,7 +674,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  strValue = xRedis->load(temp_key);
           //Obj3 sub_obj = smart_update_buffer[temp_key];
 		  protoObj3::Obj3 pobj;
-		  std::string stringval (strValue, strlen(StrValue));
+		  std::string stringval (strValue, strlen(strValue));
 		  pobj.ParseFromString(stringval);
 		  Obj3 sub_obj = build_proto_object(pobj);
           logging->error(sub_obj.to_json());
@@ -1093,7 +1092,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 	  //Set up Redis Connection
 	  if (SmartUpdatesActive) {
-	  	x = xRedisAdmin (RedisList1, conn_list_size);
+	  	xRedisAdmin x (RedisList1, conn_list_size);
 		xRedis = &x;
 		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
 		logging->info("Connected to Redis");
