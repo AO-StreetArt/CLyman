@@ -6,7 +6,7 @@
 #include "logging.h"
 #include "smart_update_admin.h"
 
-class xRedisAdmin: public SmartUpdateAdmin
+class xRedisAdmin
 {
 xRedisClient xRedis;
 public:
