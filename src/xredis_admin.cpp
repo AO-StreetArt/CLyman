@@ -9,8 +9,8 @@ CACHE_TYPE_2,
 CACHE_TYPE_MAX,
 };
 
-xRedis.Init(CACHE_TYPE_MAX);
-bool bret = xRedis.ConnectRedisCache(conn_list, conn_list_size, CACHE_TYPE_1);
+xRed.Init(CACHE_TYPE_MAX);
+bool bret = xRed.ConnectRedisCache(conn_list, conn_list_size, CACHE_TYPE_1);
 if (!bret) {
 logging->error("Error connecting to Redis DB");
 }
@@ -19,20 +19,20 @@ logging->error("Error connecting to Redis DB");
 //Exists
 bool xRedisAdmin::exists(const char * key)
 {
-RedisDBIdx d(&xRedis);
+RedisDBIdx d(&xRed);
 char szKey[256] = {0};
 sprintf(szKey, key);
-return xRedis.exists(d, szKey);
+return xRed.exists(d, szKey);
 }
 
 //Load
 const char * xRedisAdmin::load(const char * key) 
 {
-RedisDBIdx d(&xRedis);
+RedisDBIdx d(&xRed);
 char szKey[256] = {0};
 sprintf(szKey, key);
 std::string strValue;
-bool bret = xRedis.get(d, szKey, strValue);
+bool bret = xRed.get(d, szKey, strValue);
 if (bret) {
 return strValue.c_str();
 }
@@ -46,10 +46,10 @@ return NULL;
 //Save
 bool xRedisAdmin::save(const char * key, const char * val)
 {
-RedisDBIdx d(&xRedis);
+RedisDBIdx d(&xRed);
 char szKey[256] = {0};
 sprintf(szKey, key);
-bool ret_val = xRedis.set(d, szKey, val);
+bool ret_val = xRed.set(d, szKey, val);
 if (!ret_val) {
 logging->error("Error writing to Redis DB");
 logging->error(d.GetErrInfo());
@@ -60,10 +60,10 @@ return ret_val;
 //Delete
 bool xRedisAdmin::del(const char * key)
 {
-RedisDBIdx d(&xRedis);
+RedisDBIdx d(&xRed);
 char szKey[256] = {0};
 sprintf(szKey, key);
-bool bret = xRedis.del(d, szKey);
+bool bret = xRed.del(d, szKey);
 if (!bret) {
 logging->error("Error Deleting from Redis DB");
 logging->error(d.GetErrInfo());

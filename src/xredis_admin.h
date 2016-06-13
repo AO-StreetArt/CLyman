@@ -7,7 +7,7 @@
 
 class xRedisAdmin
 {
-xRedisClient xRedis;
+xRedisClient xRed;
 public:
 	xRedisAdmin(RedisNode conn_list[], int conn_list_size);
 	~xRedisAdmin();
