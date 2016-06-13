@@ -34,6 +34,11 @@ logging->error("Error connecting to Redis DB");
 //Exists
 bool xRedisAdmin::exists(const char * key)
 {
+  enum {
+  CACHE_TYPE_1,
+  CACHE_TYPE_2,
+  CACHE_TYPE_MAX,
+  };
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
@@ -44,6 +49,11 @@ return xRed.exists(d, szKey);
 //Load
 const char * xRedisAdmin::load(const char * key)
 {
+  enum {
+  CACHE_TYPE_1,
+  CACHE_TYPE_2,
+  CACHE_TYPE_MAX,
+  };
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
@@ -63,6 +73,11 @@ return NULL;
 //Save
 bool xRedisAdmin::save(const char * key, const char * val)
 {
+  enum {
+  CACHE_TYPE_1,
+  CACHE_TYPE_2,
+  CACHE_TYPE_MAX,
+  };
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
@@ -78,6 +93,11 @@ return ret_val;
 //Delete
 bool xRedisAdmin::del(const char * key)
 {
+  enum {
+  CACHE_TYPE_1,
+  CACHE_TYPE_2,
+  CACHE_TYPE_MAX,
+  };
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
