@@ -1,5 +1,20 @@
 #include "xredis_admin.h"
 
+// AP Hash Function
+
+unsigned int APHash(const char *str) {
+	unsigned int hash = 0;
+	int i;
+	for (i=0; *str; i++) {
+		if ((i&  1) == 0) {
+			hash ^= ((hash << 7) ^ (*str++) ^ (hash >> 3));
+		} else {
+			hash ^= (~((hash << 11) ^ (*str++) ^ (hash >> 5)));
+		}
+	}
+	return (hash&  0x7FFFFFFF);
+}
+
 //Initialization
 xRedisAdmin::xRedisAdmin(RedisNode conn_list[], int conn_list_size)
 {
@@ -27,7 +42,7 @@ return xRed.exists(d, szKey);
 }
 
 //Load
-const char * xRedisAdmin::load(const char * key) 
+const char * xRedisAdmin::load(const char * key)
 {
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
