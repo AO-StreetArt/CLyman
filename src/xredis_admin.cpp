@@ -20,7 +20,7 @@ logging->error("Error connecting to Redis DB");
 bool xRedisAdmin::exists(const char * key)
 {
 RedisDBIdx d(&xRed);
-dbi.CreateDBIndex(key, APHash, CACHE_TYPE_1);
+d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
 sprintf(szKey, key);
 return xRed.exists(d, szKey);
@@ -30,7 +30,7 @@ return xRed.exists(d, szKey);
 const char * xRedisAdmin::load(const char * key) 
 {
 RedisDBIdx d(&xRed);
-dbi.CreateDBIndex(key, APHash, CACHE_TYPE_1);
+d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
 sprintf(szKey, key);
 std::string strValue;
@@ -49,7 +49,7 @@ return NULL;
 bool xRedisAdmin::save(const char * key, const char * val)
 {
 RedisDBIdx d(&xRed);
-dbi.CreateDBIndex(key, APHash, CACHE_TYPE_1);
+d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
 sprintf(szKey, key);
 bool ret_val = xRed.set(d, szKey, val);
@@ -64,7 +64,7 @@ return ret_val;
 bool xRedisAdmin::del(const char * key)
 {
 RedisDBIdx d(&xRed);
-dbi.CreateDBIndex(key, APHash, CACHE_TYPE_1);
+d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
 sprintf(szKey, key);
 bool bret = xRed.del(d, szKey);
