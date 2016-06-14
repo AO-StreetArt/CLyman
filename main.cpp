@@ -1092,12 +1092,18 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       zmq::context_t context(1);
 
       //Set up the outbound ZMQ Client
-      //zmq::socket_t zout(context, ZMQ_REQ);
-	  zmqo = new zmq::socket_t (context, ZMQ_REQ);
+      zmq::socket_t zout(context, ZMQ_REQ);
+	  //zmqo = new zmq::socket_t (context, ZMQ_REQ);
       logging->info("0MQ Constructor Called");
+<<<<<<< HEAD
       //zout.connect(OMQ_OBConnStr);
       //zmqo = &zout;
 	  zmqo->connect(OMQ_OBConnStr);
+=======
+      zout.connect(OMQ_OBConnStr);
+      zmqo = &zout;
+	  zmqo->connect(0MQ_OBConnStr);
+>>>>>>> a68f55891b54120ccb072ce8a9715baba9dd03fd
       logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Socket
