@@ -1077,8 +1077,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
 	  //Set up Redis Connection
 	  if (SmartUpdatesActive) {
-	  	xRedisAdmin x (RedisList1, conn_list_size);
-		xRedis = &x;
+	  	//xRedisAdmin x (RedisList1, conn_list_size);
+		//xRedis = &x;
+		xRedis = new xRedisAdmin (RedisList1, conn_list_size);
 		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
 		logging->info("Connected to Redis");
 		}
