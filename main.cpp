@@ -49,12 +49,6 @@ struct RedisConnChain
   int elt7;
 };
 
-std::vector<RedisConnChain> RedisConnectionList;
-
-//Global Object List
-//Necessary to implement smart updates
-//std::map<std::string, Obj3> smart_update_buffer;
-
 //Global Couchbase Admin Object
 CouchbaseAdmin *cb;
 
@@ -62,7 +56,6 @@ CouchbaseAdmin *cb;
 zmq::socket_t *zmqo;
 
 //Smart Update Buffer
-//Replacement for std::map
 xRedisAdmin *xRedis;
 
 //-----------------------
@@ -834,6 +827,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
     int main()
     {
+	  //Set up the Redis Connection List to catch values from config files
+	  std::vector<RedisConnChain> RedisConnectionList;
 
       //Set up logging
       //This reads the logging configuration file
@@ -1085,8 +1080,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		}
 
       //Set up the Couchbase Connection
-      CouchbaseAdmin c ( DB_ConnStr.c_str() );
-      cb = &c;
+      //CouchbaseAdmin c ( DB_ConnStr.c_str() );
+      //cb = &c;
+	  cb = new CouchbaseAdmin ( DB_ConnStr.c_str() );
       logging->info("Connected to Couchbase DB");
 
       //Bind Couchbase Callbacks
@@ -1096,10 +1092,12 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       zmq::context_t context(1);
 
       //Set up the outbound ZMQ Client
-      zmq::socket_t zout(context, ZMQ_REQ);
+      //zmq::socket_t zout(context, ZMQ_REQ);
+	  zmqo = new zmq::socket_t (context, ZMQ_REQ);
       logging->info("0MQ Constructor Called");
-      zout.connect(OMQ_OBConnStr);
-      zmqo = &zout;
+      //zout.connect(OMQ_OBConnStr);
+      //zmqo = &zout;
+	  zmqo->connect(0MQ_OBConnStr);
       logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Socket
@@ -1185,7 +1183,13 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           }
           else {
             logging->error("Counter File Rename unsuccessful");
-          }
+		  }
+
+          //Delete objects off the heap
+		  delete xRedis;
+		  delete cb;
+		  delete zmqo;
+
           resp[0]='s';
           resp[1]='u';
           resp[2]='c';
