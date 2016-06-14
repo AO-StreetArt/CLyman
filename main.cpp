@@ -1095,15 +1095,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       zmq::socket_t zout(context, ZMQ_REQ);
 	  //zmqo = new zmq::socket_t (context, ZMQ_REQ);
       logging->info("0MQ Constructor Called");
-<<<<<<< HEAD
-      //zout.connect(OMQ_OBConnStr);
-      //zmqo = &zout;
-	  zmqo->connect(OMQ_OBConnStr);
-=======
       zout.connect(OMQ_OBConnStr);
       zmqo = &zout;
-	  zmqo->connect(0MQ_OBConnStr);
->>>>>>> a68f55891b54120ccb072ce8a9715baba9dd03fd
       logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Socket
@@ -1194,7 +1187,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           //Delete objects off the heap
 		  delete xRedis;
 		  delete cb;
-		  delete zmqo;
+		  //delete zmqo;
 
           resp[0]='s';
           resp[1]='u';
