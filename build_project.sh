@@ -5,10 +5,10 @@ exec 1>build_project.log 2>&1
 
 opt=$1
 
-if [-n "$opt"]
+if [ -n "$opt" ]
 then
 
-  if [ $opt -eq "g"]
+  if [ $opt == "g" ]
   then
 
     #We start by compiling the proto buffer class
@@ -40,6 +40,8 @@ then
     #Finally, we compile the main app with:
 
     g++ -g -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o main.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+
+    echo "Debugger Lines Set"
 
   fi
 

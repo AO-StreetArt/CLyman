@@ -1097,7 +1097,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       logging->info("0MQ Constructor Called");
       //zout.connect(OMQ_OBConnStr);
       //zmqo = &zout;
-	  zmqo->connect(0MQ_OBConnStr);
+	  zmqo->connect(OMQ_OBConnStr);
       logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Socket
