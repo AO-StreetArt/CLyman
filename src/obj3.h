@@ -94,6 +94,31 @@ class Obj3
                 Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, std::vector<std::string> scns, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = scns;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;}
 
+		//Copy Constructor
+		Obj3(const Obj3 &obj)
+		{
+			//Copy the string attributes
+			name = *obj.name;
+			key = *obj.key;
+			type = *obj.type;
+			subtype = *obj.subtype;
+			owner = *obj.owner;
+			is_locked = *obj.is_locked;
+			lock_owner = *obj.lock_owner;
+
+			//Copy the scene list
+			scene_list.reserve(*obj.scene_list.size());
+			copy(*obj.scene_list.begin(), *obj.scene_list.end(), back_inserter(scene_list);
+
+			//Copy the matrix elements
+			location = *obj.location;
+			rotatione = *obj.rotatione;
+			rotationq = *obj.rotationq;
+			scale = *obj.scale;
+			transform_matrix = *obj.transform_matrix;
+			bounding_box = *obj.bounding_box;
+		}
+
 		//Transformation Methods
 
 		//Transform
