@@ -438,7 +438,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           rapidjson::Document temp_d;
           temp_d.Parse(resp_obj);
           Obj3 new_obj = build_object (temp_d);
-          const char *temp_key = new_obj.get_key().c_str();
+          const char *temp_key;
+		  no_key = new_obj.get_key();
+		  temp_key = no_key.c_str();
           logging->debug("Database Object Parsed");
           bool is_key_in_buf = is_key_in_smart_update_buffer(temp_key);
           if (is_key_in_buf) {
