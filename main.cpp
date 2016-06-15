@@ -1,4 +1,4 @@
-//This is the  main structural code of the module
+This is the  main structural code of the module
 //It is built to allow for real-time messaging without the need
 //For polling, using a Dispatcher Pattern
 
@@ -519,7 +519,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
               }
 
               //Remove the element from the smart updbate buffer
-  			xRedis->del(k);
+  			xRedis->del(temp_key);
               //smart_update_buffer.erase(k);
 
               cb->save_object (obj_ptr);
