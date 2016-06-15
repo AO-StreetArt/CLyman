@@ -107,16 +107,16 @@ class Obj3
 			lock_owner = obj.lock_owner;
 
 			//Copy the scene list
-			scene_list.reserve(*obj.scene_list.size());
-			copy(*obj.scene_list.begin(), *obj.scene_list.end(), back_inserter(scene_list);
+			scene_list.reserve(obj.scene_list.size());
+			copy(obj.scene_list.begin(), obj.scene_list.end(), back_inserter(scene_list));
 
 			//Copy the matrix elements
-			location = *obj.location;
-			rotatione = *obj.rotatione;
-			rotationq = *obj.rotationq;
-			scale = *obj.scale;
-			transform_matrix = *obj.transform_matrix;
-			bounding_box = *obj.bounding_box;
+			location = obj.location;
+			rotation_euler = obj.rotation_euler;
+			rotation_quaternion = obj.rotation_quaternion;
+			scaling = obj.scaling;
+			transform_matrix = obj.transform_matrix;
+			bounding_box = obj.bounding_box;
 		}
 
 		//Transformation Methods
