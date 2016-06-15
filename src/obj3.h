@@ -98,13 +98,13 @@ class Obj3
 		Obj3(const Obj3 &obj)
 		{
 			//Copy the string attributes
-			name = *obj.name;
-			key = *obj.key;
-			type = *obj.type;
-			subtype = *obj.subtype;
-			owner = *obj.owner;
-			is_locked = *obj.is_locked;
-			lock_owner = *obj.lock_owner;
+			name = obj.name;
+			key = obj.key;
+			type = obj.type;
+			subtype = obj.subtype;
+			owner = obj.owner;
+			is_locked = obj.is_locked;
+			lock_owner = obj.lock_owner;
 
 			//Copy the scene list
 			scene_list.reserve(*obj.scene_list.size());
