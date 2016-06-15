@@ -1,4 +1,4 @@
-This is the  main structural code of the module
+//This is the  main structural code of the module
 //It is built to allow for real-time messaging without the need
 //For polling, using a Dispatcher Pattern
 
