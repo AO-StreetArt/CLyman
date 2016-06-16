@@ -166,6 +166,8 @@ class Obj3
 		//How many scenes are there?
 		int num_scenes() const {return scene_list.size();}
 
+		void set_scenes(std::vector<std::string> vec) {scene_list = vec;}
+
 		//Getters & Setters for string attributes
 
 		//Set the name
@@ -222,6 +224,28 @@ class Obj3
 		Eigen::Vector3d get_scl() const {return scaling;}
 		Eigen::Matrix4d get_transform() const {return transform_matrix;}
 		Eigen::MatrixXd get_bounding_box() const {return bounding_box;}
+
+		//Setters
+		void set_locx(double new_locx) {location(0) = new_locx;}
+		void set_locy(double new_locy) {location(1) = new_locy;}
+		void set_locz(double new_locz) {location(2) = new_locz;}
+		void set_loc(Eigen::Vector3d vec) {location = vec;}
+		void set_rotex(double new_rotex) {rotation_euler(0) = new_rotex;}
+		void set_rotey(double new_rotey) {rotation_euler(1) = new_rotey;}
+		void set_rotez(double new_rotez) {rotation_euler(2) = new_rotez;}
+		void set_rote(Eigen::Vector3d vec) {rotation_euler = vec;}
+		void set_rotqw(double new_rotqw) {rotation_quaternion(0) = new_locx;}
+		void set_rotqx(double new_rotqx) {rotation_quaternion(1) = new_locy;}
+		void set_rotqy(double new_rotqy) {rotation_quaternion(2) = new_locz;}
+		void set_rotqz(double new_rotqz) {rotation_quaternion(2) = new_locz;}
+		void set_rotq(Eigen::Vector3d vec) {rotation_quaternion = vec;}
+		void set_sclx(double new_sclx) {scaling(0) = new_locx;}
+		void set_scly(double new_scly) {scaling(1) = new_locy;}
+		void set_sclz(double new_sclz) {scaling(2) = new_locz;}
+		void set_scl(Eigen::Vector3d vec) {scaling = vec;}
+		void set_transform(Eigen::Matrix4d matr) {transform_matrix = matr;}
+		void set_bounds(Eigen::MatrixXd matr) {bounding_box = matr;}
+
 
 		//Lock Methods
 		bool lock(std::string device_id) {is_locked=true;lock_owner=device_id;return true;}

@@ -106,7 +106,7 @@ bool is_key_in_smart_update_buffer(const char * key) {
 }
 
 //Build Obj3 from a protocol buffer
-Obj3 build_proto_object(protoObj3::Obj3 buffer) {
+Obj3 build_proto_object(protoObj3::Obj3 buffer, Obj3& new_obj) {
   logging->debug("Build Proto-Object Called");
   std::string new_name="";
   std::string new_key="";
@@ -229,14 +229,28 @@ Obj3 build_proto_object(protoObj3::Obj3 buffer) {
   //Build the Obj3 and return it from the populated values
   Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
   logging->debug("Obj3 Built");
-  return object;
+  new_obj.set_name(new_name);
+	new_obj.set_key(new_key);
+	new_obj.set_type(new_type);
+	new_obj.set_subtype(new_subtype);
+	new_obj.set_owner(new_owner);
+	new_obj.set_loc(new_location);
+	new_obj.set_rote(new_rotatione);
+	new_obj.set_rotq(new_rotationq);
+	new_obj.set_scl(new_scale);
+	new_obj.set_transform(new_transform);
+	new_obj.set_bounds(new_bounding_box);
+	new_obj.set_scenes(scene_list);
+  //return object;
 }
 
 //Build Obj3 from a Rapidjson Document
-Obj3 build_object(const rapidjson::Document& d) {
+void build_object(const rapidjson::Document& d, Obj3 &new_obj) {
   logging->debug("Build Object Called");
   if (d.IsObject()) {
     logging->debug("Object-Format Message Detected");
+
+	//Building replacement variables
     std::string new_name="";
     std::string new_key="";
     std::string new_owner="";
@@ -396,9 +410,21 @@ Obj3 build_object(const rapidjson::Document& d) {
     logging->debug("Variables Filled");
 
     //Build the Obj3 and return it from the populated values
-    Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+    //Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+	new_obj.set_name(new_name);
+	new_obj.set_key(new_key);
+	new_obj.set_type(new_type);
+	new_obj.set_subtype(new_subtype);
+	new_obj.set_owner(new_owner);
+	new_obj.set_loc(new_location);
+	new_obj.set_rote(new_rotatione);
+	new_obj.set_rotq(new_rotationq);
+	new_obj.set_scl(new_scale);
+	new_obj.set_transform(new_transform);
+	new_obj.set_bounds(new_bounding_box);
+	new_obj.set_scenes(scene_list);
     logging->debug("Obj3 Built");
-    return object;
+    //return object;
   }
 }
 
@@ -437,7 +463,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           //Then, let's get and parse the response from the database
           rapidjson::Document temp_d;
           temp_d.Parse(resp_obj);
-          Obj3 new_obj = build_object (temp_d);
+		  Obj3 new_obj;
+          build_object (temp_d, new_obj);
           const char *temp_key;
 		  std::string no_key;
 		  no_key = new_obj.get_key();
@@ -459,7 +486,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
   			protoObj3::Obj3 pobj;
 			std::string stringval (strValue, strlen(strValue));
   			pobj.ParseFromString(stringval);
-  			Obj3 tem_obj = build_proto_object(pobj);
+			Obj3 tem_obj;
+  			build_proto_object(pobj, tem_obj);
 
               //tobj = smart_update_buffer[k];
               temp_obj = &tem_obj;
@@ -548,7 +576,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             logging->error("Exception Occurred parsing message from DB");
             logging->error(e.what());
           }
-          Obj3 new_obj = build_object (temp_d);
+		  Obj3 new_obj;
+          build_object (temp_d, new_obj);
           if (MessageFormatJSON) {
             send_zmqo_str_message(new_obj.to_json_msg(OBJ_GET));
           }
@@ -596,7 +625,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
 
         //Build the object and the key
-        Obj3 new_obj = build_object (d);
+		Obj3 new_obj;
+        build_object (d, new_obj);
         cr_obj_global(new_obj);
       }
       else {
@@ -611,7 +641,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       if (p_obj.has_location() && p_obj.has_bounding_box() && p_obj.scenes_size() > 0) {
 
         //Build the object and the key
-        Obj3 new_obj = build_proto_object (p_obj);
+		Obj3 new_obj;
+        build_proto_object (p_obj, new_obj);
         cr_obj_global(new_obj);
       }
       else {
@@ -657,7 +688,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  protoObj3::Obj3 pobj;
 		  std::string stringval (strValue, strlen(strValue));
 		  pobj.ParseFromString(stringval);
-		  Obj3 sub_obj = build_proto_object(pobj);
+		  Obj3 sub_obj;
+		  build_proto_object(pobj, sub_obj);
           logging->error(sub_obj.to_json());
         }
       }
@@ -682,7 +714,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void update_objectd(rapidjson::Document& d) {
       logging->info("Update object called with document: ");
       if (d.HasMember("key")) {
-        Obj3 temp_obj = build_object (d);
+	    Obj3 temp_obj;
+        build_object (d, temp_obj);
         upd_obj_global(temp_obj);
       }
     }
@@ -691,7 +724,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void update_objectpb(protoObj3::Obj3 p_obj) {
       logging->info("Update object called with buffer: ");
       if (p_obj.has_key()) {
-        Obj3 temp_obj = build_proto_object (p_obj);
+	    Obj3 temp_obj;
+        build_proto_object (p_obj, temp_obj);
         upd_obj_global(temp_obj);
       }
     }
@@ -712,7 +746,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  {
 		  protoObj3::Obj3 pobj;
  		  pobj.ParseFromString(strValue);
- 		  Obj3 tobj = build_proto_object(pobj);
+		  Obj3 tobj;
+ 		  build_proto_object(pobj, tobj);
 
           //Obj3 tobj = smart_update_buffer[rk_str];
 
