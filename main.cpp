@@ -106,7 +106,7 @@ bool is_key_in_smart_update_buffer(const char * key) {
 }
 
 //Build Obj3 from a protocol buffer
-Obj3 build_proto_object(protoObj3::Obj3 buffer, Obj3& new_obj) {
+Obj3* build_proto_object(protoObj3::Obj3 buffer) {
   logging->debug("Build Proto-Object Called");
   std::string new_name="";
   std::string new_key="";
@@ -227,25 +227,25 @@ Obj3 build_proto_object(protoObj3::Obj3 buffer, Obj3& new_obj) {
   logging->debug("Variables Filled");
 
   //Build the Obj3 and return it from the populated values
-  Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+  Obj3* object = new Obj3 (new_name, new_key, new_type, new_subtype, new_owner, scene_list, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
   logging->debug("Obj3 Built");
-  new_obj.set_name(new_name);
-	new_obj.set_key(new_key);
-	new_obj.set_type(new_type);
-	new_obj.set_subtype(new_subtype);
-	new_obj.set_owner(new_owner);
-	new_obj.set_loc(new_location);
-	new_obj.set_rote(new_rotatione);
-	new_obj.set_rotq(new_rotationq);
-	new_obj.set_scl(new_scale);
-	new_obj.set_transform(new_transform);
-	new_obj.set_bounds(new_bounding_box);
-	new_obj.set_scenes(scene_list);
-  //return object;
+  //new_obj.set_name(new_name);
+	//new_obj.set_key(new_key);
+	//new_obj.set_type(new_type);
+	//new_obj.set_subtype(new_subtype);
+	//new_obj.set_owner(new_owner);
+	//new_obj.set_loc(new_location);
+	//new_obj.set_rote(new_rotatione);
+	//new_obj.set_rotq(new_rotationq);
+	//new_obj.set_scl(new_scale);
+	//new_obj.set_transform(new_transform);
+	//new_obj.set_bounds(new_bounding_box);
+	//new_obj.set_scenes(scene_list);
+  return object;
 }
 
 //Build Obj3 from a Rapidjson Document
-void build_object(const rapidjson::Document& d, Obj3 &new_obj) {
+Obj3* build_object(const rapidjson::Document& d) {
   logging->debug("Build Object Called");
   if (d.IsObject()) {
     logging->debug("Object-Format Message Detected");
@@ -410,21 +410,21 @@ void build_object(const rapidjson::Document& d, Obj3 &new_obj) {
     logging->debug("Variables Filled");
 
     //Build the Obj3 and return it from the populated values
-    //Obj3 object (new_name, new_key, new_type, new_subtype, new_owner, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
-	new_obj.set_name(new_name);
-	new_obj.set_key(new_key);
-	new_obj.set_type(new_type);
-	new_obj.set_subtype(new_subtype);
-	new_obj.set_owner(new_owner);
-	new_obj.set_loc(new_location);
-	new_obj.set_rote(new_rotatione);
-	new_obj.set_rotq(new_rotationq);
-	new_obj.set_scl(new_scale);
-	new_obj.set_transform(new_transform);
-	new_obj.set_bounds(new_bounding_box);
-	new_obj.set_scenes(scene_list);
+    Obj3 *object = new Obj3 (new_name, new_key, new_type, new_subtype, new_owner, scene_list, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+	//new_obj.set_name(new_name);
+	//new_obj.set_key(new_key);
+	//new_obj.set_type(new_type);
+	//new_obj.set_subtype(new_subtype);
+	//new_obj.set_owner(new_owner);
+	//new_obj.set_loc(new_location);
+	//new_obj.set_rote(new_rotatione);
+	//new_obj.set_rotq(new_rotationq);
+	//new_obj.set_scl(new_scale);
+	//new_obj.set_transform(new_transform);
+	//new_obj.set_bounds(new_bounding_box);
+	//new_obj.set_scenes(scene_list);
     logging->debug("Obj3 Built");
-    //return object;
+    return object;
   }
 }
 
@@ -463,11 +463,10 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           //Then, let's get and parse the response from the database
           rapidjson::Document temp_d;
           temp_d.Parse(resp_obj);
-		  Obj3 new_obj;
-          build_object (temp_d, new_obj);
+		  Obj3 *new_obj = build_object (temp_d);
           const char *temp_key;
 		  std::string no_key;
-		  no_key = new_obj.get_key();
+		  no_key = new_obj->get_key();
 		  temp_key = no_key.c_str();
           logging->debug("Database Object Parsed");
           bool is_key_in_buf = is_key_in_smart_update_buffer(temp_key);
@@ -486,11 +485,10 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
   			protoObj3::Obj3 pobj;
 			std::string stringval (strValue, strlen(strValue));
   			pobj.ParseFromString(stringval);
-			Obj3 tem_obj;
-  			build_proto_object(pobj, tem_obj);
+			Obj3 *temp_obj = build_proto_object(pobj);
 
               //tobj = smart_update_buffer[k];
-              temp_obj = &tem_obj;
+              //temp_obj = &tem_obj;
 
               //Now, we can compare the two and apply any updates from the
               //object list to the object returned from the database
@@ -498,62 +496,64 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
               //First, we apply any matrix transforms present
               if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
                 logging->debug("Location Transformation Detected");
-                new_obj.translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+                new_obj->translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
               }
 
               if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
                 logging->debug("Euler Rotation Transformation Detected");
-                new_obj.rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
+                new_obj->rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
               }
 
               if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
                 logging->debug("Quaternion Rotation Transformation Detected");
-                new_obj.rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
+                new_obj->rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
               }
 
               if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
                 logging->debug("Scale Transformation Detected");
-                new_obj.resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+                new_obj->resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
               }
 
               logging->debug("Applying Transform Matrix and full transform stack");
-              new_obj.transform_object(temp_obj->get_transform());
+              new_obj->transform_object(temp_obj->get_transform());
 
-              new_obj.apply_transforms();
+              new_obj->apply_transforms();
 
               //Next, we write any string attributes
               if (temp_obj->get_owner() != "") {
-                new_obj.set_owner(temp_obj->get_owner());
+                new_obj->set_owner(temp_obj->get_owner());
               }
 
               if (temp_obj->get_name() != "") {
-                new_obj.set_name(temp_obj->get_name());
+                new_obj->set_name(temp_obj->get_name());
               }
 
               if (temp_obj->get_type() != "") {
-                new_obj.set_type(temp_obj->get_type());
+                new_obj->set_type(temp_obj->get_type());
               }
 
               if (temp_obj->get_subtype() != "") {
-                new_obj.set_subtype(temp_obj->get_subtype());
+                new_obj->set_subtype(temp_obj->get_subtype());
               }
 
               //Finally, we write the result back to the database
-              Obj3 *obj_ptr = &new_obj;
+              //Obj3 *obj_ptr = &new_obj;
 
               //And output the message on the ZMQ Port
               if (MessageFormatJSON) {
-                send_zmqo_str_message(new_obj.to_json_msg(OBJ_UPD));
+                send_zmqo_str_message(new_obj->to_json_msg(OBJ_UPD));
               }
               else if (MessageFormatProtoBuf) {
-                send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_UPD));
+                send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_UPD));
               }
 
               //Remove the element from the smart updbate buffer
   			xRedis->del(temp_key);
               //smart_update_buffer.erase(k);
 
-              cb->save_object (obj_ptr);
+              cb->save_object (new_obj);
+			  delete new_obj;
+			  delete temp_obj;
               cb->wait();
             }
             else {
@@ -576,14 +576,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             logging->error("Exception Occurred parsing message from DB");
             logging->error(e.what());
           }
-		  Obj3 new_obj;
-          build_object (temp_d, new_obj);
+		  Obj3 *new_obj = build_object (temp_d);
           if (MessageFormatJSON) {
-            send_zmqo_str_message(new_obj.to_json_msg(OBJ_GET));
+            send_zmqo_str_message(new_obj->to_json_msg(OBJ_GET));
           }
           else if (MessageFormatProtoBuf) {
-            send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_GET));
+            send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_GET));
           }
+		  delete new_obj;
         }
       }
       else {
@@ -597,7 +597,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     //Document Event Callbacks
 
     //Global Object Creation
-    void cr_obj_global(Obj3 new_obj) {
+    void cr_obj_global(Obj3 *new_obj) {
       //Iterate the Hex Counter value
       key_counter++;
 
@@ -607,10 +607,10 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       //Output a message on the outbound ZMQ Port
       if (MessageFormatJSON) {
-        send_zmqo_str_message(new_obj.to_json_msg(OBJ_CRT));
+        send_zmqo_str_message(new_obj->to_json_msg(OBJ_CRT));
       }
       else if (MessageFormatProtoBuf) {
-        send_zmqo_str_message(new_obj.to_protobuf_msg(OBJ_CRT));
+        send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_CRT));
       }
 
       //Save the object to the couchbase DB
@@ -625,8 +625,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
 
         //Build the object and the key
-		Obj3 new_obj;
-        build_object (d, new_obj);
+		Obj3 *new_obj = build_object (d);
         cr_obj_global(new_obj);
       }
       else {
@@ -641,8 +640,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       if (p_obj.has_location() && p_obj.has_bounding_box() && p_obj.scenes_size() > 0) {
 
         //Build the object and the key
-		Obj3 new_obj;
-        build_proto_object (p_obj, new_obj);
+		Obj3 *new_obj = build_proto_object (p_obj);
         cr_obj_global(new_obj);
       }
       else {
@@ -657,7 +655,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     }
 
     //Global Update Object
-    void upd_obj_global(Obj3 temp_obj) {
+    void upd_obj_global(Obj3 *temp_obj) {
       if (SmartUpdatesActive) {
         //We start by writing the object into the smart update buffer
         //then, we can issue a get call
@@ -670,9 +668,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
         //Check if the object already exists in the smart update buffer.
         //If so, reject the update.
-        const char * temp_key = temp_obj.get_key().c_str();
+        const char * temp_key = temp_obj->get_key().c_str();
         if (is_key_in_smart_update_buffer(temp_key) == false) {
-		  bool bRet = xRedis->save(temp_key, temp_obj.to_protobuf_msg(OBJ_UPD).c_str());
+		  bool bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD).c_str());
 		  if (!bRet) {
 			logging->error("Error putting object to Redis Smart Update Buffer");
 		  }
@@ -688,24 +686,25 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  protoObj3::Obj3 pobj;
 		  std::string stringval (strValue, strlen(strValue));
 		  pobj.ParseFromString(stringval);
-		  Obj3 sub_obj;
-		  build_proto_object(pobj, sub_obj);
-          logging->error(sub_obj.to_json());
+		  Obj3 *sub_obj = build_proto_object(pobj);
+          logging->error(sub_obj->to_json());
+		  delete sub_obj
         }
       }
       else {
         //If smart updates are disabled, we can just write the value directly
         //To the DB
-        Obj3 *obj_ptr = &temp_obj;
+        //Obj3 *obj_ptr = &temp_obj;
 
         if (MessageFormatJSON) {
-          send_zmqo_str_message(temp_obj.to_json_msg(OBJ_UPD));
+          send_zmqo_str_message(temp_obj->to_json_msg(OBJ_UPD));
         }
         else if (MessageFormatProtoBuf) {
-          send_zmqo_str_message(temp_obj.to_protobuf_msg(OBJ_UPD));
+          send_zmqo_str_message(temp_obj->to_protobuf_msg(OBJ_UPD));
         }
 
-        cb->save_object (obj_ptr);
+        cb->save_object (temp_obj);
+		delete temp_obj;
 		cb->wait();
       }
     }
@@ -714,8 +713,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void update_objectd(rapidjson::Document& d) {
       logging->info("Update object called with document: ");
       if (d.HasMember("key")) {
-	    Obj3 temp_obj;
-        build_object (d, temp_obj);
+	    Obj3 *temp_obj = build_object (d);
         upd_obj_global(temp_obj);
       }
     }
@@ -724,8 +722,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void update_objectpb(protoObj3::Obj3 p_obj) {
       logging->info("Update object called with buffer: ");
       if (p_obj.has_key()) {
-	    Obj3 temp_obj;
-        build_proto_object (p_obj, temp_obj);
+	    Obj3 *temp_obj = build_proto_object (p_obj);
         upd_obj_global(temp_obj);
       }
     }
@@ -746,17 +743,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  {
 		  protoObj3::Obj3 pobj;
  		  pobj.ParseFromString(strValue);
-		  Obj3 tobj;
- 		  build_proto_object(pobj, tobj);
-
-          //Obj3 tobj = smart_update_buffer[rk_str];
+		  Obj3 *tobj = build_proto_object(pobj);
 
           //Return the object on the outbound ZMQ Port
           if (MessageFormatJSON) {
-            send_zmqo_str_message(tobj.to_json_msg(OBJ_UPD));
+            send_zmqo_str_message(tobj->to_json_msg(OBJ_UPD));
           }
           else if (MessageFormatProtoBuf) {
-            send_zmqo_str_message(tobj.to_protobuf_msg(OBJ_UPD));
+            send_zmqo_str_message(tobj->to_protobuf_msg(OBJ_UPD));
           }
 		  }
 		  else {
