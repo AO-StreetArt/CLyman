@@ -13,7 +13,7 @@ public:
 	//Basic CRUD Operations
 	virtual void load_object ( const char * key ) = 0;
 	virtual void save_object ( Obj3 const *obj ) = 0;
-	virtual void create_object (Obj3 const obj ) = 0;
+	virtual void create_object (Obj3 const *obj ) = 0;
 	virtual void delete_object (const char * key) = 0;
 
 	//If the engine is asynchronous, wait for the

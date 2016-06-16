@@ -603,7 +603,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       std::ostringstream ss;
       ss << key_counter;
-      new_obj.set_key(ss.str());
+      new_obj->set_key(ss.str());
 
       //Output a message on the outbound ZMQ Port
       if (MessageFormatJSON) {
@@ -688,7 +688,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  pobj.ParseFromString(stringval);
 		  Obj3 *sub_obj = build_proto_object(pobj);
           logging->error(sub_obj->to_json());
-		  delete sub_obj
+		  delete sub_obj;
         }
       }
       else {
