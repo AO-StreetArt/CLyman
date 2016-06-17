@@ -14,6 +14,7 @@
 #include <exception>
 #include <Eigen/Dense>
 #include <map>
+#include <algorithm>
 
 #include "src/event_dispatcher.h"
 #include "src/obj3.h"
