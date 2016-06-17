@@ -570,7 +570,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
               }
             }
             else {
-              logging->error("No Key Found in DB Object")
+              logging->error("No Key Found in DB Object");
             }
           }
           else {
