@@ -198,7 +198,7 @@ class Obj3
 		//Getters
                 std::string get_owner() const {return owner;}
 		std::string get_name() const {return name;}
-		std::string get_key() const {if(key) {return key;} else {return "";}}
+		std::string get_key() const {return key;}
 		std::string get_type() const {return type;}
 		std::string get_subtype() const {return subtype;}
 		double get_locx() const {return location(0);}
