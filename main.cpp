@@ -462,7 +462,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           logging->debug("Smart Update Logic Activated");
           //Then, let's get and parse the response from the database
           rapidjson::Document temp_d;
-          temp_d = temp_d.Parse(resp_obj);
+          temp_d.Parse(resp_obj);
 		  Obj3 *new_obj = build_object (temp_d);
           const char *temp_key;
 		  std::string no_key;
