@@ -19,7 +19,7 @@ sudo apt-get -y update
 printf "Addressing pre-build requirements"
 
 #Ensure that specific build requirements are satisfied
-sudo apt-get install build-essential libtool pkg-config autoconf automake uuid-dev
+sudo apt-get install build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev
 
 printf "Cloning RapidJSON"
 
@@ -29,6 +29,14 @@ mv rapidjson $PRE/rapidjson
 
 #Move the RapidJSON header files to the include path
 sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
+
+printf "Building XRedis"
+
+git clone https://github.com/0xsky/xredis.git
+mv xredis $PRE/xredis
+
+cd $PRE/xredis && make
+cd $PRE/xredis && sudo make install
 
 printf "Pulling Down Repositories for Couchbase Client"
 

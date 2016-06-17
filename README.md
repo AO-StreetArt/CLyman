@@ -19,6 +19,8 @@ A .proto file is included to allow generating the bindings for any language (the
 
 In addition, [0-Meter] (https://github.com/AO-StreetArt/0-Meter) has been developed to allow easy testing of the module with JSON message formats.
 
+Please note that running CLyman requires an instance of both [Couchbase DB Server 4.1] (http://www.couchbase.com/) and [Redis 3.2.0] (http://redis.io/) to connect to in order to run.  Full support for clustering of Couchbase, Redis, and CLyman itself are/will be supported.
+
 The main service can be started with:
 
 `./lyman`
@@ -78,7 +80,21 @@ You will need to have an instance of Couchbase Server up and running as well.  I
 Otherwise, please find instructions to install and configure a Couchbase Server locally [here] (http://www.couchbase.com/get-started-developing-nosql#)
 
 ### Docker
-Docker Images coming soon!
+The Docker image for CLyman-Dev is currently under development, and the necessary pieces of it are attached.
+
+Currently, will need to be built on an individual system to allow for ssh access to app for development purposes.  Below commands have worked thus far:
+
+`docker pull awbarry00/clyman-dev`
+
+`sudo docker build -t clyman_dev_2 .`
+
+`docker run --name clyman -it -d -P clyman_dev_2`
+
+SSH access has yet to function, given below set of commands:
+
+    ssh-agent -s
+    ssh-add ssh/id_rsa
+    ssh root@localhost -p `sudo docker port ssh 22 | cut -d":" -f2`
 
 ### Production
 The current recommended deployment for production is to follow the steps required for development.  However, rather than deploying a Couchbase Server locally beside CLyman, we should be connecting to a Couchbase Cluster on a separate box.
@@ -100,5 +116,7 @@ This service also depends on Eigen, a C++ Linear Algebra library.  This can be d
 Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:get-the-software). Be sure to get the [C++ Drivers] (https://github.com/zeromq/cppzmq) in addition to the software.
 
 For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourceforge.net/)
+
+You will also need xRedis, which can be found [here] (https://github.com/0xsky/xredis)
 
 You will need Couchbase drivers installed.  Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)

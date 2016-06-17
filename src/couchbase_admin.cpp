@@ -85,16 +85,16 @@ void CouchbaseAdmin::save_object ( Obj3 const *obj )
         }	
 }
 
-void CouchbaseAdmin::create_object ( Obj3 const obj )
+void CouchbaseAdmin::create_object ( Obj3 const *obj )
 {
 	logging->info("CB_Admin:Create Object Called");
 	lcb_error_t err;
 	lcb_store_cmd_t scmd;
 	const lcb_store_cmd_t *scmdlist = &scmd;
-	std::string key = obj.get_key();
+	std::string key = obj->get_key();
 	scmd.v.v0.key = key.c_str();
 	scmd.v.v0.nkey = key.length();
-	std::string obj_json_str = obj.to_json();
+	std::string obj_json_str = obj->to_json();
 	const char * object_string = obj_json_str.c_str();
 	scmd.v.v0.bytes = object_string;
 	scmd.v.v0.nbytes = strlen(object_string);

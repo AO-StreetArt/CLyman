@@ -18,8 +18,13 @@ g++ -o main_test src/event_dispatcher.o src/tests/main_class_test.o -llog4cpp -l
 
 #We can build the couchbase tests:
 
-g++ -c -o src/tests/couchbase_test.o -lcouchbase src/tests/couchbase_test.cpp -std=c++11
+g++ -c -o src/tests/couchbase_test.o -lcouchbase src/tests/couchbase_test.cpp -I src -std=c++11
 
 #And the couchbase test app:
 
-g++ -o cb_test src/event_dispatcher.o src/couchbase_admin.o src/tests/couchbase_test.o src/obj3.o -lcouchbase -std=c++11
+g++ -o cb_test src/event_dispatcher.o src/couchbase_admin.o src/tests/couchbase_test.o src/obj3.o -lcouchbase -I src -std=c++11
+
+#Finally, the Redis test app:
+g++ -c -o src/tests/redis_test.o -lpthread -llog4cpp -lxredis src/tests/redis_test.cpp `pkg-config --cflags --libs hiredis` -I src -std=c++11 
+
+g++ -o src/tests/redis_test -lpthread -llog4cpp -lxredis src/logging.o src/xredis_admin.o src/tests/redis_test.o `pkg-config --cflags --libs hiredis` -I src -std=c++11
