@@ -13,8 +13,6 @@
 #include <stdlib.h>
 #include <exception>
 #include <Eigen/Dense>
-#include <map>
-#include <algorithm>
 
 #include "src/event_dispatcher.h"
 #include "src/obj3.h"
@@ -463,12 +461,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           logging->debug("Smart Update Logic Activated");
           //Then, let's get and parse the response from the database
 		  //We need to clean the response since Couchbase gives dirty responses
-		  std::string json_msg (resp_obj, sizeof(resp_obj));
-		  json_msg.erase (std::remove(json_msg.begin(), json_msg.end(), '/'), json_msg.end());
-		  json_msg.erase (std::remove(json_msg.begin(), json_msg.end(), '"'), json_msg.end());
 
           rapidjson::Document temp_d;
-          temp_d.Parse(json_msg.c_str());
+          temp_d.Parse(resp_obj);
 		  Obj3 *new_obj = build_object (temp_d);
           const char *temp_key;
 		  std::string no_key;
