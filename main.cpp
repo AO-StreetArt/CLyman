@@ -553,7 +553,13 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                   }
 
                   //Remove the element from the smart updbate buffer
-      			xRedis->del(temp_key);
+                  bool is_key_still_in_buf = is_key_in_smart_update_buffer(temp_key);
+                  if (is_key_still_in_buf) {
+      			           xRedis->del(temp_key);
+                  }
+                  else {
+                    logging->debug("Key already expired from update buffer, not deleting");
+                  }
                   //smart_update_buffer.erase(k);
 
                   cb->save_object (new_obj);
