@@ -42,7 +42,7 @@ bool xRedisAdmin::exists(const char * key)
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
-sprintf(szKey, key);
+sprintf(szKey, "%s", key);
 return xRed.exists(d, szKey);
 }
 
@@ -57,7 +57,7 @@ const char * xRedisAdmin::load(const char * key)
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
-sprintf(szKey, key);
+sprintf(szKey, "%s", key);
 std::string strValue;
 bool bret = xRed.get(d, szKey, strValue);
 if (bret) {
@@ -81,7 +81,7 @@ bool xRedisAdmin::save(const char * key, const char * val)
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
-sprintf(szKey, key);
+sprintf(szKey, "%s", key);
 bool ret_val = xRed.set(d, szKey, val);
 if (!ret_val) {
 logging->error("Error writing to Redis DB");
@@ -101,7 +101,7 @@ bool xRedisAdmin::del(const char * key)
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
-sprintf(szKey, key);
+sprintf(szKey, "%s", key);
 bool bret = xRed.del(d, szKey);
 if (!bret) {
 logging->error("Error Deleting from Redis DB");
@@ -122,7 +122,7 @@ CACHE_TYPE_MAX,
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
 char szKey[256] = {0};
-sprintf(szKey, key);
+sprintf(szKey, "%s", key);
 bool bret = xRed.expire(d, key, second);
 if (!bret) {
 logging->error("Error setting expiration on Redis DB");
