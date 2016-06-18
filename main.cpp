@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <exception>
+#include <uuid/uuid.h>
 #include <Eigen/Dense>
 
 #include "src/event_dispatcher.h"
@@ -35,8 +36,6 @@ std::string OMQ_IBConnStr;
 bool SmartUpdatesActive;
 bool MessageFormatJSON;
 bool MessageFormatProtoBuf;
-std::string hex_counter;
-int key_counter;
 
 struct RedisConnChain
 {
@@ -610,12 +609,23 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
     //Global Object Creation
     void cr_obj_global(Obj3 *new_obj) {
-      //Iterate the Hex Counter value
-      key_counter++;
 
-      std::ostringstream ss;
-      ss << key_counter;
-      new_obj->set_key(ss.str());
+	  //Generate a new key for the object
+	  int uuid_gen_result = 0;
+	  uuid_t uuid;
+	  uuid_gen_result = uuid_generate_time_safe(uuid);
+
+	  if (uuid_gen_result == -1) {
+		logging->error("UUID Generated in an unsafe manner that exposes a potential security risk");
+		logging->error("http://linux.die.net/man/3/uuid_generate");
+		logging->error("Please take the needed actions to allow uuid generation with a safe generator");
+	  }
+
+	  char uuid_str[37];
+	  uuid_unparse_lower(uuid, uuid_str);
+
+	  //Set the new key on the new object
+	  new_obj->set_key(uuid_str);
 
       //Output a message on the outbound ZMQ Port
       if (MessageFormatJSON) {
@@ -905,46 +915,6 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       SmartUpdatesActive=false;
       MessageFormatJSON=true;
       MessageFormatProtoBuf=false;
-
-      hex_counter="0x00";
-      key_counter=0x00;
-
-      //Open the key counter file
-      logging->info("Opening counter.properties");
-      std::string counter_line;
-      std::ifstream c_file ("counter.properties");
-
-      if (c_file.is_open()) {
-        while (getline (c_file, counter_line) ) {
-          //Read a line from the property file
-          logging->debug("Line read from configuration file:");
-          logging->debug(counter_line);
-
-          //Figure out if we have a blank or comment line
-          bool k_going = true;
-          if (counter_line.length() > 0) {
-            if (counter_line[0] == '/' && counter_line[1] == '/') {
-              k_going=false;
-            }
-          }
-          else {
-            k_going=false;
-          }
-
-          if (k_going==true) {
-            try {
-              hex_counter=counter_line;
-              key_counter=std::stoi(hex_counter, 0, hex_counter.length());
-            }
-            catch (std::exception& e) {
-              logging->error("Exception encountered parsing hex counter value");
-              logging->error(e.what());
-            }
-          }
-        }
-        c_file.close();
-      }
-
 
       //Open the file
       logging->info("Opening lyman.properties");
