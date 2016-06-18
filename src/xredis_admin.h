@@ -15,4 +15,5 @@ public:
 	bool save ( const char * key, const char * msg );
 	bool exists ( const char * key );
 	bool del ( const char * key );
+	bool expire ( const char * key, unsigned int second);
 };
