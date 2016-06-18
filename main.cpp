@@ -36,6 +36,7 @@ std::string OMQ_IBConnStr;
 bool SmartUpdatesActive;
 bool MessageFormatJSON;
 bool MessageFormatProtoBuf;
+int SUB_Duration;
 
 struct RedisConnChain
 {
@@ -696,7 +697,10 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  if (!bRet) {
 			logging->error("Error putting object to Redis Smart Update Buffer");
 		  }
-          //smart_update_buffer[temp_key] = temp_obj;
+		  bool bRet2 = xRedis->expire(temp_key, SUB_Duration);
+		  if (!bret2) {
+			logging->error("Error expiring object in Redis Smart Update Buffer");
+		  }
           cb->load_object(temp_key);
           cb->wait();
         }
@@ -704,7 +708,6 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           logging->error("Collision in Active Update Buffer Detected");
 		  const char * strValue;
 		  strValue = xRedis->load(temp_key);
-          //Obj3 sub_obj = smart_update_buffer[temp_key];
 		  protoObj3::Obj3 pobj;
 		  std::string stringval (strValue, strlen(strValue));
 		  pobj.ParseFromString(stringval);
@@ -947,6 +950,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             if (var_name=="DB_ConnectionString") {
               DB_ConnStr=var_value;
             }
+			if (var_name=="Smart_Update_Buffer_Duration") {
+			  SUB_Duration=std::stoi(var_name);
+			}
             else if (var_name=="DB_AuthenticationActive") {
               if (var_value=="True") {
                 DB_AuthActive=true;

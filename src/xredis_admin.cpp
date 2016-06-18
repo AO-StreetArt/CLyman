@@ -110,6 +110,27 @@ logging->error(d.GetErrInfo());
 return bret;
 }
 
+//Expire
+bool xRedisAdmin::expire(const char * key, unsigned int second)
+{
+enum {
+CACHE_TYPE_1,
+CACHE_TYPE_2,
+CACHE_TYPE_MAX,
+};
+
+RedisDBIdx d(&xRed);
+d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
+char szKey[256] = {0};
+sprintf(szKey, key);
+bool bret = xRed.expire(d, key, second);
+if (!bret) {
+logging->error("Error setting expiration on Redis DB");
+logging->error(d.GetErrInfo());
+}
+return bret;
+}
+
 //Close
 xRedisAdmin::~xRedisAdmin()
 {
