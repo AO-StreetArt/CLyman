@@ -951,7 +951,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
               DB_ConnStr=var_value;
             }
 			if (var_name=="Smart_Update_Buffer_Duration") {
-			  SUB_Duration=std::stoi(var_name);
+			  SUB_Duration=std::stoi(var_value);
 			}
             else if (var_name=="DB_AuthenticationActive") {
               if (var_value=="True") {
