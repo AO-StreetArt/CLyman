@@ -1181,22 +1181,6 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         //Shutdown Message
         else if (msg_type == 999) {
           end_log();
-          std::ofstream myfile;
-          myfile.open("counters.tmp");
-
-          std::ostringstream ss;
-          ss << key_counter;
-
-          myfile << ss.str();
-          myfile << "\n";
-          int result;
-          result = rename("counters.tmp", "counters.properties");
-          if (result == 0) {
-            logging->info("File Renamed");
-          }
-          else {
-            logging->error("Counter File Rename unsuccessful");
-		  }
 
           //Delete objects off the heap
 		  delete xRedis;
