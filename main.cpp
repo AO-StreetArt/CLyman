@@ -698,7 +698,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 			logging->error("Error putting object to Redis Smart Update Buffer");
 		  }
 		  bool bRet2 = xRedis->expire(temp_key, SUB_Duration);
-		  if (!bret2) {
+		  if (!bRet2) {
 			logging->error("Error expiring object in Redis Smart Update Buffer");
 		  }
           cb->load_object(temp_key);
