@@ -35,11 +35,11 @@ then
 
     #We compile the main object with:
 
-    g++ -g -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp -lhiredis -lxredis main.cpp -std=c++11
+    g++ -g -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp -lhiredis -lxredis -luuid main.cpp -std=c++11
 
     #Finally, we compile the main app with:
 
-    g++ -g -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o main.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o main.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
     echo "Debugger Lines Set"
 
@@ -71,10 +71,10 @@ else
 
   #We compile the main object with:
 
-  g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp -lhiredis -lxredis main.cpp -std=c++11
+  g++ -c -o main.o -lzmq -lcouchbase -lpthread -llog4cpp -lhiredis -lxredis -luuid main.cpp -std=c++11
 
   #Finally, we compile the main app with:
 
-  g++ -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o main.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o lyman src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o main.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 fi
