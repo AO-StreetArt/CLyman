@@ -448,8 +448,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
   }
 
   //The delete callback is also simple, just logging the storage act and result
-  static void del_callback(lcb_t instance, const void *cookie, lcb_remove_t op,
-    lcb_error_t err, const lcb_remove_resp_t *resp)
+  static void del_callback(lcb_t instance, const void *cookie, lcb_error_t err, const lcb_remove_resp_t *resp)
     {
       if (err == LCB_SUCCESS) {
         logging->info("Removed:");
