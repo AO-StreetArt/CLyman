@@ -1115,7 +1115,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       lcb_set_store_callback(cb->get_instance(), storage_callback);
       lcb_set_get_callback(cb->get_instance(), get_callback);
 
-      zmq::context_t context(1);
+      zmq::context_t context(1, 2);
 
       //Set up the outbound ZMQ Client
       //zmq::socket_t zout(context, ZMQ_REQ);
