@@ -5,6 +5,7 @@ test_client
 main_test
 cb_test
 lyman
+lyman.properties
 *.log
 *.log.*
 *.cc
