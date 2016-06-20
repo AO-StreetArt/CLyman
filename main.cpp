@@ -572,7 +572,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                 }
               }
               else {
-                logging->error("Active Updates enabled but object not found in smart update buffer");
+                logging->error("Active Updates enabled but object not found in smart update buffer, outputting DB Object on OB ZMQ Port");
+                //And output the message on the ZMQ Port
+                if (MessageFormatJSON) {
+                  send_zmqo_str_message(new_obj->to_json_msg(OBJ_UPD));
+                }
+                else if (MessageFormatProtoBuf) {
+                  send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_UPD));
+                }
               }
             }
             else {
@@ -764,43 +771,49 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       //Check the Active Update Buffer for inflight transactions
       //If we have any, then we should pull the value from there
       //And return it.
-      if (SmartUpdatesActive) {
-        //int key_index = find_key_in_active_updates(rkey->GetString());
-        if (is_key_in_smart_update_buffer(rkc_str)) {
-
-          //Pull the value from the update buffer
-		  const char * strValue = xRedis->load(rkc_str);
-		  if (strValue != NULL)
-		  {
-		  protoObj3::Obj3 pobj;
- 		  pobj.ParseFromString(strValue);
-		  Obj3 *tobj = build_proto_object(pobj);
-
-          //Return the object on the outbound ZMQ Port
-          if (MessageFormatJSON) {
-            send_zmqo_str_message(tobj->to_json_msg(OBJ_UPD));
-          }
-          else if (MessageFormatProtoBuf) {
-            send_zmqo_str_message(tobj->to_protobuf_msg(OBJ_UPD));
-          }
-		  }
-		  else {
-			logging->error("Unable to load object from Redis Cache, trying to retrieve from DB");
-			cb->load_object(rkc_str);
-			cb->wait();
-		  }
-        }
-        else {
-          //Otherwise, Get the object from the DB
-          cb->load_object( rkc_str );
-		  cb->wait();
-        }
-      }
-      else {
+    //   if (SmartUpdatesActive) {
+    //     //int key_index = find_key_in_active_updates(rkey->GetString());
+    //     if (!is_update)
+    //     {
+    //
+    //     }
+    //     else {
+    //     if (is_key_in_smart_update_buffer(rkc_str)) {
+    //
+    //           //Pull the value from the update buffer
+    // 		  const char * strValue = xRedis->load(rkc_str);
+    // 		  if (strValue != NULL)
+    // 		  {
+    // 		  protoObj3::Obj3 pobj;
+    //  		  pobj.ParseFromString(strValue);
+    // 		  Obj3 *tobj = build_proto_object(pobj);
+    //
+    //           //Return the object on the outbound ZMQ Port
+    //           if (MessageFormatJSON) {
+    //             send_zmqo_str_message(tobj->to_json_msg(OBJ_UPD));
+    //           }
+    //           else if (MessageFormatProtoBuf) {
+    //             send_zmqo_str_message(tobj->to_protobuf_msg(OBJ_UPD));
+    //           }
+    // 		  }
+    // 		  else {
+    // 			logging->error("Unable to load object from Redis Cache, trying to retrieve from DB");
+    // 			cb->load_object(rkc_str);
+    // 			cb->wait();
+    // 		  }
+    //     }
+    //     else {
+    //       //Otherwise, Get the object from the DB
+    //       cb->load_object( rkc_str );
+		//       cb->wait();
+    //     }
+    //   }
+    // }
+    //   else {
         //Otherwise, Get the object from the DB
         cb->load_object( rkc_str );
 		cb->wait();
-      }
+      //}
     }
 
     //Get object Protobuffer
