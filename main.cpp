@@ -866,7 +866,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       logging->debug("Building Delete Message");
 
-      obj Obj3();
+      Obj3 obj;
       obj.set_key(key);
 
       //Return the object on the outbound ZMQ Port
