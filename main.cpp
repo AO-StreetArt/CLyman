@@ -861,8 +861,6 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     //Delete Object Global
     void del_obj_global(std::string key) {
       const char * kc_str = key.c_str();
-      cb->delete_object( kc_str );
-	  cb->wait();
 
       //Output a delete message on the outbound ZMQ Port
 
@@ -882,9 +880,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       writer.EndObject();
 
+      const char* ret_val = s.GetString();
+
       //The Stringbuffer now contains a json message
       //of the object
-      send_zmqo_message(kc_str);
+      send_zmqo_message(ret_val);
+
+      cb->delete_object( kc_str );
+	    cb->wait();
     }
 
     //Delete Object Protobuffer
