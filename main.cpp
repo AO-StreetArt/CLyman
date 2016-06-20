@@ -74,20 +74,20 @@ void send_zmqo_message(const char * msg)
   buffer_size = strlen(msg);
 
   //Set up the message to go out on 0MQ
-  zmq::message_t request (buffer_size);
-  memcpy (request.data (), msg, buffer_size);
+  zmq::message_t req (buffer_size);
+  memcpy (req.data (), msg, buffer_size);
 
   //Send the message
-  zmqo->send (request);
+  zmqo->send (req);
 
   //  Get the reply.
-  zmq::message_t reply;
+  zmq::message_t rep;
   zmq::message_t *rep_ptr;
-  rep_ptr = &reply;
-  zmqo->recv (rep_ptr);
+  //rep_ptr = &reply;
+  zmqo->recv (&rep);
 
   //Process the reply
-  std::string r_str = hexDump(reply);
+  std::string r_str = hexDump(rep);
 
   logging->info("ZMQ:Message Sent:");
   logging->info(msg);
