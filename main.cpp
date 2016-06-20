@@ -871,10 +871,10 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       //Return the object on the outbound ZMQ Port
       if (MessageFormatJSON) {
-        send_zmqo_str_message(obj->to_json_msg(OBJ_DEL));
+        send_zmqo_str_message(obj.to_json_msg(OBJ_DEL));
       }
       else if (MessageFormatProtoBuf) {
-        send_zmqo_str_message(obj->to_protobuf_msg(OBJ_DEL));
+        send_zmqo_str_message(obj.to_protobuf_msg(OBJ_DEL));
       }
 
       cb->delete_object( kc_str );
