@@ -447,6 +447,20 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     }
   }
 
+  //The delete callback is also simple, just logging the storage act and result
+  static void del_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
+    lcb_error_t err, const lcb_store_resp_t *resp)
+    {
+      if (err == LCB_SUCCESS) {
+        logging->info("Removed:");
+        logging->info( (char*)resp->v.v0.key );
+      }
+      else {
+        logging->error("Couldn't remove item:");
+        logging->error(lcb_strerror(instance, err));
+      }
+    }
+
   //The get callback has the complex logic for the smart updates
   static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
     const lcb_get_resp_t *resp)
@@ -853,6 +867,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       //Output a delete message on the outbound ZMQ Port
 
+      logging->debug("Building Delete Message");
+
       //Initialize the string buffer and writer
       rapidjson::StringBuffer s;
       rapidjson::Writer<rapidjson::StringBuffer> writer(s);
@@ -1127,6 +1143,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       //Bind Couchbase Callbacks
       lcb_set_store_callback(cb->get_instance(), storage_callback);
       lcb_set_get_callback(cb->get_instance(), get_callback);
+      lcb_set_remove_callback(cb->get_instance(), del_callback);
 
       zmq::context_t context(1, 2);
 
