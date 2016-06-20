@@ -168,7 +168,7 @@ class Obj3
 
 		void set_scenes(std::vector<std::string> vec) {scene_list = vec;}
 
-		std::vector<std::string> get_scenes() {return scene_list}
+		std::vector<std::string> get_scenes() {return scene_list;}
 
 		//Getters & Setters for string attributes
 
