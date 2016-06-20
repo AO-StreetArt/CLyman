@@ -95,29 +95,29 @@ class Obj3
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = scns;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;}
 
 		//Copy Constructor
-		Obj3(const Obj3 &obj)
-		{
+		//Obj3(const Obj3 &obj)
+		//{
 			//Copy the string attributes
-			name = obj.name;
-			key = obj.key;
-			type = obj.type;
-			subtype = obj.subtype;
-			owner = obj.owner;
-			is_locked = obj.is_locked;
-			lock_owner = obj.lock_owner;
+			//name = obj.get_name();
+			//key = obj.get_key();
+			//type = obj.get_type();
+			//subtype = obj.get_subtype();
+			//owner = obj.get_owner();
+			//is_locked = obj.locked();
+			//lock_owner = obj.get_lock_id();
 
 			//Copy the scene list
-			scene_list.reserve(obj.scene_list.size());
-			copy(obj.scene_list.begin(), obj.scene_list.end(), back_inserter(scene_list));
+			//scene_list.reserve(obj.get_scenes().size());
+			//copy(obj.scene_list.begin(), obj.scene_list.end(), back_inserter(scene_list));
 
 			//Copy the matrix elements
-			location = obj.location;
-			rotation_euler = obj.rotation_euler;
-			rotation_quaternion = obj.rotation_quaternion;
-			scaling = obj.scaling;
-			transform_matrix = obj.transform_matrix;
-			bounding_box = obj.bounding_box;
-		}
+			//location = obj.location;
+			//rotation_euler = obj.rotation_euler;
+			//rotation_quaternion = obj.rotation_quaternion;
+			//scaling = obj.scaling;
+			//transform_matrix = obj.transform_matrix;
+			//bounding_box = obj.bounding_box;
+		//}
 
 		//Transformation Methods
 
@@ -167,6 +167,8 @@ class Obj3
 		int num_scenes() const {return scene_list.size();}
 
 		void set_scenes(std::vector<std::string> vec) {scene_list = vec;}
+
+		std::vector<std::string> get_scenes() {return scene_list}
 
 		//Getters & Setters for string attributes
 
@@ -251,6 +253,7 @@ class Obj3
 		bool lock(std::string device_id) {is_locked=true;lock_owner=device_id;return true;}
 		bool unlock(std::string device_id) {if (lock_owner==device_id) {is_locked=false;lock_owner="";return true;} else {return false;}}
 		bool locked() const {if (is_locked==false) {return false;} else {return true;}}
+		std::string get_lock_id() const {return lock_owner;}
 
 		//Convert the object to JSON
 		std::string to_json() const;
