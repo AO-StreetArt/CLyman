@@ -866,25 +866,16 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       logging->debug("Building Delete Message");
 
-      //Initialize the string buffer and writer
-      rapidjson::StringBuffer s;
-      rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+      obj = Obj3();
+      obj.set_key(key);
 
-      writer.StartObject();
-
-      writer.Key("message_type");
-      writer.Uint(3);
-
-      writer.Key("key");
-      writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
-
-      writer.EndObject();
-
-      const char* ret_val = s.GetString();
-
-      //The Stringbuffer now contains a json message
-      //of the object
-      send_zmqo_message(ret_val);
+      //Return the object on the outbound ZMQ Port
+      if (MessageFormatJSON) {
+        send_zmqo_str_message(obj->to_json_msg(OBJ_DEL));
+      }
+      else if (MessageFormatProtoBuf) {
+        send_zmqo_str_message(obj->to_protobuf_msg(OBJ_DEL));
+      }
 
       cb->delete_object( kc_str );
 	    cb->wait();
