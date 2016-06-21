@@ -47,7 +47,7 @@ return xRed.exists(d, szKey);
 }
 
 //Load
-std::string xRedisAdmin::load(std::string key)
+std::string xRedisAdmin::load(const char * key)
 {
   enum {
   CACHE_TYPE_1,
@@ -71,7 +71,7 @@ return NULL;
 }
 
 //Save
-bool xRedisAdmin::save(std::string key, std::string val)
+bool xRedisAdmin::save(const char * key, std::string val)
 {
   enum {
   CACHE_TYPE_1,
