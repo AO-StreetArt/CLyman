@@ -498,7 +498,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                 Obj3 *temp_obj;
                 Obj3 tobj;
 
-    			const char * strValue = xRedis->load(temp_key);
+    			std::string strValue = xRedis->load(temp_key);
     			if (strValue != NULL) {
       			protoObj3::Obj3 pobj;
     			std::string stringval (strValue, strlen(strValue));
@@ -735,8 +735,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  std::string strValue;
 		  strValue = xRedis->load(temp_key);
 		  protoObj3::Obj3 pobj;
-		  std::string stringval (strValue, strlen(strValue));
-		  pobj.ParseFromString(stringval);
+		  pobj.ParseFromString(strValue);
 		  Obj3 *sub_obj = build_proto_object(pobj);
           logging->error(sub_obj->to_json());
 		  delete sub_obj;
