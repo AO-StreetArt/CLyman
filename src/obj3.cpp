@@ -389,14 +389,14 @@ std::string Obj3::to_json_msg(int msg_type) const
 
 std::string Obj3::to_protobuf_msg(int msg_type) const {
 	logging->info("Obj3:To Proto message Called on object");
-	logging->info(get_key());
+	logging->info(key);
 	protoObj3::Obj3 new_proto;
 	new_proto.set_message_type(msg_type);
-	new_proto.set_key(get_key());
-	new_proto.set_name(get_name());
-	new_proto.set_type(get_type());
-	new_proto.set_subtype(get_subtype());
-	new_proto.set_owner(get_owner());
+	new_proto.set_key(key);
+	new_proto.set_name(name);
+	new_proto.set_type(type);
+	new_proto.set_subtype(subtype);
+	new_proto.set_owner(owner_dev);
 	new_proto.set_lock_device_id(lock_owner);
 	protoObj3::Obj3_Vertex3 loc = new_proto.location();
 	loc.set_x(get_locx());
