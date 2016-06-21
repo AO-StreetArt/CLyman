@@ -499,7 +499,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                 Obj3 tobj;
 
     			std::string strValue = xRedis->load(temp_key);
-    			if (strValue != NULL) {
+    			if (!strValue.empty()) {
       			protoObj3::Obj3 pobj;
     			std::string stringval (strValue, strlen(strValue));
       			pobj.ParseFromString(stringval);

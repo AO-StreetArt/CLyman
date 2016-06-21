@@ -66,7 +66,7 @@ return strValue;
 else {
 logging->error("Error Loading from Redis DB");
 logging->error(d.GetErrInfo());
-return NULL;
+return "";
 }
 }
 
