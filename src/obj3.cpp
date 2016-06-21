@@ -396,7 +396,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	new_proto.set_name(name);
 	new_proto.set_type(type);
 	new_proto.set_subtype(subtype);
-	new_proto.set_owner(owner_dev);
+	new_proto.set_owner(owner);
 	new_proto.set_lock_device_id(lock_owner);
 	protoObj3::Obj3_Vertex3 loc = new_proto.location();
 	loc.set_x(get_locx());
