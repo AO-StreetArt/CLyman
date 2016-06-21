@@ -498,7 +498,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                 Obj3 *temp_obj;
                 Obj3 tobj;
 
-    			const char * strValue = xRedis->load(temp_key);
+    			const char * strValue = xRedis->load(no_key);
     			if (strValue != NULL) {
       			protoObj3::Obj3 pobj;
     			std::string stringval (strValue, strlen(strValue));
@@ -717,13 +717,13 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
         //Check if the object already exists in the smart update buffer.
         //If so, reject the update.
-        const char * temp_key = temp_obj->get_key().c_str();
+        const char * temp_key = temp_obj->get_key();
         if (is_key_in_smart_update_buffer(temp_key) == false) {
-		  bool bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD).c_str());
+		  bool bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD));
 		  if (!bRet) {
 			logging->error("Error putting object to Redis Smart Update Buffer");
 		  }
-		  bool bRet2 = xRedis->expire(temp_key, SUB_Duration);
+		  bool bRet2 = xRedis->expire(temp_key.c_str(), SUB_Duration);
 		  if (!bRet2) {
 			logging->error("Error expiring object in Redis Smart Update Buffer");
 		  }
