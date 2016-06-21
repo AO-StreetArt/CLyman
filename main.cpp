@@ -501,8 +501,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     			std::string strValue = xRedis->load(temp_key);
     			if (!strValue.empty()) {
       			protoObj3::Obj3 pobj;
-    			std::string stringval (strValue, strlen(strValue));
-      			pobj.ParseFromString(stringval);
+      			pobj.ParseFromString(strValue);
     			Obj3 *temp_obj = build_proto_object(pobj);
 
                   //tobj = smart_update_buffer[k];
