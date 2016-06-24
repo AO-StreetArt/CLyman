@@ -500,10 +500,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
     			std::string strValue = xRedis->load(temp_key);
     			if (!strValue.empty()) {
-      			protoObj3::Obj3 pobj;
+      			//protoObj3::Obj3 pobj;
             logging->debug(strValue);
-      			pobj.ParseFromString(strValue);
-    			Obj3 *temp_obj = build_proto_object(pobj);
+      			//pobj.ParseFromString(strValue);
+    			//Obj3 *temp_obj = build_proto_object(pobj);
+
+                  rapidjson::Document temp_d;
+				  temp_d.Parse(strValue.c_str());
+				  Obj3 *temp_obj = build_object (temp_d);
 
                   //tobj = smart_update_buffer[k];
                   //temp_obj = &tem_obj;
@@ -740,7 +744,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 		  rapidjson::Document doc;
 		  rapidjson::Value *s;
 		  try {
-		      doc.Parse(req_ptr);
+		      doc.Parse(strValue.c_str());
 			  }
 		  catch (std::exception& e) {
 		      logging->error("Exception occurred while parsing inbound document:");
