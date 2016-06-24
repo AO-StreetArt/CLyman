@@ -543,19 +543,23 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
                   //Next, we write any string attributes
                   if (temp_obj->get_owner() != "") {
-                    new_obj->set_owner(temp_obj->get_owner());
+				  	std::string nowner = temp_obj->get_owner();
+                    new_obj->set_owner(nowner);
                   }
 
                   if (temp_obj->get_name() != "") {
-                    new_obj->set_name(temp_obj->get_name());
+				  	std::string nname = temp_obj->get_name();
+                    new_obj->set_name(nname);
                   }
 
                   if (temp_obj->get_type() != "") {
-                    new_obj->set_type(temp_obj->get_type());
+				  	std::string ntype = temp_obj->get_type();
+                    new_obj->set_type(ntype);
                   }
 
                   if (temp_obj->get_subtype() != "") {
-                    new_obj->set_subtype(temp_obj->get_subtype());
+				  	std::string nsubtype = temp_obj->get_subtype();
+                    new_obj->set_subtype(nsubtype);
                   }
 
                   //Finally, we write the result back to the database
