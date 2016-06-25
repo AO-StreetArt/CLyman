@@ -767,7 +767,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             bRet = xRedis->save(temp_key, temp_obj->to_json_msg(OBJ_UPD));
           }
           else if (RedisFormatProtoBuf) {
-            bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD);
+            bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD));
           }
           if (!bRet) {
             logging->error("Error putting object to Redis Smart Update Buffer");
