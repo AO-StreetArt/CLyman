@@ -36,6 +36,8 @@ std::string OMQ_IBConnStr;
 bool SmartUpdatesActive;
 bool MessageFormatJSON;
 bool MessageFormatProtoBuf;
+bool RedisFormatJSON;
+bool RedisFormatProtoBuf;
 int SUB_Duration;
 
 struct RedisConnChain
@@ -62,9 +64,9 @@ xRedisAdmin *xRedis;
 //-----------------------
 
 enum {
- CACHE_TYPE_1,
- CACHE_TYPE_2,
- CACHE_TYPE_MAX,
+  CACHE_TYPE_1,
+  CACHE_TYPE_2,
+  CACHE_TYPE_MAX,
 };
 
 void send_zmqo_message(const char * msg)
@@ -101,7 +103,7 @@ void send_zmqo_str_message(std::string msg) {
 
 //Is a key present in the smart update buffer?
 bool is_key_in_smart_update_buffer(const char * key) {
-	return xRedis->exists(key);
+  return xRedis->exists(key);
 }
 
 //Build Obj3 from a protocol buffer
@@ -228,18 +230,6 @@ Obj3* build_proto_object(protoObj3::Obj3 buffer) {
   //Build the Obj3 and return it from the populated values
   Obj3* object = new Obj3 (new_name, new_key, new_type, new_subtype, new_owner, scene_list, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
   logging->debug("Obj3 Built");
-  //new_obj.set_name(new_name);
-	//new_obj.set_key(new_key);
-	//new_obj.set_type(new_type);
-	//new_obj.set_subtype(new_subtype);
-	//new_obj.set_owner(new_owner);
-	//new_obj.set_loc(new_location);
-	//new_obj.set_rote(new_rotatione);
-	//new_obj.set_rotq(new_rotationq);
-	//new_obj.set_scl(new_scale);
-	//new_obj.set_transform(new_transform);
-	//new_obj.set_bounds(new_bounding_box);
-	//new_obj.set_scenes(scene_list);
   return object;
 }
 
@@ -249,7 +239,7 @@ Obj3* build_object(const rapidjson::Document& d) {
   if (d.IsObject()) {
     logging->debug("Object-Format Message Detected");
 
-	//Building replacement variables
+    //Building replacement variables
     std::string new_name="";
     std::string new_key="";
     std::string new_owner="";
@@ -410,18 +400,18 @@ Obj3* build_object(const rapidjson::Document& d) {
 
     //Build the Obj3 and return it from the populated values
     Obj3 *object = new Obj3 (new_name, new_key, new_type, new_subtype, new_owner, scene_list, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
-	//new_obj.set_name(new_name);
-	//new_obj.set_key(new_key);
-	//new_obj.set_type(new_type);
-	//new_obj.set_subtype(new_subtype);
-	//new_obj.set_owner(new_owner);
-	//new_obj.set_loc(new_location);
-	//new_obj.set_rote(new_rotatione);
-	//new_obj.set_rotq(new_rotationq);
-	//new_obj.set_scl(new_scale);
-	//new_obj.set_transform(new_transform);
-	//new_obj.set_bounds(new_bounding_box);
-	//new_obj.set_scenes(scene_list);
+    //new_obj.set_name(new_name);
+    //new_obj.set_key(new_key);
+    //new_obj.set_type(new_type);
+    //new_obj.set_subtype(new_subtype);
+    //new_obj.set_owner(new_owner);
+    //new_obj.set_loc(new_location);
+    //new_obj.set_rote(new_rotatione);
+    //new_obj.set_rotq(new_rotationq);
+    //new_obj.set_scl(new_scale);
+    //new_obj.set_transform(new_transform);
+    //new_obj.set_bounds(new_bounding_box);
+    //new_obj.set_scenes(scene_list);
     logging->debug("Obj3 Built");
     return object;
   }
@@ -449,16 +439,16 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
   //The delete callback is also simple, just logging the storage act and result
   static void del_callback(lcb_t instance, const void *cookie, lcb_error_t err, const lcb_remove_resp_t *resp)
-    {
-      if (err == LCB_SUCCESS) {
-        logging->info("Removed:");
-        logging->info( (char*)resp->v.v0.key );
-      }
-      else {
-        logging->error("Couldn't remove item:");
-        logging->error(lcb_strerror(instance, err));
-      }
+  {
+    if (err == LCB_SUCCESS) {
+      logging->info("Removed:");
+      logging->info( (char*)resp->v.v0.key );
     }
+    else {
+      logging->error("Couldn't remove item:");
+      logging->error(lcb_strerror(instance, err));
+    }
+  }
 
   //The get callback has the complex logic for the smart updates
   static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
@@ -473,19 +463,31 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         if (SmartUpdatesActive) {
           logging->debug("Smart Update Logic Activated");
           //Then, let's get and parse the response from the database
-		  //We need to clean the response since Couchbase gives dirty responses
+          //We need to clean the response since Couchbase gives dirty responses
 
           rapidjson::Document temp_d;
-          temp_d.Parse(resp_obj);
-		  Obj3 *new_obj = build_object (temp_d);
-      if (new_obj)
-      {
+          Obj3 *new_obj;
+          bool go_ahead=false;
+          try {
+            temp_d.Parse(resp_obj);
+            go_ahead=true;
+          }
+          catch (std::exception& e) {
+            //Catch a possible exception and write it to the logs
+            logging->error("Exception Occurred parsing message from Couchbase");
+            logging->error(e.what());
+          }
+          if (go_ahead) {
+            new_obj = build_object (temp_d);
+          }
+          if (new_obj)
+          {
             const char *temp_key;
-  		  std::string no_key;
-  		  no_key = new_obj->get_key();
-  		  if (no_key != "")
-  		  {
-    		  temp_key = no_key.c_str();
+            std::string no_key;
+            no_key = new_obj->get_key();
+            if (no_key != "")
+            {
+              temp_key = no_key.c_str();
               logging->debug("Database Object Parsed");
               bool is_key_in_buf = is_key_in_smart_update_buffer(temp_key);
               if (is_key_in_buf) {
@@ -495,88 +497,117 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                 logging->debug("Object found in Smart Update Buffer");
 
                 //Let's get the object out of the active update list
-                Obj3 *temp_obj;
-                Obj3 tobj;
 
-    			std::string strValue = xRedis->load(temp_key);
-    			if (!strValue.empty()) {
-      			//protoObj3::Obj3 pobj;
-            logging->debug(strValue);
-      			//pobj.ParseFromString(strValue);
-    			//Obj3 *temp_obj = build_proto_object(pobj);
+                std::string strValue = xRedis->load(temp_key);
+                if (!strValue.empty()) {
+                  logging->debug(strValue);
 
-                  rapidjson::Document temp_d;
-				  temp_d.Parse(strValue.c_str());
-				  Obj3 *temp_obj = build_object (temp_d);
+                  Obj3 *temp_obj;
+                  Obj3 tobj;
 
-                  //tobj = smart_update_buffer[k];
-                  //temp_obj = &tem_obj;
+                  if (RedisFormatJSON) {
 
-                  //Now, we can compare the two and apply any updates from the
-                  //object list to the object returned from the database
+                    rapidjson::Document temp_d;
+                    try {
+                      temp_d.Parse(strValue.c_str());
+                      go_ahead=true;
+                    }
+                    catch (std::exception& e) {
+                      //Catch a possible exception and write it to the logs
+                      logging->error("Exception Occurred parsing message from Couchbase");
+                      logging->error(e.what());
+                    }
+                    if (go_ahead) {
+                      temp_obj = build_object (temp_d);
+                    }
 
-                  //First, we apply any matrix transforms present
-                  if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
-                    logging->debug("Location Transformation Detected");
-                    new_obj->translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+                  }
+                  else if (RedisFormatProtoBuf) {
+
+                    protoObj3::Obj3 pobj;
+                    try {
+                      pobj.ParseFromString(strValue);
+                      go_ahead=true;
+                    }
+                    catch (std::exception& e) {
+                      //Catch a possible exception and write it to the logs
+                      logging->error("Exception Occurred parsing message from Couchbase");
+                      logging->error(e.what());
+                    }
+                    if (go_ahead) {
+                      temp_obj = build_proto_object(pobj);
+                    }
+
                   }
 
-                  if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
-                    logging->debug("Euler Rotation Transformation Detected");
-                    new_obj->rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
-                  }
+                  if (temp_obj) {
 
-                  if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
-                    logging->debug("Quaternion Rotation Transformation Detected");
-                    new_obj->rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
-                  }
+                    //Now, we can compare the two and apply any updates from the
+                    //object list to the object returned from the database
 
-                  if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
-                    logging->debug("Scale Transformation Detected");
-                    new_obj->resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
-                  }
+                    //First, we apply any matrix transforms present
+                    if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
+                      logging->debug("Location Transformation Detected");
+                      new_obj->translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+                    }
 
-                  logging->debug("Applying Transform Matrix and full transform stack");
-                  new_obj->transform_object(temp_obj->get_transform());
+                    if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
+                      logging->debug("Euler Rotation Transformation Detected");
+                      new_obj->rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
+                    }
 
-                  new_obj->apply_transforms();
+                    if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
+                      logging->debug("Quaternion Rotation Transformation Detected");
+                      new_obj->rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
+                    }
 
-                  //Next, we write any string attributes
-                  if (temp_obj->get_owner() != "") {
-				  	std::string nowner = temp_obj->get_owner();
-                    new_obj->set_owner(nowner);
-                  }
+                    if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
+                      logging->debug("Scale Transformation Detected");
+                      new_obj->resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+                    }
 
-                  if (temp_obj->get_name() != "") {
-				  	std::string nname = temp_obj->get_name();
-                    new_obj->set_name(nname);
-                  }
+                    logging->debug("Applying Transform Matrix and full transform stack");
+                    new_obj->transform_object(temp_obj->get_transform());
 
-                  if (temp_obj->get_type() != "") {
-				  	std::string ntype = temp_obj->get_type();
-                    new_obj->set_type(ntype);
-                  }
+                    new_obj->apply_transforms();
 
-                  if (temp_obj->get_subtype() != "") {
-				  	std::string nsubtype = temp_obj->get_subtype();
-                    new_obj->set_subtype(nsubtype);
-                  }
+                    //Next, we write any string attributes
+                    if (temp_obj->get_owner() != "") {
+                      std::string nowner = temp_obj->get_owner();
+                      new_obj->set_owner(nowner);
+                    }
 
-                  //Finally, we write the result back to the database
-                  //Obj3 *obj_ptr = &new_obj;
+                    if (temp_obj->get_name() != "") {
+                      std::string nname = temp_obj->get_name();
+                      new_obj->set_name(nname);
+                    }
 
-                  //And output the message on the ZMQ Port
-                  if (MessageFormatJSON) {
-                    send_zmqo_str_message(new_obj->to_json_msg(OBJ_UPD));
-                  }
-                  else if (MessageFormatProtoBuf) {
-                    send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_UPD));
+                    if (temp_obj->get_type() != "") {
+                      std::string ntype = temp_obj->get_type();
+                      new_obj->set_type(ntype);
+                    }
+
+                    if (temp_obj->get_subtype() != "") {
+                      std::string nsubtype = temp_obj->get_subtype();
+                      new_obj->set_subtype(nsubtype);
+                    }
+
+                    //Finally, we write the result back to the database
+                    //Obj3 *obj_ptr = &new_obj;
+
+                    //And output the message on the ZMQ Port
+                    if (MessageFormatJSON) {
+                      send_zmqo_str_message(new_obj->to_json_msg(OBJ_UPD));
+                    }
+                    else if (MessageFormatProtoBuf) {
+                      send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_UPD));
+                    }
                   }
 
                   //Remove the element from the smart updbate buffer
                   bool is_key_still_in_buf = is_key_in_smart_update_buffer(temp_key);
                   if (is_key_still_in_buf) {
-      			           xRedis->del(temp_key);
+                    xRedis->del(temp_key);
                   }
                   else {
                     logging->debug("Key already expired from update buffer, not deleting");
@@ -584,8 +615,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                   //smart_update_buffer.erase(k);
 
                   cb->save_object (new_obj);
-    			  delete new_obj;
-    			  delete temp_obj;
+                  delete new_obj;
+                  delete temp_obj;
                   cb->wait();
                 }
                 else {
@@ -614,22 +645,26 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         else {
           //Output the object on the Outbound ZeroMQ port
           rapidjson::Document temp_d;
+          bool go_ahead=false;
           try {
             temp_d.Parse((char*)resp->v.v0.bytes);
+            go_ahead=true;
           }
           catch (std::exception& e) {
             //Catch a possible exception and write it to the logs
             logging->error("Exception Occurred parsing message from DB");
             logging->error(e.what());
           }
-		  Obj3 *new_obj = build_object (temp_d);
-          if (MessageFormatJSON) {
-            send_zmqo_str_message(new_obj->to_json_msg(OBJ_GET));
+          if (go_ahead) {
+            Obj3 *new_obj = build_object (temp_d);
+            if (MessageFormatJSON) {
+              send_zmqo_str_message(new_obj->to_json_msg(OBJ_GET));
+            }
+            else if (MessageFormatProtoBuf) {
+              send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_GET));
+            }
+            delete new_obj;
           }
-          else if (MessageFormatProtoBuf) {
-            send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_GET));
-          }
-		  delete new_obj;
         }
       }
       else {
@@ -645,22 +680,22 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     //Global Object Creation
     void cr_obj_global(Obj3 *new_obj) {
 
-	  //Generate a new key for the object
-	  int uuid_gen_result = 0;
-	  uuid_t uuid;
-	  uuid_gen_result = uuid_generate_time_safe(uuid);
+      //Generate a new key for the object
+      int uuid_gen_result = 0;
+      uuid_t uuid;
+      uuid_gen_result = uuid_generate_time_safe(uuid);
 
-	  if (uuid_gen_result == -1) {
-		logging->error("UUID Generated in an unsafe manner that exposes a potential security risk");
-		logging->error("http://linux.die.net/man/3/uuid_generate");
-		logging->error("Please take the needed actions to allow uuid generation with a safe generator");
-	  }
+      if (uuid_gen_result == -1) {
+        logging->error("UUID Generated in an unsafe manner that exposes a potential security risk");
+        logging->error("http://linux.die.net/man/3/uuid_generate");
+        logging->error("Please take the needed actions to allow uuid generation with a safe generator");
+      }
 
-	  char uuid_str[37];
-	  uuid_unparse_lower(uuid, uuid_str);
+      char uuid_str[37];
+      uuid_unparse_lower(uuid, uuid_str);
 
-	  //Set the new key on the new object
-	  new_obj->set_key(uuid_str);
+      //Set the new key on the new object
+      new_obj->set_key(uuid_str);
 
       //Output a message on the outbound ZMQ Port
       if (MessageFormatJSON) {
@@ -672,7 +707,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       //Save the object to the couchbase DB
       cb->create_object (new_obj);
-	  cb->wait();
+      cb->wait();
     }
 
     //Create Object from a Rapidjson Document
@@ -682,7 +717,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
 
         //Build the object and the key
-		Obj3 *new_obj = build_object (d);
+        Obj3 *new_obj = build_object (d);
         cr_obj_global(new_obj);
       }
       else {
@@ -697,7 +732,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       if (p_obj.has_location() && p_obj.has_bounding_box() && p_obj.scenes_size() > 0) {
 
         //Build the object and the key
-		Obj3 *new_obj = build_proto_object (p_obj);
+        Obj3 *new_obj = build_proto_object (p_obj);
         cr_obj_global(new_obj);
       }
       else {
@@ -727,42 +762,67 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         //If so, reject the update.
         const char * temp_key = temp_obj->get_key().c_str();
         if (is_key_in_smart_update_buffer(temp_key) == false) {
-		  bool bRet = xRedis->save(temp_key, temp_obj->to_json_msg(OBJ_UPD));
-		  if (!bRet) {
-			logging->error("Error putting object to Redis Smart Update Buffer");
-		  }
-		  bool bRet2 = xRedis->expire(temp_key, SUB_Duration);
-		  if (!bRet2) {
-			logging->error("Error expiring object in Redis Smart Update Buffer");
-		  }
+          if (RedisFormatJSON) {
+            bool bRet = xRedis->save(temp_key, temp_obj->to_json_msg(OBJ_UPD));
+          }
+          else if (RedisFormatProtoBuf) {
+            bool bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD);
+          }
+          if (!bRet) {
+            logging->error("Error putting object to Redis Smart Update Buffer");
+          }
+          bool bRet2 = xRedis->expire(temp_key, SUB_Duration);
+          if (!bRet2) {
+            logging->error("Error expiring object in Redis Smart Update Buffer");
+          }
           cb->load_object(temp_key);
           cb->wait();
         }
         else {
           logging->error("Collision in Active Update Buffer Detected");
-		  std::string strValue;
-		  strValue = xRedis->load(temp_key);
-		  //protoObj3::Obj3 pobj;
-		  //pobj.ParseFromString(strValue);
-		  //Obj3 *sub_obj = build_proto_object(pobj);
-		  rapidjson::Document doc;
-		  rapidjson::Value *s;
-		  try {
-		      doc.Parse(strValue.c_str());
-			  }
-		  catch (std::exception& e) {
-		      logging->error("Exception occurred while parsing inbound document:");
-		      logging->error(e.what());
-		      }
-		  Obj3 *sub_obj = build_object(doc);
-          logging->error(sub_obj->to_json());
-		  delete sub_obj;
+          std::string strValue;
+          strValue = xRedis->load(temp_key);
+          Obj3 *sub_obj;
+          bool go_ahead = false;
+          if (RedisFormatProtoBuf) {
+            protoObj3::Obj3 pobj;
+            try {
+              pobj.ParseFromString(strValue);
+              go_ahead=true;
+            }
+            catch (std::exception& e) {
+              //Catch a possible exception and write it to the logs
+              logging->error("Exception Occurred parsing message from Redis");
+              logging->error(e.what());
+            }
+            if (go_ahead) {
+              sub_obj = build_proto_object(pobj);
+            }
+          }
+          else if (RedisFormatJSON) {
+            rapidjson::Document doc;
+            try {
+              doc.Parse(strValue.c_str());
+              go_ahead=true;
+            }
+            catch (std::exception& e) {
+              //Catch a possible exception and write it to the logs
+              logging->error("Exception Occurred parsing message from Redis");
+              logging->error(e.what());
+            }
+            if (go_ahead) {
+              sub_obj = build_object(doc);
+            }
+          }
+          if (go_ahead) {
+            logging->error(sub_obj->to_json());
+            delete sub_obj;
+          }
         }
       }
       else {
         //If smart updates are disabled, we can just write the value directly
         //To the DB
-        //Obj3 *obj_ptr = &temp_obj;
 
         if (MessageFormatJSON) {
           send_zmqo_str_message(temp_obj->to_json_msg(OBJ_UPD));
@@ -772,8 +832,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         }
 
         cb->save_object (temp_obj);
-		delete temp_obj;
-		cb->wait();
+        delete temp_obj;
+        cb->wait();
       }
     }
 
@@ -781,7 +841,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void update_objectd(rapidjson::Document& d) {
       logging->info("Update object called with document: ");
       if (d.HasMember("key")) {
-	    Obj3 *temp_obj = build_object (d);
+        Obj3 *temp_obj = build_object (d);
         upd_obj_global(temp_obj);
       }
     }
@@ -790,7 +850,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void update_objectpb(protoObj3::Obj3 p_obj) {
       logging->info("Update object called with buffer: ");
       if (p_obj.has_key()) {
-	    Obj3 *temp_obj = build_proto_object (p_obj);
+        Obj3 *temp_obj = build_proto_object (p_obj);
         upd_obj_global(temp_obj);
       }
     }
@@ -798,51 +858,11 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     //Get Object Global
     void get_obj_global(std::string rk_str) {
       const char * rkc_str = rk_str.c_str();
-      //Check the Active Update Buffer for inflight transactions
-      //If we have any, then we should pull the value from there
-      //And return it.
-    //   if (SmartUpdatesActive) {
-    //     //int key_index = find_key_in_active_updates(rkey->GetString());
-    //     if (!is_update)
-    //     {
-    //
-    //     }
-    //     else {
-    //     if (is_key_in_smart_update_buffer(rkc_str)) {
-    //
-    //           //Pull the value from the update buffer
-    // 		  const char * strValue = xRedis->load(rkc_str);
-    // 		  if (strValue != NULL)
-    // 		  {
-    // 		  protoObj3::Obj3 pobj;
-    //  		  pobj.ParseFromString(strValue);
-    // 		  Obj3 *tobj = build_proto_object(pobj);
-    //
-    //           //Return the object on the outbound ZMQ Port
-    //           if (MessageFormatJSON) {
-    //             send_zmqo_str_message(tobj->to_json_msg(OBJ_UPD));
-    //           }
-    //           else if (MessageFormatProtoBuf) {
-    //             send_zmqo_str_message(tobj->to_protobuf_msg(OBJ_UPD));
-    //           }
-    // 		  }
-    // 		  else {
-    // 			logging->error("Unable to load object from Redis Cache, trying to retrieve from DB");
-    // 			cb->load_object(rkc_str);
-    // 			cb->wait();
-    // 		  }
-    //     }
-    //     else {
-    //       //Otherwise, Get the object from the DB
-    //       cb->load_object( rkc_str );
-		//       cb->wait();
-    //     }
-    //   }
-    // }
-    //   else {
-        //Otherwise, Get the object from the DB
-        cb->load_object( rkc_str );
-		cb->wait();
+      //Get the object from the DB
+      //If it's in the active update buffer, then this will
+      //force through the update prior to returning the value
+      cb->load_object( rkc_str );
+      cb->wait();
       //}
     }
 
@@ -895,7 +915,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       }
 
       cb->delete_object( kc_str );
-	    cb->wait();
+      cb->wait();
     }
 
     //Delete Object Protobuffer
@@ -929,8 +949,8 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
     int main()
     {
-	  //Set up the Redis Connection List to catch values from config files
-	  std::vector<RedisConnChain> RedisConnectionList;
+      //Set up the Redis Connection List to catch values from config files
+      std::vector<RedisConnChain> RedisConnectionList;
 
       //Set up logging
       //This reads the logging configuration file
@@ -995,9 +1015,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             if (var_name=="DB_ConnectionString") {
               DB_ConnStr=var_value;
             }
-			if (var_name=="Smart_Update_Buffer_Duration") {
-			  SUB_Duration=std::stoi(var_value);
-			}
+            if (var_name=="Smart_Update_Buffer_Duration") {
+              SUB_Duration=std::stoi(var_value);
+            }
             else if (var_name=="DB_AuthenticationActive") {
               if (var_value=="True") {
                 DB_AuthActive=true;
@@ -1033,69 +1053,79 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                 MessageFormatProtoBuf=true;
               }
             }
-			else if (var_name=="RedisConnectionString") {
-			  //Read a string in the format 127.0.0.1--7000----2--5--0
-			  RedisConnChain chain;
+            else if (var_name=="RedisBufferFormat") {
+              if (var_value=="json") {
+                RedisFormatJSON=true;
+                RedisFormatProtoBuf=false;
+              }
+              else if (var_value=="protocol-buffer") {
+                RedisFormatJSON=false;
+                RedisFormatProtoBuf=true;
+              }
+            }
+            else if (var_name=="RedisConnectionString") {
+              //Read a string in the format 127.0.0.1--7000----2--5--0
+              RedisConnChain chain;
 
-			  //Retrieve the first value
-			  int spacer_position = var_value.find("--", 0);
-			  std::string str1 = var_value.substr(0, spacer_position);
-        logging->debug("IP Address Recovered");
-        logging->debug(str1);
-			  chain.ip = str1;
+              //Retrieve the first value
+              int spacer_position = var_value.find("--", 0);
+              std::string str1 = var_value.substr(0, spacer_position);
+              logging->debug("IP Address Recovered");
+              logging->debug(str1);
+              chain.ip = str1;
 
-			  //Retrieve the second value
-			  std::string new_value = var_value.substr(spacer_position+2, var_value.length() - 1);
-        logging->debug("New Search String");
-        logging->debug(new_value);
-			  spacer_position = new_value.find("--", 0);
-			  str1 = new_value.substr(0, spacer_position);
-        logging->debug("Port Recovered");
-        logging->debug(str1);
-			  chain.port = std::stoi(str1);
+              //Retrieve the second value
+              std::string new_value = var_value.substr(spacer_position+2, var_value.length() - 1);
+              logging->debug("New Search String");
+              logging->debug(new_value);
+              spacer_position = new_value.find("--", 0);
+              str1 = new_value.substr(0, spacer_position);
+              logging->debug("Port Recovered");
+              logging->debug(str1);
+              chain.port = std::stoi(str1);
 
-			  //Retrieve the third value
-			  new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-        logging->debug("New Search String");
-        logging->debug(new_value);
-			  spacer_position = new_value.find("--", 0);
-			  str1 = new_value.substr(0, spacer_position);
-        logging->debug("Password Recovered");
-        logging->debug(str1);
-			  chain.elt4 = str1;
+              //Retrieve the third value
+              new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
+              logging->debug("New Search String");
+              logging->debug(new_value);
+              spacer_position = new_value.find("--", 0);
+              str1 = new_value.substr(0, spacer_position);
+              logging->debug("Password Recovered");
+              logging->debug(str1);
+              chain.elt4 = str1;
 
-			  //Retrieve the fourth value
-			  new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-        logging->debug("New Search String");
-        logging->debug(new_value);
-			  spacer_position = new_value.find("--", 0);
-			  str1 = new_value.substr(0, spacer_position);
-        logging->debug("Value Recovered");
-        logging->debug(str1);
-			  chain.elt5 = std::stoi(str1);
+              //Retrieve the fourth value
+              new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
+              logging->debug("New Search String");
+              logging->debug(new_value);
+              spacer_position = new_value.find("--", 0);
+              str1 = new_value.substr(0, spacer_position);
+              logging->debug("Value Recovered");
+              logging->debug(str1);
+              chain.elt5 = std::stoi(str1);
 
-			  //Retrieve the fifth value
-			  new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-        logging->debug("New Search String");
-        logging->debug(new_value);
-  			  spacer_position = new_value.find("--", 0);
-  			  str1 = new_value.substr(0, spacer_position);
-          logging->debug("Value Recovered");
-          logging->debug(str1);
-			  chain.elt6 = std::stoi(str1);
+              //Retrieve the fifth value
+              new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
+              logging->debug("New Search String");
+              logging->debug(new_value);
+              spacer_position = new_value.find("--", 0);
+              str1 = new_value.substr(0, spacer_position);
+              logging->debug("Value Recovered");
+              logging->debug(str1);
+              chain.elt6 = std::stoi(str1);
 
-			  //Retrieve the final value
-			  new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-        logging->debug("New Search String");
-        logging->debug(new_value);
-			  spacer_position = new_value.find("--", 0);
-			  str1 = new_value.substr(0, spacer_position);
-        logging->debug("Value Recovered");
-        logging->debug(str1);
-			  chain.elt7 = std::stoi(str1);
+              //Retrieve the final value
+              new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
+              logging->debug("New Search String");
+              logging->debug(new_value);
+              spacer_position = new_value.find("--", 0);
+              str1 = new_value.substr(0, spacer_position);
+              logging->debug("Value Recovered");
+              logging->debug(str1);
+              chain.elt7 = std::stoi(str1);
 
-			  RedisConnectionList.push_back(chain);
-			}
+              RedisConnectionList.push_back(chain);
+            }
           }
         }
         file.close();
@@ -1110,44 +1140,39 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
 
-	  //Set up our Redis Connection List
-	  int conn_list_size = RedisConnectionList.size();
-	  RedisNode RedisList1[conn_list_size];
-	  {
-		int y = 0;
-		for (int y = 0; y < conn_list_size; ++y)
-		{
-		  //Pull the values from RedisConnectionList
-		  RedisNode redis_n;
-		  redis_n.dbindex = y;
-		  RedisConnChain redis_chain = RedisConnectionList[y];
-		  redis_n.host = redis_chain.ip.c_str();
-		  redis_n.port = redis_chain.port;
-		  redis_n.passwd = redis_chain.elt4.c_str();
-		  redis_n.poolsize = redis_chain.elt5;
-		  redis_n.timeout = redis_chain.elt6;
-		  redis_n.role = redis_chain.elt7;
-      logging->debug("Line added to Redis Configuration List with IP:");
-      logging->debug(redis_n.host);
+      //Set up our Redis Connection List
+      int conn_list_size = RedisConnectionList.size();
+      RedisNode RedisList1[conn_list_size];
+      {
+        int y = 0;
+        for (int y = 0; y < conn_list_size; ++y)
+        {
+          //Pull the values from RedisConnectionList
+          RedisNode redis_n;
+          redis_n.dbindex = y;
+          RedisConnChain redis_chain = RedisConnectionList[y];
+          redis_n.host = redis_chain.ip.c_str();
+          redis_n.port = redis_chain.port;
+          redis_n.passwd = redis_chain.elt4.c_str();
+          redis_n.poolsize = redis_chain.elt5;
+          redis_n.timeout = redis_chain.elt6;
+          redis_n.role = redis_chain.elt7;
+          logging->debug("Line added to Redis Configuration List with IP:");
+          logging->debug(redis_n.host);
 
-		  RedisList1[y] = redis_n;
-		}
-	  }
-    logging->info("Redis Connection List Built");
+          RedisList1[y] = redis_n;
+        }
+      }
+      logging->info("Redis Connection List Built");
 
-	  //Set up Redis Connection
-	  if (SmartUpdatesActive) {
-	  	//xRedisAdmin x (RedisList1, conn_list_size);
-		//xRedis = &x;
-		xRedis = new xRedisAdmin (RedisList1, conn_list_size);
-		//xRedis.ConnectRedisCache(RedisList2, 5, CACHE_TYPE_2);
-		logging->info("Connected to Redis");
-		}
+      //Set up Redis Connection
+      if (SmartUpdatesActive) {
+        xRedis = new xRedisAdmin (RedisList1, conn_list_size);
+        logging->info("Connected to Redis");
+      }
 
       //Set up the Couchbase Connection
-      //CouchbaseAdmin c ( DB_ConnStr.c_str() );
-      //cb = &c;
-	  cb = new CouchbaseAdmin ( DB_ConnStr.c_str() );
+      cb = new CouchbaseAdmin ( DB_ConnStr.c_str() );
       logging->info("Connected to Couchbase DB");
 
       //Bind Couchbase Callbacks
@@ -1159,10 +1184,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 
       //Set up the outbound ZMQ Client
       //zmq::socket_t zout(context, ZMQ_REQ);
-	  zmqo = new zmq::socket_t (context, ZMQ_REQ);
+      zmqo = new zmq::socket_t (context, ZMQ_REQ);
       logging->info("0MQ Constructor Called");
       zmqo->connect(OMQ_OBConnStr);
-      //zmqo = &zout;
       logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Socket
@@ -1187,31 +1211,37 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         const char * req_ptr = req_string.c_str();
         logging->debug("Conversion to C String performed with result: ");
         logging->debug(req_ptr);
-
+        bool go_ahead=false;
         if (MessageFormatJSON) {
           //Process the message header and set current_event_type
           try {
             d.Parse(req_ptr);
+            go_ahead=true;
           }
           catch (std::exception& e) {
             logging->error("Exception occurred while parsing inbound document:");
             logging->error(e.what());
           }
           //Catch a possible error and write to logs
-          s = &d["message_type"];
-          msg_type = s->GetInt();
+          if (go_ahead) {
+            s = &d["message_type"];
+            msg_type = s->GetInt();
+          }
         }
         else if (MessageFormatProtoBuf) {
           try {
             new_proto.Clear();
             new_proto.ParseFromString(req_string);
+            go_ahead=true;
           }
           catch (std::exception& e) {
             logging->error("Exception occurred while parsing inbound document:");
             logging->error(e.what());
           }
           //Catch a possible error and write to logs
-          msg_type = new_proto.message_type();
+          if (go_ahead) {
+            msg_type = new_proto.message_type();
+          }
         }
 
         if (msg_type == OBJ_UPD) {
@@ -1235,9 +1265,9 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           end_log();
 
           //Delete objects off the heap
-		  delete xRedis;
-		  delete cb;
-		  delete zmqo;
+          delete xRedis;
+          delete cb;
+          delete zmqo;
 
           resp[0]='s';
           resp[1]='u';
