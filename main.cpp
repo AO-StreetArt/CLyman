@@ -762,11 +762,12 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         //If so, reject the update.
         const char * temp_key = temp_obj->get_key().c_str();
         if (is_key_in_smart_update_buffer(temp_key) == false) {
+		  bool bRet;
           if (RedisFormatJSON) {
-            bool bRet = xRedis->save(temp_key, temp_obj->to_json_msg(OBJ_UPD));
+            bRet = xRedis->save(temp_key, temp_obj->to_json_msg(OBJ_UPD));
           }
           else if (RedisFormatProtoBuf) {
-            bool bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD);
+            bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD);
           }
           if (!bRet) {
             logging->error("Error putting object to Redis Smart Update Buffer");
