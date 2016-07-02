@@ -106,317 +106,6 @@ bool is_key_in_smart_update_buffer(const char * key) {
   return xRedis->exists(key);
 }
 
-//Build Obj3 from a protocol buffer
-Obj3* build_proto_object(protoObj3::Obj3 buffer) {
-  logging->debug("Build Proto-Object Called");
-  std::string new_name="";
-  std::string new_key="";
-  std::string new_owner="";
-  std::string new_type="";
-  std::string new_subtype="";
-  std::string new_lock_id="";
-  Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
-  Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
-  Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
-  Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
-  Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
-  Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
-  std::vector<std::string> scene_list;
-  logging->debug("New Variables Declared");
-
-  //scale
-  new_scale(0) = 1.0;
-  new_scale(1) = 1.0;
-  new_scale(2) = 1.0;
-
-  //Transform and buffer
-  new_transform(0, 0) = 1.0;
-  new_transform(1, 1) = 1.0;
-  new_transform(2, 2) = 1.0;
-  new_transform(3, 3) = 1.0;
-
-  //Bounding Box
-  new_bounding_box(0, 1) = 1.0;
-  new_bounding_box(1, 2) = 1.0;
-  new_bounding_box(0, 3) = 1.0;
-  new_bounding_box(1, 3) = 1.0;
-  new_bounding_box(2, 4) = 1.0;
-  new_bounding_box(0, 5) = 1.0;
-  new_bounding_box(2, 5) = 1.0;
-  new_bounding_box(1, 6) = 1.0;
-  new_bounding_box(2, 6) = 1.0;
-  new_bounding_box(0, 7) = 1.0;
-  new_bounding_box(1, 7) = 1.0;
-  new_bounding_box(2, 7) = 1.0;
-
-  //Perform the Conversion
-  if (buffer.has_name()) {
-    new_name = buffer.name();
-  }
-  if (buffer.has_key()) {
-    new_key = buffer.key();
-  }
-  if (buffer.has_owner()) {
-    new_owner = buffer.owner();
-  }
-  if (buffer.has_type()) {
-    new_type = buffer.type();
-  }
-  if (buffer.has_subtype()) {
-    new_subtype = buffer.subtype();
-  }
-  if (buffer.has_lock_device_id()) {
-    new_lock_id = buffer.lock_device_id();
-  }
-  if (buffer.has_location()) {
-    protoObj3::Obj3_Vertex3 loc = buffer.location();
-    new_location(0) = loc.x();
-    new_location(1) = loc.y();
-    new_location(2) = loc.z();
-  }
-  if (buffer.has_rotation_euler()) {
-    protoObj3::Obj3_Vertex3 rote = buffer.rotation_euler();
-    new_rotatione(0) = rote.x();
-    new_rotatione(1) = rote.y();
-    new_rotatione(2) = rote.z();
-
-  }
-  if (buffer.has_rotation_quaternion()) {
-    protoObj3::Obj3_Vertex4 rotq = buffer.rotation_quaternion();
-    new_rotationq(0) = rotq.w();
-    new_rotationq(1) = rotq.x();
-    new_rotationq(2) = rotq.y();
-    new_rotationq(3) = rotq.z();
-  }
-  if (buffer.has_scale()) {
-    protoObj3::Obj3_Vertex3 scl = buffer.scale();
-    new_scale(0) = scl.x();
-    new_scale(1) = scl.y();
-    new_scale(2) = scl.z();
-  }
-  if (buffer.has_transform()) {
-    protoObj3::Obj3_Matrix4 trn = buffer.transform();
-    int i = 0;
-    for (i=0; i < trn.col_size(); i++) {
-      protoObj3::Obj3_Vertex4 c = trn.col(i);
-      new_transform(0, i) = c.w();
-      new_transform(1, i) = c.x();
-      new_transform(2, i) = c.y();
-      new_transform(3, i) = c.z();
-    }
-    logging->debug("Transform Matrix Parsed");
-  }
-  if (buffer.has_bounding_box()) {
-    protoObj3::Obj3_Matrix4 bb = buffer.transform();
-    int i = 0;
-    for (i=0; i < bb.col_size(); i++) {
-      protoObj3::Obj3_Vertex4 c = bb.col(i);
-      new_bounding_box(0, i) = c.w();
-      new_bounding_box(1, i) = c.x();
-      new_bounding_box(2, i) = c.y();
-      new_bounding_box(3, i) = c.z();
-    }
-    logging->debug("Bounding Box Parsed");
-  }
-  if (buffer.scenes_size() > 0) {
-    int j = 0;
-    for (j=0; j< buffer.scenes_size(); j++) {
-      scene_list.push_back(buffer.scenes(j));
-    }
-  }
-
-  logging->debug("Variables Filled");
-
-  //Build the Obj3 and return it from the populated values
-  Obj3* object = new Obj3 (new_name, new_key, new_type, new_subtype, new_owner, scene_list, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
-  logging->debug("Obj3 Built");
-  return object;
-}
-
-//Build Obj3 from a Rapidjson Document
-Obj3* build_object(const rapidjson::Document& d) {
-  logging->debug("Build Object Called");
-  if (d.IsObject()) {
-    logging->debug("Object-Format Message Detected");
-
-    //Building replacement variables
-    std::string new_name="";
-    std::string new_key="";
-    std::string new_owner="";
-    std::string new_type="";
-    std::string new_subtype="";
-    std::string new_lock_id="";
-    std::vector<std::string> scene_list;
-    Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
-    Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
-    Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
-    Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
-    Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
-    Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
-    logging->debug("New Variables Declared");
-
-    //scale
-    new_scale(0) = 1.0;
-    new_scale(1) = 1.0;
-    new_scale(2) = 1.0;
-
-    //Transform and buffer
-    new_transform(0, 0) = 1.0;
-    new_transform(1, 1) = 1.0;
-    new_transform(2, 2) = 1.0;
-    new_transform(3, 3) = 1.0;
-
-    //Bounding Box
-    new_bounding_box(0, 1) = 1.0;
-    new_bounding_box(1, 2) = 1.0;
-    new_bounding_box(0, 3) = 1.0;
-    new_bounding_box(1, 3) = 1.0;
-    new_bounding_box(2, 4) = 1.0;
-    new_bounding_box(0, 5) = 1.0;
-    new_bounding_box(2, 5) = 1.0;
-    new_bounding_box(1, 6) = 1.0;
-    new_bounding_box(2, 6) = 1.0;
-    new_bounding_box(0, 7) = 1.0;
-    new_bounding_box(1, 7) = 1.0;
-    new_bounding_box(2, 7) = 1.0;
-
-    if (d.HasMember("name")) {
-      const rapidjson::Value *name_val;
-      name_val = &d["name"];
-      new_name = name_val->GetString();
-    }
-    if (d.HasMember("key")) {
-      const rapidjson::Value *key_val;
-      key_val = &d["key"];
-      new_key = key_val->GetString();
-    }
-    if (d.HasMember("owner")) {
-      const rapidjson::Value *owner_val;
-      owner_val = &d["owner"];
-      new_owner = owner_val->GetString();
-    }
-    if (d.HasMember("type")) {
-      const rapidjson::Value *type_val;
-      type_val = &d["type"];
-      new_type = type_val->GetString();
-    }
-    if (d.HasMember("subtype")) {
-      const rapidjson::Value *subtype_val;
-      subtype_val = &d["subtype"];
-      new_subtype = subtype_val->GetString();
-    }
-    if (d.HasMember("lock_device_id")) {
-      const rapidjson::Value *lock_val;
-      lock_val = &d["lock_device_id"];
-      new_lock_id = lock_val->GetString();
-    }
-    if (d.HasMember("location")) {
-      //Read the array values and stuff them into new_location
-      const rapidjson::Value& loc = d["location"];
-      if (loc.IsArray()) {
-        int j=0;
-        for (rapidjson::SizeType i = 0; i < loc.Size();i++) {
-          new_location(j) = loc[i].GetDouble();
-          j++;
-        }
-      }
-    }
-    if (d.HasMember("rotation_euler")) {
-      //Read the array values and stuff them into new_location
-      const rapidjson::Value& rote = d["rotation_euler"];
-      if (rote.IsArray()) {
-        int j=0;
-        for (rapidjson::SizeType i = 0; i < rote.Size();i++) {
-          new_rotatione(j) = rote[i].GetDouble();
-          j++;
-        }
-      }
-    }
-    if (d.HasMember("rotation_quaternion")) {
-      //Read the array values and stuff them into new_location
-      const rapidjson::Value& rotq = d["rotation_quaternion"];
-      if (rotq.IsArray()) {
-        int j=0;
-        for (rapidjson::SizeType i = 0; i < rotq.Size();i++) {
-          new_rotationq(j) = rotq[i].GetDouble();
-          j++;
-        }
-      }
-    }
-    if (d.HasMember("scale")) {
-      //Read the array values and stuff them into new_location
-      const rapidjson::Value& scl = d["scale"];
-      if (scl.IsArray()) {
-        int j=0;
-        for (rapidjson::SizeType i = 0; i < scl.Size();i++) {
-          new_scale(j) = scl[i].GetDouble();
-          j++;
-        }
-      }
-    }
-    if (d.HasMember("transform")) {
-      //Read the array values and stuff them into new_transform
-      const rapidjson::Value& tran = d["transform"];
-      if (tran.IsArray()) {
-        int j=0;
-        for (rapidjson::SizeType i = 0; i < tran.Size();i++) {
-          new_transform(i%4, j) = tran[i].GetDouble();
-          if (i == 3 || i % 4 == 3) {
-            j++;
-          }
-        }
-      }
-      logging->debug("Transform Matrix Parsed");
-    }
-    if (d.HasMember("bounding_box")) {
-      //Read the array values and stuff them into new_bounding_box
-      const rapidjson::Value& bb = d["bounding_box"];
-      if (bb.IsArray()) {
-        int j=0;
-        for (rapidjson::SizeType i = 0; i < bb.Size();i++) {
-          if (j < 8 && i ) {
-            new_bounding_box(i%4, j) = bb[i].GetDouble();
-            if (i == 3 || i % 4 == 3 ) {
-              j++;
-            }
-          }
-        }
-      }
-      logging->debug("Bounding Box Parsed");
-    }
-
-    if (d.HasMember("scenes")) {
-      //Read the array values and stuff them into new_location
-      const rapidjson::Value& sc = d["scenes"];
-      if (sc.IsArray()) {
-        for (rapidjson::SizeType i = 0; i < sc.Size();i++) {
-          scene_list.push_back(sc[i].GetString());
-        }
-      }
-    }
-
-
-    logging->debug("Variables Filled");
-
-    //Build the Obj3 and return it from the populated values
-    Obj3 *object = new Obj3 (new_name, new_key, new_type, new_subtype, new_owner, scene_list, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
-    //new_obj.set_name(new_name);
-    //new_obj.set_key(new_key);
-    //new_obj.set_type(new_type);
-    //new_obj.set_subtype(new_subtype);
-    //new_obj.set_owner(new_owner);
-    //new_obj.set_loc(new_location);
-    //new_obj.set_rote(new_rotatione);
-    //new_obj.set_rotq(new_rotationq);
-    //new_obj.set_scl(new_scale);
-    //new_obj.set_transform(new_transform);
-    //new_obj.set_bounds(new_bounding_box);
-    //new_obj.set_scenes(scene_list);
-    logging->debug("Obj3 Built");
-    return object;
-  }
-}
-
 //-----------------------
 //---Callback Methods----
 //-----------------------
@@ -478,7 +167,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             logging->error(e.what());
           }
           if (go_ahead) {
-            new_obj = build_object (temp_d);
+            new_obj = new Obj3 (temp_d);
           }
           if (new_obj)
           {
@@ -518,7 +207,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                       logging->error(e.what());
                     }
                     if (go_ahead) {
-                      temp_obj = build_object (temp_d);
+                      temp_obj = new Obj3 (temp_d);
                     }
 
                   }
@@ -535,7 +224,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                       logging->error(e.what());
                     }
                     if (go_ahead) {
-                      temp_obj = build_proto_object(pobj);
+                      temp_obj = new Obj3 (pobj);
                     }
 
                   }
@@ -656,7 +345,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
             logging->error(e.what());
           }
           if (go_ahead) {
-            Obj3 *new_obj = build_object (temp_d);
+            Obj3 *new_obj = new Obj3 (temp_d);
             if (MessageFormatJSON) {
               send_zmqo_str_message(new_obj->to_json_msg(OBJ_GET));
             }
@@ -717,7 +406,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
 
         //Build the object and the key
-        Obj3 *new_obj = build_object (d);
+        Obj3 *new_obj = new Obj3 (d);
         cr_obj_global(new_obj);
       }
       else {
@@ -732,7 +421,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       if (p_obj.has_location() && p_obj.has_bounding_box() && p_obj.scenes_size() > 0) {
 
         //Build the object and the key
-        Obj3 *new_obj = build_proto_object (p_obj);
+        Obj3 *new_obj = new Obj3 (p_obj);
         cr_obj_global(new_obj);
       }
       else {
@@ -797,7 +486,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
               logging->error(e.what());
             }
             if (go_ahead) {
-              sub_obj = build_proto_object(pobj);
+              sub_obj = new Obj3 (pobj);
             }
           }
           else if (RedisFormatJSON) {
@@ -812,7 +501,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
               logging->error(e.what());
             }
             if (go_ahead) {
-              sub_obj = build_object(doc);
+              sub_obj = new Obj3 (doc);
             }
           }
           if (go_ahead) {
@@ -842,7 +531,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void update_objectd(rapidjson::Document& d) {
       logging->info("Update object called with document: ");
       if (d.HasMember("key")) {
-        Obj3 *temp_obj = build_object (d);
+        Obj3 *temp_obj = new Obj3 (d);
         upd_obj_global(temp_obj);
       }
     }
@@ -851,7 +540,7 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
     void update_objectpb(protoObj3::Obj3 p_obj) {
       logging->info("Update object called with buffer: ");
       if (p_obj.has_key()) {
-        Obj3 *temp_obj = build_proto_object (p_obj);
+        Obj3 *temp_obj = new Obj3 (p_obj);
         upd_obj_global(temp_obj);
       }
     }
