@@ -94,11 +94,8 @@ new_scale(2) = 1.0;
 
 //Transform and buffer
 new_transform(0, 0) = 1.0;
-new_transform(0, 3) = 1.0;
 new_transform(1, 1) = 1.0;
-new_transform(1, 3) = 1.0;
 new_transform(2, 2) = 1.0;
-new_transform(2, 3) = 1.0;
 new_transform(3, 3) = 1.0;
 
 //Bounding Box
