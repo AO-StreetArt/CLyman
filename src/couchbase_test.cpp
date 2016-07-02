@@ -1,5 +1,5 @@
-#include "../couchbase_admin.h"
-#include "../obj3.h"
+#include "couchbase_admin.h"
+#include "obj3.h"
 #include <libcouchbase/couchbase.h>
 
 static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,

@@ -7,9 +7,9 @@
 #include <fstream>
 #include <cstdlib>
 
-#include "../logging.h"
+#include "logging.h"
 
-#include "../xredis_admin.h"
+#include "xredis_admin.h"
 
 //Main Method
 
