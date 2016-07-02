@@ -14,7 +14,7 @@ g++ -c -o src/couchbase_test.o -lcouchbase src/couchbase_test.cpp -I src -std=c+
 
 #And the couchbase test app:
 
-g++ -o cb_test src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/couchbase_admin.o src/couchbase_test.o src/obj3.o -lcouchbase -I src -std=c++11 `pkg-config --cflags --libs protobuf`
+g++ -o cb_test src/Obj3.pb.cc src/logging.o src/event_dispatcher.o src/couchbase_admin.o src/couchbase_test.o src/obj3.o -lpthread -llog4cpp -lcouchbase -I src -std=c++11 `pkg-config --cflags --libs protobuf`
 
 #Finally, the Redis tests:
 g++ -c -o src/redis_test.o -lpthread -llog4cpp -lxredis src/redis_test.cpp `pkg-config --cflags --libs hiredis` -I src -std=c++11
