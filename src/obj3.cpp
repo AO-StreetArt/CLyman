@@ -411,9 +411,9 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	logging->debug("Obj3: Lock Owner = ");
 	logging->debug(lock_owner);
 	protoObj3::Obj3_Vertex3 loc = new_proto.location();
-	loc->set_x(get_locx());
-	loc->set_y(get_locy());
-	loc->set_z(get_locz());
+	loc.set_x(get_locx());
+	loc.set_y(get_locy());
+	loc.set_z(get_locz());
 	// protoObj3::Obj3_Vertex3 rote = new_proto.rotation_euler();
 	// rote.set_x(get_rotex());
 	// rote.set_y(get_rotey());
@@ -430,7 +430,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	protoObj3::Obj3_Matrix4 trn = new_proto.transform();
 	int i = 0;
 	for (i = 0; i < 4; i++) {
-		protoObj3::Obj3_Vertex4* c1 = trn->add_col();
+		protoObj3::Obj3_Vertex4* c1 = trn.add_col();
 		c1->set_w(transform_matrix(0, i));
 		c1->set_x(transform_matrix(1, i));
 		c1->set_y(transform_matrix(2, i));
