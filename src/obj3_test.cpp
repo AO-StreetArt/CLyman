@@ -78,7 +78,48 @@ owner = "zxywvut-1234567";
 Obj3 obj2;
 Obj3 obj3 (name, key);
 Obj3 obj4 (name, key, type, subtype);
-Obj3 obj5 (name, key, type, subtype, owner);
+
+//Set up an object with some base matrices
+Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
+Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
+Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
+Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
+Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
+Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
+
+//scale
+new_scale(0) = 1.0;
+new_scale(1) = 1.0;
+new_scale(2) = 1.0;
+
+//Transform and buffer
+new_transform(0, 0) = 1.0;
+new_transform(0, 3) = 1.0;
+new_transform(1, 1) = 1.0;
+new_transform(1, 3) = 1.0;
+new_transform(2, 2) = 1.0;
+new_transform(2, 3) = 1.0;
+new_transform(3, 3) = 1.0;
+
+//Bounding Box
+new_bounding_box(0, 1) = 1.0;
+new_bounding_box(1, 2) = 1.0;
+new_bounding_box(0, 3) = 1.0;
+new_bounding_box(1, 3) = 1.0;
+new_bounding_box(2, 4) = 1.0;
+new_bounding_box(0, 5) = 1.0;
+new_bounding_box(2, 5) = 1.0;
+new_bounding_box(1, 6) = 1.0;
+new_bounding_box(2, 6) = 1.0;
+new_bounding_box(0, 7) = 1.0;
+new_bounding_box(1, 7) = 1.0;
+new_bounding_box(2, 7) = 1.0;
+
+//Set up a scenes vector
+std::vector<std::string> scns;
+scns.push_back("12345");
+
+Obj3 obj5 (name, key, type, subtype, owner, scns, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
 
 //Print out the object attributes to test the getters and initializers
 
