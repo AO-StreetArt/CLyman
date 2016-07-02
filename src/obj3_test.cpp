@@ -41,7 +41,7 @@ int main()
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
 
-std::string initFileName = "../log4cpp.properties";
+std::string initFileName = "log4cpp.properties";
 try {
         log4cpp::PropertyConfigurator::configure(initFileName);
 }
