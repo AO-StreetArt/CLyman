@@ -329,6 +329,8 @@ Obj3::Obj3(const rapidjson::Document& d)
       }
     }
 
+	}
+
 
     logging->debug("Variables Filled");
 
