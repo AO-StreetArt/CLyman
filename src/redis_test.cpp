@@ -193,10 +193,8 @@ logging->error("Test not found in buffer");
 }
 
 //load
-const char * strValue = xRedis->load("Test");
-if (strValue != NULL) {
+std::string strValue = xRedis->load("Test");
 logging->debug(strValue);
-}
 
 //Delete
 xRedis->del("Test");

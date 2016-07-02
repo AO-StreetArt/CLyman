@@ -61,7 +61,8 @@ lcb_set_store_callback(cb.get_instance(), storage_callback);
 lcb_set_get_callback(cb.get_instance(), get_callback);
 printf("Callbacks bound");
 //Write the object to the DB
-cb.create_object ( obj );
+Obj3 *obj_ptr = &obj;
+cb.create_object ( obj_ptr );
 cb.wait();
 printf("Create Object Tested");
 //Get the object from the DB

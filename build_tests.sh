@@ -2,11 +2,11 @@
 
 #We start with the Object Tests
 
-g++ -c -o src/obj3_test.o src/obj3_test.cpp -std=c++11
+g++ -c -o src/obj3_test.o -lpthread -llog4cpp src/obj3_test.cpp -std=c++11 `pkg-config --cflags --libs protobuf`
 
 #Here we can build the test app:
 
-g++ -lpthread -llog4cpp -o obj_test src/logging.o src/obj3.o src/obj3_test.o -std=c++11 `pkg-config --cflags --libs protobuf`
+g++ -o obj_test -lpthread -llog4cpp src/logging.o src/obj3.o src/obj3_test.o -std=c++11 `pkg-config --cflags --libs protobuf`
 
 #We can build the couchbase tests:
 
