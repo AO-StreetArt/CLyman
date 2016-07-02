@@ -1,10 +1,10 @@
 //3-Space Object tests
 
 #include <iostream>
-#include "obj3.h"
+#include "../obj3.h"
 #include <string>
 #include <math.h>
-#include "logging.h"
+#include "../logging.h"
 
 using namespace Eigen;
 
