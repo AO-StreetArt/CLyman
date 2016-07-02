@@ -138,13 +138,13 @@ Obj3 obj6 (d);
 Obj3 obj7 (d2);
 Obj3 obj8 (new_proto);
 
-print("Objects Translated From Obj5");
+std::cout << "Objects Translated From Obj5" << std::endl;
 
-print("From JSON Message");
+std::cout << "From JSON Message" << std::endl;
 print_obj_attributes(obj6);
-print("From JSON Document");
+std::cout << "From JSON Document" << std::endl;
 print_obj_attributes(obj7);
-print("From Protobuffer");
+std::cout << "From Protobuffer" << std::endl;
 print_obj_attributes(obj8);
 
 return 0;
