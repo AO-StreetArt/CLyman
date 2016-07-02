@@ -8,6 +8,10 @@
 
 using namespace Eigen;
 
+//----------------------------------------------------------------------------//
+//----------------------------Utility Methods---------------------------------//
+//----------------------------------------------------------------------------//
+
 void print_obj_attributes(Obj3& obj)
 {
 std::cout << obj.get_owner() << std::endl;
@@ -27,8 +31,15 @@ std::cout << "Object in JSON Message" << std::endl;
 std::cout << obj.to_json_msg(0) << std::endl;
 }
 
+//----------------------------------------------------------------------------//
+//-----------------------------Main Method------------------------------------//
+//----------------------------------------------------------------------------//
+
 int main()
 {
+
+//-------------------------------Logging--------------------------------------//
+//----------------------------------------------------------------------------//
 
 std::string initFileName = "../log4cpp.properties";
 try {
@@ -47,6 +58,9 @@ log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
 log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
 
 logging = &log;
+
+//----------------------------Basic Tests-------------------------------------//
+//----------------------------------------------------------------------------//
 
 std::string name;
 std::string key;
@@ -100,6 +114,38 @@ obj5.resize(2.0, 2.0, 2.0);
 obj5.apply_transforms();
 std::cout << "Object 5 after scale of 2 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
+
+//------------------------JSON & Protocol Buffer Tests------------------------//
+//----------------------------------------------------------------------------//
+
+//Let's translate object 5 into a Proto Buf String and a JSON String
+std::string proto_string = obj5.to_protobuf_msg(0);
+std::string json_string = obj5.to_json_msg(0);
+std::string json_str = obj5.to_json();
+
+//Now, we translate each of these back to a form we can pass to another constructor
+rapidjson::Document d;
+d.Parse(json_string.c_str());
+
+rapidjson::Document d2;
+d2.Parse(json_str.c_str());
+
+protoObj3::Obj3 new_proto;
+new_proto.ParseFromString(proto_string);
+
+//Build new objects from the converted data
+Obj3 obj6 (d);
+Obj3 obj7 (d2);
+Obj3 obj8 (new_proto);
+
+print("Objects Translated From Obj5");
+
+print("From JSON Message");
+print_obj_attributes(obj6);
+print("From JSON Document");
+print_obj_attributes(obj7);
+print("From Protobuffer");
+print_obj_attributes(obj8);
 
 return 0;
 
