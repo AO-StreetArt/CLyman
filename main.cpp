@@ -69,15 +69,12 @@ enum {
   CACHE_TYPE_MAX,
 };
 
-void send_zmqo_message(const char * msg)
+void send_zmqo_message(const char * msg, int msg_size)
 {
-  //Get the size of the buffer being passed in
-  int buffer_size;
-  buffer_size = strlen(msg);
 
   //Set up the message to go out on 0MQ
-  zmq::message_t req (buffer_size);
-  memcpy (req.data (), msg, buffer_size);
+  zmq::message_t req (msg_size);
+  memcpy (req.data (), msg, msg_size);
 
   //Send the message
   zmqo->send (req);
@@ -97,9 +94,9 @@ void send_zmqo_message(const char * msg)
   logging->info(r_str);
 }
 
-void send_zmqo_str_message(std::string msg) {
+void send_zmqo_str_message(std::string &msg) {
   const char * msg_cstr = msg.c_str();
-  send_zmqo_message(msg_cstr);
+  send_zmqo_message(msg_cstr, msg.size());
 }
 
 //Is a key present in the smart update buffer?
