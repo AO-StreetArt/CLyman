@@ -730,12 +730,44 @@ std::string Obj3::to_json_msg(int msg_type) const
         }
         writer.EndArray();
 
+				writer.Key("rotation_euler");
+        writer.StartArray();
+        for (i=0; i<3; i++) {
+                writer.Double( static_cast<double>(get_rote(i)) );
+        }
+        writer.EndArray();
+
+				writer.Key("rotation_quaternion");
+        writer.StartArray();
+        for (i=0; i<4; i++) {
+                writer.Double( static_cast<double>(get_rotq(i)) );
+        }
+        writer.EndArray();
+
+				writer.Key("scale");
+        writer.StartArray();
+        for (i=0; i<3; i++) {
+                writer.Double( static_cast<double>(get_scl(i)) );
+        }
+        writer.EndArray();
+
         writer.Key("transform");
 	writer.StartArray();
 
         for (i=0; i<4; i++) {
                 for (j=0; j<4; j++) {
                         writer.Double( static_cast<double>(transform_matrix(i, j) ));
+                }
+        }
+
+        writer.EndArray();
+
+				writer.Key("bounding_box");
+	writer.StartArray();
+
+        for (i=0; i<4; i++) {
+                for (j=0; j<8; j++) {
+                        writer.Double( static_cast<double>(bounding_box(i, j) ));
                 }
         }
 
@@ -761,6 +793,7 @@ std::string Obj3::to_json_msg(int msg_type) const
         return ret_string;
 }
 
+//Writes out all object attributes for storage in Smart Update Buffer
 std::string Obj3::to_protobuf_msg(int msg_type) const {
 	logging->info("Obj3:To Proto message Called on object");
 	logging->info(key);
@@ -788,19 +821,19 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	loc->set_x(get_locx());
 	loc->set_y(get_locy());
 	loc->set_z(get_locz());
-	// protoObj3::Obj3_Vertex3 rote = new_proto.rotation_euler();
-	// rote.set_x(get_rotex());
-	// rote.set_y(get_rotey());
-	// rote.set_z(get_rotez());
-	// protoObj3::Obj3_Vertex4 rotq = new_proto.rotation_quaternion();
-	// rotq.set_w(get_rotqw());
-	// rotq.set_x(get_rotqx());
-	// rotq.set_y(get_rotqy());
-	// rotq.set_z(get_rotqz());
-	// protoObj3::Obj3_Vertex3 scl = new_proto.scale();
-	// scl.set_x(get_sclx());
-	// scl.set_y(get_scly());
-	// scl.set_z(get_sclz());
+	protoObj3::Obj3_Vertex3 *rote = new_proto.mutable_rotation_euler();
+	rote->set_x(get_rotex());
+	rote->set_y(get_rotey());
+	rote->set_z(get_rotez());
+	protoObj3::Obj3_Vertex4 *rotq = new_proto.mutable_rotation_quaternion();
+	rotq->set_w(get_rotqw());
+	rotq->set_x(get_rotqx());
+	rotq->set_y(get_rotqy());
+	rotq->set_z(get_rotqz());
+	protoObj3::Obj3_Vertex3 *scl = new_proto.mutable_scale();
+	scl->set_x(get_sclx());
+	scl->set_y(get_scly());
+	scl->set_z(get_sclz());
 	protoObj3::Obj3_Matrix4 *trn = new_proto.mutable_transform();
 	int i = 0;
 	for (i = 0; i < 4; i++) {
@@ -812,7 +845,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	}
 	protoObj3::Obj3_Matrix4 *bbox = new_proto.mutable_bounding_box();
 	int k = 0;
-	for (k = 0; k < 4; k++) {
+	for (k = 0; k < 8; k++) {
 		protoObj3::Obj3_Vertex4* cl = bbox->add_col();
 		cl->set_w(bounding_box(0, k));
 		cl->set_x(bounding_box(1, k));
