@@ -1,9 +1,12 @@
 #!/bin/bash
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3' 0 1 2 3
+exec 1>build_deps.log 2>&1
 
 #This script will attempt to build CLyman dependencies
 
 #Based on Ubuntu 14.04 LTS
-#Not intended for use with other OS (may function correctly with Debian 7, untested)
+#Not intended for use with other OS (should function correctly with Debian 7, untested)
 
 printf "Creating Dependency Folder"
 PRE=downloads
@@ -33,10 +36,9 @@ sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
 printf "Building XRedis"
 
 git clone https://github.com/0xsky/xredis.git
-mv xredis $PRE/xredis
 
-cd $PRE/xredis && make
-cd $PRE/xredis && sudo make install
+cd xredis && make
+cd xredis && sudo make install
 
 printf "Pulling Down Repositories for Couchbase Client"
 
@@ -72,13 +74,13 @@ mv zeromq-4.1.4 $PRE/zeromq-4.1.4
 printf "Building ZMQ"
 
 #Configure
-./$PRE/zeromq-4.1.4/configure --without-libsodium
+cd $PRE/zeromq-4.1.4 && ./configure --without-libsodium
 
 #Make
-make
+cd $PRE/zeromq-4.1.4 && make
 
 #Sudo Make Install
-sudo make install
+cd $PRE/zeromq-4.1.4 && sudo make install
 
 #Run ldconfig to ensure that ZMQ is on the linker path
 sudo ldconfig

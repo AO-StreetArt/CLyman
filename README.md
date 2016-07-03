@@ -46,9 +46,13 @@ Below you can find a summary of the options:
 * 0MQ_OutboundConnectionString - The connectivity string for the outbound 0MQ Port
 * 0MQ_InboundConnectionString - The connectivity string for the inbound 0MQ Port
 
+#### Redis Connection
+* RedisConnectionString - We have a list of Redis Connections in our cluster in the format "ip--port--password--poolsize--timeout--role"
+
 #### Behavior
 * SmartUpdatesActive - True if we want to allow partial messages, and only update fields included in the partial messages.  False if we want to enforce full replace update messages.
 * MessageFormat - json to take in and read out JSON Format, protocol-buffer to take in and read out Google Protocol Buffer Format
+* RedisBufferFormat - json to read and write JSON format to the Redis Buffer, protocol-buffer to read and write Protocol Buffers to the Redis Buffer
 
 ## How to Use CLyman
 CLyman has three recommended deployment types:
