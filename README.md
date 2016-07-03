@@ -1,5 +1,9 @@
 # Project CLyman
 
+## Build Status
+* Project - Successful
+* Tests - Successful
+
 This is a C++ microservice which synchronizes high-level 3-D object attributes across many user devices.  The goal is to synchronize the position, rotation, and scale of virtual objects projected into a real space, across many different user devices.
 
 Features:
@@ -15,7 +19,7 @@ Features:
 
 This is designed to be used as a microservice within a larger architecture.  This will take in CRUD messages for objects in 3 space, and track location, rotation, and scaling.  It will also ensure that any updates are sent out on a separate port to allow streaming to all user devices.
 
-A .proto file is included to allow generating the bindings for any language (the [protocol buffer compiler] (https://developers.google.com/protocol-buffers/) is installed by the build_deps script), which can be used to communicate via protocol buffers.
+A .proto file is included to allow generating the bindings for any language (the [protocol buffer compiler] (https://developers.google.com/protocol-buffers/) is installed by the build_deps script), which can be used to communicate via protocol buffers.  Alternatively, Clyman can be configured to accept JSON messages.  Full documentation on supported message formats will be forthcoming.
 
 In addition, [0-Meter] (https://github.com/AO-StreetArt/0-Meter) has been developed to allow easy testing of the module with JSON message formats.
 
@@ -25,7 +29,9 @@ The main service can be started with:
 
 `./lyman`
 
-The properties file, lyman.properties can be edited in any text editor.  Below you can find a summary of the options:
+The properties file, lyman.properties can be edited in any text editor.  The Logging Configuration File can be edited similarly, and the documentation for this can be found [here] (http://log4cpp.sourceforge.net/api/classlog4cpp_1_1PropertyConfigurator.html).
+
+Below you can find a summary of the options:
 
 ### Configuration
 
@@ -46,6 +52,44 @@ The properties file, lyman.properties can be edited in any text editor.  Below y
 CLyman has three recommended deployment types:
 
 ### Development
+
+Those wishing to develop on CLyman have two options.  Preferably, they can use Docker to set up a build & test environment with a few simple steps.  
+
+#### Docker
+
+You will need to have an instance of Couchbase running to use CLyman, and this can be done via the below command (full instructions can be found [here] (https://docs.docker.com/engine/examples/couchbase/)):
+
+`docker run -d --name db -p 8091-8093:8091-8093 -p 11210:11210 couchbase`
+
+You will also need an instance of Redis Running to use CLyman.  This can be done via the below command (full instructions can be found [here] (https://hub.docker.com/_/redis/)):
+
+`docker run --name some-redis -d redis`
+
+The Development Docker image for CLyman-Dev is ready for active use, and can be run with the command:
+
+`docker run --name clyman -d awbarry00/clyman-dev`
+
+Congratulations, you've got a fully functional build & test environment for CLyman!
+
+SSH keys are provided with the repository, and access is granted with below set of commands:
+
+    ssh-agent -s
+    ssh-add ssh/id_rsa
+    ssh root@localhost -p `sudo docker port ssh 22 | cut -d":" -f2`
+
+##### Building the Docker Image
+
+Should you so desire, the docker image can be rebuilt using the below commands
+
+`docker pull awbarry00/clyman-dev`
+
+`sudo docker build -t clyman_dev_2 .`
+
+`docker run --name clyman -it -d -P clyman_dev_2`
+
+#### Building from Source
+
+While using Docker is a much faster solution, it is sometimes necessary to build from source.
 
 The recommended deployment for development of CLyman is a VM with either Ubuntu 14.04 or Debian 7 installed.  Running the below commands in a terminal on a fresh Virtual Machine will result in a fully functional build environment that will produce the lyman executable.
 
@@ -73,37 +117,13 @@ You may also build the test modules with:
 
 `./build_tests.sh`
 
-You will need to have an instance of Couchbase Server up and running as well.  If you have Docker installed, then this can be done via the below command (full instructions can be found [here] (https://docs.docker.com/engine/examples/couchbase/)):
+You will need to have an instance of Couchbase Server & Redis Server up and running as well.  This can be done via Docker, or manually.
 
-`docker run -d --name db -p 8091-8093:8091-8093 -p 11210:11210 couchbase`
+Please find instructions to install and configure a Couchbase Server locally [here] (http://www.couchbase.com/get-started-developing-nosql#)
 
-Otherwise, please find instructions to install and configure a Couchbase Server locally [here] (http://www.couchbase.com/get-started-developing-nosql#)
+Please find instructions to install and configure a Redis Server locally [here] (http://redis.io/documentation)
 
-### Docker
-The Docker image for CLyman-Dev is currently under development, and the necessary pieces of it are attached.
-
-Currently, will need to be built on an individual system to allow for ssh access to app for development purposes.  Below commands have worked thus far:
-
-`docker pull awbarry00/clyman-dev`
-
-`sudo docker build -t clyman_dev_2 .`
-
-`docker run --name clyman -it -d -P clyman_dev_2`
-
-SSH access has yet to function, given below set of commands:
-
-    ssh-agent -s
-    ssh-add ssh/id_rsa
-    ssh root@localhost -p `sudo docker port ssh 22 | cut -d":" -f2`
-
-### Production
-The current recommended deployment for production is to follow the steps required for development.  However, rather than deploying a Couchbase Server locally beside CLyman, we should be connecting to a Couchbase Cluster on a separate box.
-
-Based on testing & evaluation, recommended deployment may change to go through Docker Images currently in development.
-
-Load Balancer coming soon!
-
-## Dependency Resolution
+##### Dependency Resolution
 
 For Ubuntu 14.04 & Debian 7, the build_deps.sh script should allow for automatic resolution of dependencies.  However, links are still included below for those who wish to build on other Operating Systems.
 
@@ -120,3 +140,16 @@ For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourcefor
 You will also need xRedis, which can be found [here] (https://github.com/0xsky/xredis)
 
 You will need Couchbase drivers installed.  Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)
+
+### Production
+The current recommended deployment for production is to build from source and scale manually.  However, rather than deploying a Couchbase Server & Redis Server locally beside CLyman, we should be connecting to a Couchbase Cluster & Redis Cluster on separate nodes.
+
+Based on testing & evaluation, recommended deployment may change to go through Docker Images currently in development.
+
+#TO-DO
+
+* Transaction ID's
+* Zookeeper (Configuration & Service Discovery)
+* PROD Docker Image
+* Load Balancer
+* Multi-Threading
