@@ -651,8 +651,8 @@ std::string Obj3::to_json() const
 				writer.Key("bounding_box");
 	writer.StartArray();
 
-        for (i=0; i<8; i++) {
-                for (j=0; j<4; j++) {
+        for (i=0; i<4; i++) {
+                for (j=0; j<8; j++) {
                         writer.Double( static_cast<double>(bounding_box(i, j) ));
                 }
         }
