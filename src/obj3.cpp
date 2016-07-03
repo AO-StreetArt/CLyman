@@ -648,6 +648,8 @@ std::string Obj3::to_json() const
                 }
         }
 
+			writer.EndArray();
+
 				writer.Key("bounding_box");
 	writer.StartArray();
 
