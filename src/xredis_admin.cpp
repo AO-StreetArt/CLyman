@@ -47,7 +47,7 @@ return xRed.exists(d, szKey);
 }
 
 //Load
-const char * xRedisAdmin::load(const char * key)
+std::string xRedisAdmin::load(const char * key)
 {
   enum {
   CACHE_TYPE_1,
@@ -56,22 +56,22 @@ const char * xRedisAdmin::load(const char * key)
   };
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
-char szKey[256] = {0};
-sprintf(szKey, "%s", key);
+// char szKey[256] = {0};
+// sprintf(szKey, "%s", key);
 std::string strValue;
-bool bret = xRed.get(d, szKey, strValue);
+bool bret = xRed.get(d, key, strValue);
 if (bret) {
-return strValue.c_str();
+return strValue;
 }
 else {
 logging->error("Error Loading from Redis DB");
 logging->error(d.GetErrInfo());
-return NULL;
+return "";
 }
 }
 
 //Save
-bool xRedisAdmin::save(const char * key, const char * val)
+bool xRedisAdmin::save(const char * key, std::string val)
 {
   enum {
   CACHE_TYPE_1,
@@ -80,9 +80,9 @@ bool xRedisAdmin::save(const char * key, const char * val)
   };
 RedisDBIdx d(&xRed);
 d.CreateDBIndex(key, APHash, CACHE_TYPE_1);
-char szKey[256] = {0};
-sprintf(szKey, "%s", key);
-bool ret_val = xRed.set(d, szKey, val);
+// char szKey[256] = {0};
+// sprintf(szKey, "%s", key);
+bool ret_val = xRed.set(d, key, val);
 if (!ret_val) {
 logging->error("Error writing to Redis DB");
 logging->error(d.GetErrInfo());

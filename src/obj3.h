@@ -9,6 +9,7 @@
 #include <string>
 #include <Eigen/Dense>
 #include "event_dispatcher.h"
+#include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include <iostream>
@@ -67,6 +68,12 @@ class Obj3
 
 		//Basic constructor with no params
 		Obj3() {name = ""; key = ""; type = ""; subtype = ""; initialize_matrices(); owner=""; is_locked=false; lock_owner="";}
+
+		//Constructor accepting Protocol Buffer
+		Obj3(protoObj3::Obj3 buffer);
+
+		//Constructor accepting Rapidjson Document
+		Obj3(const rapidjson::Document& d);
 
 		//String-Only Constructors
 		Obj3(std::string iname, std::string ikey){name = iname; key = ikey; type = ""; subtype = ""; initialize_matrices();owner="";is_locked=false; lock_owner="";}

@@ -4,6 +4,7 @@ obj_test
 test_client
 main_test
 cb_test
+redis_test
 lyman
 lyman.properties
 *.log

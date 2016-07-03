@@ -20,7 +20,7 @@ then
 
     #Then, compile the object class:
 
-    g++ -g -c -o src/obj3.o src/obj3.cpp -std=c++11
+    g++ -g -c -o src/obj3.o -lpthread -llog4cpp src/obj3.cpp `pkg-config --cflags --libs protobuf` -std=c++11
 
     #Now, we build the event_dispatcher:
 
@@ -56,7 +56,7 @@ else
 
   #Then, compile the object class:
 
-  g++ -c -o src/obj3.o src/obj3.cpp -std=c++11
+  g++ -c -o src/obj3.o -lpthread -llog4cpp src/obj3.cpp `pkg-config --cflags --libs protobuf` -std=c++11
 
   #Now, we build the event_dispatcher:
 
