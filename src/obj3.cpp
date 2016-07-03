@@ -111,7 +111,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
     logging->debug("Transform Matrix Parsed");
   }
   if (buffer.has_bounding_box()) {
-    protoObj3::Obj3_Matrix4 bb = buffer.transform();
+    protoObj3::Obj3_Matrix4 bb = buffer.bounding_box();
     int i = 0;
     for (i=0; i < bb.col_size(); i++) {
       protoObj3::Obj3_Vertex4 c = bb.col(i);
@@ -809,6 +809,15 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 		c1->set_x(transform_matrix(1, i));
 		c1->set_y(transform_matrix(2, i));
 		c1->set_z(transform_matrix(3, i));
+	}
+	protoObj3::Obj3_Matrix4 *bbox = new_proto.mutable_bounding_box();
+	int k = 0;
+	for (k = 0; k < 4; k++) {
+		protoObj3::Obj3_Vertex4* cl = bbox->add_col();
+		cl->set_w(bounding_box(0, k));
+		cl->set_x(bounding_box(1, k));
+		cl->set_y(bounding_box(2, k));
+		cl->set_z(bounding_box(3, k));
 	}
 	int j = 0;
 	for (j = 0; j < num_scenes(); j++) {
