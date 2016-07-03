@@ -152,7 +152,8 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	}
 
 	//Scenes
-	scene_list = scn_list;
+	scene_list.reserve(scn_list.size());
+	copy(scn_list.begin(), scn_list.end(), back_inserter(scene_list));
 
 	//Matrix Attributes
 	location=new_location;
@@ -355,7 +356,8 @@ Obj3::Obj3(const rapidjson::Document& d)
 		}
 
 		//Scenes
-		scene_list = scn_list;
+		scene_list.reserve(scn_list.size());
+		copy(scn_list.begin(), scn_list.end(), back_inserter(scene_list));
 
 		//Matrix Attributes
 		location=new_location;
@@ -579,6 +581,9 @@ void Obj3::apply_transforms()
 
 	Vector4d res_loc;
 	res_loc = transform_buffer * loc4;
+	location(0) = res_loc(0);
+	location(1) = res_loc(1);
+	location(2) = res_loc(2);
 
 	//Perform the necessary transforms on the bounding box
 	MatrixXd res_bb;
