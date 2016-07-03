@@ -98,7 +98,8 @@ void send_zmqo_message(const char * msg)
 }
 
 void send_zmqo_str_message(std::string msg) {
-  send_zmqo_message(msg.c_str());
+  const char * msg_cstr = msg.c_str();
+  send_zmqo_message(msg_cstr);
 }
 
 //Is a key present in the smart update buffer?
@@ -281,16 +282,16 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
                       new_obj->set_subtype(nsubtype);
                     }
 
-                    //Finally, we write the result back to the database
-                    //Obj3 *obj_ptr = &new_obj;
+                    std::string obj_string;
 
-                    //And output the message on the ZMQ Port
+                    //output the message on the ZMQ Port
                     if (MessageFormatJSON) {
-                      send_zmqo_str_message(new_obj->to_json_msg(OBJ_UPD));
+                      obj_string = new_obj->to_json_msg(OBJ_UPD);
                     }
                     else if (MessageFormatProtoBuf) {
-                      send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_UPD));
+                      obj_string = new_obj->to_protobuf_msg(OBJ_UPD);
                     }
+                    send_zmqo_str_message(obj_string);
                   }
 
                   //Remove the element from the smart updbate buffer
@@ -315,12 +316,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
               else {
                 logging->error("Active Updates enabled but object not found in smart update buffer, outputting DB Object on OB ZMQ Port");
                 //And output the message on the ZMQ Port
+                std::string object_string;
                 if (MessageFormatJSON) {
-                  send_zmqo_str_message(new_obj->to_json_msg(OBJ_UPD));
+                  object_string = new_obj->to_json_msg(OBJ_UPD);
                 }
                 else if (MessageFormatProtoBuf) {
-                  send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_UPD));
+                  object_string = new_obj->to_protobuf_msg(OBJ_UPD);
                 }
+                send_zmqo_str_message(object_string);
               }
             }
             else {
@@ -346,12 +349,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
           }
           if (go_ahead) {
             Obj3 *new_obj = new Obj3 (temp_d);
+            std::string new_obj_str;
             if (MessageFormatJSON) {
-              send_zmqo_str_message(new_obj->to_json_msg(OBJ_GET));
+              new_obj_str = new_obj->to_json_msg(OBJ_GET);
             }
             else if (MessageFormatProtoBuf) {
-              send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_GET));
+              new_obj_str = new_obj->to_protobuf_msg(OBJ_GET);
             }
+            send_zmqo_str_message(new_obj_str);
             delete new_obj;
           }
         }
@@ -387,12 +392,14 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       new_obj->set_key(uuid_str);
 
       //Output a message on the outbound ZMQ Port
+      std::string new_obj_string;
       if (MessageFormatJSON) {
-        send_zmqo_str_message(new_obj->to_json_msg(OBJ_CRT));
+        new_obj_string = new_obj->to_json_msg(OBJ_CRT);
       }
       else if (MessageFormatProtoBuf) {
-        send_zmqo_str_message(new_obj->to_protobuf_msg(OBJ_CRT));
+        new_obj_string = new_obj->to_protobuf_msg(OBJ_CRT);
       }
+      send_zmqo_str_message(new_obj_string);
 
       //Save the object to the couchbase DB
       cb->create_object (new_obj);
@@ -514,12 +521,16 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
         //If smart updates are disabled, we can just write the value directly
         //To the DB
 
+        std::string temp_obj_str;
+
         if (MessageFormatJSON) {
-          send_zmqo_str_message(temp_obj->to_json_msg(OBJ_UPD));
+          temp_obj_str = temp_obj->to_json_msg(OBJ_UPD);
         }
         else if (MessageFormatProtoBuf) {
-          send_zmqo_str_message(temp_obj->to_protobuf_msg(OBJ_UPD));
+          temp_obj_str = temp_obj->to_protobuf_msg(OBJ_UPD);
         }
+
+        send_zmqo_str_message(temp_obj_str);
 
         cb->save_object (temp_obj);
         delete temp_obj;
@@ -597,12 +608,15 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
       obj.set_key(key);
 
       //Return the object on the outbound ZMQ Port
+      std::string nobj_str;
+
       if (MessageFormatJSON) {
-        send_zmqo_str_message(obj.to_json_msg(OBJ_DEL));
+        nobj_str = obj.to_json_msg(OBJ_DEL);
       }
       else if (MessageFormatProtoBuf) {
-        send_zmqo_str_message(obj.to_protobuf_msg(OBJ_DEL));
+        nobj_str = obj.to_protobuf_msg(OBJ_DEL);
       }
+      send_zmqo_str_message(nobj_str);
 
       cb->delete_object( kc_str );
       cb->wait();
