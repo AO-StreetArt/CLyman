@@ -68,7 +68,7 @@ if [ ! -d /usr/local/include/Eigen ]; then
   mv ./eigen-eigen* $PRE/eigen
 
   #Move the files
-  sudo cp -r $PRE/eigen/Eigen /usr/local/include
+  sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
 
 fi
 
@@ -107,10 +107,17 @@ if [ ! -f /usr/local/include/zmq.hpp ]; then
 
 fi
 
-printf "Pulling Down Repositories for Couchbase Client"
+if [ ! -f ./couchbase-release-1.0-2-amd64.deb ]; then
 
-#Get the Couchbase dependecies
-wget http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
+  printf "Pulling Down Repositories for Couchbase Client"
+
+  #Get the Couchbase dependecies
+  wget http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
+
+fi
+
+printf "Building Couchbase Client"
+
 sudo dpkg -i ./couchbase-release-1.0-2-amd64.deb
 
 printf "Update cache and install final dependencies through apt-get"
