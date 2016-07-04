@@ -56,6 +56,8 @@ if [ ! -d /usr/local/include/Eigen ]; then
 
   printf "Downloading Eigen"
 
+  mkdir $PRE/eigen
+
   #Get the Eigen Dependencies
   wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
 
