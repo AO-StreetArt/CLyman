@@ -22,7 +22,7 @@ sudo apt-get -y update
 printf "Addressing pre-build requirements"
 
 #Ensure that specific build requirements are satisfied
-sudo apt-get install build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev
+sudo apt-get -y install build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev
 
 #Determine if we Need RapidJSON
 if [ ! -d /usr/local/include/rapidjson ]; then
@@ -114,9 +114,9 @@ sudo dpkg -i ./couchbase-release-1.0-2-amd64.deb
 printf "Update cache and install final dependencies through apt-get"
 
 #Update the apt-get cache
-sudo apt-get update
+sudo apt-get -y update
 
 #Install the dependencies
-sudo apt-get install libcouchbase-dev libcouchbase2-bin libprotobuf-dev protobuf-compiler liblog4cpp5-dev
+sudo apt-get -y install libcouchbase-dev libcouchbase2-bin libprotobuf-dev protobuf-compiler liblog4cpp5-dev
 
 printf "Finished installing dependencies"
