@@ -129,7 +129,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
                   }
 
                 }
-                else if (cm->get_rfprotobuf) {
+                else if (cm->get_rfprotobuf()) {
 
                   protoObj3::Obj3 pobj;
                   try {

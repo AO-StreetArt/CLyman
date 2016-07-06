@@ -7,7 +7,12 @@
 #include "document_manager.h"
 #include "configuration_manager.h"
 
+#ifndef GLOBALS
+#define GLOBALS
+
 extern ConfigurationManager *cm;
 extern CouchbaseAdmin *cb;
 extern xRedisAdmin *xRedis;
 extern DocumentManager *dm;
+
+#endif
