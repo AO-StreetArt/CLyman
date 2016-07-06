@@ -69,7 +69,7 @@ enum {
 
       //Read the application configuration file
 
-      cm->configure("lyman.properties")
+      cm->configure("lyman.properties");
 
       //Set up internal variables
       int current_event_type;
@@ -81,7 +81,7 @@ enum {
       protoObj3::Obj3 new_proto;
 
       //Set up our Redis Connection List
-      RedisConnectionList = cm->get_redisconnlist();
+      std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
       int conn_list_size = RedisConnectionList.size();
       RedisNode RedisList1[conn_list_size];
       int y = 0;
