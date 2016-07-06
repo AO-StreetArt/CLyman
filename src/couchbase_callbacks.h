@@ -67,7 +67,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
       logging->info( (char*)resp->v.v0.bytes );
       const char *k = (char*)resp->v.v0.key;
       const char *resp_obj = (char*)resp->v.v0.bytes;
-      if (SmartUpdatesActive) {
+      if (cm->get_smartupdatesactive()) {
         logging->debug("Smart Update Logic Activated");
         //Then, let's get and parse the response from the database
         //We need to clean the response since Couchbase gives dirty responses
@@ -112,7 +112,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
                 Obj3 *temp_obj;
                 Obj3 tobj;
 
-                if (RedisFormatJSON) {
+                if (cm->get_rfjson()) {
 
                   rapidjson::Document temp_d;
                   try {
@@ -129,7 +129,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
                   }
 
                 }
-                else if (RedisFormatProtoBuf) {
+                else if (cm->get_rfprotobuf) {
 
                   protoObj3::Obj3 pobj;
                   try {
@@ -202,10 +202,10 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
                   std::string obj_string;
 
                   //output the message on the ZMQ Port
-                  if (MessageFormatJSON) {
+                  if (cm->get_mfjson()) {
                     obj_string = new_obj->to_json_msg(OBJ_UPD);
                   }
-                  else if (MessageFormatProtoBuf) {
+                  else if (cm->get_mfprotobuf()) {
                     obj_string = new_obj->to_protobuf_msg(OBJ_UPD);
                   }
                   send_zmqo_str_message(obj_string);
@@ -234,10 +234,10 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
               logging->error("Active Updates enabled but object not found in smart update buffer, outputting DB Object on OB ZMQ Port");
               //And output the message on the ZMQ Port
               std::string object_string;
-              if (MessageFormatJSON) {
+              if (cm->get_mfjson()) {
                 object_string = new_obj->to_json_msg(OBJ_UPD);
               }
-              else if (MessageFormatProtoBuf) {
+              else if (cm->get_mfprotobuf()) {
                 object_string = new_obj->to_protobuf_msg(OBJ_UPD);
               }
               send_zmqo_str_message(object_string);
@@ -267,10 +267,10 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
         if (go_ahead) {
           Obj3 *new_obj = new Obj3 (temp_d);
           std::string new_obj_str;
-          if (MessageFormatJSON) {
+          if (cm->get_mfjson()) {
             new_obj_str = new_obj->to_json_msg(OBJ_GET);
           }
-          else if (MessageFormatProtoBuf) {
+          else if (cm->get_mfprotobuf()) {
             new_obj_str = new_obj->to_protobuf_msg(OBJ_GET);
           }
           send_zmqo_str_message(new_obj_str);

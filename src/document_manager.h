@@ -66,6 +66,6 @@ public:
   void delete_objectpb(protoObj3::Obj3 p_obj);
   //Delete Object Rapidjson Document
   void delete_objectd(rapidjson::Document& d);
-}
+};
 
 #endif

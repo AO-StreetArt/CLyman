@@ -88,10 +88,10 @@ void DocumentManager::upd_obj_global(Obj3 *temp_obj) {
     const char * temp_key = temp_obj->get_key().c_str();
     if (xRedis->exists(temp_key) == false) {
   bool bRet;
-      if (RedisFormatJSON) {
+      if (cm->get_rfjson()) {
         bRet = xRedis->save(temp_key, temp_obj->to_json_msg(OBJ_UPD));
       }
-      else if (RedisFormatProtoBuf) {
+      else if (cm->get_rfprotobuf()) {
         bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(OBJ_UPD));
       }
       if (!bRet) {
@@ -110,7 +110,7 @@ void DocumentManager::upd_obj_global(Obj3 *temp_obj) {
       strValue = xRedis->load(temp_key);
       Obj3 *sub_obj;
       bool go_ahead = false;
-      if (RedisFormatProtoBuf) {
+      if (cm->get_rfprotobuf()) {
         protoObj3::Obj3 pobj;
         try {
           pobj.ParseFromString(strValue);
@@ -125,7 +125,7 @@ void DocumentManager::upd_obj_global(Obj3 *temp_obj) {
           sub_obj = new Obj3 (pobj);
         }
       }
-      else if (RedisFormatJSON) {
+      else if (cm->get_rfjson()) {
         rapidjson::Document doc;
         try {
           doc.Parse(strValue.c_str());
