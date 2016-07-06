@@ -5,6 +5,9 @@
 #include <string>
 #include "logging.h"
 
+#ifndef REDIS_ADMIN
+#define REDIS_ADMIN
+
 class xRedisAdmin
 {
 xRedisClient xRed;
@@ -17,3 +20,5 @@ public:
 	bool del ( const char * key );
 	bool expire ( const char * key, unsigned int second);
 };
+
+#endif

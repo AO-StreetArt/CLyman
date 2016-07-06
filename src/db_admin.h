@@ -5,6 +5,9 @@
 
 #include "obj3.h"
 
+#ifndef DB_ADMIN
+#define DB_ADMIN
+
 class DBAdmin
 {
 public:
@@ -23,3 +26,5 @@ public:
 	//Methods to prevent duplication of singleton
         //intentionally deleted
 };
+
+#endif

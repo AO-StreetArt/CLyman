@@ -27,8 +27,8 @@
 #include "logging.h"
 #include "zmqo.h"
 
-#ifndef COUCHBASE_ADMIN
-#define COUCHBASE_ADMIN
+#ifndef DOCUMENT_ADMIN
+#define DOCUMENT_ADMIN
 
 class DocumentManager
 {
