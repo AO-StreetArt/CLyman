@@ -1,3 +1,5 @@
+#include "document_manager.h"
+
 //Global Object Creation
 void DocumentManager::cr_obj_global(Obj3 *new_obj) {
 
