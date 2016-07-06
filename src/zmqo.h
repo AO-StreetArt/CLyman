@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <zmq.hpp>
 #include "lyman_utils.h"
+#include "logging.h"
 
 #ifndef ZMQO
 #define ZMQO

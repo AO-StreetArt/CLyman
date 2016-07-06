@@ -41,7 +41,7 @@ void get_obj_global(std::string rk_str);
 void del_obj_global(std::string key);
 public:
   //Initializer
-  DocumentManager(CouchbaseAdmin *cb_admin, xRedisAdmin *xr_admin, ConfigurationManager *cm_admin) {cb = cb_admin; xRedis = xr_admin; cm = cm__admin;}
+  DocumentManager(CouchbaseAdmin *cb_admin, xRedisAdmin *xr_admin, ConfigurationManager *cm_admin) {cb = cb_admin; xRedis = xr_admin; cm = cm_admin;}
   DocumentManager(CouchbaseAdmin *cb_admin, xRedisAdmin *xr_admin) {cb = cb_admin; xRedis = xr_admin;}
 
   //configure
