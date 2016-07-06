@@ -56,6 +56,4 @@ public:
 	void wait ();
 };
 
-extern CouchbaseAdmin *cb;
-
 #endif

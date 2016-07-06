@@ -131,5 +131,3 @@ void CouchbaseAdmin::wait ()
 	lcb_wait(private_instance);
 	logging->info("CB_Admin:Done waiting");
 }
-
-CouchbaseAdmin *cb;
