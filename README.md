@@ -6,7 +6,9 @@
 
 ## Overview
 
-This is a C++ microservice which synchronizes high-level 3-D object attributes across many user devices.  The goal is to synchronize the position, rotation, and scale of virtual objects projected into a real space, across many different user devices.
+This is a C++ microservice which synchronizes high-level 3-D object attributes across many user devices.  The goal is to synchronize the position, rotation, and scale of virtual objects projected into a real space.
+
+This service is intended to fill a small role within a larger architecture designed to synchronize 3D objects across different client programs.  It is highly scalable, and many instances can run in parallel to support increasing load.
 
 Features:
 * Storage of 3-D Objects Location, Rotation, Scaling
@@ -59,7 +61,7 @@ CLyman has three recommended deployment types:
 
 ### Development
 
-Those wishing to develop on CLyman have two options.  Preferably, they can use Docker to set up a build & test environment with a few simple steps.  
+Those wishing to develop on CLyman have two options.  Preferably, they can use Docker to set up a build & test environment with a few simple steps.  Otherwise, the module will need to be built from source.
 
 #### Docker
 
@@ -77,7 +79,7 @@ The Development Docker image for CLyman-Dev is ready for active use, and can be 
 
 Congratulations, you've got a fully functional build & test environment for CLyman!
 
-SSH keys are provided with the repository, and access is granted with below set of commands:
+SSH keys are provided with the repository.  In order to run the development image for CLyman, you will need to access the Docker Process via SSH.  Access is granted with below set of commands:
 
     ssh-agent -s
     ssh-add ssh/id_rsa
@@ -109,7 +111,7 @@ The recommended deployment for development of CLyman is a VM with either Ubuntu 
 
 `./build_deps.sh`
 
-You will be asked once for your sudo password, and you will be prompted several times to confirm installation of dependency libraries.
+You will be asked once for your sudo password.
 
 `cd ../CLyman`
 

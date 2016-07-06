@@ -1,19 +1,91 @@
-//Tests for Redis Admin
-
+#include <hayai/hayai.hpp>
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <uuid/uuid.h>
 
 #include "logging.h"
 
 #include "xredis_admin.h"
 
-#include <assert.h>
+xRedisAdmin *xRedis;
+std::vector<std::string> uuid_list;
+int savecounter = 0;
+int getcounter = 0;
+int delcounter = 0;
+int existcounter = 0;
 
-//Main Method
+//----------------------------------------------------------------------------//
+//------------------------------Benchmarks------------------------------------//
+//----------------------------------------------------------------------------//
+
+BENCHMARK(Redis, Save, 10, 100)
+{
+
+uuid_str = uuid_list[savecounter];
+
+//save
+bool bRet = xRedis->save(uuid_str, "123");
+if (!bRet) {
+logging->error("Error putting object to Redis Smart Update Buffer");
+}
+
+savecounter=savecounter+1;
+
+}
+
+BENCHMARK(Redis, ExistsTrue, 10, 100)
+{
+
+uuid_str = uuid_list[existcounter];
+
+//exists
+bool eRet = xRedis->exists(uuid_str);
+
+existcounter=existcounter+1;
+
+}
+
+BENCHMARK(Redis, ExistsFalse, 10, 100)
+{
+
+uuid_str = "TEST";
+
+//exists
+bool eRet = xRedis->exists(uuid_str);
+
+}
+
+BENCHMARK(Redis, Load, 10, 100)
+{
+
+uuid_str = uuid_list[getcounter];
+
+//load
+std::string strValue = xRedis->load(uuid_str);
+
+getcounter=getcounter+1;
+
+}
+
+BENCHMARK(Redis, Delete, 10, 100)
+{
+
+uuid_str = uuid_list[delcounter];
+
+//Delete
+xRedis->del(uuid_str);
+
+delcounter=delcounter+1;
+
+}
+
+//----------------------------------------------------------------------------//
+//------------------------------Main Method-----------------------------------//
+//----------------------------------------------------------------------------//
 
 struct RedisConnChain
 {
@@ -27,10 +99,10 @@ struct RedisConnChain
 
 std::vector<RedisConnChain> RedisConnectionList;
 
-xRedisAdmin *xRedis;
-
 int main()
 {
+
+//Application Setup
 
 //Read the Redis Configuration File
 //Open the file
@@ -132,7 +204,7 @@ if (file.is_open()) {
 
 //Read the Logging Configuration File
 try {
-  log4cpp::PropertyConfigurator::configure("logging.properties");
+  log4cpp::PropertyConfigurator::configure("log4cpp_test.properties");
 }
 catch ( log4cpp::ConfigureFailure &e ) {
   std::cout << "[log4cpp::ConfigureFailure] caught while reading logging.properties" << std::endl;
@@ -177,32 +249,43 @@ for (int y = 0; y < conn_list_size; ++y)
 }
 logging->info("Redis Connection List Built");
 
+//Generate the UUID's for the benchmarks
+int i=0;
+int uuid_gen_result;
+uuid_t uuid;
+char uuid_str[37];
+for (i=0; i< 1001; i++) {
+  //Generate a new key for the object
+  uuid_gen_result = 0;
+  uuid_gen_result = uuid_generate_time_safe(uuid);
+
+  if (uuid_gen_result == -1) {
+    logging->error("UUID Generated in an unsafe manner that exposes a potential security risk");
+    logging->error("http://linux.die.net/man/3/uuid_generate");
+    logging->error("Please take the needed actions to allow uuid generation with a safe generator");
+  }
+
+  uuid_unparse_lower(uuid, uuid_str);
+  uuid_list.push_back(uuid_str);
+}
+
 //Set up Redis Connection
-xRedisAdmin x (RedisList1, conn_list_size);
-xRedis = &x;
+xRedis = new xRedisAdmin (RedisList1, conn_list_size);
 logging->info("Connected to Redis");
 
-//save
-bool bRet = xRedis->save("Test", "123");
-if (!bRet) {
-logging->error("Error putting object to Redis Smart Update Buffer");
-assert(bRet);
-}
+//------------------------------Run Tests-------------------------------------//
+//----------------------------------------------------------------------------//
 
-//exists
-bool eRet = xRedis->exists("Test");
-if (!eRet) {
-logging->error("Test not found in buffer");
-assert(eRet);
-}
+hayai::ConsoleOutputter consoleOutputter;
 
-//load
-std::string strValue = xRedis->load("Test");
-assert(strValue == "123");
-logging->debug(strValue);
+hayai::Benchmarker::AddOutputter(consoleOutputter);
+hayai::Benchmarker::RunAllTests();
 
-//Delete
-xRedis->del("Test");
+//-------------------------Post-Test Teardown---------------------------------//
+//----------------------------------------------------------------------------//
+
+delete xRedis;
 
 return 0;
+
 }

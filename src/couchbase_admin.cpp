@@ -5,7 +5,7 @@ void CouchbaseAdmin::initialize (const char * conn)
 	//Initializing
         logging->info("CB_Admin:DB: Couchbase Admin Initializing");
         struct lcb_create_st cropts;
-        cropts.version = 3; 
+        cropts.version = 3;
         cropts.v.v3.connstr = conn;
 
 	//Add a password if authentication is active
@@ -82,7 +82,7 @@ void CouchbaseAdmin::save_object ( Obj3 const *obj )
         err = lcb_store(private_instance, NULL, 1, &scmdlist);
         if (err != LCB_SUCCESS) {
                 logging->error("CB_Admin:Couldn't schedule storage operation!");
-        }	
+        }
 }
 
 void CouchbaseAdmin::create_object ( Obj3 const *obj )
@@ -117,7 +117,7 @@ void CouchbaseAdmin::delete_object ( const char * key ) {
 	if (err != LCB_SUCCESS) {
 		logging->error("CB_Admin:Couldn't schedule remove operation: ");
 		logging->error( lcb_strerror(private_instance, err));
-	} 
+	}
 }
 
 lcb_t CouchbaseAdmin::get_instance ()
@@ -131,3 +131,5 @@ void CouchbaseAdmin::wait ()
 	lcb_wait(private_instance);
 	logging->info("CB_Admin:Done waiting");
 }
+
+CouchbaseAdmin *cb;

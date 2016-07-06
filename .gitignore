@@ -11,3 +11,5 @@ lyman.properties
 *.log.*
 *.cc
 *.pb.*
+*_test
+*_benchmark
