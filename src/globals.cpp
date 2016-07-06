@@ -1,3 +1,5 @@
+#include "globals.h"
+
 //Declare our global variables
 ConfigurationManager *cm;
 

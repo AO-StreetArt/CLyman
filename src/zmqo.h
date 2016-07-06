@@ -1,6 +1,7 @@
 #include <string>
 #include <stdlib.h>
 #include <zmq.hpp>
+#include "lyman_utils.h"
 
 #ifndef ZMQO
 #define ZMQO

@@ -33,7 +33,6 @@ extern "C"
 
 class CouchbaseAdmin: public DBAdmin
 {
-ConfigurationManager *cm;
 lcb_t private_instance;
 bool authentication_active;
 const char * password;
