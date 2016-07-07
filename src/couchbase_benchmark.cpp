@@ -117,17 +117,8 @@ uuid_t uuid;
 char uuid_str[37];
 for (i=0; i< 1001; i++) {
   //Generate a new key for the object
-  uuid_gen_result = 0;
-  uuid_gen_result = uuid_generate_time_safe(uuid);
-
-  if (uuid_gen_result == -1) {
-    logging->error("UUID Generated in an unsafe manner that exposes a potential security risk");
-    logging->error("http://linux.die.net/man/3/uuid_generate");
-    logging->error("Please take the needed actions to allow uuid generation with a safe generator");
-  }
-
-  uuid_unparse_lower(uuid, uuid_str);
-  uuid_list.push_back(uuid_str);
+  std::string uuid_str = std::to_string(i);
+  uuid_list.push_back(uuid_str.c_str());
 }
 
 //Generate an object to use for the benchmarks
