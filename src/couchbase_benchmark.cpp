@@ -61,7 +61,7 @@ BENCHMARK(Couchbase, Save, 10, 100)
 BENCHMARK(Couchbase, Get, 10, 100)
 {
   std::string uuid_str = uuid_list[getcounter];
-  cb->load_object ( uuid_str );
+  cb->load_object ( uuid_str.c_str() );
   cb->wait();
 
   getcounter=getcounter+1;
@@ -81,7 +81,7 @@ BENCHMARK(Couchbase, Update, 10, 100)
 BENCHMARK(Couchbase, Delete, 10, 100)
 {
   std::string uuid_str = uuid_list[delcounter];
-  cb->delete_object ( uuid_str );
+  cb->delete_object ( uuid_str.c_str() );
   cb->wait();
 
   delcounter=delcounter+1;

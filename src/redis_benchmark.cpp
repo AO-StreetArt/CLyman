@@ -28,7 +28,7 @@ BENCHMARK(Redis, Save, 10, 100)
 std::string uuid_str = uuid_list[savecounter];
 
 //save
-bool bRet = xRedis->save( uuid_str, "123");
+bool bRet = xRedis->save( uuid_str.c_str(), "123");
 if (!bRet) {
 logging->error("Error putting object to Redis Smart Update Buffer");
 }
@@ -43,7 +43,7 @@ BENCHMARK(Redis, ExistsTrue, 10, 100)
 std::string uuid_str = uuid_list[existcounter];
 
 //exists
-bool eRet = xRedis->exists( uuid_list[existcounter] );
+bool eRet = xRedis->exists( uuid_str.c_str() );
 
 existcounter=existcounter+1;
 
@@ -55,7 +55,7 @@ BENCHMARK(Redis, ExistsFalse, 10, 100)
 std::string uuid_str = "TEST";
 
 //exists
-bool eRet = xRedis->exists( uuid_str );
+bool eRet = xRedis->exists( uuid_str.c_str() );
 
 }
 
@@ -65,7 +65,7 @@ BENCHMARK(Redis, Load, 10, 100)
 std::string uuid_str = uuid_list[getcounter];
 
 //load
-std::string strValue = xRedis->load( uuid_str );
+std::string strValue = xRedis->load( uuid_str.c_str() );
 
 getcounter=getcounter+1;
 
@@ -77,7 +77,7 @@ BENCHMARK(Redis, Delete, 10, 100)
 std::string uuid_str = uuid_list[delcounter];
 
 //Delete
-xRedis->del( uuid_str );
+xRedis->del( uuid_str.c_str() );
 
 delcounter=delcounter+1;
 

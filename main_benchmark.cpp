@@ -53,7 +53,7 @@ BENCHMARK(JSON, Get, 10, 100)
 {
 rapidjson::Document d;
 d.Parse( json_string.c_str() );
-dm->get_objectd( json_string );
+dm->get_objectd( d );
 }
 
 BENCHMARK(JSON, Update, 10, 100)
