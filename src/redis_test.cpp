@@ -178,8 +178,7 @@ for (int y = 0; y < conn_list_size; ++y)
 logging->info("Redis Connection List Built");
 
 //Set up Redis Connection
-xRedisAdmin x (RedisList1, conn_list_size);
-xRedis = &x;
+xRedis = new xRedisAdmin (RedisList1, conn_list_size);
 logging->info("Connected to Redis");
 
 //save
@@ -203,6 +202,8 @@ logging->debug(strValue);
 
 //Delete
 xRedis->del("Test");
+
+delete xRedis;
 
 return 0;
 }

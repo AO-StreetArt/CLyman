@@ -23,7 +23,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 int main ()
 {
 
-std::string initFileName = "../log4cpp.properties";
+std::string initFileName = "log4cpp.properties";
 try {
 	log4cpp::PropertyConfigurator::configure(initFileName);
 }
