@@ -1,6 +1,7 @@
 //tests for the configuration manager
 
 #include "configuration_manager.h"
+#include <assert.h>
 
 int main()
 {
