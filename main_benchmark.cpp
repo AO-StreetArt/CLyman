@@ -45,42 +45,42 @@ std::string pb_string;
 BENCHMARK(JSON, Save, 10, 100)
 {
 rapidjson::Document d;
-d.Parse(json_string);
+d.Parse( json_string.c_str() );
 dm->create_objectd( d );
 }
 
 BENCHMARK(JSON, Get, 10, 100)
 {
 rapidjson::Document d;
-d.Parse(json_string);
+d.Parse( json_string.c_str() );
 dm->get_objectd( json_string );
 }
 
 BENCHMARK(JSON, Update, 10, 100)
 {
 rapidjson::Document d;
-d.Parse(json_string);
+d.Parse( json_string.c_str() );
 dm->update_objectd(d);
 }
 
 BENCHMARK(Protobuffer, Save, 10, 100)
 {
 protoObj3::Obj3 new_proto;
-new_proto.ParseFromString(pb_string);
+new_proto.ParseFromString( pb_string.c_str() );
 dm->create_objectpb( new_proto );
 }
 
 BENCHMARK(Protobuffer, Get, 10, 100)
 {
 protoObj3::Obj3 new_proto;
-new_proto.ParseFromString(pb_string);
+new_proto.ParseFromString( pb_string.c_str() );
 dm->get_objectpb( new_proto );
 }
 
 BENCHMARK(Protobuffer, Update, 10, 100)
 {
 protoObj3::Obj3 new_proto;
-new_proto.ParseFromString(pb_string);
+new_proto.ParseFromString( pb_string.c_str() );
 dm->update_objectpb(new_proto);
 }
 
