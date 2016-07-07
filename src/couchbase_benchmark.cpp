@@ -118,7 +118,7 @@ char uuid_str[37];
 for (i=0; i< 1001; i++) {
   //Generate a new key for the object
   std::string uuid_str = std::to_string(i);
-  uuid_list.push_back(uuid_str.c_str());
+  uuid_list.push_back(uuid_str;
 }
 
 //Generate an object to use for the benchmarks
