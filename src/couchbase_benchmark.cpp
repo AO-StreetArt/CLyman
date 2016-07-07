@@ -49,7 +49,8 @@ static void del_callback(lcb_t instance, const void *cookie, lcb_error_t err, co
 
 BENCHMARK(Couchbase, Save, 10, 100)
 {
-  obj->set_key( uuid_list[savecounter] );
+  std::string uuid_str = uuid_list[savecounter];
+  obj->set_key( uuid_str );
 
   cb->create_object ( obj );
   cb->wait();
@@ -59,7 +60,8 @@ BENCHMARK(Couchbase, Save, 10, 100)
 
 BENCHMARK(Couchbase, Get, 10, 100)
 {
-  cb->load_object ( uuid_list[getcounter] );
+  std::string uuid_str = uuid_list[getcounter];
+  cb->load_object ( uuid_str );
   cb->wait();
 
   getcounter=getcounter+1;
@@ -67,7 +69,8 @@ BENCHMARK(Couchbase, Get, 10, 100)
 
 BENCHMARK(Couchbase, Update, 10, 100)
 {
-  obj->set_key( uuid_list[loadcounter] );
+  std::string uuid_str = uuid_list[loadcounter];
+  obj->set_key( uuid_str );
 
   cb->save_object ( obj );
   cb->wait();
@@ -77,7 +80,8 @@ BENCHMARK(Couchbase, Update, 10, 100)
 
 BENCHMARK(Couchbase, Delete, 10, 100)
 {
-  cb->delete_object ( uuid_list[delcounter] );
+  std::string uuid_str = uuid_list[delcounter];
+  cb->delete_object ( uuid_str );
   cb->wait();
 
   delcounter=delcounter+1;
