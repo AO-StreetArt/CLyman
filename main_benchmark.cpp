@@ -44,32 +44,44 @@ std::string pb_string;
 
 BENCHMARK(JSON, Save, 10, 100)
 {
-dm->create_objectd( json_string );
+rapidjson::Document d;
+d.Parse(json_string);
+dm->create_objectd( d );
 }
 
 BENCHMARK(JSON, Get, 10, 100)
 {
+rapidjson::Document d;
+d.Parse(json_string);
 dm->get_objectd( json_string );
 }
 
 BENCHMARK(JSON, Update, 10, 100)
 {
-dm->update_objectd(json_string);
+rapidjson::Document d;
+d.Parse(json_string);
+dm->update_objectd(d);
 }
 
 BENCHMARK(Protobuffer, Save, 10, 100)
 {
-dm->create_objectpb( pb_string );
+protoObj3::Obj3 new_proto;
+new_proto.ParseFromString(pb_string);
+dm->create_objectpb( new_proto );
 }
 
 BENCHMARK(Protobuffer, Get, 10, 100)
 {
-dm->get_objectpb( pb_string );
+protoObj3::Obj3 new_proto;
+new_proto.ParseFromString(pb_string);
+dm->get_objectpb( new_proto );
 }
 
 BENCHMARK(Protobuffer, Update, 10, 100)
 {
-dm->update_objectpb(pb_string);
+protoObj3::Obj3 new_proto;
+new_proto.ParseFromString(pb_string);
+dm->update_objectpb(new_proto);
 }
 
 //-----------------------
@@ -104,7 +116,7 @@ int main()
 
   //Read the application configuration file
 
-  cm->configure("lyman.properties")
+  cm->configure("lyman.properties");
 
   //Set up internal variables
   int current_event_type;
@@ -116,7 +128,7 @@ int main()
   protoObj3::Obj3 new_proto;
 
   //Set up our Redis Connection List
-  RedisConnectionList = cm->get_redisconnlist();
+  std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
   int conn_list_size = RedisConnectionList.size();
   RedisNode RedisList1[conn_list_size];
   int y = 0;
@@ -182,7 +194,7 @@ int main()
   std::string owner;
 
   name = "Test Object";
-  key = "abcdef-9876543";
+  key = "947fd3e2-3504-11e6-90f7-08002716b649";
   type = "Mesh";
   subtype = "Cube";
   owner = "zxywvut-1234567";

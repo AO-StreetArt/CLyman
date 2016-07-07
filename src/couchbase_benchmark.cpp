@@ -49,44 +49,48 @@ static void del_callback(lcb_t instance, const void *cookie, lcb_error_t err, co
 
 BENCHMARK(Couchbase, Save, 10, 100)
 {
+  char uuid_str[37];
   uuid_str = uuid_list[savecounter];
 
   obj->set_key(uuid_str);
 
-  cb.create_object ( obj );
-  cb.wait();
+  cb->create_object ( obj );
+  cb->wait();
 
   savecounter=savecounter+1;
 }
 
 BENCHMARK(Couchbase, Get, 10, 100)
 {
+  char uuid_str[37];
   uuid_str = uuid_list[getcounter];
 
-  cb.load_object ( uuid_str );
-  cb.wait();
+  cb->load_object ( uuid_str );
+  cb->wait();
 
   getcounter=getcounter+1;
 }
 
 BENCHMARK(Couchbase, Update, 10, 100)
 {
+  char uuid_str[37];
   uuid_str = uuid_list[loadcounter];
 
   obj->set_key(uuid_str);
 
-  cb.save_object ( obj );
-  cb.wait();
+  cb->save_object ( obj );
+  cb->wait();
 
   loadcounter=loadcounter+1;
 }
 
 BENCHMARK(Couchbase, Delete, 10, 100)
 {
+  char uuid_str[37];
   uuid_str = uuid_list[delcounter];
 
-  cb.delete_object ( uuid_str );
-  cb.wait();
+  cb->delete_object ( uuid_str );
+  cb->wait();
 
   delcounter=delcounter+1;
 }
@@ -198,9 +202,9 @@ cb = new CouchbaseAdmin ("couchbase://localhost/default");
 //Supports both password authentication and clustering
 printf("Connected to Couchbase");
 //Bind callbacks
-lcb_set_store_callback(cb.get_instance(), storage_callback);
-lcb_set_get_callback(cb.get_instance(), get_callback);
-lcb_set_remove_callback(cb.get_instance(), del_callback);
+lcb_set_store_callback(cb->get_instance(), storage_callback);
+lcb_set_get_callback(cb->get_instance(), get_callback);
+lcb_set_remove_callback(cb->get_instance(), del_callback);
 
 //------------------------------Run Tests-------------------------------------//
 //----------------------------------------------------------------------------//

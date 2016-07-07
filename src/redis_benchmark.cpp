@@ -25,6 +25,8 @@ int existcounter = 0;
 BENCHMARK(Redis, Save, 10, 100)
 {
 
+char uuid_str[37];
+
 uuid_str = uuid_list[savecounter];
 
 //save
@@ -40,6 +42,8 @@ savecounter=savecounter+1;
 BENCHMARK(Redis, ExistsTrue, 10, 100)
 {
 
+char uuid_str[37];
+
 uuid_str = uuid_list[existcounter];
 
 //exists
@@ -52,6 +56,8 @@ existcounter=existcounter+1;
 BENCHMARK(Redis, ExistsFalse, 10, 100)
 {
 
+char uuid_str[37];
+
 uuid_str = "TEST";
 
 //exists
@@ -61,6 +67,8 @@ bool eRet = xRedis->exists(uuid_str);
 
 BENCHMARK(Redis, Load, 10, 100)
 {
+
+char uuid_str[37];
 
 uuid_str = uuid_list[getcounter];
 
@@ -73,6 +81,8 @@ getcounter=getcounter+1;
 
 BENCHMARK(Redis, Delete, 10, 100)
 {
+
+char uuid_str[37];
 
 uuid_str = uuid_list[delcounter];
 
