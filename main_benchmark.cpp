@@ -96,7 +96,7 @@ int main()
 
   //Set up logging
   //This reads the logging configuration file
-  std::string initFileName = "log4cpp.properties";
+  std::string initFileName = "log4cpp_test.properties";
   try {
     log4cpp::PropertyConfigurator::configure(initFileName);
   }
@@ -152,10 +152,8 @@ int main()
   logging->info("Redis Connection List Built");
 
   //Set up Redis Connection
-  if (cm->get_smartupdatesactive()) {
-    xRedis = new xRedisAdmin (RedisList1, conn_list_size);
-    logging->info("Connected to Redis");
-  }
+  xRedis = new xRedisAdmin (RedisList1, conn_list_size);
+  logging->info("Connected to Redis");
 
   //Set up the Couchbase Connection
   std::string DBConnStr = cm->get_dbconnstr();
@@ -256,6 +254,7 @@ int main()
   delete cb;
   delete xRedis;
   delete dm;
+  delete obj;
 
   return 0;
 

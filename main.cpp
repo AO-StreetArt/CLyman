@@ -105,10 +105,8 @@ enum {
       logging->info("Redis Connection List Built");
 
       //Set up Redis Connection
-      if (cm->get_smartupdatesactive()) {
-        xRedis = new xRedisAdmin (RedisList1, conn_list_size);
-        logging->info("Connected to Redis");
-      }
+      xRedis = new xRedisAdmin (RedisList1, conn_list_size);
+      logging->info("Connected to Redis");
 
       //Set up the Couchbase Connection
       std::string DBConnStr = cm->get_dbconnstr();
