@@ -15,10 +15,7 @@ int loadcounter = 0;
 static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
    lcb_error_t err, const lcb_store_resp_t *resp)
 {
-  if (err == LCB_SUCCESS) {
-    printf("Stored %.*s\n", (int)resp->v.v0.nkey, (char*)resp->v.v0.key);
-  }
-  else {
+  if (err != LCB_SUCCESS) {
     fprintf(stderr, "Couldn't retrieve item: %s\n", lcb_strerror(instance, err));
   }
 }
@@ -26,19 +23,15 @@ static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t o
 static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
    const lcb_get_resp_t *resp)
 {
-  printf("Retrieved key %.*s\n", (int)resp->v.v0.nkey, (char*)resp->v.v0.key);
-  printf("Value is %.*s\n", (int)resp->v.v0.nbytes, (char*)resp->v.v0.bytes);
+  if (err != LCB_SUCCESS) {
+    fprintf(stderr, "Couldn't retrieve item: %s\n", lcb_strerror(instance, err));
+  }
 }
 
 static void del_callback(lcb_t instance, const void *cookie, lcb_error_t err, const lcb_remove_resp_t *resp)
 {
-  if (err == LCB_SUCCESS) {
-    logging->info("Removed:");
-    logging->info( (char*)resp->v.v0.key );
-  }
-  else {
-    logging->error("Couldn't remove item:");
-    logging->error(lcb_strerror(instance, err));
+  if (err != LCB_SUCCESS) {
+    fprintf(stderr, "Couldn't retrieve item: %s\n", lcb_strerror(instance, err));
   }
 }
 
@@ -118,7 +111,6 @@ logging = &log;
 int i=0;
 int uuid_gen_result;
 uuid_t uuid;
-char uuid_str[37];
 for (i=0; i< 1001; i++) {
   //Generate a new key for the object
   std::string uuid_str = std::to_string(i);
