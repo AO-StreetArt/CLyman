@@ -6,6 +6,8 @@
 #include <math.h>
 #include "logging.h"
 
+#include <assert.h>
+
 using namespace Eigen;
 
 //----------------------------------------------------------------------------//
@@ -118,16 +120,58 @@ scns.push_back("12345");
 
 Obj3 obj5 (name, key, type, subtype, owner, scns, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
 
-//Print out the object attributes to test the getters and initializers
+//Test the getters and initializers
+assert (obj2.get_name() == "");
+assert (obj2.get_key() == "");
+assert (obj2.get_type() == "");
+assert (obj2.get_subtype() == "");
+assert (obj2.get_owner() == "");
 
-std::cout << "Object 2" << std::endl;
-print_obj_attributes(obj2);
+assert (obj3.get_name() == "Test Object");
+assert (obj3.get_key() == "abcdef-9876543");
+assert (obj3.get_type() == "");
+assert (obj3.get_subtype() == "");
+assert (obj3.get_owner() == "");
 
-std::cout << "Object 3" << std::endl;
-print_obj_attributes(obj3);
+assert (obj4.get_name() == "Test Object");
+assert (obj4.get_key() == "abcdef-9876543");
+assert (obj4.get_type() == "Mesh");
+assert (obj4.get_subtype() == "Cube");
+assert (obj4.get_owner() == "");
 
-std::cout << "Object 4" << std::endl;
-print_obj_attributes(obj4);
+assert (obj5.get_name() == "Test Object");
+assert (obj5.get_key() == "abcdef-9876543");
+assert (obj5.get_type() == "Mesh");
+assert (obj5.get_subtype() == "Cube");
+assert (obj5.get_owner() == "zxywvut-1234567");
+
+assert (obj5.get_locx() == 0.0);
+assert (obj5.get_locy() == 0.0);
+assert (obj5.get_locz() == 0.0);
+
+assert (obj5.get_rotex() == 0.0);
+assert (obj5.get_rotey() == 0.0);
+assert (obj5.get_rotez() == 0.0);
+
+assert (obj5.get_rotqw() == 0.0);
+assert (obj5.get_rotqx() == 0.0);
+assert (obj5.get_rotqy() == 0.0);
+assert (obj5.get_rotqz() == 0.0);
+
+assert (obj5.get_sclx() == 1.0);
+assert (obj5.get_scly() == 1.0);
+assert (obj5.get_sclz() == 1.0);
+
+Eigen::Matrix4d tr = obj5.get_transform();
+assert( tr(0, 0) == 1.0 );
+assert( tr(1, 1) == 1.0 );
+assert( tr(2, 2) == 1.0 );
+assert( tr(3, 3) == 1.0 );
+
+assert( tr(0, 1) == 0.0 );
+assert( tr(1, 0) == 0.0 );
+assert( tr(2, 0) == 0.0 );
+assert( tr(0, 2) == 0.0 );
 
 std::cout << "Object 5" << std::endl;
 print_obj_attributes(obj5);
@@ -137,6 +181,21 @@ obj5.translate(1.0, 1.0, 1.0, "Global");
 obj5.apply_transforms();
 std::cout << "Object 5 after transform of 1 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
+
+assert (obj5.get_locx() == 1.0);
+assert (obj5.get_locy() == 1.0);
+assert (obj5.get_locz() == 1.0);
+
+Eigen::Matrix4d tr2 = obj5.get_transform();
+assert( tr2(0, 0) == 1.0 );
+assert( tr2(1, 1) == 1.0 );
+assert( tr2(2, 2) == 1.0 );
+assert( tr2(3, 3) == 1.0 );
+
+assert( tr2(0, 3) == 1.0 );
+assert( tr2(1, 3) == 1.0 );
+assert( tr2(2, 3) == 1.0 );
+assert( tr2(3, 3) == 1.0 );
 
 obj5.rotatee(45.0, 45.0, 45.0, "Global");
 obj5.apply_transforms();
@@ -153,6 +212,12 @@ obj5.apply_transforms();
 std::cout << "Object 5 after scale of 2 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
 
+assert (obj5.get_sclx() == 2.0);
+assert (obj5.get_scly() == 2.0);
+assert (obj5.get_sclz() == 2.0);
+
+//TO-DO: Asserts to check the transformations
+
 //------------------------JSON & Protocol Buffer Tests------------------------//
 //----------------------------------------------------------------------------//
 
@@ -160,6 +225,8 @@ print_obj_attributes(obj5);
 std::string proto_string = obj5.to_protobuf_msg(0);
 std::string json_string = obj5.to_json_msg(0);
 std::string json_str = obj5.to_json();
+
+Eigen::Matrix4d tr3 = obj5.get_transform();
 
 //Now, we translate each of these back to a form we can pass to another constructor
 rapidjson::Document d;
@@ -175,6 +242,26 @@ new_proto.ParseFromString(proto_string);
 Obj3 obj6 (d);
 Obj3 obj7 (d2);
 Obj3 obj8 (new_proto);
+
+assert (obj6.get_name() == "Test Object");
+assert (obj6.get_key() == "abcdef-9876543");
+assert (obj6.get_type() == "Mesh");
+assert (obj6.get_subtype() == "Cube");
+assert (obj6.get_owner() == "zxywvut-1234567");
+
+assert (obj7.get_name() == "Test Object");
+assert (obj7.get_key() == "abcdef-9876543");
+assert (obj7.get_type() == "Mesh");
+assert (obj7.get_subtype() == "Cube");
+assert (obj7.get_owner() == "zxywvut-1234567");
+
+assert (obj8.get_name() == "Test Object");
+assert (obj8.get_key() == "abcdef-9876543");
+assert (obj8.get_type() == "Mesh");
+assert (obj8.get_subtype() == "Cube");
+assert (obj8.get_owner() == "zxywvut-1234567");
+
+//TO-DO: Asserts to check the matrix attributes
 
 std::cout << "Objects Translated From Obj5" << std::endl;
 

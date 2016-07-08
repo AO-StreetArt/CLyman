@@ -26,9 +26,10 @@ RUN apt-get update; \
 	sed -i 's/^exit 0/service ssh start\nexit 0/' /etc/rc.local
 
 #Build the dependencies and place them in the correct places
+RUN apt-get update
 
 #Ensure that specific build requirements are satisfied
-RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev git
+RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev git libhiredis-dev
 
 #Get the RapidJSON Dependency
 RUN git clone https://github.com/miloyip/rapidjson.git
@@ -52,6 +53,11 @@ RUN mv eigen-eigen* eigen
 #Move the files
 RUN cp -r eigen/Eigen /usr/local/include
 
+#Get the XRedis Dependencies
+RUN git clone https://github.com/0xsky/xredis.git ./xredis
+
+RUN cd ./xredis && make && make install
+
 #Get the ZMQ Dependencies
 RUN wget https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz
 
@@ -60,14 +66,8 @@ RUN wget https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1
 #Unzip the ZMQ Directories
 RUN tar -xvzf zeromq-4.1.4.tar.gz
 
-#Configure
-RUN ./zeromq-4.1.4/configure --without-libsodium
-
-#Make
-RUN make
-
-#Sudo Make Install
-RUN make install
+#Configure, make, & install
+RUN cd ./zeromq-4.1.4 && ./configure --without-libsodium && make && make install
 
 #Run ldconfig to ensure that ZMQ is on the linker path
 RUN ldconfig

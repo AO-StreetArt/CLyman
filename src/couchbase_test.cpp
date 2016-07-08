@@ -23,7 +23,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 int main ()
 {
 
-std::string initFileName = "../log4cpp.properties";
+std::string initFileName = "log4cpp.properties";
 try {
 	log4cpp::PropertyConfigurator::configure(initFileName);
 }
@@ -68,6 +68,7 @@ printf("Create Object Tested");
 //Get the object from the DB
 const char* obj_key = obj.get_key().c_str();
 cb.load_object ( obj_key );
+cb.wait();
 printf("Load Object Tested");
 //Update the object in the DB
 obj.set_name ( "Weeee" );

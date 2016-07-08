@@ -7,14 +7,29 @@
 //completion of the asynchronous threads
 
 #include "db_admin.h"
+
+#include <sstream>
 #include <string>
+#include <string.h>
+#include <cstring>
+#include <fstream>
+#include <cstdlib>
 #include <stdlib.h>
+#include <exception>
+
 #include "logging.h"
+
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 extern "C"
 {
 	#include <libcouchbase/couchbase.h>
 }
+
+#ifndef COUCHBASE_ADMIN
+#define COUCHBASE_ADMIN
 
 class CouchbaseAdmin: public DBAdmin
 {
@@ -40,3 +55,5 @@ public:
 	//Blocking call until the transaction stack is empty
 	void wait ();
 };
+
+#endif
