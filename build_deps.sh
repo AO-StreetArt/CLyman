@@ -22,7 +22,7 @@ sudo apt-get -y update
 printf "Addressing pre-build requirements"
 
 #Ensure that specific build requirements are satisfied
-sudo apt-get -y install build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev
+sudo apt-get -y install build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev
 
 #Determine if we Need RapidJSON
 if [ ! -d /usr/local/include/rapidjson ]; then
