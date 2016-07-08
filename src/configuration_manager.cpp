@@ -15,7 +15,7 @@ void ConfigurationManager::configure (std::string file_path)
   //Open the file
   logging->info("Opening lyman.properties");
   std::string line;
-  std::ifstream file ("lyman.properties");
+  std::ifstream file (file_path);
 
   if (file.is_open()) {
     while (getline (file, line) ) {
