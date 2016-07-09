@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     //-------------------------------PUT--------------------------------------//
 
     //Set up the info to send on the body of the put request
-    curl_easy_setopt(ha.get_instance(), CURLOPT_READDATA, "TEST");
+    curl_easy_setopt(ha.get_instance(), CURLOPT_READDATA, data);
     curl_easy_setopt(ha.get_instance(), CURLOPT_READFUNCTION, &read_callback);
 
     success = ha.put(PUTURL, 5);
