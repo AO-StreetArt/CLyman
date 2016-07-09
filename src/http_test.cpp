@@ -72,6 +72,7 @@ int main(int argc, char* argv[])
           else if (var_name=="Get_URL") {
             GETTURL=cstr;
           }
+          delete cstr;
         }
       }
     }
