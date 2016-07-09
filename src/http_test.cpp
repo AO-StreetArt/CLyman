@@ -47,7 +47,7 @@ size_t readfunc(void *ptr, size_t size, size_t nmemb, void *stream)
 
         if (available > 0)
         {
-            int written = min(size * nmemb, available);
+            int written = std::min(size * nmemb, available);
             memcpy(ptr, ((char*)(ud->data)) + ud->body_pos, written);
             ud->body_pos += written;
             return written;
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
     //-------------------------------GET--------------------------------------//
 
     //We set up the structure to store the return data
-    data.clear();
+    writedata.clear();
 
     curl_easy_setopt(ha.get_instance(), CURLOPT_WRITEFUNCTION, &writeCallback);
 
