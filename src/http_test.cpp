@@ -30,10 +30,10 @@ int main(int argc, char* argv[])
   {
 
     //Variables to store URL's
-    std::string POSTURL = "";
-    std::string PUTURL = "";
-    std::string GETTURL = "";
-    std::string DELETEURL = "";
+    char * POSTURL = "";
+    char * PUTURL = "";
+    char * GETTURL = "";
+    char * DELETEURL = "";
 
     //Read the configuration file with URL info
     std::string line;
@@ -58,17 +58,19 @@ int main(int argc, char* argv[])
           int eq_pos = line.find("=", 0);
           std::string var_name = line.substr(0, eq_pos);
           std::string var_value = line.substr(eq_pos+1, line.length() - eq_pos);
+          char *cstr = new char[var_value.length() + 1];
+          strcpy(cstr, var_value.c_str());
           if (var_name=="Put_URL") {
-            PUTURL=var_value;
+            PUTURL=cstr;
           }
           if (var_name=="Post_URL") {
-            POSTURL=var_value;
+            POSTURL=cstr;
           }
           else if (var_name=="Delete_URL") {
-            DELETEURL=var_value;
+            DELETEURL=cstr;
           }
           else if (var_name=="Get_URL") {
-            GETTURL=var_value;
+            GETTURL=cstr;
           }
         }
       }
