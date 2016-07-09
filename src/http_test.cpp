@@ -4,14 +4,14 @@
 #include <iostream>
 #include <assert.h>
 
-std::string readdata;
-
 std::string data;
 
 //This is the callback that gets called when we recieve the response to the
 //Curl Request
 size_t writeCallback(char * buf, size_t size, size_t nmemb, void* up)
 {
+
+  std::cout << "Callback Triggered" << std::endl;
 
 //Put the response into a string
 for (int c = 0; c<size*nmemb; c++)
@@ -28,26 +28,28 @@ int main(int argc, char* argv[])
   {
     HttpAdmin ha;
 
-    //-------------------------------PUT--------------------------------------//
+    //-------------------------------GET--------------------------------------//
 
-    ha.put(argv[0]);
-    bool success = ha.send(5);
+    //We set up the structure to store the return data
+    data.clear();
+
+    curl_easy_setopt(ha.get_instance(), CURLOPT_WRITEFUNCTION, &writeCallback);
+
+    //Send the request
+    bool success = ha.get(argv[0], 5);
     if (!success)
     {
       //We now have the full response
       assert(false);
     }
+    else
+    {
+      std::cout << data << std::endl;
+    }
 
-    //-------------------------------GET--------------------------------------//
+    //-------------------------------PUT--------------------------------------//
 
-    //Set up a get request
-    ha.get(argv[0]);
-
-    //We set up the structure to store the return data
-    data.clear();
-
-    //Send the request
-    success = ha.send(5);
+    success = ha.put(argv[0], 5);
     if (!success)
     {
       //We now have the full response
