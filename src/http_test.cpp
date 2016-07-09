@@ -6,6 +6,8 @@
 #include <fstream>
 #include <assert.h>
 
+//----------------------------HTTP Callback-----------------------------------//
+
 //A String to store response data
 std::string data;
 
@@ -14,7 +16,7 @@ std::string data;
 size_t writeCallback(char * buf, size_t size, size_t nmemb, void* up)
 {
 
-  std::cout << "Callback Triggered" << std::endl;
+  logging->debug("Callback Triggered");
 
 //Put the response into a string
 for (int c = 0; c<size*nmemb; c++)
@@ -25,10 +27,14 @@ for (int c = 0; c<size*nmemb; c++)
 return size*nmemb;
 }
 
+//-----------------------------MAIN METHOD------------------------------------//
+
 int main(int argc, char* argv[])
 {
   if (argc > 0)
   {
+
+    //----------------------------TEST SETUP----------------------------------//
 
     //Variables to store URL's
     char * POSTURL;
@@ -78,7 +84,25 @@ int main(int argc, char* argv[])
       }
     }
 
+    std::string initFileName = "log4cpp.properties";
+    try {
+    	log4cpp::PropertyConfigurator::configure(initFileName);
+    }
+    catch ( log4cpp::ConfigureFailure &e ) {
+    	printf("[log4cpp::ConfigureFailure] caught while reading Logging Configuration File");
+    	printf(e.what());
+    	exit(1);
+    }
 
+    log4cpp::Category& root = log4cpp::Category::getRoot();
+
+    log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
+
+    log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
+
+    logging = &log;
+
+    //----------------------------MAIN TEST-----------------------------------//
 
     HttpAdmin ha;
 
@@ -98,7 +122,8 @@ int main(int argc, char* argv[])
     }
     else
     {
-      std::cout << data << std::endl;
+      logging->debug("Retrieved:");
+      logging->debug(data);
     }
 
     //-------------------------------PUT--------------------------------------//
@@ -127,6 +152,8 @@ int main(int argc, char* argv[])
       //We now have the full response
       assert(false);
     }
+
+    logging->debug("Tests completed");
 
     ha.shutdown();
 

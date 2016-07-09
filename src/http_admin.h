@@ -2,7 +2,9 @@
 //Responsible for placing HTTP Requests using curl
 
 #include <string>
+#include <sstream>
 #include <curl/curl.h>
+#include "logging.h"
 
 class HttpAdmin
 {
