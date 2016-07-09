@@ -31,7 +31,7 @@ bool HttpAdmin::send(char * url, int timeout)
 bool HttpAdmin::put(char * url, int timeout)
 {
   logging->debug("HTTP: Put Initiated");
-  curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
   return send(url, timeout);
 }
 
