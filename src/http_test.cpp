@@ -2,6 +2,7 @@
 #include <string>
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
 #include <assert.h>
 
 //A String to store response data
@@ -85,7 +86,7 @@ int main(int argc, char* argv[])
     curl_easy_setopt(ha.get_instance(), CURLOPT_WRITEFUNCTION, &writeCallback);
 
     //Send the request
-    bool success = ha.get(GETURL, 5);
+    bool success = ha.get(GETURL.c_str(), 5);
     if (!success)
     {
       //We now have the full response
@@ -98,7 +99,7 @@ int main(int argc, char* argv[])
 
     //-------------------------------PUT--------------------------------------//
 
-    success = ha.put(PUTURL, 5);
+    success = ha.put(PUTURL.c_str(), 5);
     if (!success)
     {
       //We now have the full response
@@ -107,7 +108,7 @@ int main(int argc, char* argv[])
 
     //-------------------------------POST-------------------------------------//
 
-    success = ha.post(POSTURL, "CLYMAN", 5);
+    success = ha.post(POSTURL.c_str(), "CLYMAN", 5);
     if (!success)
     {
       //We now have the full response
@@ -116,7 +117,7 @@ int main(int argc, char* argv[])
 
     //------------------------------DELETE------------------------------------//
 
-    success = ha.del(DELETEURL, 5);
+    success = ha.del(DELETEURL.c_str(), 5);
     if (!success)
     {
       //We now have the full response
