@@ -63,8 +63,8 @@ else
   g++ -o configuration_test src/logging.o src/configuration_manager.o src/configuration_test.o -lpthread -llog4cpp -std=c++11
 
   #Then we have the HTTP Tests
-  g++ -c -o http_test.o http_test.cpp -std=c++11
-  g++ -o http_test http_admin.o http_test.o -lcurl -std=c++11
+  g++ -c -o src/http_test.o src/http_test.cpp -std=c++11
+  g++ -o http_test src/http_admin.o src/http_test.o -lcurl -std=c++11
 
   #Here we have the obj3 tests
 
