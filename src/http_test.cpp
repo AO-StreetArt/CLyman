@@ -106,6 +106,15 @@ int main(int argc, char* argv[])
 
     HttpAdmin ha;
 
+    logging->debug("Get URL");
+    logging->debug(GETURL);
+    logging->debug("Put URL");
+    logging->debug(PUTURL);
+    logging->debug("Post URL");
+    logging->debug(POSTURL);
+    logging->debug("Delete URL");
+    logging->debug(DELETEURL);
+
     //-------------------------------GET--------------------------------------//
 
     //We set up the structure to store the return data
