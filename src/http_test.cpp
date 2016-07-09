@@ -37,7 +37,7 @@ return size*nmemb;
 
 //This is the callback that gets called when we build the message for the
 //Put Curl Request
-static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp)
+static size_t read_callback(void *userdata, size_t size, size_t nmemb, void *userp)
 {
   size_t curl_size = nmemb * size;
   size_t to_copy = (userdata->len < curl_size) ? userdata->len : curl_size;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
     //-------------------------------PUT--------------------------------------//
 
     //Set up the info to send on the body of the put request
-    const char sendstring[]="this is what we post to the silly web server";
+    char * sendstring="this is what we post to the silly web server";
     pd.data = sendstring;
     pd.len = 44;
     curl_easy_setopt(ha.get_instance(), CURLOPT_READDATA, pd);
