@@ -6,13 +6,13 @@
 #include <fstream>
 #include <assert.h>
 
-//----------------------------HTTP Callback-----------------------------------//
+//----------------------------HTTP Callbacks----------------------------------//
 
 //A String to store response data
-std::string data;
+std::string writedata;
 
 //This is the callback that gets called when we recieve the response to the
-//Curl Request
+//Get Curl Request
 size_t writeCallback(char * buf, size_t size, size_t nmemb, void* up)
 {
 
@@ -21,10 +21,40 @@ size_t writeCallback(char * buf, size_t size, size_t nmemb, void* up)
 //Put the response into a string
 for (int c = 0; c<size*nmemb; c++)
 {
-	data.push_back(buf[c]);
+	writedata.push_back(buf[c]);
 }
 
 return size*nmemb;
+}
+
+//This is the callback that gets called when we build the message for the
+//Put Curl Request
+typedef struct
+{
+    void *data;
+    int body_size;
+    int body_pos;
+} postdata;
+
+
+size_t readfunc(void *ptr, size_t size, size_t nmemb, void *stream)
+{
+    if (stream)
+    {
+        postdata *ud = (postdata*) stream;
+
+        int available = (ud->body_size - ud->body_pos);
+
+        if (available > 0)
+        {
+            int written = min(size * nmemb, available);
+            memcpy(ptr, ((char*)(ud->data)) + ud->body_pos, written);
+            ud->body_pos += written;
+            return written;
+        }
+    }
+
+    return 0;
 }
 
 //-----------------------------MAIN METHOD------------------------------------//
@@ -108,6 +138,10 @@ int main(int argc, char* argv[])
     }
 
     //-------------------------------PUT--------------------------------------//
+
+    //Set up the info to send on the body of the put request
+    curl_easy_setopt(ha.get_instance(), CURLOPT_READDATA, "TEST");
+    curl_easy_setopt(ha.get_instance(), CURLOPT_READFUNCTION, &readfunc);
 
     success = ha.put(PUTURL, 5);
     if (!success)
