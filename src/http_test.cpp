@@ -37,10 +37,10 @@ int main(int argc, char* argv[])
     //----------------------------TEST SETUP----------------------------------//
 
     //Variables to store URL's
-    std::string post = "http://httpbin.org/post"
-    std::string put = "http://httpbin.org/put"
-    std::string get = "http://httpbin.org/get"
-    std::string del = "http://httpbin.org/delete"
+    std::string post = "http://httpbin.org/post";
+    std::string put = "http://httpbin.org/put";
+    std::string get = "http://httpbin.org/get";
+    std::string del = "http://httpbin.org/delete";
 
     char *POSTURL = new char[post.length() + 1];
     strcpy(POSTURL, post.c_str());
