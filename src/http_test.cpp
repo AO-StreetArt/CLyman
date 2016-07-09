@@ -11,6 +11,14 @@
 //A String to store response data
 std::string writedata;
 
+//A Struct to store data to be sent
+struct put_data
+{
+  char *data;
+  size_t len;
+};
+put_data pd;
+
 //This is the callback that gets called when we recieve the response to the
 //Get Curl Request
 size_t writeCallback(char * buf, size_t size, size_t nmemb, void* up)
@@ -29,28 +37,14 @@ return size*nmemb;
 
 //This is the callback that gets called when we build the message for the
 //Put Curl Request
-const char data[]="this is what we post to the silly web server";
-
-struct WriteThis {
-  const char *readptr;
-  long sizeleft;
-};
-
 static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp)
 {
-  struct WriteThis *pooh = (struct WriteThis *)userp;
-
-  if(size*nmemb < 1)
-    return 0;
-
-  if(pooh->sizeleft) {
-    *(char *)ptr = pooh->readptr[0]; /* copy one single byte */
-    pooh->readptr++;                 /* advance pointer */
-    pooh->sizeleft--;                /* less data left */
-    return 1;                        /* we return 1 byte at a time! */
-  }
-
-  return 0;                          /* no more data left to deliver */
+  size_t curl_size = nmemb * size;
+  size_t to_copy = (userdata->len < curl_size) ? userdata->len : curl_size;
+  memcpy(ptr, userdata->data, to_copy);
+  userdata->len -= to_copy;
+  userdata->data += to_copy;
+  return to_copy;
 }
 
 //-----------------------------MAIN METHOD------------------------------------//
@@ -136,7 +130,10 @@ int main(int argc, char* argv[])
     //-------------------------------PUT--------------------------------------//
 
     //Set up the info to send on the body of the put request
-    curl_easy_setopt(ha.get_instance(), CURLOPT_READDATA, data);
+    const char sendstring[]="this is what we post to the silly web server";
+    pd.data = sendstring;
+    pd.len = 44;
+    curl_easy_setopt(ha.get_instance(), CURLOPT_READDATA, pd);
     curl_easy_setopt(ha.get_instance(), CURLOPT_READFUNCTION, &read_callback);
 
     success = ha.put(PUTURL, 5);
