@@ -37,7 +37,7 @@ return size*nmemb;
 
 //This is the callback that gets called when we build the message for the
 //Put Curl Request
-static size_t read_callback(void *userdata, size_t size, size_t nmemb, void *userp)
+static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
   size_t curl_size = nmemb * size;
   size_t to_copy = (userdata->len < curl_size) ? userdata->len : curl_size;
