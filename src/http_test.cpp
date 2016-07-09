@@ -37,52 +37,24 @@ int main(int argc, char* argv[])
     //----------------------------TEST SETUP----------------------------------//
 
     //Variables to store URL's
-    char * POSTURL;
-    char * PUTURL;
-    char * GETURL;
-    char * DELETEURL;
+    std::string post = "http://httpbin.org/post"
+    std::string put = "http://httpbin.org/put"
+    std::string get = "http://httpbin.org/get"
+    std::string del = "http://httpbin.org/delete"
 
-    //Read the configuration file with URL info
-    std::string line;
-    std::ifstream file (argv[0]);
+    char *POSTURL = new char[post.length() + 1];
+    strcpy(POSTURL, post.c_str());
 
-    if (file.is_open()) {
-      while (getline (file, line) ) {
-        //Read a line from the property file
+    char *PUTURL = new char[put.length() + 1];
+    strcpy(PUTURL, put.c_str());
 
-        //Figure out if we have a blank or comment line
-        bool keep_going = true;
-        if (line.length() > 0) {
-          if (line[0] == '/' && line[1] == '/') {
-            keep_going=false;
-          }
-        }
-        else {
-          keep_going=false;
-        }
+    char *GETURL = new char[get.length() + 1];
+    strcpy(GETURL, get.c_str());
 
-        if (keep_going==true) {
-          int eq_pos = line.find("=", 0);
-          std::string var_name = line.substr(0, eq_pos);
-          std::string var_value = line.substr(eq_pos+1, line.length() - eq_pos);
-          char *cstr = new char[var_value.length() + 1];
-          strcpy(cstr, var_value.c_str());
-          if (var_name=="Put_URL") {
-            PUTURL=cstr;
-          }
-          if (var_name=="Post_URL") {
-            POSTURL=cstr;
-          }
-          else if (var_name=="Delete_URL") {
-            DELETEURL=cstr;
-          }
-          else if (var_name=="Get_URL") {
-            GETURL=cstr;
-          }
-          delete cstr;
-        }
-      }
-    }
+    char *DELETEURL = new char[del.length() + 1];
+    strcpy(DELETEURL, del.c_str());
+
+    //Logging
 
     std::string initFileName = "log4cpp.properties";
     try {
