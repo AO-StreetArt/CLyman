@@ -1,5 +1,6 @@
 #include "http_admin.h"
 #include <string>
+#include <string.h>
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -30,10 +31,10 @@ int main(int argc, char* argv[])
   {
 
     //Variables to store URL's
-    char * POSTURL = "";
-    char * PUTURL = "";
-    char * GETTURL = "";
-    char * DELETEURL = "";
+    char * POSTURL;
+    char * PUTURL;
+    char * GETTURL;
+    char * DELETEURL;
 
     //Read the configuration file with URL info
     std::string line;
