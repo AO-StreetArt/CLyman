@@ -29,32 +29,28 @@ return size*nmemb;
 
 //This is the callback that gets called when we build the message for the
 //Put Curl Request
-typedef struct
+const char data[]="this is what we post to the silly web server";
+
+struct WriteThis {
+  const char *readptr;
+  long sizeleft;
+};
+
+static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp)
 {
-    void *data;
-    int body_size;
-    int body_pos;
-} postdata;
+  struct WriteThis *pooh = (struct WriteThis *)userp;
 
-
-size_t readfunc(void *ptr, size_t size, size_t nmemb, void *stream)
-{
-    if (stream)
-    {
-        postdata *ud = (postdata*) stream;
-
-        int available = (ud->body_size - ud->body_pos);
-
-        if (available > 0)
-        {
-            int written = std::min(size * nmemb, available);
-            memcpy(ptr, ((char*)(ud->data)) + ud->body_pos, written);
-            ud->body_pos += written;
-            return written;
-        }
-    }
-
+  if(size*nmemb < 1)
     return 0;
+
+  if(pooh->sizeleft) {
+    *(char *)ptr = pooh->readptr[0]; /* copy one single byte */
+    pooh->readptr++;                 /* advance pointer */
+    pooh->sizeleft--;                /* less data left */
+    return 1;                        /* we return 1 byte at a time! */
+  }
+
+  return 0;                          /* no more data left to deliver */
 }
 
 //-----------------------------MAIN METHOD------------------------------------//
@@ -134,14 +130,14 @@ int main(int argc, char* argv[])
     else
     {
       logging->debug("Retrieved:");
-      logging->debug(data);
+      logging->debug(writedata);
     }
 
     //-------------------------------PUT--------------------------------------//
 
     //Set up the info to send on the body of the put request
     curl_easy_setopt(ha.get_instance(), CURLOPT_READDATA, "TEST");
-    curl_easy_setopt(ha.get_instance(), CURLOPT_READFUNCTION, &readfunc);
+    curl_easy_setopt(ha.get_instance(), CURLOPT_READFUNCTION, &read_callback);
 
     success = ha.put(PUTURL, 5);
     if (!success)
