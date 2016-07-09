@@ -58,8 +58,7 @@ int main(int argc, char* argv[])
 
     //-------------------------------POST-------------------------------------//
 
-    ha.post(argv[0], "CLYMAN");
-    success = ha.send(5);
+    success = ha.post(argv[0], "CLYMAN", 5);
     if (!success)
     {
       //We now have the full response
@@ -68,8 +67,7 @@ int main(int argc, char* argv[])
 
     //------------------------------DELETE------------------------------------//
 
-    ha.del(argv[0]);
-    success = ha.send(5);
+    success = ha.del(argv[0], 5);
     if (!success)
     {
       //We now have the full response
