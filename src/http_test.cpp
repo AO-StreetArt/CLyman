@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     //Variables to store URL's
     char * POSTURL;
     char * PUTURL;
-    char * GETTURL;
+    char * GETURL;
     char * DELETEURL;
 
     //Read the configuration file with URL info
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
             DELETEURL=cstr;
           }
           else if (var_name=="Get_URL") {
-            GETTURL=cstr;
+            GETURL=cstr;
           }
           delete cstr;
         }
