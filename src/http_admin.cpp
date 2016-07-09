@@ -16,7 +16,7 @@ bool HttpAdmin::send(char * url, int timeout)
   }
   else
   {
-    ostringstream out;
+    std::ostringstream out;
     out << res;
     logging->error("HTTP: Error Sending HTTP Request");
     logging->error(out.str());
