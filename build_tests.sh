@@ -64,7 +64,7 @@ else
 
   #Then we have the HTTP Tests
   g++ -c -o src/http_test.o src/http_test.cpp -std=c++11
-  g++ -o http_test src/http_admin.o src/http_test.o -lcurl -std=c++11
+  g++ -o http_test src/logging.o src/http_admin.o src/http_test.o -lpthread -llog4cpp -lcurl -std=c++11
 
   #Here we have the obj3 tests
 
