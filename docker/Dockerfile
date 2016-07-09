@@ -29,7 +29,7 @@ RUN apt-get update; \
 RUN apt-get update
 
 #Ensure that specific build requirements are satisfied
-RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev git libhiredis-dev
+RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev git libhiredis-dev libcurl4-openssl-dev
 
 #Get the RapidJSON Dependency
 RUN git clone https://github.com/miloyip/rapidjson.git

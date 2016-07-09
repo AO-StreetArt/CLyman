@@ -22,6 +22,10 @@ then
 
     g++ -g -c -o src/configuration_manager.o src/configuration_manager.cpp -std=c++11
 
+    #We then compile the http administrator
+
+    g++ -g -c -o src/http_admin.o src/http_admin.cpp -std=c++11
+
     #Then, compile the object class:
 
     g++ -g -c -o src/obj3.o src/obj3.cpp -std=c++11
@@ -54,7 +58,7 @@ then
 
     #Finally, we compile the main app with:
 
-    g++ -g -o lyman src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o lyman src/http_admin.o src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
     echo "Debugger Lines Set"
 
@@ -72,6 +76,10 @@ else
   #We then compile the configuration manager
 
   g++ -c -o src/configuration_manager.o src/configuration_manager.cpp -std=c++11
+
+  #We then compile the http administrator
+
+  g++ -c -o src/http_admin.o src/http_admin.cpp -std=c++11
 
   #Then, compile the object class:
 
@@ -105,6 +113,6 @@ else
 
   #Finally, we compile the main app with:
 
-  g++ -o lyman src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o lyman src/http_admin.o src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 fi

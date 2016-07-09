@@ -16,6 +16,10 @@ then
     g++ -g -c -o src/configuration_test.o src/configuration_test.cpp -std=c++11
     g++ -g -o configuration_test src/logging.o src/configuration_manager.o src/configuration_test.o -lpthread -llog4cpp -std=c++11
 
+    #Then we have the HTTP Tests
+    g++ -g -c -o src/http_test.o src/http_test.cpp -std=c++11
+    g++ -g -o http_test src/logging.o src/http_admin.o src/http_test.o -lpthread -llog4cpp -lcurl -std=c++11
+
     #Here we have the obj3 tests
 
     g++ -g -c -o src/obj3_test.o src/obj3_test.cpp -std=c++11
@@ -47,6 +51,8 @@ then
     g++ -g -c -o main_benchmark.o main_benchmark.cpp -std=c++11
     g++ -g -o main_benchmark src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main_benchmark.o -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
+    echo "Debugger Lines Set"
+
   fi
 
 else
@@ -55,6 +61,10 @@ else
 
   g++ -c -o src/configuration_test.o src/configuration_test.cpp -std=c++11
   g++ -o configuration_test src/logging.o src/configuration_manager.o src/configuration_test.o -lpthread -llog4cpp -std=c++11
+
+  #Then we have the HTTP Tests
+  g++ -c -o src/http_test.o src/http_test.cpp -std=c++11
+  g++ -o http_test src/logging.o src/http_admin.o src/http_test.o -lpthread -llog4cpp -lcurl -std=c++11
 
   #Here we have the obj3 tests
 

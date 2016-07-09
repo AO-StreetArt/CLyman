@@ -15,10 +15,11 @@
 #include <iostream>
 #include <vector>
 #include "Obj3.pb.h"
+#inlcude "Writeable.h"
 
 #include "logging.h"
 
-class Obj3
+class Obj3: public Writeable
 {
 	private:
 		//String Attributes

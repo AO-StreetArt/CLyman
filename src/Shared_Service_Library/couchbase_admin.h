@@ -45,8 +45,8 @@ public:
 
 	//Object CRUD Operations
 	void load_object ( const char * key );
-	void save_object ( Obj3 const *obj );
-	void create_object ( Obj3 const *obj );
+	void save_object ( Writeable const *obj );
+	void create_object ( Writeable const *obj );
 	void delete_object ( const char * key );
 
 	//Get the instance, needed for binding callbacks
