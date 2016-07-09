@@ -7,9 +7,6 @@
 
 #define PI 3.14159265358979323846
 
-using namespace Eigen;
-using namespace rapidjson;
-
 Obj3::Obj3(protoObj3::Obj3 buffer)
 {
 	logging->debug("Build Proto-Object Called");
@@ -370,10 +367,10 @@ Obj3::Obj3(const rapidjson::Document& d)
 	  logging->debug("Obj3 Built");
 }
 
-bool Obj3::transform_object(Matrix4d trans_matrix)
+bool Obj3::transform_object(Eigen::Matrix4d trans_matrix)
 {
 	logging->info("Obj3:Transform Object Called with Matrix4d");
-	Matrix4d result_matrix;
+	Eigen::Matrix4d result_matrix;
 	result_matrix = trans_matrix * transform_buffer;
 	transform_buffer = result_matrix;
 	return true;
@@ -382,7 +379,7 @@ bool Obj3::transform_object(Matrix4d trans_matrix)
 bool Obj3::transform_object(double trans_matrix[])
 {
 	logging->info("Obj3:Transform Object called with double[]");
-	Matrix4d tran_matrix;
+	Eigen::Matrix4d tran_matrix;
 	int i, j;
 	for (i=0;i<4;i=i+1)
 	{
@@ -392,8 +389,8 @@ bool Obj3::transform_object(double trans_matrix[])
 		}
 	}
 
-	Matrix4d result_matrix;
-        result_matrix = tran_matrix * transform_buffer;
+	Eigen::Matrix4d result_matrix;
+  result_matrix = tran_matrix * transform_buffer;
 	transform_buffer = result_matrix;
 	return true;
 }
@@ -402,11 +399,11 @@ void Obj3::translate_object(double x, double y, double z, std::string locality)
 {
 	logging->info("Obj3:Translate Object called");
 	//Variable Declarations
-	Matrix4d tran_matrix;
-	Matrix4d result_matrix;
+	Eigen::Matrix4d tran_matrix;
+	Eigen::Matrix4d result_matrix;
 
 	//Set up the transformation matrix
-	tran_matrix = Matrix4d::Zero(4, 4);
+	tran_matrix = Eigen::Matrix4d::Zero(4, 4);
 	tran_matrix(0, 0) = 1.0;
 	tran_matrix(1, 1) = 1.0;
 	tran_matrix(2, 2) = 1.0;
@@ -437,11 +434,11 @@ void Obj3::translate_object(double x, double y, double z, std::string locality)
 void Obj3::rotateq_object(double x, double y, double z, double theta, std::string locality)
 {
 logging->info("Obj3:RotateQ Object Called");
-Matrix4d tran_matrix;
-Matrix4d result_matrix;
+Eigen::Matrix4d tran_matrix;
+Eigen::Matrix4d result_matrix;
 
 //Set up the transformation matrix
-tran_matrix = Matrix4d::Zero(4, 4);
+tran_matrix = Eigen::Matrix4d::Zero(4, 4);
 tran_matrix(0, 0) = cos (theta*(PI/180)) + (x*x) * (1-cos(theta*(PI/180)));
 tran_matrix(1, 1) = cos (theta*(PI/180)) + (y*y) * (1-cos(theta*(PI/180)));
 tran_matrix(2, 2) = cos (theta*(PI/180)) + (z*z) * (1-cos(theta*(PI/180)));
@@ -472,14 +469,14 @@ void Obj3::rotatee_object(double x, double y, double z, std::string locality)
 {
 logging->info("Obj3:RotateE Object Called");
 //Variable Declarations
-Matrix4d xtran_matrix;
-Matrix4d ytran_matrix;
-Matrix4d ztran_matrix;
-Matrix4d tran_matrix;
-Matrix4d result_matrix;
+Eigen::Matrix4d xtran_matrix;
+Eigen::Matrix4d ytran_matrix;
+Eigen::Matrix4d ztran_matrix;
+Eigen::Matrix4d tran_matrix;
+Eigen::Matrix4d result_matrix;
 
 //Set up the transformation matrix
-xtran_matrix = Matrix4d::Zero(4, 4);
+xtran_matrix = Eigen::Matrix4d::Zero(4, 4);
 xtran_matrix(1, 1) = cos (x * (PI/180));
 xtran_matrix(2, 1) = sin (x * (PI/180));
 xtran_matrix(1, 2) = sin (x * (PI/180)) * -1.0;
@@ -487,7 +484,7 @@ xtran_matrix(2, 2) = cos (x * (PI/180));
 xtran_matrix(0, 0) = 1.0;
 xtran_matrix(3, 3) = 1.0;
 
-ytran_matrix = Matrix4d::Zero(4, 4);
+ytran_matrix = Eigen::Matrix4d::Zero(4, 4);
 ytran_matrix(0, 0) = cos (y * (PI/180));
 ytran_matrix(0, 3) = sin (y * (PI/180));
 ytran_matrix(3, 0) = sin (y * (PI/180)) * -1.0;
@@ -495,7 +492,7 @@ ytran_matrix(2, 2) = cos (y * (PI/180));
 ytran_matrix(1, 1) = 1.0;
 ytran_matrix(3, 3) = 1.0;
 
-ztran_matrix = Matrix4d::Zero(4, 4);
+ztran_matrix = Eigen::Matrix4d::Zero(4, 4);
 ztran_matrix(0, 0) = cos (z * (PI/180));
 ztran_matrix(1, 0) = sin (z * (PI/180));
 ztran_matrix(0, 1) = sin (z * (PI/180)) * -1.0;
@@ -522,11 +519,11 @@ void Obj3::scale_object(double x, double y, double z)
 {
 	logging->info("Obj3:Scale Object Called");
 	//Variable Declarations
-        Matrix4d tran_matrix;
-        Matrix4d result_matrix;
+        Eigen::Matrix4d tran_matrix;
+        Eigen::Matrix4d result_matrix;
 
         //Set up the transformation matrix
-        tran_matrix = Matrix4d::Zero(4, 4);
+        tran_matrix = Eigen::Matrix4d::Zero(4, 4);
         tran_matrix(0, 0) = x;
         tran_matrix(1, 1) = y;
         tran_matrix(2, 2) = z;
@@ -542,7 +539,7 @@ void Obj3::scale_object(double x, double y, double z)
 void Obj3::initialize_buffers()
 {
 	logging->info("Obj3:Initialize Buffers Called");
-	transform_buffer = Matrix4d::Zero(4, 4);
+	transform_buffer = Eigen::Matrix4d::Zero(4, 4);
 	transform_buffer(0, 0) = 1.0;
         transform_buffer(1, 1) = 1.0;
         transform_buffer(2, 2) = 1.0;
@@ -553,12 +550,12 @@ void Obj3::initialize_matrices()
 {
 	logging->info("Obj3:Intialize Matrices Called");
 	//Set initial values with function calls
-	bounding_box = MatrixXd::Zero(4, 8);
-	location = Vector3d::Zero(3);
-	rotation_euler = Vector3d::Zero(3);
-	rotation_quaternion = Vector4d::Zero(4);
-	scaling = Vector3d::Zero(3);
-	transform_matrix = Matrix4d::Zero(4, 4);
+	bounding_box = Eigen::MatrixXd::Zero(4, 8);
+	location = Eigen::Vector3d::Zero(3);
+	rotation_euler = Eigen::Vector3d::Zero(3);
+	rotation_quaternion = Eigen::Vector4d::Zero(4);
+	scaling = Eigen::Vector3d::Zero(3);
+	transform_matrix = Eigen::Matrix4d::Zero(4, 4);
 
 	initialize_buffers();
 }
@@ -568,26 +565,26 @@ void Obj3::apply_transforms()
 	logging->info("Obj3:Apply Transforms Called");
 
 	//Update the transformation matrix
-	Matrix4d result;
+	Eigen::Matrix4d result;
 	result = transform_buffer * transform_matrix;
 	transform_matrix = result;
 
 	//Update the location
-	Vector4d loc4;
-	loc4 = Vector4d::Constant(4, 1.0);
+	Eigen::Vector4d loc4;
+	loc4 = Eigen::Vector4d::Constant(4, 1.0);
 	loc4(0) = location(0);
 	loc4(1) = location(1);
 	loc4(2) = location(2);
 
-	Vector4d res_loc;
+	Eigen::Vector4d res_loc;
 	res_loc = transform_buffer * loc4;
 	location(0) = res_loc(0);
 	location(1) = res_loc(1);
 	location(2) = res_loc(2);
 
 	//Perform the necessary transforms on the bounding box
-	MatrixXd res_bb;
-	res_bb = MatrixXd::Zero(4, 8);
+	Eigen::MatrixXd res_bb;
+	res_bb = Eigen::MatrixXd::Zero(4, 8);
 	res_bb = transform_buffer * bounding_box;
 	bounding_box = res_bb;
 
@@ -600,8 +597,8 @@ std::string Obj3::to_json() const
         logging->info("Obj3:To JSON Called on object");
         logging->info(get_key());
         //Initialize the string buffer and writer
-        StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        rapidjson::StringBuffer s;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
         //Start writing the object
         //Syntax taken directly from
@@ -688,8 +685,8 @@ std::string Obj3::to_json_msg(int msg_type) const
         logging->info("Obj3:To JSON message Called on object");
         logging->info(get_key());
         //Initialize the string buffer and writer
-        StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        rapidjson::StringBuffer s;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
         //Start writing the object
         //Syntax taken directly from

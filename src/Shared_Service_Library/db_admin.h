@@ -3,7 +3,7 @@
 //Be implemented in order to add support
 //for a particular DB
 
-#include "obj3.h"
+#include "writeable.h"
 
 #ifndef DB_ADMIN
 #define DB_ADMIN
@@ -15,8 +15,8 @@ public:
 	~DBAdmin() {}
 	//Basic CRUD Operations
 	virtual void load_object ( const char * key ) = 0;
-	virtual void save_object ( Obj3 const *obj ) = 0;
-	virtual void create_object (Obj3 const *obj ) = 0;
+	virtual void save_object ( Writeable const *obj ) = 0;
+	virtual void create_object (Writeable const *obj ) = 0;
 	virtual void delete_object (const char * key) = 0;
 
 	//If the engine is asynchronous, wait for the
