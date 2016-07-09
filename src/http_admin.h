@@ -16,8 +16,8 @@ public:
   //Return the instance to bind callbacks against
   CURL* get_instance() {return curl;}
   //HTTP Methods
-  void put(char * url, int timeout);
-  void get(char * url, int timeout);
-  void post(char * url, char * data, int timeout);
-  void del(char * url, int timeout);
+  bool put(char * url, int timeout);
+  bool get(char * url, int timeout);
+  bool post(char * url, char * data, int timeout);
+  bool del(char * url, int timeout);
 };
