@@ -7,7 +7,7 @@
 class HttpAdmin
 {
 CURL* curl;
-bool send(int timeout, char * url, );
+bool send(char * url, int timeout);
 public:
   //Initializer
   HttpAdmin() {curl_global_init(CURL_GLOBAL_ALL);curl = curl_easy_init();}
