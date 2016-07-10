@@ -96,7 +96,7 @@ int main()
 
   //Set up logging
   //This reads the logging configuration file
-  std::string initFileName = "log4cpp_test.properties";
+  std::string initFileName = "src/test/log4cpp_test.properties";
   try {
     log4cpp::PropertyConfigurator::configure(initFileName);
   }
