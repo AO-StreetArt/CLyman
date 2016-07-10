@@ -2,8 +2,8 @@
 //Across different files.  These are either numeric constants or
 //singletons which form the backbone of the service.
 
-#include "couchbase_admin.h"
-#include "xredis_admin.h"
+#include <aossl/couchbase_admin.h>
+#include <aossl/xredis_admin.h>
 #include "document_manager.h"
 #include "configuration_manager.h"
 

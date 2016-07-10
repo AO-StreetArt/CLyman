@@ -1,5 +1,5 @@
-#include "couchbase_admin.h"
-#include "obj3.h"
+#include <aossl/couchbase_admin.h>
+#include "../obj3.h"
 #include <libcouchbase/couchbase.h>
 
 static void storage_callback(lcb_t instance, const void *cookie, lcb_storage_t op,
@@ -23,7 +23,7 @@ static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
 int main ()
 {
 
-std::string initFileName = "log4cpp.properties";
+std::string initFileName = "src/test/log4cpp_test.properties";
 try {
 	log4cpp::PropertyConfigurator::configure(initFileName);
 }

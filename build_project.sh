@@ -13,18 +13,9 @@ then
 
     #We start by compiling the proto buffer class
     protoc -I=src --cpp_out=src src/Obj3.proto
-
-    #We start by compiling the logging module:
-
-    g++ -g -c -o src/logging.o src/logging.cpp -std=c++11
-
     #We then compile the configuration manager
 
     g++ -g -c -o src/configuration_manager.o src/configuration_manager.cpp -std=c++11
-
-    #We then compile the http administrator
-
-    g++ -g -c -o src/http_admin.o src/http_admin.cpp -std=c++11
 
     #Then, compile the object class:
 
@@ -38,17 +29,6 @@ then
 
     g++ -g -c -o src/globals.o src/globals.cpp -std=c++11
 
-    #We compile the Outbound ZMQ Socket
-
-    g++ -g -c -o src/zmqo.o src/zmqo.cpp -std=c++11
-
-    #We then build the couchbase admin:
-
-    g++ -g -c -o src/couchbase_admin.o src/couchbase_admin.cpp -std=c++11
-
-    #Now, we build the Redis Admin
-    g++ -g -c -o src/xredis_admin.o src/xredis_admin.cpp -std=c++11
-
     #We compile the Document Manager
     g++ -g -c -o src/document_manager.o src/document_manager.cpp -std=c++11
 
@@ -58,7 +38,7 @@ then
 
     #Finally, we compile the main app with:
 
-    g++ -g -o lyman src/http_admin.o src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o lyman src/http_admin.o src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
     echo "Debugger Lines Set"
 
@@ -68,18 +48,9 @@ else
 
   #We start by compiling the proto buffer class
   protoc -I=src --cpp_out=src src/Obj3.proto
-
-  #We start by compiling the logging module:
-
-  g++ -c -o src/logging.o src/logging.cpp -std=c++11
-
   #We then compile the configuration manager
 
   g++ -c -o src/configuration_manager.o src/configuration_manager.cpp -std=c++11
-
-  #We then compile the http administrator
-
-  g++ -c -o src/http_admin.o src/http_admin.cpp -std=c++11
 
   #Then, compile the object class:
 
@@ -93,17 +64,6 @@ else
 
   g++ -c -o src/globals.o src/globals.cpp -std=c++11
 
-  #We compile the Outbound ZMQ Socket
-
-  g++ -c -o src/zmqo.o src/zmqo.cpp -std=c++11
-
-  #We then build the couchbase admin:
-
-  g++ -c -o src/couchbase_admin.o src/couchbase_admin.cpp -std=c++11
-
-  #Now, we build the Redis Admin
-  g++ -c -o src/xredis_admin.o src/xredis_admin.cpp -std=c++11
-
   #We compile the Document Manager
   g++ -c -o src/document_manager.o src/document_manager.cpp -std=c++11
 
@@ -113,6 +73,8 @@ else
 
   #Finally, we compile the main app with:
 
-  g++ -o lyman src/http_admin.o src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o lyman src/http_admin.o src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+
+  echo "Project Built"
 
 fi

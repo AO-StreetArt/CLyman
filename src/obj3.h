@@ -15,9 +15,9 @@
 #include <iostream>
 #include <vector>
 #include "Obj3.pb.h"
-#inlcude "Writeable.h"
+#include <aossl/Writeable.h>
 
-#include "logging.h"
+#include <aossl/logging.h>
 
 class Obj3: public Writeable
 {

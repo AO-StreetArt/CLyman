@@ -15,13 +15,13 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "couchbase_admin.h"
-#include "xredis_admin.h"
+#include <aossl/couchbase_admin.h>
+#include <aossl/xredis_admin.h>
 #include "obj3.h"
 #include "configuration_manager.h"
 
-#include "logging.h"
-#include "zmqo.h"
+#include <aossl/logging.h>
+#include <aossl/zmqo.h>
 #include "globals.h"
 
 //-----------------------

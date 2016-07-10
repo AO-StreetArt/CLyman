@@ -19,37 +19,6 @@ sudo apt-get -y update
 
 #Build the dependencies and place them in the correct places
 
-printf "Addressing pre-build requirements"
-
-#Ensure that specific build requirements are satisfied
-sudo apt-get -y install build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev
-
-#Determine if we Need RapidJSON
-if [ ! -d /usr/local/include/rapidjson ]; then
-
-  printf "Cloning RapidJSON"
-
-  mkdir $PRE/rapidjson
-
-  #Get the RapidJSON Dependency
-  git clone https://github.com/miloyip/rapidjson.git $PRE/rapidjson
-
-  #Move the RapidJSON header files to the include path
-  sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
-
-fi
-
-#Determine if we Need XRedis
-if [ ! -d /usr/local/include/xredis ]; then
-
-  printf "Building XRedis"
-
-  mkdir $PRE/xredis
-  git clone https://github.com/0xsky/xredis.git $PRE/xredis
-
-  cd $PRE/xredis && make && sudo make install
-
-fi
 
 #Determine if we Need Eigen
 if [ ! -d /usr/local/include/Eigen ]; then
@@ -72,60 +41,31 @@ if [ ! -d /usr/local/include/Eigen ]; then
 
 fi
 
-if [ ! -f /usr/local/include/zmq.h ]; then
+#Build & Install the Shared Service Library
 
-  printf "Getting ZMQ"
+#Create the folder to clone into
+mkdir $PRE/aossl
 
-  #Get the ZMQ Dependencies
-  wget https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz
+#Pull the code down
+git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
 
-  #Build & Install ZMQ
+#Build the dependencies for the shared service library
+mkdir $PRE/aossl_deps
+cp $PRE/aossl/build_deps.sh $PRE/aossl_deps
+cd $PRE/aossl_deps && ./build_deps.sh
 
-  #Unzip the ZMQ Directories
-  tar -xvzf zeromq-4.1.4.tar.gz
+#Build the shared service library
+cd $PRE/aossl && ./build_project.sh
 
-  printf "Building ZMQ"
+#Now we have a few things:
+#1. A compiled shared library libaossl.a.x.y that needs to be put on the linker path
+#2. A set of header files in the lib/include directory that need to be put onto the include path
 
-  #Configure, make, install
-  cd ./zeromq-4.1.4 && ./configure --without-libsodium && make && sudo make install
+#Shared Library
+sudo cp $PRE/aossl/libaossl.a.* /usr/local/bin
 
-fi
-
-#Run ldconfig to ensure that all built libraries are on the linker path
-sudo ldconfig
-
-if [ ! -f /usr/local/include/zmq.hpp ]; then
-
-  printf "Cloning ZMQ C++ Bindings"
-
-  #Get the ZMQ C++ Bindings
-  git clone https://github.com/zeromq/cppzmq.git
-
-  #Get ZMQ C++ Header files into include path
-  sudo cp ./cppzmq/zmq.hpp /usr/local/include
-  sudo cp ./cppzmq/zmq_addon.hpp /usr/local/include
-
-fi
-
-if [ ! -f ./couchbase-release-1.0-2-amd64.deb ]; then
-
-  printf "Pulling Down Repositories for Couchbase Client"
-
-  #Get the Couchbase dependecies
-  wget http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
-
-fi
-
-printf "Building Couchbase Client"
-
-sudo dpkg -i ./couchbase-release-1.0-2-amd64.deb
-
-printf "Update cache and install final dependencies through apt-get"
-
-#Update the apt-get cache
-sudo apt-get -y update
-
-#Install the dependencies
-sudo apt-get -y install libcouchbase-dev libcouchbase2-bin libprotobuf-dev protobuf-compiler liblog4cpp5-dev
+#Header Files
+sudo mkdir /usr/local/include/aossl
+sudo cp $PRE/aossl/lib/include/* /usr/local/include/aossl
 
 printf "Finished installing dependencies"

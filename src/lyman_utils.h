@@ -24,10 +24,10 @@ inline std::string left_trim_string (std::string str) {
     return str;
 }
 
-//Convert a ZMQ Message to a std::string
-inline std::string hexDump ( zmq::message_t &aMessage ) {
-return std::string(static_cast<char*>(aMessage.data()), aMessage.size());
-}
+// //Convert a ZMQ Message to a std::string
+// inline std::string hexDump ( zmq::message_t &aMessage ) {
+// return std::string(static_cast<char*>(aMessage.data()), aMessage.size());
+// }
 
 /* Big Ints to do time calculations */
 typedef long long int64; typedef unsigned long long uint64;

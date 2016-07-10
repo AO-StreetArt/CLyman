@@ -1,4 +1,4 @@
-#include "http_admin.h"
+#include <aossl/http_admin.h>
 #include <string>
 #include <string.h>
 #include <stdlib.h>
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 
     //Logging
 
-    std::string initFileName = "log4cpp.properties";
+    std::string initFileName = "src/test/log4cpp_test.properties";
     try {
     	log4cpp::PropertyConfigurator::configure(initFileName);
     }
