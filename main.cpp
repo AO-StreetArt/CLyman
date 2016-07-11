@@ -1,8 +1,14 @@
-//This is the  main structural code of the module
-//It is built to allow for real-time messaging without the need
-//For polling, using a Dispatcher Pattern
+//This is the  main structural code of CLyman
 
-#include <zmq.hpp>
+//It sets up all of the Objects which help handle messages, then accepts messages,
+//parses them, and passes them to the document manager which is responsible for them
+//until they hit Couchbase.  Couchbase then gives us a set of callbacks which drive
+//the flow from the time of response by couchbase to the sending of outbound messages.
+
+//The smart update flow is a bit more complex, but mainly lies in the callbacks.
+//The document manager starts the chain with a load command, and the callback for this
+//calls a save command, which has a callback of it's own (albeit a simple one).
+
 #include <sstream>
 #include <string>
 #include <string.h>
@@ -11,31 +17,58 @@
 #include <fstream>
 #include <cstdlib>
 #include <stdlib.h>
+#include <unistd.h>
 #include <exception>
-#include <uuid/uuid.h>
+#include <signal.h>
+
+#include <zmq.hpp>
 #include <Eigen/Dense>
 
-#include "src/event_dispatcher.h"
 #include "src/obj3.h"
-#include "src/couchbase_admin.h"
-#include "src/xredis_admin.h"
 #include "src/lyman_utils.h"
 #include "src/document_manager.h"
 #include "src/configuration_manager.h"
 #include "src/couchbase_callbacks.h"
+#include "src/globals.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "src/logging.h"
-#include "src/globals.h"
+#include <aossl/couchbase_admin.h>
+#include <aossl/xredis_admin.h>
+#include <aossl/logging.h>
+#include <aossl/uuid_admin.h>
 
 enum {
   CACHE_TYPE_1,
   CACHE_TYPE_2,
   CACHE_TYPE_MAX,
 };
+
+//Shutdown the application
+void shutdown()
+{
+  //Delete objects off the heap
+  delete dm;
+  delete xRedis;
+  delete cb;
+  delete zmqo;
+  delete cm;
+  delete ua;
+
+  //Shut down libraries
+  google::protobuf::ShutdownProtobufLibrary();
+  end_log();
+}
+
+//Catch a Signal (for example, keyboard interrupt)
+void my_signal_handler(int s){
+   logging->error("Caught signal");
+   logging->error(s);
+   shutdown();
+   exit(1);
+}
 
     //-----------------------
     //------Main Method------
@@ -44,8 +77,19 @@ enum {
     int main()
     {
 
+      //Set up a handler for any signal events so that we always shutdown gracefully
+      struct sigaction sigIntHandler;
+      sigIntHandler.sa_handler = my_signal_handler;
+      sigemptyset(&sigIntHandler.sa_mask);
+      sigIntHandler.sa_flags = 0;
+
+      sigaction(SIGINT, &sigIntHandler, NULL);
+
+      //Set up the UUID Generator
+      ua = new uuidAdmin;
+
       //Set up our configuration manager
-      cm = new ConfigurationManager ();
+      cm = new ConfigurationManager;
 
       //Set up logging
       //This reads the logging configuration file
@@ -76,11 +120,12 @@ enum {
       int msg_type;
       rapidjson::Document d;
       rapidjson::Value *s;
-      char resp[8]={'n','i','l','r','e','s','p','\0'};
+      std::string resp = "nilresp";
       logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
 
-      //Set up our Redis Connection List
+      //Set up our Redis Connection List, which is passed to the Redis Admin to connect
+      //The additional logic is needed to allow for connecting to clusters or single instance
       std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
       int conn_list_size = RedisConnectionList.size();
       RedisNode RedisList1[conn_list_size];
@@ -125,66 +170,70 @@ enum {
       lcb_set_get_callback(cb->get_instance(), get_callback);
       lcb_set_remove_callback(cb->get_instance(), del_callback);
 
+      //We maintain the ZMQ Context and pass it to the ZMQ objects coming from aossl
       zmq::context_t context(1, 2);
 
-      //Set up the outbound ZMQ Client
-      //zmq::socket_t zout(context, ZMQ_REQ);
-      zmqo = new zmq::socket_t (context, ZMQ_REQ);
+      //Set up the outbound ZMQ Admin
+      zmqo = new Zmqo (context);
       logging->info("0MQ Constructor Called");
       zmqo->connect(cm->get_obconnstr());
       logging->info("Connected to Outbound OMQ Socket");
 
-      //Connect to the inbound ZMQ Socket
-      zmq::socket_t socket(context, ZMQ_REP);
-      socket.bind(cm->get_ibconnstr());
+      //Connect to the inbound ZMQ Admin
+      zmqi = new Zmqi (context);
+      logging->info("0MQ Constructor Called");
+      zmqi->bind(cm->get_ibconnstr());
       logging->info("ZMQ Socket Open, opening request loop");
 
       //Set up the Document Manager
-      dm = new DocumentManager (cb, xRedis, cm);
+      //This relies on pointers to all the other objects we set up,
+      //and drives the central functionality, along with the couchbase callbacks
+      dm = new DocumentManager (cb, xRedis, ua, cm, zmqo);
 
       //Main Request Loop
 
       while (true) {
-        zmq::message_t request;
-
-        //  Wait for next request from client
-        socket.recv (&request);
-        logging->info("Request Recieved");
 
         //Convert the OMQ message into a string to be passed on the event
-        std::string req_string;
-        req_string = left_trim_string (hexDump (request));
+        std::string req_string = zmqi->recv();
+        req_string = left_trim_string (req_string);
         const char * req_ptr = req_string.c_str();
         logging->debug("Conversion to C String performed with result: ");
         logging->debug(req_ptr);
         bool go_ahead=false;
+
+        //If we are expecting JSON Messages, then parse in this fashion
         if (cm->get_mfjson()) {
           //Process the message header and set current_event_type
           try {
             d.Parse(req_ptr);
             go_ahead=true;
           }
+          //Catch a possible error and write to logs
           catch (std::exception& e) {
             logging->error("Exception occurred while parsing inbound document:");
             logging->error(e.what());
           }
-          //Catch a possible error and write to logs
+          //Find the message type
           if (go_ahead) {
             s = &d["message_type"];
             msg_type = s->GetInt();
           }
         }
+
+        //If we are expecting Protobuffer Messages, then parse in this fashion
         else if (cm->get_mfprotobuf()) {
           try {
             new_proto.Clear();
             new_proto.ParseFromString(req_string);
             go_ahead=true;
           }
+          //Catch a possible error and write to logs
           catch (std::exception& e) {
             logging->error("Exception occurred while parsing inbound document:");
             logging->error(e.what());
           }
-          //Catch a possible error and write to logs
+          //Find the message type
           if (go_ahead) {
             msg_type = new_proto.message_type();
           }
@@ -208,33 +257,13 @@ enum {
         }
         //Shutdown Message
         else if (msg_type == 999) {
-          end_log();
 
-          //Delete objects off the heap
-          delete xRedis;
-          delete cb;
-          delete zmqo;
-          delete cm;
-          delete dm;
+          //Send a success response
+          resp = "success";
+          zmqi->send_str(resp);
 
-          resp[0]='s';
-          resp[1]='u';
-          resp[2]='c';
-          resp[3]='c';
-          resp[4]='e';
-          resp[5]='s';
-          resp[6]='s';
+          shutdown();
 
-          //  Send reply back to client
-          zmq::message_t reply (8);
-
-          //Prepare return data
-          memcpy (reply.data (), resp, 8);
-          //Send the response
-          socket.send (reply);
-          // Optional:  Delete all global objects allocated by libprotobuf.
-          google::protobuf::ShutdownProtobufLibrary();
-          logging->debug("Response Sent, terminating");
           return 0;
         }
         else {
@@ -245,24 +274,15 @@ enum {
 
         //Emit an event based on the event type & build the response message
         if (current_event_type==OBJ_UPD) {
-          resp[0]='s';
-          resp[1]='u';
-          resp[2]='c';
-          resp[3]='c';
-          resp[4]='e';
-          resp[5]='s';
-          resp[6]='s';
+          resp = "success";
           logging->debug("Object Update Event Emitted, response:");
           logging->debug(resp);
+
           //  Send reply back to client
-          zmq::message_t reply (8);
-
-          //Prepare return data
-          memcpy (reply.data (), resp, 8);
-
-          //Send the response
-          socket.send (reply);
+          zmqi->send_str(resp);
           logging->debug("Response Sent");
+
+          //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
             dm->update_objectd( d );
           }
@@ -272,24 +292,15 @@ enum {
 
         }
         else if (current_event_type==OBJ_CRT) {
-          resp[0]='s';
-          resp[1]='u';
-          resp[2]='c';
-          resp[3]='c';
-          resp[4]='e';
-          resp[5]='s';
-          resp[6]='s';
+          resp = "success";
           logging->debug("Object Create Event Emitted, response: ");
           logging->debug(resp);
-          //  Send reply back to client
-          zmq::message_t reply (8);
-
-          //Prepare return data
-          memcpy (reply.data (), resp, 8);
 
           //Send the response
-          socket.send (reply);
+          zmqi->send_str(resp);
           logging->debug("Response Sent");
+
+          //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
             dm->create_objectd( d );
           }
@@ -298,24 +309,15 @@ enum {
           }
         }
         else if (current_event_type==OBJ_GET) {
-          resp[0]='s';
-          resp[1]='u';
-          resp[2]='c';
-          resp[3]='c';
-          resp[4]='e';
-          resp[5]='s';
-          resp[6]='s';
+          resp = "success";
           logging->debug("Object Get Event Emitted, response: ");
           logging->debug(resp);
+
           //  Send reply back to client
-          zmq::message_t reply (8);
-
-          //Prepare return data
-          memcpy (reply.data (), resp, 8);
-
-          //Send the response
-          socket.send (reply);
+          zmqi->send_str(resp);
           logging->debug("Response Sent");
+
+          //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
             dm->get_objectd( d );
           }
@@ -324,24 +326,15 @@ enum {
           }
         }
         else if (current_event_type==OBJ_DEL) {
-          resp[0]='s';
-          resp[1]='u';
-          resp[2]='c';
-          resp[3]='c';
-          resp[4]='e';
-          resp[5]='s';
-          resp[6]='s';
+          resp = "success";
           logging->debug("Object Delete Event Emitted, response: ");
           logging->debug(resp);
+
           //  Send reply back to client
-          zmq::message_t reply (8);
-
-          //Prepare return data
-          memcpy (reply.data (), resp, 8);
-
-          //Send the response
-          socket.send (reply);
+          zmqi->send_str(resp);
           logging->debug("Response Sent");
+
+          //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
             dm->delete_objectd( d );
           }
@@ -351,23 +344,12 @@ enum {
         }
         else
         {
-          resp[0]='f';
-          resp[1]='a';
-          resp[2]='i';
-          resp[3]='l';
-          resp[4]='u';
-          resp[5]='r';
-          resp[6]='e';
+          resp = "failure";
           logging->error("Object Event not Emitted, response: ");
           logging->error(resp);
+
           //  Send reply back to client
-          zmq::message_t reply (8);
-
-          //Prepare return data
-          memcpy (reply.data (), resp, 8);
-
-          //Send the response
-          socket.send (reply);
+          zmqi->send_str(resp);
           logging->debug("Response Sent");
         }
       }

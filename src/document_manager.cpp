@@ -4,21 +4,10 @@
 void DocumentManager::cr_obj_global(Obj3 *new_obj) {
 
   //Generate a new key for the object
-  int uuid_gen_result = 0;
-  uuid_t uuid;
-  uuid_gen_result = uuid_generate_time_safe(uuid);
-
-  if (uuid_gen_result == -1) {
-    logging->error("UUID Generated in an unsafe manner that exposes a potential security risk");
-    logging->error("http://linux.die.net/man/3/uuid_generate");
-    logging->error("Please take the needed actions to allow uuid generation with a safe generator");
-  }
-
-  char uuid_str[37];
-  uuid_unparse_lower(uuid, uuid_str);
+  std::string new_key = uuid->generate();
 
   //Set the new key on the new object
-  new_obj->set_key(uuid_str);
+  new_obj->set_key(new_key);
 
   //Output a message on the outbound ZMQ Port
   std::string new_obj_string;
@@ -28,7 +17,7 @@ void DocumentManager::cr_obj_global(Obj3 *new_obj) {
   else if (cm->get_mfprotobuf()) {
     new_obj_string = new_obj->to_protobuf_msg(OBJ_CRT);
   }
-  send_zmqo_str_message(new_obj_string);
+  zmqo->send_str(new_obj_string);
 
   //Save the object to the couchbase DB
   cb->create_object (new_obj);
@@ -159,7 +148,7 @@ void DocumentManager::upd_obj_global(Obj3 *temp_obj) {
       temp_obj_str = temp_obj->to_protobuf_msg(OBJ_UPD);
     }
 
-    send_zmqo_str_message(temp_obj_str);
+    zmqo->send_str(temp_obj_str);
 
     cb->save_object (temp_obj);
     delete temp_obj;
@@ -245,7 +234,7 @@ void DocumentManager::del_obj_global(std::string key) {
   else if (cm->get_mfprotobuf()) {
     nobj_str = obj.to_protobuf_msg(OBJ_DEL);
   }
-  send_zmqo_str_message(nobj_str);
+  zmqo->send_str(nobj_str);
 
   cb->delete_object( kc_str );
   cb->wait();

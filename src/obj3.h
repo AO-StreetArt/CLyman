@@ -8,7 +8,7 @@
 
 #include <string>
 #include <Eigen/Dense>
-#include "event_dispatcher.h"
+#include "lyman_utils.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -169,7 +169,7 @@ class Obj3: public Writeable
 		bool add_scene(std::string scene_id){scene_list.push_back(scene_id);return true;}
 
 		//Remove a scene
-		bool clear_scenes(int index){scene_list.clear(); return true;}
+		bool clear_scenes(){scene_list.clear(); return true;}
 
 		//How many scenes are there?
 		int num_scenes() const {return scene_list.size();}

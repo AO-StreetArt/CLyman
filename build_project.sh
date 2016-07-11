@@ -23,7 +23,7 @@ then
 
     #Now, we build the event_dispatcher:
 
-    g++ -g -c -o src/event_dispatcher.o src/event_dispatcher.cpp -std=c++11
+    g++ -g -c -o src/lyman_utils.o src/lyman_utils.cpp -std=c++11
 
     #We compile the globals
 
@@ -38,7 +38,7 @@ then
 
     #Finally, we compile the main app with:
 
-    g++ -g -o lyman src/http_admin.o src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o lyman src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
     echo "Debugger Lines Set"
 
@@ -58,7 +58,7 @@ else
 
   #Now, we build the event_dispatcher:
 
-  g++ -c -o src/event_dispatcher.o src/event_dispatcher.cpp -std=c++11
+  g++ -c -o src/lyman_utils.o src/lyman_utils.cpp -std=c++11
 
   #We compile the globals
 
@@ -73,7 +73,7 @@ else
 
   #Finally, we compile the main app with:
 
-  g++ -o lyman src/http_admin.o src/Obj3.pb.cc src/logging.o src/configuration_manager.o src/event_dispatcher.o src/globals.o src/zmqo.o src/obj3.o src/couchbase_admin.o src/xredis_admin.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o lyman src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
   echo "Project Built"
 

@@ -12,7 +12,6 @@
 #include <uuid/uuid.h>
 #include <Eigen/Dense>
 
-#include "src/event_dispatcher.h"
 #include "src/obj3.h"
 #include "src/couchbase_admin.h"
 #include "src/xredis_admin.h"
@@ -91,8 +90,10 @@ dm->update_objectpb(new_proto);
 int main()
 {
 
+  ua = new uuidAdmin;
+
   //Set up our configuration manager
-  cm = new ConfigurationManager ();
+  cm = new ConfigurationManager;
 
   //Set up logging
   //This reads the logging configuration file
