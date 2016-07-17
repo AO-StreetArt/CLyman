@@ -70,7 +70,7 @@ cp $PRE/aossl/build_deps.sh $PRE/aossl_deps/
 cd $PRE/aossl_deps && sudo ./build_deps.sh
 
 #Build the shared service library
-cd $PRE/aossl/ && ./build_project.sh
+cd $PRE/aossl && ./build_project.sh
 
 #Now we have a few things:
 #1. A compiled shared library libaossl.a.x.y that needs to be put on the linker path
