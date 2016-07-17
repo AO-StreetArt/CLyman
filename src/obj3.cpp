@@ -607,7 +607,6 @@ std::string Obj3::to_json()
         writer.StartObject();
 
         writer.Key("key");
-        std::string key = get_key();
         writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
 
 	writer.Key("owner");
@@ -698,7 +697,6 @@ std::string Obj3::to_json_msg(int msg_type) const
         writer.Uint(msg_type);
 
         writer.Key("key");
-        std::string key = key;
         writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
 
 	writer.Key("owner");
