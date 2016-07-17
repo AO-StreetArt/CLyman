@@ -683,7 +683,7 @@ std::string Obj3::to_json()
 std::string Obj3::to_json_msg(int msg_type) const
 {
         logging->info("Obj3:To JSON message Called on object");
-        logging->info(get_key());
+        logging->info(key);
         //Initialize the string buffer and writer
         rapidjson::StringBuffer s;
         rapidjson::Writer<rapidjson::StringBuffer> writer(s);
@@ -698,7 +698,7 @@ std::string Obj3::to_json_msg(int msg_type) const
         writer.Uint(msg_type);
 
         writer.Key("key");
-        std::string key = get_key();
+        std::string key = key;
         writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
 
 	writer.Key("owner");

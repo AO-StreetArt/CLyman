@@ -65,7 +65,8 @@ void shutdown()
 //Catch a Signal (for example, keyboard interrupt)
 void my_signal_handler(int s){
    logging->error("Caught signal");
-   logging->error(s);
+   std::string signal_type = std::to_string(s);
+   logging->error(signal_type);
    shutdown();
    exit(1);
 }
