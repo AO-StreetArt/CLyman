@@ -13,8 +13,6 @@
 #include <Eigen/Dense>
 
 #include "src/obj3.h"
-#include "src/couchbase_admin.h"
-#include "src/xredis_admin.h"
 #include "src/lyman_utils.h"
 #include "src/document_manager.h"
 #include "src/configuration_manager.h"
@@ -23,6 +21,10 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+
+#include "aossl/couchbase_admin.h"
+#include "aossl/xredis_admin.h"
+#include "aossl/uuid_admin.h"
 
 #include "src/logging.h"
 #include "src/globals.h"
@@ -177,13 +179,13 @@ int main()
 
   //Set up the outbound ZMQ Client
   //zmq::socket_t zout(context, ZMQ_REQ);
-  zmqo = new zmq::socket_t (context, ZMQ_REQ);
+  zmqo = new Zmqo (context);
   logging->info("0MQ Constructor Called");
   zmqo->connect(cm->get_obconnstr());
   logging->info("Connected to Outbound OMQ Socket");
 
   //Set up the Document Manager
-  dm = new DocumentManager (cb, xRedis, cm);
+  dm = new DocumentManager (cb, xRedis, ua, cm, zmqo);
 
   //Create an object
   std::string name;

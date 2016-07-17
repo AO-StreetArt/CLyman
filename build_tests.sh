@@ -37,12 +37,12 @@ then
     #We can build the couchbase tests:
 
     g++ -g -c -o src/couchbase_test.o src/test/couchbase_test.cpp -std=c++11
-    g++ -g -o cb_test src/Obj3.pb.cc src/globals.o src/couchbase_test.o src/obj3.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o cb_test src/Obj3.pb.cc src/lyman_utils.o src/couchbase_test.o src/obj3.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
     #And the couchbase benchmark
     g++ -g -c -o src/couchbase_benchmark.o src/test/couchbase_benchmark.cpp -std=c++11
-    g++ -g -o couchbase_benchmark src/Obj3.pb.cc src/globals.o src/couchbase_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o couchbase_benchmark src/Obj3.pb.cc src/lyman_utils.o src/couchbase_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
     #Finally, the Redis tests:
@@ -57,7 +57,7 @@ then
 
     #Finally, we look to build the main benchmark
     g++ -g -c -o main_benchmark.o main_benchmark.cpp -std=c++11
-    g++ -g -o main_benchmark src/Obj3.pb.cc src/configuration_manager.o src/event_dispatcher.o src/globals.o src/obj3.o src/document_manager.o main_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o main_benchmark src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
     echo "Debugger Lines Set"
@@ -91,12 +91,12 @@ else
   #We can build the couchbase tests:
 
   g++ -c -o src/couchbase_test.o src/test/couchbase_test.cpp -std=c++11
-  g++ -o cb_test src/Obj3.pb.cc src/globals.o src/couchbase_test.o src/obj3.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o cb_test src/Obj3.pb.cc src/lyman_utils.o src/couchbase_test.o src/obj3.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
   #And the couchbase benchmark
   g++ -c -o src/couchbase_benchmark.o src/test/couchbase_benchmark.cpp -std=c++11
-  g++ -o couchbase_benchmark src/Obj3.pb.cc src/globals.o src/couchbase_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o couchbase_benchmark src/Obj3.pb.cc src/lyman_utils.o src/couchbase_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
   #Finally, the Redis tests:
@@ -111,7 +111,7 @@ else
 
   #Finally, we look to build the main benchmark
   g++ -c -o main_benchmark.o main_benchmark.cpp -std=c++11
-  g++ -o main_benchmark src/Obj3.pb.cc src/configuration_manager.o src/event_dispatcher.o src/globals.o src/obj3.o src/document_manager.o main_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o main_benchmark src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
 fi
