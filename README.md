@@ -33,12 +33,15 @@ See 'How to use CLyman' section for recommended deployment options.
 
 ## Configuration
 
-CLyman can be configured via a properties file, or via a Consul Connection, and has a few command line options:
+CLyman can be configured via a properties file, which has a few command line options:
 
 * `./lyman -dev` - This will start CLyman in dev mode
 * `./lyman` - This will start CLyman with the default properties file, lyman.properties
 * `./lyman -config-file=file.properties` - This will start CLyman with the properties file, file.properties.  Can be combined with -log-conf.
 * `./lyman -log-conf=logging.properties` - This will start CLyman with the logging properties file, logging.properties.  Can be combined with -config-file.
+
+Clyman can also be configured via a Consul Connection, in which we must specify the address of the consul agent, and the ip & port of the Inbound ZeroMQ Connection.
+
 * `./lyman -consul-addr=localhost:8500 -ip=localhost -port=5555` - Start Clyman, register as a service with consul, and configure based on configuration values in Consul, and bind to an internal 0MQ port on localhost
 * `./lyman -consul-addr=localhost:8500 -ip=tcp://my.ip -port=5555` - Start Clyman, register as a service with consul, and configure based on configuration values in Consul, and bind to an external 0MQ port on tcp://my.ip
 
