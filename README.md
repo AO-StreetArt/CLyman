@@ -143,6 +143,8 @@ You will need the Google Protocol Buffer C++ API, which can be found [here](http
 
 This service also depends on Eigen, a C++ Linear Algebra library.  This can be downloaded from the [Eigen] (http://eigen.tuxfamily.org/index.php?title=Main_Page) site.
 
+You will need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson).
+
 ### Production
 The current recommended deployment for production is to build from source and scale manually.  However, rather than deploying a Couchbase Server & Redis Server locally beside CLyman, we should be connecting to a Couchbase Cluster & Redis Cluster on separate nodes.
 

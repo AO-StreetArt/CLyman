@@ -41,6 +41,21 @@ if [ ! -d /usr/local/include/Eigen ]; then
 
 fi
 
+#Determine if we Need RapidJSON
+if [ ! -d /usr/local/include/rapidjson ]; then
+
+  printf "Cloning RapidJSON"
+
+  mkdir $PRE/rapidjson
+
+  #Get the RapidJSON Dependency
+  git clone https://github.com/miloyip/rapidjson.git $PRE/rapidjson
+
+  #Move the RapidJSON header files to the include path
+  sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
+
+fi
+
 #Build & Install the Shared Service Library
 
 #Create the folder to clone into
@@ -51,11 +66,11 @@ git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
 
 #Build the dependencies for the shared service library
 mkdir $PRE/aossl_deps
-cp $PRE/aossl/build_deps.sh $PRE/aossl_deps
-cd $PRE/aossl_deps && ./build_deps.sh
+cp $PRE/aossl/build_deps.sh $PRE/aossl_deps/
+cd $PRE/aossl_deps && sudo ./build_deps.sh
 
 #Build the shared service library
-cd $PRE/aossl && ./build_project.sh
+cd $PRE/aossl/ && ./build_project.sh
 
 #Now we have a few things:
 #1. A compiled shared library libaossl.a.x.y that needs to be put on the linker path
