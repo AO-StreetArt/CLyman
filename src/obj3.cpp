@@ -7,6 +7,8 @@
 
 #define PI 3.14159265358979323846
 
+using namespace rapidjson;
+
 Obj3::Obj3(protoObj3::Obj3 buffer)
 {
 	logging->debug("Build Proto-Object Called");
@@ -597,8 +599,8 @@ std::string Obj3::to_json()
         logging->info("Obj3:To JSON Called on object");
         logging->info(get_key());
         //Initialize the string buffer and writer
-        rapidjson::StringBuffer s;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
 
         //Start writing the object
         //Syntax taken directly from
@@ -607,23 +609,23 @@ std::string Obj3::to_json()
         writer.StartObject();
 
         writer.Key("key");
-        writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
+        writer.String( key.c_str(), (SizeType)key.length() );
 
 	writer.Key("owner");
         std::string owner_dev = get_owner();
-        writer.String( owner_dev.c_str(), (rapidjson::SizeType)owner_dev.length() );
+        writer.String( owner_dev.c_str(), (SizeType)owner_dev.length() );
 
         writer.Key("name");
         std::string name = get_name();
-        writer.String( name.c_str(), (rapidjson::SizeType)name.length() );
+        writer.String( name.c_str(), (SizeType)name.length() );
 
         writer.Key("type");
         std::string type = get_type();
-        writer.String( type.c_str(), (rapidjson::SizeType)type.length() );
+        writer.String( type.c_str(), (SizeType)type.length() );
 
         writer.Key("subtype");
         std::string subtype = get_subtype();
-        writer.String( subtype.c_str(), (rapidjson::SizeType)subtype.length() );
+        writer.String( subtype.c_str(), (SizeType)subtype.length() );
 
         int i;
         int j;
@@ -661,7 +663,7 @@ std::string Obj3::to_json()
         writer.StartArray();
         for (i=0; i<num_scenes(); i++) {
                 std::string sc = get_scene(i);
-                writer.String( sc.c_str(), (rapidjson::SizeType)sc.length() );
+                writer.String( sc.c_str(), (SizeType)sc.length() );
         }
         writer.EndArray();
 
@@ -684,8 +686,8 @@ std::string Obj3::to_json_msg(int msg_type) const
         logging->info("Obj3:To JSON message Called on object");
         logging->info(key);
         //Initialize the string buffer and writer
-        rapidjson::StringBuffer s;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
 
         //Start writing the object
         //Syntax taken directly from
@@ -697,23 +699,23 @@ std::string Obj3::to_json_msg(int msg_type) const
         writer.Uint(msg_type);
 
         writer.Key("key");
-        writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
+        writer.String( key.c_str(), (SizeType)key.length() );
 
 	writer.Key("owner");
         std::string owner_dev = get_owner();
-        writer.String( owner_dev.c_str(), (rapidjson::SizeType)owner_dev.length() );
+        writer.String( owner_dev.c_str(), (SizeType)owner_dev.length() );
 
         writer.Key("name");
         std::string name = get_name();
-        writer.String( name.c_str(), (rapidjson::SizeType)name.length() );
+        writer.String( name.c_str(), (SizeType)name.length() );
 
         writer.Key("type");
         std::string type = get_type();
-        writer.String( type.c_str(), (rapidjson::SizeType)type.length() );
+        writer.String( type.c_str(), (SizeType)type.length() );
 
         writer.Key("subtype");
         std::string subtype = get_subtype();
-        writer.String( subtype.c_str(), (rapidjson::SizeType)subtype.length() );
+        writer.String( subtype.c_str(), (SizeType)subtype.length() );
 
         int i;
         int j;
@@ -772,7 +774,7 @@ std::string Obj3::to_json_msg(int msg_type) const
         writer.StartArray();
         for (i=0; i<num_scenes(); i++) {
                 std::string sc = get_scene(i);
-                writer.String( sc.c_str(), (rapidjson::SizeType)sc.length() );
+                writer.String( sc.c_str(), (SizeType)sc.length() );
         }
         writer.EndArray();
 
