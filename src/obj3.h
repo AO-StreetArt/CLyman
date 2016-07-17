@@ -208,7 +208,7 @@ class Obj3: public Writeable
 		//Getters
                 std::string get_owner() const {return owner;}
 		std::string get_name() const {return name;}
-		std::string get_key() const {return key;}
+		std::string get_key() {return key;}
 		std::string get_type() const {return type;}
 		std::string get_subtype() const {return subtype;}
 		double get_locx() const {return location(0);}
@@ -264,7 +264,7 @@ class Obj3: public Writeable
 		std::string get_lock_id() const {return lock_owner;}
 
 		//Convert the object to JSON
-		std::string to_json() const;
+		std::string to_json();
 		//Convert the object to JSON Message
         std::string to_json_msg(int msg_type) const;
 

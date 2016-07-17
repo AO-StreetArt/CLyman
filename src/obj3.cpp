@@ -592,7 +592,7 @@ void Obj3::apply_transforms()
 	initialize_buffers();
 }
 
-std::string Obj3::to_json() const
+std::string Obj3::to_json()
 {
         logging->info("Obj3:To JSON Called on object");
         logging->info(get_key());

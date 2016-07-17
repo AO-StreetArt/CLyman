@@ -37,6 +37,7 @@ CouchbaseAdmin *cb;
 xRedisAdmin *xRedis;
 ConfigurationManager *cm;
 uuidAdmin *ua;
+Zmqo *zmqo;
 void cr_obj_global(Obj3 *new_obj);
 void upd_obj_global(Obj3 *temp_obj);
 void get_obj_global(std::string rk_str);

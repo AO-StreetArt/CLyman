@@ -21,7 +21,7 @@
 #include "configuration_manager.h"
 
 #include <aossl/logging.h>
-#include <aossl/zmqo.h>
+#include <aossl/zmqio.h>
 #include "globals.h"
 
 //-----------------------
