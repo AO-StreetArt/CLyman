@@ -1,4 +1,5 @@
 *.o
+*.a
 event_test
 obj_test
 test_client
