@@ -7,6 +7,8 @@
 
 #define PI 3.14159265358979323846
 
+using namespace rapidjson;
+
 Obj3::Obj3(protoObj3::Obj3 buffer)
 {
 	logging->debug("Build Proto-Object Called");
@@ -592,13 +594,13 @@ void Obj3::apply_transforms()
 	initialize_buffers();
 }
 
-std::string Obj3::to_json() const
+std::string Obj3::to_json()
 {
         logging->info("Obj3:To JSON Called on object");
         logging->info(get_key());
         //Initialize the string buffer and writer
-        rapidjson::StringBuffer s;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
 
         //Start writing the object
         //Syntax taken directly from
@@ -607,7 +609,6 @@ std::string Obj3::to_json() const
         writer.StartObject();
 
         writer.Key("key");
-        std::string key = get_key();
         writer.String( key.c_str(), (SizeType)key.length() );
 
 	writer.Key("owner");
@@ -683,10 +684,10 @@ std::string Obj3::to_json() const
 std::string Obj3::to_json_msg(int msg_type) const
 {
         logging->info("Obj3:To JSON message Called on object");
-        logging->info(get_key());
+        logging->info(key);
         //Initialize the string buffer and writer
-        rapidjson::StringBuffer s;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
 
         //Start writing the object
         //Syntax taken directly from
@@ -698,7 +699,6 @@ std::string Obj3::to_json_msg(int msg_type) const
         writer.Uint(msg_type);
 
         writer.Key("key");
-        std::string key = get_key();
         writer.String( key.c_str(), (SizeType)key.length() );
 
 	writer.Key("owner");

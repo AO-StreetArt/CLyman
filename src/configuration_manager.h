@@ -5,7 +5,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <stdlib.h>
-#include "logging.h"
+#include <aossl/logging.h>
 
 #ifndef CONFIG_MANAGER
 #define CONFIG_MANAGER

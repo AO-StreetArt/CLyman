@@ -135,19 +135,15 @@ Please find instructions to install and configure a Redis Server locally [here] 
 
 For Ubuntu 14.04 & Debian 7, the build_deps.sh script should allow for automatic resolution of dependencies.  However, links are still included below for those who wish to build on other Operating Systems.
 
-You will need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson), and the Google Protocol Buffer C++ API, which can be found [here](https://developers.google.com/protocol-buffers).  These can be installed on many linux systems with a variant of the below command:
+This library is built on top of the [AO Shared Service Library] (https://github.com/AO-StreetArt/AOSharedServiceLibrary).  This must be built and linked/included.
+
+You will need the Google Protocol Buffer C++ API, which can be found [here](https://developers.google.com/protocol-buffers).  These can be installed on many linux systems with a variant of the below command:
 
 `sudo apt-get install libprotobuf-dev protobuf-compiler`
 
 This service also depends on Eigen, a C++ Linear Algebra library.  This can be downloaded from the [Eigen] (http://eigen.tuxfamily.org/index.php?title=Main_Page) site.
 
-Next, you will need Zero MQ which can be found [here] (http://zeromq.org/intro:get-the-software). Be sure to get the [C++ Drivers] (https://github.com/zeromq/cppzmq) in addition to the software.
-
-For logging, we use log4cpp, which can be found [here] (http://log4cpp.sourceforge.net/)
-
-You will also need xRedis, which can be found [here] (https://github.com/0xsky/xredis)
-
-You will need Couchbase drivers installed.  Couchbase drivers can be found [here] (http://developer.couchbase.com/documentation/server/4.1/sdks/c-2.4/overview.html)
+You will need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson).
 
 ### Production
 The current recommended deployment for production is to build from source and scale manually.  However, rather than deploying a Couchbase Server & Redis Server locally beside CLyman, we should be connecting to a Couchbase Cluster & Redis Cluster on separate nodes.

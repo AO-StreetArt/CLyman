@@ -2,10 +2,10 @@
 
 #include <hayai/hayai.hpp>
 #include <iostream>
-#include "obj3.h"
+#include "../obj3.h"
 #include <string>
 #include <math.h>
-#include "logging.h"
+#include <aossl/logging.h>
 
 Obj3 *obj1;
 
@@ -134,7 +134,7 @@ int main()
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
 
-std::string initFileName = "log4cpp_test.properties";
+std::string initFileName = "src/test/log4cpp_test.properties";
 try {
         log4cpp::PropertyConfigurator::configure(initFileName);
 }

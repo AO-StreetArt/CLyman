@@ -12,10 +12,7 @@
 #include <uuid/uuid.h>
 #include <Eigen/Dense>
 
-#include "src/event_dispatcher.h"
 #include "src/obj3.h"
-#include "src/couchbase_admin.h"
-#include "src/xredis_admin.h"
 #include "src/lyman_utils.h"
 #include "src/document_manager.h"
 #include "src/configuration_manager.h"
@@ -25,7 +22,11 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "src/logging.h"
+#include "aossl/couchbase_admin.h"
+#include "aossl/xredis_admin.h"
+#include "aossl/uuid_admin.h"
+#include "aossl/logging.h"
+
 #include "src/globals.h"
 
 enum {
@@ -91,12 +92,14 @@ dm->update_objectpb(new_proto);
 int main()
 {
 
+  ua = new uuidAdmin;
+
   //Set up our configuration manager
-  cm = new ConfigurationManager ();
+  cm = new ConfigurationManager;
 
   //Set up logging
   //This reads the logging configuration file
-  std::string initFileName = "log4cpp_test.properties";
+  std::string initFileName = "src/test/log4cpp_test.properties";
   try {
     log4cpp::PropertyConfigurator::configure(initFileName);
   }
@@ -176,13 +179,13 @@ int main()
 
   //Set up the outbound ZMQ Client
   //zmq::socket_t zout(context, ZMQ_REQ);
-  zmqo = new zmq::socket_t (context, ZMQ_REQ);
+  zmqo = new Zmqo (context);
   logging->info("0MQ Constructor Called");
   zmqo->connect(cm->get_obconnstr());
   logging->info("Connected to Outbound OMQ Socket");
 
   //Set up the Document Manager
-  dm = new DocumentManager (cb, xRedis, cm);
+  dm = new DocumentManager (cb, xRedis, ua, cm, zmqo);
 
   //Create an object
   std::string name;

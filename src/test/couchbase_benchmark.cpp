@@ -1,7 +1,7 @@
 #include <hayai/hayai.hpp>
 #include <uuid/uuid.h>
-#include "couchbase_admin.h"
-#include "obj3.h"
+#include <aossl/couchbase_admin.h>
+#include "../obj3.h"
 #include <libcouchbase/couchbase.h>
 
 Obj3 *obj;
@@ -89,7 +89,7 @@ int main()
 
 //Application Setup
 
-std::string initFileName = "log4cpp_test.properties";
+std::string initFileName = "src/test/log4cpp_test.properties";
 try {
 	log4cpp::PropertyConfigurator::configure(initFileName);
 }

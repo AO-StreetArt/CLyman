@@ -8,16 +8,16 @@
 
 #include <string>
 #include <Eigen/Dense>
-#include "event_dispatcher.h"
+#include "lyman_utils.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include <iostream>
 #include <vector>
 #include "Obj3.pb.h"
-#inlcude "Writeable.h"
+#include <aossl/writeable.h>
 
-#include "logging.h"
+#include <aossl/logging.h>
 
 class Obj3: public Writeable
 {
@@ -169,7 +169,7 @@ class Obj3: public Writeable
 		bool add_scene(std::string scene_id){scene_list.push_back(scene_id);return true;}
 
 		//Remove a scene
-		bool clear_scenes(int index){scene_list.clear(); return true;}
+		bool clear_scenes(){scene_list.clear(); return true;}
 
 		//How many scenes are there?
 		int num_scenes() const {return scene_list.size();}
@@ -208,7 +208,7 @@ class Obj3: public Writeable
 		//Getters
                 std::string get_owner() const {return owner;}
 		std::string get_name() const {return name;}
-		std::string get_key() const {return key;}
+		std::string get_key() {return key;}
 		std::string get_type() const {return type;}
 		std::string get_subtype() const {return subtype;}
 		double get_locx() const {return location(0);}
@@ -264,7 +264,7 @@ class Obj3: public Writeable
 		std::string get_lock_id() const {return lock_owner;}
 
 		//Convert the object to JSON
-		std::string to_json() const;
+		std::string to_json();
 		//Convert the object to JSON Message
         std::string to_json_msg(int msg_type) const;
 

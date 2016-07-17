@@ -1,12 +1,12 @@
 //tests for the configuration manager
 
-#include "configuration_manager.h"
+#include "../configuration_manager.h"
 #include <assert.h>
 
 int main()
 {
 
-  std::string initFileName = "log4cpp_test.properties";
+  std::string initFileName = "src/test/log4cpp_test.properties";
   try {
   	log4cpp::PropertyConfigurator::configure(initFileName);
   }
@@ -26,7 +26,7 @@ int main()
 
   ConfigurationManager cm;
 
-  cm.configure("test.properties");
+  cm.configure("src/test/test.properties");
 
   //Basic Tests
 
