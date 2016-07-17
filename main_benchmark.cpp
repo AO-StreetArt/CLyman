@@ -25,8 +25,8 @@
 #include "aossl/couchbase_admin.h"
 #include "aossl/xredis_admin.h"
 #include "aossl/uuid_admin.h"
+#include "aossl/logging.h"
 
-#include "src/logging.h"
 #include "src/globals.h"
 
 enum {
