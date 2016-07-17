@@ -46,7 +46,7 @@ The properties file, lyman.properties can be edited in any text editor, and when
 
 The Logging Configuration File can also be edited with a text file, and the documentation for this can be found [here] (http://log4cpp.sourceforge.net/api/classlog4cpp_1_1PropertyConfigurator.html).
 
-Below you can find a summary of the options:
+Below you can find a summary of the options in the Properties File or Consul Key-Value Store:
 
 ### DB
 * DB_ConnectionString - The string used to connect to the couchbase instance (example: couchbase://localhost/default)
