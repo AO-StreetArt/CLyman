@@ -17,9 +17,7 @@ Features:
 * Configurable Update logic & message formatting
 * Scalable microservice design
 
-## Use & Configuration
-
-### Use
+### Architecture
 
 This is designed to be used as a microservice within a larger architecture.  This will take in CRUD messages for objects in 3 space, and track location, rotation, and scaling.  It will also ensure that any updates are sent out on a separate port to allow streaming to all user devices.
 
@@ -27,31 +25,42 @@ A .proto file is included to allow generating the bindings for any language (the
 
 In addition, [0-Meter] (https://github.com/AO-StreetArt/0-Meter) has been developed to allow easy testing of the module with JSON message formats.
 
-Please note that running CLyman requires an instance of both [Couchbase DB Server 4.1] (http://www.couchbase.com/) and [Redis 3.2.0] (http://redis.io/) to connect to in order to run.  Full support for clustering of Couchbase, Redis, and CLyman itself are/will be supported.
+Please note that running CLyman requires an instance of both [Couchbase DB Server 4.1] (http://www.couchbase.com/) and [Redis 3.2.0] (http://redis.io/) to connect to in order to run.  Clustering of both Couchbase & Redis are supported.
 
-The main service can be started with:
+CLyman can also be deployed with [Consul] (https://www.consul.io/) as a Service Discovery and Distributed Configuration architecture.  This requires the [Consul Agent] (https://www.consul.io/downloads.html) to be deployed that CLyman can connect to.
 
-`./lyman`
+See 'How to use CLyman' section for recommended deployment options.
 
-The properties file, lyman.properties can be edited in any text editor.  The Logging Configuration File can be edited similarly, and the documentation for this can be found [here] (http://log4cpp.sourceforge.net/api/classlog4cpp_1_1PropertyConfigurator.html).
+## Configuration
+
+CLyman can be configured via a properties file, or via a Consul Connection, and has a few command line options:
+
+* `./lyman -dev` - This will start CLyman in dev mode
+* `./lyman` - This will start CLyman with the default properties file, lyman.properties
+* `./lyman -config-file=file.properties` - This will start CLyman with the properties file, file.properties.  Can be combined with -log-conf.
+* `./lyman -log-conf=logging.properties` - This will start CLyman with the logging properties file, logging.properties.  Can be combined with -config-file.
+* `./lyman -consul-addr=localhost:8500 -ip=localhost -port=5555` - Start Clyman, register as a service with consul, and configure based on configuration values in Consul, and bind to an internal 0MQ port on localhost
+* `./lyman -consul-addr=localhost:8500 -ip=tcp://my.ip -port=5555` - Start Clyman, register as a service with consul, and configure based on configuration values in Consul, and bind to an external 0MQ port on tcp://my.ip
+
+The properties file, lyman.properties can be edited in any text editor, and when configuring from Consul the keys of the properties file are equal to the expected keys in Consul.
+
+The Logging Configuration File can also be edited with a text file, and the documentation for this can be found [here] (http://log4cpp.sourceforge.net/api/classlog4cpp_1_1PropertyConfigurator.html).
 
 Below you can find a summary of the options:
 
-### Configuration
-
-#### DB
+### DB
 * DB_ConnectionString - The string used to connect to the couchbase instance (example: couchbase://localhost/default)
 * DB_AuthenticationActive - True or False, whether or not Database Authentication is active on the couchbase server
 * DB_Password - If DB Authentication is active, then this is used as the password to connect to the couchbase instance
 
-#### 0MQ
+### 0MQ
 * 0MQ_OutboundConnectionString - The connectivity string for the outbound 0MQ Port
 * 0MQ_InboundConnectionString - The connectivity string for the inbound 0MQ Port
 
-#### Redis Connection
+### Redis Connection
 * RedisConnectionString - We have a list of Redis Connections in our cluster in the format "ip--port--password--poolsize--timeout--role"
 
-#### Behavior
+### Behavior
 * SmartUpdatesActive - True if we want to allow partial messages, and only update fields included in the partial messages.  False if we want to enforce full replace update messages.
 * MessageFormat - json to take in and read out JSON Format, protocol-buffer to take in and read out Google Protocol Buffer Format
 * RedisBufferFormat - json to read and write JSON format to the Redis Buffer, protocol-buffer to read and write Protocol Buffers to the Redis Buffer
@@ -119,7 +128,7 @@ You will be asked once for your sudo password.
 
 This will result in creation of the lyman executable, which we can run with the below command:
 
-`./lyman`
+`./lyman -dev`
 
 You may also build the test modules with:
 
@@ -129,7 +138,20 @@ You will need to have an instance of Couchbase Server & Redis Server up and runn
 
 Please find instructions to install and configure a Couchbase Server locally [here] (http://www.couchbase.com/get-started-developing-nosql#)
 
-Please find instructions to install and configure a Redis Server locally [here] (http://redis.io/documentation)
+Starting CLyman with the dev flag binds on the below connections:
+* Couchbase - couchbase://localhost/default (no password)
+* Outbund 0MQ Connection - tcp://localhost:5556
+* Inbound 0MQ Connection - tcp://*:5555
+
+In order to run CLyman from a properties file, you will need:
+
+* To install and configure a Redis Server locally, instructions can be found [here] (http://redis.io/documentation)
+
+* Finally, you should have a Consul Agent installed, please find instructions [here] (https://www.consul.io/docs/index.html)
+
+`./lyman`
+
+Will run the program and look for the default file, lyman.properties.  See the configuration section for more details.
 
 ##### Dependency Resolution
 

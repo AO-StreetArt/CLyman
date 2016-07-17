@@ -98,8 +98,17 @@ void my_signal_handler(int s){
       cli = new CommandLineInterpreter ( argc, argv );
 
       //Set up logging
+
+      //See if we have a command line setting for the log file
+      if ( cli.opt_exist("-log-conf") ) {
+        std::string initFileName = cli.get_opt("-log-conf");
+      }
+      else
+      {
+        std::string initFileName = "log4cpp.properties";
+      }
+
       //This reads the logging configuration file
-      std::string initFileName = "log4cpp.properties";
       try {
         log4cpp::PropertyConfigurator::configure(initFileName);
       }

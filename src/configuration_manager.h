@@ -64,7 +64,7 @@ void configure_from_consul (std::string consul_path, std::string ip, std::string
 public:
   //Constructor
   //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
-  ConfigurationManager() {DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false; MessageFormatJSON=true; MessageFormatProtoBuf=false; SUB_Duration=1;}
+  ConfigurationManager() {DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false; MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false; RedisFormatProtoBuf=false; SUB_Duration=1;}
   ~ConfigurationManager() {if (ca) {ca->deregister_service(s); delete s; delete ca;}}
 
   //Populate the configuration variables
