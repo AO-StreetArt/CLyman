@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 
     //-------------------------------PUT--------------------------------------//
 
-    success = ha.put(PUTURL, 5);
+    success = ha.put(PUTURL, "",5);
     if (!success)
     {
       //We now have the full response

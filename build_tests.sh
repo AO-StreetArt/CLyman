@@ -37,12 +37,12 @@ then
     #We can build the couchbase tests:
 
     g++ -g -c -o src/couchbase_test.o src/test/couchbase_test.cpp -std=c++11
-    g++ -g -o cb_test src/Obj3.pb.cc src/event_dispatcher.o src/couchbase_test.o src/obj3.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o cb_test src/Obj3.pb.cc src/globals.o src/couchbase_test.o src/obj3.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
     #And the couchbase benchmark
     g++ -g -c -o src/couchbase_benchmark.o src/test/couchbase_benchmark.cpp -std=c++11
-    g++ -g -o couchbase_benchmark src/Obj3.pb.cc src/event_dispatcher.o src/couchbase_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o couchbase_benchmark src/Obj3.pb.cc src/globals.o src/couchbase_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
     #Finally, the Redis tests:
@@ -91,12 +91,12 @@ else
   #We can build the couchbase tests:
 
   g++ -c -o src/couchbase_test.o src/test/couchbase_test.cpp -std=c++11
-  g++ -o cb_test src/Obj3.pb.cc src/event_dispatcher.o src/couchbase_test.o src/obj3.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o cb_test src/Obj3.pb.cc src/globals.o src/couchbase_test.o src/obj3.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
   #And the couchbase benchmark
   g++ -c -o src/couchbase_benchmark.o src/test/couchbase_benchmark.cpp -std=c++11
-  g++ -o couchbase_benchmark src/Obj3.pb.cc src/event_dispatcher.o src/couchbase_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o couchbase_benchmark src/Obj3.pb.cc src/globals.o src/couchbase_benchmark.o  -L. -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
 
   #Finally, the Redis tests:
