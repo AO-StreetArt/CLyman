@@ -38,7 +38,7 @@ then
 
     #Finally, we compile the main app with:
 
-    g++ -g -o lyman src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+    g++ -g -o lyman src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o -L. -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
     echo "Debugger Lines Set"
 
@@ -73,7 +73,7 @@ else
 
   #Finally, we compile the main app with:
 
-  g++ -o lyman src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
+  g++ -o lyman src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o -L. -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -laossl `pkg-config --cflags --libs protobuf hiredis` -std=c++11
 
   echo "Project Built"
 
