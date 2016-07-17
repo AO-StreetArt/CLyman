@@ -171,11 +171,3 @@ You will need RapidJSON which can be found [here] (https://github.com/miloyip/ra
 The current recommended deployment for production is to build from source and scale manually.  However, rather than deploying a Couchbase Server & Redis Server locally beside CLyman, we should be connecting to a Couchbase Cluster & Redis Cluster on separate nodes.
 
 Based on testing & evaluation, recommended deployment may change to go through Docker Images currently in development.
-
-#TO-DO
-
-* Transaction ID's
-* Zookeeper (Configuration & Service Discovery)
-* PROD Docker Image
-* Load Balancer
-* Multi-Threading
