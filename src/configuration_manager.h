@@ -53,22 +53,41 @@ bool RedisFormatProtoBuf;
 int SUB_Duration;
 std::vector<RedisConnChain> RedisConnectionList;
 
+//String Manipulations
+
+//Base64 Decoding, for responses from the Key-Value store in Consul
+static const std::string base64_chars =
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
+
+
+static bool is_base64(unsigned char c) {
+  return (isalnum(c) || (c == '+') || (c == '/'));
+}
+std::string base64_decode(std::string const& s);
+
+//Split a string, based on python's split method
+std::vector<std::string> split(std::string inp_string, char delim);
+
 //Internal Configuration Methods
+
+//File Config
 bool file_exists (std::string name);
 void configure_from_file (std::string file_path);
-std::string base64_decode(std::string const& s);
-std::vector<std::string> split(std::string inp_string, char delim);
+
+//Consul Config
 std::string get_consul_config_value(std::string key);
-void configure_from_consul (std::string consul_path, std::string ip, std::string port);
+void configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua);
 
 public:
   //Constructor
   //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
   ConfigurationManager() {DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false; MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false; RedisFormatProtoBuf=false; SUB_Duration=1;}
-  ~ConfigurationManager() {if (ca) {ca->deregister_service(s); delete s; delete ca;}}
+  ~ConfigurationManager() {if (ca) {ca->deregister_service(*s); delete s; delete ca;}}
 
   //Populate the configuration variables
-  bool configure(CommandLineInterpreter *cli);
+  bool configure(CommandLineInterpreter *cli, uuidAdmin *ua);
 
   //Get configuration values
   std::string get_dbconnstr() {return DB_ConnStr;}

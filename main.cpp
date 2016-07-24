@@ -134,7 +134,7 @@ void my_signal_handler(int s){
       bool config_success = cm->configure( cli, ua );
       if (!config_success)
       {
-        logging->error("Configuration Failed, defaults kept")
+        logging->error("Configuration Failed, defaults kept");
       }
 
       //Set up internal variables

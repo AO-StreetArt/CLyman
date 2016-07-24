@@ -176,7 +176,11 @@ return true;
 
 //---------------------------Configure from Consul----------------------------//
 
-std::string base64_decode(std::string const& encoded_string) {
+static bool ConfigurationManager::is_base64(unsigned char c) {
+  return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+std::string ConfigurationManager::base64_decode(std::string const& encoded_string) {
   int in_len = encoded_string.size();
   int i = 0;
   int j = 0;
