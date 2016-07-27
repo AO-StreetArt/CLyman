@@ -56,11 +56,6 @@ std::vector<RedisConnChain> RedisConnectionList;
 //String Manipulations
 
 //Base64 Decoding, for responses from the Key-Value store in Consul
-static const std::string base64_chars =
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             "0123456789+/";
-
 
 static bool is_base64(unsigned char c) {
   return (isalnum(c) || (c == '+') || (c == '/'));
@@ -74,11 +69,11 @@ std::vector<std::string> split(std::string inp_string, char delim);
 
 //File Config
 bool file_exists (std::string name);
-void configure_from_file (std::string file_path);
+bool configure_from_file (std::string file_path);
 
 //Consul Config
 std::string get_consul_config_value(std::string key);
-void configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua);
+bool configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua);
 
 public:
   //Constructor

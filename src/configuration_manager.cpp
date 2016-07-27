@@ -420,31 +420,33 @@ bool ConfigurationManager::configure (CommandLineInterpreter *cli, uuidAdmin *ua
   if (!cli)
   {
     logging->error("CONFIGURE: Configure called with null pointer to Command Line Interpreter");
-    return false
+    return false;
   }
   else {
 
     //Check if we have a configuration file specified
-    if ( cli.opt_exist("-config-file") ) {
-      return configure_from_file( cli.get_opt("-config-file") );
+    if ( cli->opt_exist("-config-file") ) {
+      return configure_from_file( cli->get_opt("-config-file") );
     }
 
     //Check if we have a consul address specified
-    else if ( cli.opt_exist("-consul-addr") && cli.opt_exist("-ip") && cli.opt_exists("-port"))
+    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exists("-port"))
     {
-      return configure_from_consul( cli.get_opt("-consul-addr"), cli.get_opt("-ip"), cli.get_opt("-port"), ua );
+      return configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
     }
 
     //Check for the dev flag, which starts up with default ports and no consul connection
-    else if ( cli.opt_exist("-dev") ) {
+    else if ( cli->opt_exist("-dev") ) {
       return true;
     }
 
     //If we have nothing specified, look for a lyman.properties file
     else
     {
-      return file_success = configure_from_file( "lyman.properties" );
-    }
+	  bool file_success;
+      file_success = configure_from_file( "lyman.properties" );
+      return file_success;
+	}
 
   }
 }
