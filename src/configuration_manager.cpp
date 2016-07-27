@@ -181,6 +181,12 @@ static bool ConfigurationManager::is_base64(unsigned char c) {
 }
 
 std::string ConfigurationManager::base64_decode(std::string const& encoded_string) {
+
+  static const std::string base64_chars =
+               "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+               "abcdefghijklmnopqrstuvwxyz"
+               "0123456789+/";
+
   int in_len = encoded_string.size();
   int i = 0;
   int j = 0;
@@ -271,11 +277,13 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   if (!ca)
   {
     ca = new ConsulAdmin ( consul_path );
-    logging->info ("CONFIGURE: Connecting to Consul")
+    logging->info ("CONFIGURE: Connecting to Consul");
     logging->info (consul_path);
   }
 
   //Now, use the Consul Admin to configure the app
+
+  std::string internal_address;
 
   //Step 1b: Generate new connectivity information for the inbound service from command line arguments
   if (ip == "localhost"){
@@ -295,7 +303,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   s = new Service (id, name, internal_address, port);
 
   //Register the service
-  ca->register_service(clyman);
+  ca->register_service(s);
 
   //Step 2: Get the key-value information for deployment-wide config (Including OB ZeroMQ Connectivity)
   DB_ConnStr=get_consul_config_value("DB_ConnectionString");
@@ -339,9 +347,9 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   //Read from a set of global config values in consul
   //This value is stored the same way as in a properties file, but is stored in
   //one key and are delimited by the character ';'
-  std::string redis_format_str = get_consul_config_value("RedisConnectionString");
-  char delim (';')
-  std::vector<std::string> redis_chains = split( redis_format_str,  delim);
+  std::string redis_conn_str = get_consul_config_value("RedisConnectionString");
+  char delim (';');
+  std::vector<std::string> redis_chains = split( redis_conn_str,  delim);
 
   for (int i = 0; i < redis_chains.size(); i++)
 	{
@@ -430,7 +438,7 @@ bool ConfigurationManager::configure (CommandLineInterpreter *cli, uuidAdmin *ua
     }
 
     //Check if we have a consul address specified
-    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exists("-port"))
+    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port"))
     {
       return configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
     }
