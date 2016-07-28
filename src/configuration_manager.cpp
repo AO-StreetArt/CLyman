@@ -301,6 +301,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   std::string id = "CLyman-" + ua->generate();
   std::string name = "CLyman";
   s = new Service (id, name, internal_address, port);
+  s->add_tag("ZMQ");
 
   //Register the service
   ca->register_service(*s);
