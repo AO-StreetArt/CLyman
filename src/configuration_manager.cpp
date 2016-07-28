@@ -176,10 +176,6 @@ return true;
 
 //---------------------------Configure from Consul----------------------------//
 
-bool ConfigurationManager::is_base64(unsigned char c) {
-  return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
 std::string ConfigurationManager::base64_decode(std::string const& encoded_string) {
 
   static const std::string base64_chars =
@@ -352,6 +348,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   std::string redis_conn_str = get_consul_config_value("RedisConnectionString");
   char delim (';');
   std::vector<std::string> redis_chains = split( redis_conn_str,  delim);
+  std::string var_value;
 
   for (int i = 0; i < redis_chains.size(); i++)
 	{
