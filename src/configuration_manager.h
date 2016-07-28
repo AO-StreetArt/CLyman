@@ -68,7 +68,7 @@ std::vector<std::string> split(std::string inp_string, char delim);
 //Internal Configuration Methods
 
 //File Config
-bool file_exists (std::string name);
+//bool file_exists (std::string name);
 bool configure_from_file (std::string file_path);
 
 //Consul Config

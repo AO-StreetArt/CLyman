@@ -5,11 +5,11 @@
 //----------------------------Configure from File-----------------------------//
 
 //Does a file exist?
-bool file_exists( std::string name )
-{
-  struct stat buffer;
-  return (stat (name.c_str(), &buffer) == 0);
-}
+//bool file_exists( std::string name )
+//{
+  //struct stat buffer;
+  //return (stat (name.c_str(), &buffer) == 0);
+//}
 
 //Configure based on a properties file
 bool ConfigurationManager::configure_from_file (std::string file_path)
@@ -20,7 +20,9 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   logging->info(file_path);
   std::string line;
 
-  if ( file_exists( file_path ) ) {
+  struct stat buffer;
+  if (stat (file_path.c_str(), &buffer) == 0) {
+  //if ( file_exists( file_path ) ) {
 
   std::ifstream file (file_path);
 
