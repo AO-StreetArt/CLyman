@@ -176,7 +176,7 @@ return true;
 
 //---------------------------Configure from Consul----------------------------//
 
-static bool ConfigurationManager::is_base64(unsigned char c) {
+bool ConfigurationManager::is_base64(unsigned char c) {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
@@ -260,10 +260,12 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
   //Get the object out of the array
   const rapidjson::Value& v = d[0];
 
+  std::string resp_str;
+
   if (v.IsObject())
   {
     const rapidjson::Value& resp = v["Value"];
-    std::string resp_str = resp.GetString();
+    resp_str = resp.GetString();
   }
 
   //Transform the object from base64
@@ -303,7 +305,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   s = new Service (id, name, internal_address, port);
 
   //Register the service
-  ca->register_service(s);
+  ca->register_service(*s);
 
   //Step 2: Get the key-value information for deployment-wide config (Including OB ZeroMQ Connectivity)
   DB_ConnStr=get_consul_config_value("DB_ConnectionString");
