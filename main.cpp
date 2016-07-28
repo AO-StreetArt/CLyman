@@ -77,7 +77,7 @@ void my_signal_handler(int s){
     //------Main Method------
     //-----------------------
 
-    int main( int argc, char* argv )
+    int main( int argc, char** argv )
     {
 
       //Set up a handler for any signal events so that we always shutdown gracefully
