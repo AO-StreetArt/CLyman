@@ -73,11 +73,11 @@ cd $PRE/aossl_deps && sudo ./build_deps.sh
 cd $PRE/aossl && ./build_project.sh
 
 #Now we have a few things:
-#1. A compiled shared library libaossl.a.x.y that needs to be put on the linker path
+#1. A compiled shared library libaossl.a that needs to be put on the linker path
 #2. A set of header files in the lib/include directory that need to be put onto the include path
 
 #Shared Library
-sudo cp $PRE/aossl/libaossl.a.* /usr/local/bin
+sudo cp $PRE/aossl/libaossl.a /usr/local/lib
 
 #Header Files
 sudo mkdir /usr/local/include/aossl

@@ -39,6 +39,7 @@
 #include <aossl/xredis_admin.h>
 #include <aossl/logging.h>
 #include <aossl/uuid_admin.h>
+#include <aossl/cli.h>
 
 enum {
   CACHE_TYPE_1,
@@ -56,6 +57,7 @@ void shutdown()
   delete zmqo;
   delete cm;
   delete ua;
+  delete cli;
 
   //Shut down libraries
   google::protobuf::ShutdownProtobufLibrary();
@@ -75,7 +77,7 @@ void my_signal_handler(int s){
     //------Main Method------
     //-----------------------
 
-    int main()
+    int main( int argc, char** argv )
     {
 
       //Set up a handler for any signal events so that we always shutdown gracefully
@@ -92,9 +94,22 @@ void my_signal_handler(int s){
       //Set up our configuration manager
       cm = new ConfigurationManager;
 
+      //Set up our command line interpreter
+      cli = new CommandLineInterpreter ( argc, argv );
+
       //Set up logging
+	  std::string initFileName;
+
+      //See if we have a command line setting for the log file
+      if ( cli->opt_exist("-log-conf") ) {
+        initFileName = cli->get_opt("-log-conf");
+      }
+      else
+      {
+        initFileName = "log4cpp.properties";
+      }
+
       //This reads the logging configuration file
-      std::string initFileName = "log4cpp.properties";
       try {
         log4cpp::PropertyConfigurator::configure(initFileName);
       }
@@ -112,9 +127,16 @@ void my_signal_handler(int s){
 
       logging = &log;
 
-      //Read the application configuration file
+      //Here we pass the command line interpreter into the configuration manager
+      //The configuration manager will then look at any command line arguments,
+      //configuration files, and Consul connections to try and determine the correct
+      //configuration for the service
 
-      cm->configure("lyman.properties");
+      bool config_success = cm->configure( cli, ua );
+      if (!config_success)
+      {
+        logging->error("Configuration Failed, defaults kept");
+      }
 
       //Set up internal variables
       int current_event_type;

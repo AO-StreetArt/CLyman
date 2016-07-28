@@ -17,6 +17,9 @@ xRedisAdmin *xRedis;
 //Document Manager, highest level object
 DocumentManager *dm;
 
+//Command Line interpreter
+CommandLineInterpreter *cli;
+
 //ZMQ Admins
 Zmqo *zmqo;
 Zmqi *zmqi;

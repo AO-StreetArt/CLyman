@@ -20,5 +20,6 @@ extern DocumentManager *dm;
 extern uuidAdmin *ua;
 extern Zmqo *zmqo;
 extern Zmqi *zmqi;
+extern CommandLineInterpreter *cli;
 
 #endif
