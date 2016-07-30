@@ -290,9 +290,7 @@ void my_signal_handler(int s){
           return 0;
         }
         else if (msg_type == PING) {
-          resp = "success";
-          zmqi->send_str(resp);
-          return 0;
+          current_event_type=PING;
         }
         else {
           current_event_type=-1;
@@ -369,6 +367,10 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             dm->delete_objectpb(new_proto);
           }
+        }
+        else if (current_event_type == PING) {
+          resp = "success";
+          zmqi->send_str(resp);
         }
         else
         {
