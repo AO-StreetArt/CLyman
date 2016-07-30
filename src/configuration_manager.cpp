@@ -244,7 +244,6 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 
   //Parse the JSON Response
   rapidjson::Document d;
-  rapidjson::Value *s;
 
   try {
     d.Parse(config_cstr);

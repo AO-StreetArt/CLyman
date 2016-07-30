@@ -142,7 +142,7 @@ void my_signal_handler(int s){
       int current_event_type;
       int msg_type;
       rapidjson::Document d;
-      rapidjson::Value *s;
+      rapidjson::Value *val;
       std::string resp = "nilresp";
       logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
@@ -239,8 +239,8 @@ void my_signal_handler(int s){
           }
           //Find the message type
           if (go_ahead) {
-            s = &d["message_type"];
-            msg_type = s->GetInt();
+            val = &d["message_type"];
+            msg_type = val->GetInt();
           }
         }
 
