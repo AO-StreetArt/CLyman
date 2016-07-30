@@ -33,7 +33,7 @@ int main( int argc, char** argv )
   //Set up our command line interpreter
   CommandLineInterpreter cli ( argc, argv );
 
-  cm.configure( cli, ua );
+  cm.configure( &cli, &ua );
 
   //Basic Tests
 
