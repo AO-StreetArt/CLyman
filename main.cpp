@@ -292,6 +292,7 @@ void my_signal_handler(int s){
         else if (msg_type == PING) {
           resp = "success";
           zmqi->send_str(resp);
+          return 0;
         }
         else {
           current_event_type=-1;
