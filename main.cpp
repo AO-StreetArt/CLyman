@@ -279,7 +279,7 @@ void my_signal_handler(int s){
           logging->debug("Current Event Type set to Object Delete");
         }
         //Shutdown Message
-        else if (msg_type == 999) {
+        else if (msg_type == KILL) {
 
           //Send a success response
           resp = "success";
@@ -288,6 +288,10 @@ void my_signal_handler(int s){
           shutdown();
 
           return 0;
+        }
+        else if (msg_type == PING) {
+          resp = "success";
+          zmqi->send_str(resp);
         }
         else {
           current_event_type=-1;

@@ -1,5 +1,8 @@
-//This implements the Configuration Manager, which parses a configuration file
-//and stores the results for use later
+//This implements the Configuration Manager
+
+//This takes in a Command Line Interpreter, and based on the options provided,
+//decides how the application needs to be configured.  It may configure either
+//from a configuration file, or from a Consul agent
 
 #include <string>
 #include <fstream>

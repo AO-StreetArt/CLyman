@@ -7,3 +7,5 @@ const int OBJ_CRT = 1;
 const int OBJ_GET = 2;
 const int OBJ_DEL = 3;
 const int OBJ_PUSH = 4;
+const int KILL = 999;
+const int PING = 555;
