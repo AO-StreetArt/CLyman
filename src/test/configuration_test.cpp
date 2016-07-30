@@ -1,9 +1,10 @@
 //tests for the configuration manager
+//src/test/test.properties
 
 #include "../configuration_manager.h"
 #include <assert.h>
 
-int main()
+int main( int argc, char** argv )
 {
 
   std::string initFileName = "src/test/log4cpp_test.properties";
@@ -26,7 +27,13 @@ int main()
 
   ConfigurationManager cm;
 
-  cm.configure("src/test/test.properties");
+  //Set up the UUID Generator
+  uuidAdmin ua;
+
+  //Set up our command line interpreter
+  CommandLineInterpreter cli ( argc, argv );
+
+  cm.configure( cli, ua );
 
   //Basic Tests
 
