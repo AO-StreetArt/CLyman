@@ -304,7 +304,12 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   s->add_tag("ZMQ");
 
   //Register the service
-  ca->register_service(*s);
+  bool register_success = ca->register_service(*s);
+
+  if (!register_success) {
+    logging->error("Failed to register with Consul");
+    return false;
+  }
 
   //Step 2: Get the key-value information for deployment-wide config (Including OB ZeroMQ Connectivity)
   DB_ConnStr=get_consul_config_value("DB_ConnectionString");
@@ -419,6 +424,8 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
     RedisConnectionList.push_back(chain);
   }
+
+  return true;
 }
 
 //----------------------External Configuration Methods------------------------//
