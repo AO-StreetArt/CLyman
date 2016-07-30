@@ -272,13 +272,10 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 //Configure based on the Services List and Key/Value store from Consul
 bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua)
 {
-  //Check if we already have a consul admin, if not initialize one with the given consul path
-  if (!ca)
-  {
-    ca = new ConsulAdmin ( consul_path );
-    logging->info ("CONFIGURE: Connecting to Consul");
-    logging->info (consul_path);
-  }
+
+  ca = new ConsulAdmin ( consul_path );
+  logging->info ("CONFIGURE: Connecting to Consul");
+  logging->info (consul_path);
 
   //Now, use the Consul Admin to configure the app
 
