@@ -253,16 +253,16 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
       logging->debug(config_json);
       d.Parse(config_cstr);
     }
+    //Catch a possible error and write to logs
+    catch (std::exception& e) {
+      logging->error("Exception occurred while parsing Consul Service Response:");
+      logging->error(e.what());
+    }
   }
   else {
     logging->error("Configuration Value not found");
     logging->error(key);
     return resp_str;
-  }
-  //Catch a possible error and write to logs
-  catch (std::exception& e) {
-    logging->error("Exception occurred while parsing Consul Service Response:");
-    logging->error(e.what());
   }
 
   //Get the object out of the array
