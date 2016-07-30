@@ -238,17 +238,26 @@ return elems;
 
 std::string ConfigurationManager::get_consul_config_value(std::string key)
 {
+  std::string resp_str;
   //Get a JSON List of the responses
   std::string config_json = ca->get_config_value(key);
-  logging->debug("Config Value retrieved from Consul:");
-  logging->debug(config_json);
   const char * config_cstr = config_json.c_str();
 
   //Parse the JSON Response
   rapidjson::Document d;
 
-  try {
-    d.Parse(config_cstr);
+  if (!config_json.empty()) {
+    try {
+      logging->debug("Config Value retrieved from Consul:");
+      logging->debug(key);
+      logging->debug(config_json);
+      d.Parse(config_cstr);
+    }
+  }
+  else {
+    logging->error("Configuration Value not found");
+    logging->error(key);
+    return resp_str;
   }
   //Catch a possible error and write to logs
   catch (std::exception& e) {
@@ -258,8 +267,6 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 
   //Get the object out of the array
   const rapidjson::Value& v = d[0];
-
-  std::string resp_str;
 
   if (v.IsObject())
   {
