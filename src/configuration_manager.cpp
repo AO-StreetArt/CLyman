@@ -240,6 +240,8 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 {
   //Get a JSON List of the responses
   std::string config_json = ca->get_config_value(key);
+  logging->debug("Config Value retrieved from Consul:");
+  logging->debug(config_json);
   const char * config_cstr = config_json.c_str();
 
   //Parse the JSON Response
