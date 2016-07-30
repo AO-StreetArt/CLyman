@@ -44,7 +44,7 @@ int main( int argc, char** argv )
   //Basic Tests
 
   assert ( cm.get_dbconnstr() == "couchbase://localhost/default" );
-  assert ( cm.get_dbauthactive() == false );
+  assert ( cm.get_dbauthactive() == true );
   assert ( cm.get_dbpswd() == "default" );
   assert ( cm.get_obconnstr() == "tcp://localhost:5556" );
   assert ( cm.get_ibconnstr() == "tcp://*:5555" );
