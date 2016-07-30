@@ -25,6 +25,8 @@ int main( int argc, char** argv )
 
   logging = &log;
 
+  logging->debug("PreTest Setup");
+
   ConfigurationManager cm;
 
   //Set up the UUID Generator
@@ -33,7 +35,11 @@ int main( int argc, char** argv )
   //Set up our command line interpreter
   CommandLineInterpreter cli ( argc, argv );
 
+  logging->debug("Configure the app");
+
   cm.configure( &cli, &ua );
+
+  logging->debug("Checking Variable Retrieval");
 
   //Basic Tests
 
