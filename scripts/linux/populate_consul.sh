@@ -20,3 +20,6 @@ curl -X PUT -d 'protocol-buffer' http://localhost:8500/v1/kv/RedisBufferFormat
 
 curl -X PUT -d '240' http://localhost:8500/v1/kv/Smart_Update_Buffer_Duration
 
+curl -X PUT -d 'python scripts/CLyman_Heartbeat_Protobuf' http://localhost:8500/v1/kv/HealthCheckScript
+
+curl -X PUT -d '20' http://localhost:8500/v1/kv/HealthCheckInterval

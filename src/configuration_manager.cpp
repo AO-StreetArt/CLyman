@@ -304,7 +304,6 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Go get the heartbeat script from Consul
   HealthCheckScript = get_consul_config_value("HealthCheckScript");
-  HealthCheckInterval = std::stoi(get_consul_config_value("HealthCheckInterval"));
 
   //Build a new service definition for this currently running instance of clyman
   std::string id = "CLyman-" + ua->generate();
@@ -315,6 +314,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   //Add the check
   if (!HealthCheckScript.empty()) {
     s->set_check(HealthCheckScript + " " + OMQ_IBConnStr, HealthCheckInterval);
+    HealthCheckInterval = std::stoi(get_consul_config_value("HealthCheckInterval"));
   }
 
   //Register the service
@@ -327,7 +327,13 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Step 2: Get the key-value information for deployment-wide config (Including OB ZeroMQ Connectivity)
   DB_ConnStr=get_consul_config_value("DB_ConnectionString");
-  SUB_Duration=std::stoi(get_consul_config_value("Smart_Update_Buffer_Duration"));
+  std::string sub_dur_str = get_consul_config_value("Smart_Update_Buffer_Duration");
+  if (!sub_dur_str.empty()) {
+    SUB_Duration=std::stoi(sub_dur_str);
+  }
+  else {
+    logging->error("No Smart Update Buffer duration found");
+  }
   DB_Pswd = get_consul_config_value("DB_Password");
   DB_AuthActive=false;
   if (!DB_Pswd.empty()) {
