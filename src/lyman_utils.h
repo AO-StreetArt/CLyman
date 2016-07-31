@@ -15,6 +15,8 @@ extern const int OBJ_CRT;
 extern const int OBJ_GET;
 extern const int OBJ_DEL;
 extern const int OBJ_PUSH;
+extern const int KILL;
+extern const int PING;
 
 //Trims Strings
 inline std::string left_trim_string (std::string str) {

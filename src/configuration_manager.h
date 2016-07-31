@@ -1,5 +1,8 @@
-//This implements the Configuration Manager, which parses a configuration file
-//and stores the results for use later
+//This implements the Configuration Manager
+
+//This takes in a Command Line Interpreter, and based on the options provided,
+//decides how the application needs to be configured.  It may configure either
+//from a configuration file, or from a Consul agent
 
 #include <string>
 #include <fstream>
@@ -37,6 +40,14 @@ class ConfigurationManager
 {
 //Internal Consul Administrator
 ConsulAdmin *ca;
+
+//Command Line Interpreter holding config arguments
+CommandLineInterpreter *cli;
+
+//UUID Generator
+uuidAdmin *ua;
+
+//Consul Service Definition
 Service *s;
 
 //Configuration Variables
@@ -52,6 +63,8 @@ bool RedisFormatJSON;
 bool RedisFormatProtoBuf;
 int SUB_Duration;
 std::vector<RedisConnChain> RedisConnectionList;
+std::string HealthCheckScript;
+int HealthCheckInterval;
 
 //String Manipulations
 
@@ -78,11 +91,15 @@ bool configure_from_consul (std::string consul_path, std::string ip, std::string
 public:
   //Constructor
   //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
-  ConfigurationManager() {DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false; MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false; RedisFormatProtoBuf=false; SUB_Duration=1;}
+  ConfigurationManager(CommandLineInterpreter *c, uuidAdmin *u) {cli = c;ua = u;\
+    DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; \
+      OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
+        MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
+          RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;}
   ~ConfigurationManager() {if (ca) {ca->deregister_service(*s); delete s; delete ca;}}
 
   //Populate the configuration variables
-  bool configure(CommandLineInterpreter *cli, uuidAdmin *ua);
+  bool configure();
 
   //Get configuration values
   std::string get_dbconnstr() {return DB_ConnStr;}

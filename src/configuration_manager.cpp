@@ -238,27 +238,35 @@ return elems;
 
 std::string ConfigurationManager::get_consul_config_value(std::string key)
 {
+  std::string resp_str;
   //Get a JSON List of the responses
   std::string config_json = ca->get_config_value(key);
   const char * config_cstr = config_json.c_str();
 
   //Parse the JSON Response
   rapidjson::Document d;
-  rapidjson::Value *s;
 
-  try {
-    d.Parse(config_cstr);
+  if (!config_json.empty()) {
+    try {
+      logging->debug("Config Value retrieved from Consul:");
+      logging->debug(key);
+      logging->debug(config_json);
+      d.Parse(config_cstr);
+    }
+    //Catch a possible error and write to logs
+    catch (std::exception& e) {
+      logging->error("Exception occurred while parsing Consul Service Response:");
+      logging->error(e.what());
+    }
   }
-  //Catch a possible error and write to logs
-  catch (std::exception& e) {
-    logging->error("Exception occurred while parsing Consul Service Response:");
-    logging->error(e.what());
+  else {
+    logging->error("Configuration Value not found");
+    logging->error(key);
+    return resp_str;
   }
 
   //Get the object out of the array
   const rapidjson::Value& v = d[0];
-
-  std::string resp_str;
 
   if (v.IsObject())
   {
@@ -273,13 +281,10 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 //Configure based on the Services List and Key/Value store from Consul
 bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua)
 {
-  //Check if we already have a consul admin, if not initialize one with the given consul path
-  if (!ca)
-  {
-    ca = new ConsulAdmin ( consul_path );
-    logging->info ("CONFIGURE: Connecting to Consul");
-    logging->info (consul_path);
-  }
+
+  ca = new ConsulAdmin ( consul_path );
+  logging->info ("CONFIGURE: Connecting to Consul");
+  logging->info (consul_path);
 
   //Now, use the Consul Admin to configure the app
 
@@ -297,17 +302,38 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Step 1c: Register the Service with Consul
 
+  //Go get the heartbeat script from Consul
+  HealthCheckScript = get_consul_config_value("HealthCheckScript");
+
   //Build a new service definition for this currently running instance of clyman
   std::string id = "CLyman-" + ua->generate();
   std::string name = "CLyman";
   s = new Service (id, name, internal_address, port);
+  s->add_tag("ZMQ");
+
+  //Add the check
+  if (!HealthCheckScript.empty()) {
+    s->set_check(HealthCheckScript + " " + OMQ_IBConnStr, HealthCheckInterval);
+    HealthCheckInterval = std::stoi(get_consul_config_value("HealthCheckInterval"));
+  }
 
   //Register the service
-  ca->register_service(*s);
+  bool register_success = ca->register_service(*s);
+
+  if (!register_success) {
+    logging->error("Failed to register with Consul");
+    return false;
+  }
 
   //Step 2: Get the key-value information for deployment-wide config (Including OB ZeroMQ Connectivity)
   DB_ConnStr=get_consul_config_value("DB_ConnectionString");
-  SUB_Duration=std::stoi(get_consul_config_value("Smart_Update_Buffer_Duration"));
+  std::string sub_dur_str = get_consul_config_value("Smart_Update_Buffer_Duration");
+  if (!sub_dur_str.empty()) {
+    SUB_Duration=std::stoi(sub_dur_str);
+  }
+  else {
+    logging->error("No Smart Update Buffer duration found");
+  }
   DB_Pswd = get_consul_config_value("DB_Password");
   DB_AuthActive=false;
   if (!DB_Pswd.empty()) {
@@ -418,12 +444,14 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
     RedisConnectionList.push_back(chain);
   }
+
+  return true;
 }
 
 //----------------------External Configuration Methods------------------------//
 
 //The publicly exposed configure function that determines where configs need to come from
-bool ConfigurationManager::configure (CommandLineInterpreter *cli, uuidAdmin *ua)
+bool ConfigurationManager::configure ()
 {
   //Null Check
   if (!cli)

@@ -1,9 +1,10 @@
 //tests for the configuration manager
+//src/test/test.properties
 
 #include "../configuration_manager.h"
 #include <assert.h>
 
-int main()
+int main( int argc, char** argv )
 {
 
   std::string initFileName = "src/test/log4cpp_test.properties";
@@ -24,14 +25,26 @@ int main()
 
   logging = &log;
 
-  ConfigurationManager cm;
+  logging->debug("PreTest Setup");
 
-  cm.configure("src/test/test.properties");
+  //Set up the UUID Generator
+  uuidAdmin ua;
+
+  //Set up our command line interpreter
+  CommandLineInterpreter cli ( argc, argv );
+
+  ConfigurationManager cm( &cli, &ua );
+
+  logging->debug("Configure the app");
+
+  cm.configure();
+
+  logging->debug("Checking Variable Retrieval");
 
   //Basic Tests
 
   assert ( cm.get_dbconnstr() == "couchbase://localhost/default" );
-  assert ( cm.get_dbauthactive() == false );
+  assert ( cm.get_dbauthactive() == true );
   assert ( cm.get_dbpswd() == "default" );
   assert ( cm.get_obconnstr() == "tcp://localhost:5556" );
   assert ( cm.get_ibconnstr() == "tcp://*:5555" );

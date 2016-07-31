@@ -89,13 +89,16 @@ dm->update_objectpb(new_proto);
 //------Main Method------
 //-----------------------
 
-int main()
+int main( int argc, char** argv )
 {
 
   ua = new uuidAdmin;
 
+  //Set up our command line interpreter
+  cli = new CommandLineInterpreter ( argc, argv );
+
   //Set up our configuration manager
-  cm = new ConfigurationManager;
+  cm = new ConfigurationManager( cli, ua );
 
   //Set up logging
   //This reads the logging configuration file
@@ -119,7 +122,11 @@ int main()
 
   //Read the application configuration file
 
-  cm->configure("lyman.properties");
+  bool config_success = cm->configure();
+  if (!config_success)
+  {
+    logging->error("Configuration Failed, defaults kept");
+  }
 
   //Set up internal variables
   int current_event_type;

@@ -5,15 +5,16 @@ exec 1>build_project.log 2>&1
 
 opt=$1
 
+#We start by compiling the proto buffer class
+protoc -I=src --cpp_out=src src/Obj3.proto
+protoc -I=src --python_out=scripts src/Obj3.proto
+
 if [ -n "$opt" ]
 then
 
   if [ $opt == "g" ]
   then
-
-    #We start by compiling the proto buffer class
-    protoc -I=src --cpp_out=src src/Obj3.proto
-    #We then compile the configuration manager
+    #We compile the configuration manager
 
     g++ -g -c -o src/configuration_manager.o src/configuration_manager.cpp -std=c++11
 
@@ -46,8 +47,6 @@ then
 
 else
 
-  #We start by compiling the proto buffer class
-  protoc -I=src --cpp_out=src src/Obj3.proto
   #We then compile the configuration manager
 
   g++ -c -o src/configuration_manager.o src/configuration_manager.cpp -std=c++11

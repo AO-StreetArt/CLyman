@@ -91,14 +91,14 @@ void my_signal_handler(int s){
       //Set up the UUID Generator
       ua = new uuidAdmin;
 
-      //Set up our configuration manager
-      cm = new ConfigurationManager;
-
       //Set up our command line interpreter
       cli = new CommandLineInterpreter ( argc, argv );
 
+      //Set up our configuration manager with the CLI and UUID Generator
+      cm = new ConfigurationManager (cli, ua);
+
       //Set up logging
-	  std::string initFileName;
+	    std::string initFileName;
 
       //See if we have a command line setting for the log file
       if ( cli->opt_exist("-log-conf") ) {
@@ -132,7 +132,7 @@ void my_signal_handler(int s){
       //configuration files, and Consul connections to try and determine the correct
       //configuration for the service
 
-      bool config_success = cm->configure( cli, ua );
+      bool config_success = cm->configure();
       if (!config_success)
       {
         logging->error("Configuration Failed, defaults kept");
@@ -142,7 +142,7 @@ void my_signal_handler(int s){
       int current_event_type;
       int msg_type;
       rapidjson::Document d;
-      rapidjson::Value *s;
+      rapidjson::Value *val;
       std::string resp = "nilresp";
       logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
@@ -239,8 +239,8 @@ void my_signal_handler(int s){
           }
           //Find the message type
           if (go_ahead) {
-            s = &d["message_type"];
-            msg_type = s->GetInt();
+            val = &d["message_type"];
+            msg_type = val->GetInt();
           }
         }
 
@@ -279,7 +279,7 @@ void my_signal_handler(int s){
           logging->debug("Current Event Type set to Object Delete");
         }
         //Shutdown Message
-        else if (msg_type == 999) {
+        else if (msg_type == KILL) {
 
           //Send a success response
           resp = "success";
@@ -288,6 +288,9 @@ void my_signal_handler(int s){
           shutdown();
 
           return 0;
+        }
+        else if (msg_type == PING) {
+          current_event_type=PING;
         }
         else {
           current_event_type=-1;
@@ -364,6 +367,10 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             dm->delete_objectpb(new_proto);
           }
+        }
+        else if (current_event_type == PING) {
+          resp = "success";
+          zmqi->send_str(resp);
         }
         else
         {
