@@ -1,4 +1,4 @@
-#### Docker
+# Docker
 
 You will need to have an instance of Couchbase running to use CLyman, and this can be done via the below command (full instructions can be found [here] (https://docs.docker.com/engine/examples/couchbase/)):
 
@@ -20,7 +20,7 @@ SSH keys are provided with the repository.  In order to run the development imag
     ssh-add ssh/id_rsa
     ssh root@localhost -p `sudo docker port ssh 22 | cut -d":" -f2`
 
-##### Building the Docker Image
+## Building the Docker Image
 
 Should you so desire, the docker image can be rebuilt using the below commands
 
@@ -30,7 +30,7 @@ Should you so desire, the docker image can be rebuilt using the below commands
 
 `docker run --name clyman -it -d -P clyman_dev_2`
 
-#### Building from Source
+## Building from Source
 
 While using Docker is a much faster solution, it is sometimes necessary to build from source.
 
@@ -79,8 +79,10 @@ In order to run CLyman from a properties file, you will need:
 
 Will run the program and look for the default file, lyman.properties.  See the configuration section for more details.
 
-
 ### Production
 The current recommended deployment for production is to build from source and scale manually.  However, rather than deploying a Couchbase Server & Redis Server locally beside CLyman, we should be connecting to a Couchbase Cluster & Redis Cluster on separate nodes.
 
 Based on testing & evaluation, recommended deployment may change to go through Docker Images currently in development.
+
+# Next
+Now that you have deployed CLyman, and want to contribute back by developing, you can move on to the [Atchitecture] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/arch) section.

@@ -18,7 +18,12 @@ Features:
 * Scalable microservice design
 
 ## Table of Contents
-
+* [Quickstart] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/quickstart)
+* [Configuration] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/config)
+* [Architecture] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/arch)
+* [Deployment] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/deploy)
+* [Tests] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/tests)
+* [Dependencies] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/deps)
 
 ## Acknowledgements
 Much of the codebase for CLyman is built upon the works of others.  In this section I will try to give credit where credit is due:

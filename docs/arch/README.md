@@ -1,4 +1,4 @@
-## Architecture
+# Architecture
 
 This is designed to be used as a microservice within a larger architecture.  This will take in CRUD messages for objects in 3 space, and track location, rotation, and scaling.  It will also ensure that any updates are sent out on a separate port to allow streaming to all user devices.
 
@@ -10,4 +10,5 @@ Please note that running CLyman requires an instance of both [Couchbase DB Serve
 
 CLyman can also be deployed with [Consul] (https://www.consul.io/) as a Service Discovery and Distributed Configuration architecture.  This requires the [Consul Agent] (https://www.consul.io/downloads.html) to be deployed that CLyman can connect to.
 
-See 'How to use CLyman' section for recommended deployment options.
+# Next
+Now you can move on to the [Deployment] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/deploy) section.
