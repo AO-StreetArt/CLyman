@@ -27,17 +27,17 @@ int main( int argc, char** argv )
 
   logging->debug("PreTest Setup");
 
-  ConfigurationManager cm;
-
   //Set up the UUID Generator
   uuidAdmin ua;
 
   //Set up our command line interpreter
   CommandLineInterpreter cli ( argc, argv );
 
+  ConfigurationManager cm( &cli, &ua );
+
   logging->debug("Configure the app");
 
-  cm.configure( &cli, &ua );
+  cm.configure();
 
   logging->debug("Checking Variable Retrieval");
 

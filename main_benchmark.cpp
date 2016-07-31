@@ -94,11 +94,11 @@ int main( int argc, char** argv )
 
   ua = new uuidAdmin;
 
-  //Set up our configuration manager
-  cm = new ConfigurationManager;
-
   //Set up our command line interpreter
   cli = new CommandLineInterpreter ( argc, argv );
+
+  //Set up our configuration manager
+  cm = new ConfigurationManager( cli, ua );
 
   //Set up logging
   //This reads the logging configuration file
@@ -122,7 +122,7 @@ int main( int argc, char** argv )
 
   //Read the application configuration file
 
-  bool config_success = cm->configure( cli, ua );
+  bool config_success = cm->configure();
   if (!config_success)
   {
     logging->error("Configuration Failed, defaults kept");
