@@ -302,11 +302,20 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Step 1c: Register the Service with Consul
 
+  //Go get the heartbeat script from Consul
+  HealthCheckScript = get_consul_config_value("HealthCheckScript");
+  HealthCheckInterval = std::stoi(get_consul_config_value("HealthCheckInterval"));
+
   //Build a new service definition for this currently running instance of clyman
   std::string id = "CLyman-" + ua->generate();
   std::string name = "CLyman";
   s = new Service (id, name, internal_address, port);
   s->add_tag("ZMQ");
+
+  //Add the check
+  if (!HealthCheckScript.empty()) {
+    s->set_check(HealthCheckScript + " " + OMQ_IBConnStr, HealthCheckInterval);
+  }
 
   //Register the service
   bool register_success = ca->register_service(*s);
@@ -436,7 +445,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 //----------------------External Configuration Methods------------------------//
 
 //The publicly exposed configure function that determines where configs need to come from
-bool ConfigurationManager::configure (CommandLineInterpreter *cli, uuidAdmin *ua)
+bool ConfigurationManager::configure ()
 {
   //Null Check
   if (!cli)

@@ -91,14 +91,14 @@ void my_signal_handler(int s){
       //Set up the UUID Generator
       ua = new uuidAdmin;
 
-      //Set up our configuration manager
-      cm = new ConfigurationManager;
-
       //Set up our command line interpreter
       cli = new CommandLineInterpreter ( argc, argv );
 
+      //Set up our configuration manager with the CLI and UUID Generator
+      cm = new ConfigurationManager (cli, ua);
+
       //Set up logging
-	  std::string initFileName;
+	    std::string initFileName;
 
       //See if we have a command line setting for the log file
       if ( cli->opt_exist("-log-conf") ) {
@@ -132,7 +132,7 @@ void my_signal_handler(int s){
       //configuration files, and Consul connections to try and determine the correct
       //configuration for the service
 
-      bool config_success = cm->configure( cli, ua );
+      bool config_success = cm->configure();
       if (!config_success)
       {
         logging->error("Configuration Failed, defaults kept");
