@@ -11,8 +11,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sstream>
+#include <fstream>
 #include <vector>
-
+#include <errno.h>
+#include <sys/stat.h>
 
 #include <aossl/cli.h>
 #include <aossl/consul_admin.h>
