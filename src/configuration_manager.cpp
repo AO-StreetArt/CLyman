@@ -1,5 +1,18 @@
 #include "configuration_manager.h"
 
+ConfigurationManager::~ConfigurationManager() {
+  if (!ca)
+  {
+    logging->debug('Configuration Manager delete called, no Consul data to delete')
+  }
+  else
+  {
+    ca->deregister_service(*s);
+    delete s;
+    delete ca;
+  }
+}
+
 //----------------------Internal Configuration Methods------------------------//
 
 //----------------------------Configure from File-----------------------------//

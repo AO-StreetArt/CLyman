@@ -98,7 +98,7 @@ public:
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
           RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;}
-  ~ConfigurationManager() {if (ca) {ca->deregister_service(*s); delete s; delete ca;}}
+  ~ConfigurationManager();
 
   //Populate the configuration variables
   bool configure();
