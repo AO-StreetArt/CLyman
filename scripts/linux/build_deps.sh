@@ -83,4 +83,7 @@ sudo cp $PRE/aossl/libaossl.a /usr/local/lib
 sudo mkdir /usr/local/include/aossl
 sudo cp $PRE/aossl/lib/include/* /usr/local/include/aossl
 
+#Install pyzmq, for the heartbeat scripts
+sudo pip install pyzmq
+
 printf "Finished installing dependencies"
