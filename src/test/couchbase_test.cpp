@@ -42,8 +42,8 @@ CouchbaseAdmin cb ("couchbase://localhost/default");
 //Supports both password authentication and clustering
 printf("Connected to Couchbase");
 //Bind callbacks
-lcb_set_store_callback(cb.get_instance(), storage_callback);
-lcb_set_get_callback(cb.get_instance(), get_callback);
+cb.bind_storage_callback(storage_callback);
+cb.bind_get_callback(get_callback);
 printf("Callbacks bound");
 //Write the object to the DB
 Obj3 *obj_ptr = &obj;
