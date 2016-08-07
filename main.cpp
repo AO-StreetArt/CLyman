@@ -267,7 +267,7 @@ void my_signal_handler(int s){
 
           //Send a success response
           resp = "success";
-          zmqi->send_str(resp);
+          zmqi->send(resp);
 
           shutdown();
 
@@ -289,7 +289,7 @@ void my_signal_handler(int s){
           logging->debug(resp);
 
           //  Send reply back to client
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
@@ -307,7 +307,7 @@ void my_signal_handler(int s){
           logging->debug(resp);
 
           //Send the response
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
@@ -324,7 +324,7 @@ void my_signal_handler(int s){
           logging->debug(resp);
 
           //  Send reply back to client
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
@@ -341,7 +341,7 @@ void my_signal_handler(int s){
           logging->debug(resp);
 
           //  Send reply back to client
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
@@ -354,7 +354,7 @@ void my_signal_handler(int s){
         }
         else if (current_event_type == PING) {
           resp = "success";
-          zmqi->send_str(resp);
+          zmqi->send(resp);
         }
         else
         {
@@ -363,7 +363,7 @@ void my_signal_handler(int s){
           logging->error(resp);
 
           //  Send reply back to client
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
         }
       }

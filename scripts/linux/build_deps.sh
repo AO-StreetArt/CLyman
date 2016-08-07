@@ -70,18 +70,8 @@ cp $PRE/aossl/build_deps.sh $PRE/aossl_deps/
 cd $PRE/aossl_deps && sudo ./build_deps.sh
 
 #Build the shared service library
-cd $PRE/aossl && ./build_project.sh
-
-#Now we have a few things:
-#1. A compiled shared library libaossl.a that needs to be put on the linker path
-#2. A set of header files in the lib/include directory that need to be put onto the include path
-
-#Shared Library
-sudo cp $PRE/aossl/libaossl.a /usr/local/lib
-
-#Header Files
-sudo mkdir /usr/local/include/aossl
-sudo cp $PRE/aossl/lib/include/* /usr/local/include/aossl
+cd ./$PRE/aossl && make && sudo make install
+sudo ldconfig
 
 #Install pyzmq, for the heartbeat scripts
 sudo pip install pyzmq
