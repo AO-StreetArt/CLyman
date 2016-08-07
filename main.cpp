@@ -58,10 +58,10 @@ void shutdown()
   delete cm;
   delete ua;
   delete cli;
+  delete logging;
 
-  //Shut down libraries
+  //Shut down protocol buffer library
   google::protobuf::ShutdownProtobufLibrary();
-  end_log();
 }
 
 //Catch a Signal (for example, keyboard interrupt)
@@ -110,25 +110,9 @@ void my_signal_handler(int s){
       }
 
       //This reads the logging configuration file
-      try {
-        log4cpp::PropertyConfigurator::configure(initFileName);
-      }
-      catch ( log4cpp::ConfigureFailure &e ) {
-        std::cout << "[log4cpp::ConfigureFailure] caught while reading" << initFileName << std::endl;
-        std::cout << e.what();
-        exit(1);
-      }
+      logging = new Logger(initFileName);
 
-      log4cpp::Category& root = log4cpp::Category::getRoot();
-
-      log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
-
-      log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
-
-      logging = &log;
-
-      //Here we pass the command line interpreter into the configuration manager
-      //The configuration manager will then look at any command line arguments,
+      //The configuration manager will  look at any command line arguments,
       //configuration files, and Consul connections to try and determine the correct
       //configuration for the service
 

@@ -24,22 +24,7 @@ int main ()
 {
 
 std::string initFileName = "src/test/log4cpp_test.properties";
-try {
-	log4cpp::PropertyConfigurator::configure(initFileName);
-}
-catch ( log4cpp::ConfigureFailure &e ) {
-	printf("[log4cpp::ConfigureFailure] caught while reading Logging Configuration File");
-	printf(e.what());
-	exit(1);
-}
-
-log4cpp::Category& root = log4cpp::Category::getRoot();
-
-log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
-
-log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
-
-logging = &log;
+logging = new Logger(initFileName);
 
 //Create an object
 std::string name = "Test Object";
@@ -79,6 +64,8 @@ printf("Save Object Tested");
 cb.delete_object ( obj.get_key().c_str() );
 cb.wait();
 printf("Delete Object Tested");
+
+delete logging;
 
 return 0;
 }
