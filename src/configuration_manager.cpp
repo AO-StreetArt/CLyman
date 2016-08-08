@@ -3,7 +3,7 @@
 ConfigurationManager::~ConfigurationManager() {
   if (!ca)
   {
-    logging->debug('Configuration Manager delete called, no Consul data to delete')
+    logging->debug('Configuration Manager delete called, no Consul data to delete');
   }
   else
   {
@@ -318,6 +318,8 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   //Go get the heartbeat script from Consul
   HealthCheckScript = get_consul_config_value("HealthCheckScript");
 
+  std::string id = ua->generate();
+
   //Build a new service definition for this currently running instance of clyman
   std::string name = "CLyman";
   s = new Service (id, name, internal_address, port);
@@ -333,7 +335,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
       logging->error(strerror(errno));
     }
     else {
-      logging->info("Overall Heartbeat location created")
+      logging->info("Overall Heartbeat location created");
     }
 
     //Set up the instance heartbeat folder location
@@ -358,9 +360,9 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
         std::ofstream out_file2 (dest_name2, std::fstream::trunc|std::fstream::binary);
         std::ofstream out_file3 (dest_name3, std::fstream::trunc|std::fstream::binary);
 
-        out_file1 << in_file1.rdbuf();
-        out_file2 << in_file2.rdbuf();
-        out_file3 << in_file3.rdbuf();
+        out_file1 << inp_file1.rdbuf();
+        out_file2 << inp_file2.rdbuf();
+        out_file3 << inp_file3.rdbuf();
       }
       //Catch a possible error and write to logs
       catch (std::exception& e) {
@@ -375,7 +377,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
       hb_config.open(hbc_name);
       hb_config << hbc_text;
-      hb_config.close()
+      hb_config.close();
 
     }
     else {
@@ -384,7 +386,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     }
 
     //Set the health check on the service object
-    std::string hcs_path = my_hb_loc + HealthCheckScript
+    std::string hcs_path = my_hb_loc + HealthCheckScript;
     s->set_check(hcs_path, HealthCheckInterval);
     HealthCheckInterval = std::stoi(get_consul_config_value("HealthCheckInterval"));
   }
