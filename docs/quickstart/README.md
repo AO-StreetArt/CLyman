@@ -1,8 +1,10 @@
 # Getting Started with CLyman
 
-This guide will cover the fastest means of getting started with a CLyman development environment.  This will require Docker installed on the development computer.
+This guide will cover a few of the fastest means of getting started with a CLyman development environment.
 
 ## Docker
+
+This will require Docker installed on the development computer.
 
 You will need to have an instance of Couchbase running to use CLyman, and this can be done via the below command (full instructions can be found [here] (https://docs.docker.com/engine/examples/couchbase/)):
 

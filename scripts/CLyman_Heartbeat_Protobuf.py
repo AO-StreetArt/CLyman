@@ -9,26 +9,30 @@ This is a heartbeat script for CLyman running Protobuffers
 
 import zmq
 import Obj3_pb2
-
 import sys, traceback
 import logging
+from ConfigManager import ConfigurationManager
 
 def get_exception():
     exc_type, exc_value, exc_traceback = sys.exc_info()
     return repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
 
-def execute_main(addr):
-    
-    logging.basicConfig(filename="clyman_heartbeat.log", level=logging.DEBUG)
-    
+def execute_main():
+
+    cm = ConfigurationManager()
+
+    cm.configure("heartbeat_config.txt")
+
+    logging.basicConfig(filename="heartbeat.log", level=logging.DEBUG)
+
     #Set up the base objects for the script
     try:
         #set up the ZMQ Connection
         context = zmq.Context()
-        
+
         socket = context.socket(zmq.REQ)
-        socket.connect(addr)
-        
+        socket.connect(cm["Destination_Address"])
+
         # Build a proto buf object
         obj = Obj3_pb2.Obj3()
         obj.message_type = 555
@@ -37,7 +41,7 @@ def execute_main(addr):
         logging.error(e)
         logging.error(get_exception())
         return 1
-    
+
     try:
         #Serialize the proto buffer
         obj_str = obj.SerializeToString()
@@ -46,7 +50,7 @@ def execute_main(addr):
         logging.error(e)
         logging.error(get_exception())
         return 1
-    
+
     try:
         #Send the message
         socket.send(obj_str)
@@ -55,7 +59,7 @@ def execute_main(addr):
         logging.error(e)
         logging.error(get_exception())
         return 1
-    
+
     try:
         #  Get the reply.
         message = socket.recv()
@@ -64,7 +68,7 @@ def execute_main(addr):
         logging.error(e)
         logging.error(get_exception())
         return 1
-        
+
     if message == "'b'success" or message == "success":
         return 0
     else:
@@ -73,16 +77,4 @@ def execute_main(addr):
         return 1
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        print("Input Parameters:")
-        print("Configuration File: The file name of the Configuration XML")
-        print("Example: python %s zeromq_conn_str" % (sys.argv[0]))
-    elif len(sys.argv) != 2:
-
-        print("Wrong number of Input Parameters")
-
-    else:
-
-        print("Input Parameters:")
-        print("Zero MQ Connection String: %s" % (sys.argv[1]))
-        sys.exit(execute_main(sys.argv[1]))
+    sys.exit(execute_main())

@@ -24,22 +24,7 @@ int main ()
 {
 
 std::string initFileName = "src/test/log4cpp_test.properties";
-try {
-	log4cpp::PropertyConfigurator::configure(initFileName);
-}
-catch ( log4cpp::ConfigureFailure &e ) {
-	printf("[log4cpp::ConfigureFailure] caught while reading Logging Configuration File");
-	printf(e.what());
-	exit(1);
-}
-
-log4cpp::Category& root = log4cpp::Category::getRoot();
-
-log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
-
-log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
-
-logging = &log;
+logging = new Logger(initFileName);
 
 //Create an object
 std::string name = "Test Object";
@@ -57,8 +42,8 @@ CouchbaseAdmin cb ("couchbase://localhost/default");
 //Supports both password authentication and clustering
 printf("Connected to Couchbase");
 //Bind callbacks
-lcb_set_store_callback(cb.get_instance(), storage_callback);
-lcb_set_get_callback(cb.get_instance(), get_callback);
+cb.bind_storage_callback(storage_callback);
+cb.bind_get_callback(get_callback);
 printf("Callbacks bound");
 //Write the object to the DB
 Obj3 *obj_ptr = &obj;
@@ -79,6 +64,8 @@ printf("Save Object Tested");
 cb.delete_object ( obj.get_key().c_str() );
 cb.wait();
 printf("Delete Object Tested");
+
+delete logging;
 
 return 0;
 }

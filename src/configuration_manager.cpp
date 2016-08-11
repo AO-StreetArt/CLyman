@@ -1,5 +1,18 @@
 #include "configuration_manager.h"
 
+ConfigurationManager::~ConfigurationManager() {
+  if (!ca)
+  {
+    logging->debug('Configuration Manager delete called, no Consul data to delete');
+  }
+  else
+  {
+    ca->deregister_service(*s);
+    delete s;
+    delete ca;
+  }
+}
+
 //----------------------Internal Configuration Methods------------------------//
 
 //----------------------------Configure from File-----------------------------//
@@ -290,7 +303,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   std::string internal_address;
 
-  //Step 1b: Generate new connectivity information for the inbound service from command line arguments
+  //Step 1a: Generate new connectivity information for the inbound service from command line arguments
   if (ip == "localhost"){
     internal_address = "tcp://*:";
   }
@@ -300,20 +313,81 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   OMQ_IBConnStr = internal_address + port;
 
-  //Step 1c: Register the Service with Consul
+  //Step 1b: Register the Service with Consul
 
   //Go get the heartbeat script from Consul
   HealthCheckScript = get_consul_config_value("HealthCheckScript");
 
+  std::string id = ua->generate();
+
   //Build a new service definition for this currently running instance of clyman
-  std::string id = "CLyman-" + ua->generate();
   std::string name = "CLyman";
   s = new Service (id, name, internal_address, port);
   s->add_tag("ZMQ");
 
   //Add the check
   if (!HealthCheckScript.empty()) {
-    s->set_check(HealthCheckScript + " " + OMQ_IBConnStr, HealthCheckInterval);
+
+    //Set up the overall heartbeat folder location
+    int hb_loc_exist = mkdir ( "heartbeat_scripts", S_IRWXU | S_IRWXG );
+    if (hb_loc_exist < 0) {
+      logging->error("Overall Heartbeat location not created");
+      logging->error(strerror(errno));
+    }
+    else {
+      logging->info("Overall Heartbeat location created");
+    }
+
+    //Set up the instance heartbeat folder location
+    std::string id = "CLyman-" + ua->generate();
+    std::string my_hb_loc = "heartbeat_scripts/" + id;
+    int my_hb_loc_exist = mkdir ( my_hb_loc.c_str(), S_IRWXU | S_IRWXG );
+    if (my_hb_loc_exist == 0) {
+
+      logging->info("Instance Heartbeat location created");
+
+      //Copy the heartbeat script into the instance folder
+      try {
+        std::ifstream inp_file1 ("scripts/CLyman_Heartbeat_Protobuf.py", std::fstream::binary);
+        std::ifstream inp_file2 ("scripts/CLyman_Heartbeat_Json.py", std::fstream::binary);
+        std::ifstream inp_file3 ("scripts/ConfigManager.py", std::fstream::binary);
+
+        std::string dest_name1 = my_hb_loc + "/CLyman_Heartbeat_Protobuf.py";
+        std::string dest_name2 = my_hb_loc + "/CLyman_Heartbeat_Json.py";
+        std::string dest_name3 = my_hb_loc + "/ConfigManager.py";
+
+        std::ofstream out_file1 (dest_name1, std::fstream::trunc|std::fstream::binary);
+        std::ofstream out_file2 (dest_name2, std::fstream::trunc|std::fstream::binary);
+        std::ofstream out_file3 (dest_name3, std::fstream::trunc|std::fstream::binary);
+
+        out_file1 << inp_file1.rdbuf();
+        out_file2 << inp_file2.rdbuf();
+        out_file3 << inp_file3.rdbuf();
+      }
+      //Catch a possible error and write to logs
+      catch (std::exception& e) {
+        logging->error("Exception occurred while copying heartbeat script to instance folder:");
+        logging->error(e.what());
+      }
+
+      //Generate the configuration file for the heartbeat
+      std::string hbc_name = my_hb_loc + "/heartbeat_config.txt";
+      std::string hbc_text = "Destination_Address=" + OMQ_IBConnStr;
+      std::ofstream hb_config;
+
+      hb_config.open(hbc_name);
+      hb_config << hbc_text;
+      hb_config.close();
+
+    }
+    else {
+      logging->error("Instance Heartbeat location not created");
+      logging->error(strerror(errno));
+    }
+
+    //Set the health check on the service object
+    std::string hcs_path = my_hb_loc + HealthCheckScript;
+    s->set_check(hcs_path, HealthCheckInterval);
     HealthCheckInterval = std::stoi(get_consul_config_value("HealthCheckInterval"));
   }
 

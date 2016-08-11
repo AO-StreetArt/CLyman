@@ -17,7 +17,7 @@ void DocumentManager::cr_obj_global(Obj3 *new_obj) {
   else if (cm->get_mfprotobuf()) {
     new_obj_string = new_obj->to_protobuf_msg(OBJ_CRT);
   }
-  zmqo->send_str(new_obj_string);
+  zmqo->send(new_obj_string);
 
   //Save the object to the couchbase DB
   cb->create_object (new_obj);
@@ -148,7 +148,7 @@ void DocumentManager::upd_obj_global(Obj3 *temp_obj) {
       temp_obj_str = temp_obj->to_protobuf_msg(OBJ_UPD);
     }
 
-    zmqo->send_str(temp_obj_str);
+    zmqo->send(temp_obj_str);
 
     cb->save_object (temp_obj);
     delete temp_obj;
@@ -234,7 +234,7 @@ void DocumentManager::del_obj_global(std::string key) {
   else if (cm->get_mfprotobuf()) {
     nobj_str = obj.to_protobuf_msg(OBJ_DEL);
   }
-  zmqo->send_str(nobj_str);
+  zmqo->send(nobj_str);
 
   cb->delete_object( kc_str );
   cb->wait();
