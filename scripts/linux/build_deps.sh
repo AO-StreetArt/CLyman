@@ -58,29 +58,32 @@ fi
 
 #Build & Install the Shared Service Library
 
-#Create the folder to clone into
-mkdir $PRE/aossl
+if [ ! -d /usr/local/include/aossl ]; then
 
-#Pull the code down
-git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
+  #Create the folder to clone into
+  mkdir $PRE/aossl
 
-#Build the dependencies for the shared service library
-mkdir $PRE/aossl_deps
-cp $PRE/aossl/build_deps.sh $PRE/aossl_deps/
-cd $PRE/aossl_deps && sudo ./build_deps.sh
+  #Pull the code down
+  git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
 
-#Build the shared service library
-cd $PRE/aossl && ./build_project.sh
+  #Build the dependencies for the shared service library
+  mkdir $PRE/aossl_deps
+  cp $PRE/aossl/build_deps.sh $PRE/aossl_deps/
+  cd $PRE/aossl_deps && sudo ./build_deps.sh
 
-#Now we have a few things:
-#1. A compiled shared library libaossl.a that needs to be put on the linker path
-#2. A set of header files in the lib/include directory that need to be put onto the include path
+  #Build the shared service library
+  cd ./$PRE/aossl && make && sudo make install
+  sudo ldconfig
 
-#Shared Library
-sudo cp $PRE/aossl/libaossl.a /usr/local/lib
+fi
 
-#Header Files
-sudo mkdir /usr/local/include/aossl
-sudo cp $PRE/aossl/lib/include/* /usr/local/include/aossl
+#Install pyzmq, for the heartbeat scripts
+sudo apt-get install -y python-pip python-dev
+sudo pip install pyzmq
+
+#Install hayai, for compiling benchmarks
+sudo apt-add-repository -y ppa:bruun/hayai
+sudo apt-get update -y
+sudo apt-get install -y libhayai-dev
 
 printf "Finished installing dependencies"

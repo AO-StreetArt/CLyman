@@ -15,13 +15,13 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include <aossl/couchbase_admin.h>
-#include <aossl/xredis_admin.h>
+#include "aossl/couchbase_admin.h"
+#include "aossl/xredis_admin.h"
 #include "obj3.h"
 #include "configuration_manager.h"
 
-#include <aossl/logging.h>
-#include <aossl/zmqio.h>
+#include "aossl/logging.h"
+#include "aossl/zmqio.h"
 #include "globals.h"
 
 //-----------------------
@@ -208,7 +208,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
                   else if (cm->get_mfprotobuf()) {
                     obj_string = new_obj->to_protobuf_msg(OBJ_UPD);
                   }
-                  zmqo->send_str(obj_string);
+                  zmqo->send(obj_string);
                 }
 
                 //Remove the element from the smart updbate buffer
@@ -240,7 +240,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
               else if (cm->get_mfprotobuf()) {
                 object_string = new_obj->to_protobuf_msg(OBJ_UPD);
               }
-              zmqo->send_str(object_string);
+              zmqo->send(object_string);
             }
           }
           else {
@@ -273,7 +273,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
           else if (cm->get_mfprotobuf()) {
             new_obj_str = new_obj->to_protobuf_msg(OBJ_GET);
           }
-          zmqo->send_str(new_obj_str);
+          zmqo->send(new_obj_str);
           delete new_obj;
         }
       }

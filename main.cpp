@@ -58,10 +58,10 @@ void shutdown()
   delete cm;
   delete ua;
   delete cli;
+  delete logging;
 
-  //Shut down libraries
+  //Shut down protocol buffer library
   google::protobuf::ShutdownProtobufLibrary();
-  end_log();
 }
 
 //Catch a Signal (for example, keyboard interrupt)
@@ -110,25 +110,9 @@ void my_signal_handler(int s){
       }
 
       //This reads the logging configuration file
-      try {
-        log4cpp::PropertyConfigurator::configure(initFileName);
-      }
-      catch ( log4cpp::ConfigureFailure &e ) {
-        std::cout << "[log4cpp::ConfigureFailure] caught while reading" << initFileName << std::endl;
-        std::cout << e.what();
-        exit(1);
-      }
+      logging = new Logger(initFileName);
 
-      log4cpp::Category& root = log4cpp::Category::getRoot();
-
-      log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
-
-      log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
-
-      logging = &log;
-
-      //Here we pass the command line interpreter into the configuration manager
-      //The configuration manager will then look at any command line arguments,
+      //The configuration manager will  look at any command line arguments,
       //configuration files, and Consul connections to try and determine the correct
       //configuration for the service
 
@@ -189,9 +173,9 @@ void my_signal_handler(int s){
       logging->info("Connected to Couchbase DB");
 
       //Bind Couchbase Callbacks
-      lcb_set_store_callback(cb->get_instance(), storage_callback);
-      lcb_set_get_callback(cb->get_instance(), get_callback);
-      lcb_set_remove_callback(cb->get_instance(), del_callback);
+      cb->bind_storage_callback(storage_callback);
+      cb->bind_get_callback(get_callback);
+      cb->bind_delete_callback(del_callback);
 
       //We maintain the ZMQ Context and pass it to the ZMQ objects coming from aossl
       zmq::context_t context(1, 2);
@@ -283,7 +267,7 @@ void my_signal_handler(int s){
 
           //Send a success response
           resp = "success";
-          zmqi->send_str(resp);
+          zmqi->send(resp);
 
           shutdown();
 
@@ -305,7 +289,7 @@ void my_signal_handler(int s){
           logging->debug(resp);
 
           //  Send reply back to client
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
@@ -323,7 +307,7 @@ void my_signal_handler(int s){
           logging->debug(resp);
 
           //Send the response
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
@@ -340,7 +324,7 @@ void my_signal_handler(int s){
           logging->debug(resp);
 
           //  Send reply back to client
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
@@ -357,7 +341,7 @@ void my_signal_handler(int s){
           logging->debug(resp);
 
           //  Send reply back to client
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
@@ -370,7 +354,7 @@ void my_signal_handler(int s){
         }
         else if (current_event_type == PING) {
           resp = "success";
-          zmqi->send_str(resp);
+          zmqi->send(resp);
         }
         else
         {
@@ -379,7 +363,7 @@ void my_signal_handler(int s){
           logging->error(resp);
 
           //  Send reply back to client
-          zmqi->send_str(resp);
+          zmqi->send(resp);
           logging->debug("Response Sent");
         }
       }

@@ -175,22 +175,8 @@ if (file.is_open()) {
 
 
 //Read the Logging Configuration File
-try {
-  log4cpp::PropertyConfigurator::configure("src/test/log4cpp_test.properties");
-}
-catch ( log4cpp::ConfigureFailure &e ) {
-  std::cout << "[log4cpp::ConfigureFailure] caught while reading logging.properties" << std::endl;
-  std::cout << e.what();
-  exit(1);
-}
-
-log4cpp::Category& root = log4cpp::Category::getRoot();
-
-log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
-
-log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
-
-logging = &log;
+std::string initFileName = "src/test/log4cpp_test.properties";
+logging = new Logger(initFileName);
 
 //Set up internal variables
 logging->info("Internal Variables Intialized");
@@ -245,6 +231,7 @@ hayai::Benchmarker::RunAllTests();
 //----------------------------------------------------------------------------//
 
 delete xRedis;
+delete logging;
 
 return 0;
 

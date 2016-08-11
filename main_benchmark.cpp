@@ -103,22 +103,7 @@ int main( int argc, char** argv )
   //Set up logging
   //This reads the logging configuration file
   std::string initFileName = "src/test/log4cpp_test.properties";
-  try {
-    log4cpp::PropertyConfigurator::configure(initFileName);
-  }
-  catch ( log4cpp::ConfigureFailure &e ) {
-    std::cout << "[log4cpp::ConfigureFailure] caught while reading" << initFileName << std::endl;
-    std::cout << e.what();
-    exit(1);
-  }
-
-  log4cpp::Category& root = log4cpp::Category::getRoot();
-
-  log4cpp::Category& sub1 = log4cpp::Category::getInstance(std::string("sub1"));
-
-  log4cpp::Category& log = log4cpp::Category::getInstance(std::string("sub1.log"));
-
-  logging = &log;
+  logging = new Logger(initFileName);
 
   //Read the application configuration file
 
