@@ -19,11 +19,11 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include <aossl/couchbase_admin.h>
-#include <aossl/xredis_admin.h>
-#include <aossl/uuid_admin.h>
-#include <aossl/logging.h>
-#include <aossl/zmqio.h>
+#include "aossl/couchbase_admin.h"
+#include "aossl/xredis_admin.h"
+#include "aossl/uuid_admin.h"
+#include "aossl/logging.h"
+#include "aossl/zmqio.h"
 
 #include "obj3.h"
 #include "configuration_manager.h"

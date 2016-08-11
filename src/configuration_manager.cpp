@@ -3,7 +3,7 @@
 ConfigurationManager::~ConfigurationManager() {
   if (!ca)
   {
-    logging->debug('Configuration Manager delete called, no Consul data to delete');
+    logging->debug("Configuration Manager delete called, no Consul data to delete");
   }
   else
   {

@@ -2,10 +2,10 @@
 //Across different files.  These are either numeric constants or
 //singletons which form the backbone of the service.
 
-#include <aossl/couchbase_admin.h>
-#include <aossl/xredis_admin.h>
-#include <aossl/uuid_admin.h>
-#include <aossl/zmqio.h>
+#include "aossl/couchbase_admin.h"
+#include "aossl/xredis_admin.h"
+#include "aossl/uuid_admin.h"
+#include "aossl/zmqio.h"
 
 #include "document_manager.h"
 #include "configuration_manager.h"

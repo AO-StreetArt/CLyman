@@ -58,22 +58,32 @@ fi
 
 #Build & Install the Shared Service Library
 
-#Create the folder to clone into
-mkdir $PRE/aossl
+if [ ! -d /usr/local/include/aossl ]; then
 
-#Pull the code down
-git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
+  #Create the folder to clone into
+  mkdir $PRE/aossl
 
-#Build the dependencies for the shared service library
-mkdir $PRE/aossl_deps
-cp $PRE/aossl/build_deps.sh $PRE/aossl_deps/
-cd $PRE/aossl_deps && sudo ./build_deps.sh
+  #Pull the code down
+  git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
 
-#Build the shared service library
-cd ./$PRE/aossl && make && sudo make install
-sudo ldconfig
+  #Build the dependencies for the shared service library
+  mkdir $PRE/aossl_deps
+  cp $PRE/aossl/build_deps.sh $PRE/aossl_deps/
+  cd $PRE/aossl_deps && sudo ./build_deps.sh
+
+  #Build the shared service library
+  cd ./$PRE/aossl && make && sudo make install
+  sudo ldconfig
+
+fi
 
 #Install pyzmq, for the heartbeat scripts
+sudo apt-get install -y python-pip python-dev
 sudo pip install pyzmq
+
+#Install hayai, for compiling benchmarks
+sudo apt-add-repository -y ppa:bruun/hayai
+sudo apt-get update -y
+sudo apt-get install -y libhayai-dev
 
 printf "Finished installing dependencies"

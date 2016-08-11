@@ -16,10 +16,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include <aossl/cli.h>
-#include <aossl/consul_admin.h>
-#include <aossl/logging.h>
-#include <aossl/uuid_admin.h>
+#include "aossl/cli.h"
+#include "aossl/consul_admin.h"
+#include "aossl/logging.h"
+#include "aossl/uuid_admin.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
