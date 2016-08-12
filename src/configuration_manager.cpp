@@ -562,10 +562,6 @@ bool ConfigurationManager::configure ()
       return configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
     }
 
-    {
-      return configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
-    }
-
     //Check for the dev flag, which starts up with default ports and no consul connection
     else if ( cli->opt_exist("-dev") ) {
       return true;
