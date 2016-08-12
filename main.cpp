@@ -55,6 +55,7 @@ void shutdown()
   delete xRedis;
   delete cb;
   delete zmqo;
+  delete zmqi;
   delete cm;
   delete ua;
   delete cli;

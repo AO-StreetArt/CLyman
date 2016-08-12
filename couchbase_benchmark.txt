@@ -1,0 +1,66 @@
+Connected to Couchbase[==========] Running 4 benchmarks.
+[ RUN      ] Couchbase.Save (10 runs, 100 iterations per run)
+[     DONE ] Couchbase.Save (180.786070 ms)
+[   RUNS   ]        Average time: 18078.607 us
+                         Fastest: 10718.707 us (-7359.900 us / -40.711 %)
+                         Slowest: 28622.707 us (+10544.100 us / +58.324 %)
+                                  
+             Average performance: 55.31400 runs/s
+                Best performance: 93.29483 runs/s (+37.98084 runs/s / +68.66407 %)
+               Worst performance: 34.93730 runs/s (-20.37670 runs/s / -36.83823 %)
+[ITERATIONS]        Average time: 180.786 us
+                         Fastest: 107.187 us (-73.599 us / -40.711 %)
+                         Slowest: 286.227 us (+105.441 us / +58.324 %)
+                                  
+             Average performance: 5531.39963 iterations/s
+                Best performance: 9329.48349 iterations/s (+3798.08386 iterations/s / +68.66407 %)
+               Worst performance: 3493.72965 iterations/s (-2037.66998 iterations/s / -36.83823 %)
+[ RUN      ] Couchbase.Get (10 runs, 100 iterations per run)
+[     DONE ] Couchbase.Get (114.255070 ms)
+[   RUNS   ]        Average time: 11425.507 us
+                         Fastest: 7330.707 us (-4094.800 us / -35.839 %)
+                         Slowest: 21915.707 us (+10490.200 us / +91.814 %)
+                                  
+             Average performance: 87.52347 runs/s
+                Best performance: 136.41249 runs/s (+48.88902 runs/s / +55.85819 %)
+               Worst performance: 45.62937 runs/s (-41.89409 runs/s / -47.86613 %)
+[ITERATIONS]        Average time: 114.255 us
+                         Fastest: 73.307 us (-40.948 us / -35.839 %)
+                         Slowest: 219.157 us (+104.902 us / +91.814 %)
+                                  
+             Average performance: 8752.34683 iterations/s
+                Best performance: 13641.24906 iterations/s (+4888.90223 iterations/s / +55.85819 %)
+               Worst performance: 4562.93744 iterations/s (-4189.40939 iterations/s / -47.86613 %)
+[ RUN      ] Couchbase.Update (10 runs, 100 iterations per run)
+[     DONE ] Couchbase.Update (179.950070 ms)
+[   RUNS   ]        Average time: 17995.007 us
+                         Fastest: 10672.707 us (-7322.300 us / -40.691 %)
+                         Slowest: 42009.707 us (+24014.700 us / +133.452 %)
+                                  
+             Average performance: 55.57097 runs/s
+                Best performance: 93.69694 runs/s (+38.12597 runs/s / +68.60771 %)
+               Worst performance: 23.80402 runs/s (-31.76695 runs/s / -57.16465 %)
+[ITERATIONS]        Average time: 179.950 us
+                         Fastest: 106.727 us (-73.223 us / -40.691 %)
+                         Slowest: 420.097 us (+240.147 us / +133.452 %)
+                                  
+             Average performance: 5557.09703 iterations/s
+                Best performance: 9369.69412 iterations/s (+3812.59709 iterations/s / +68.60771 %)
+               Worst performance: 2380.40222 iterations/s (-3176.69481 iterations/s / -57.16465 %)
+[ RUN      ] Couchbase.Delete (10 runs, 100 iterations per run)
+[     DONE ] Couchbase.Delete (110.083070 ms)
+[   RUNS   ]        Average time: 11008.307 us
+                         Fastest: 8888.707 us (-2119.600 us / -19.255 %)
+                         Slowest: 14842.707 us (+3834.400 us / +34.832 %)
+                                  
+             Average performance: 90.84049 runs/s
+                Best performance: 112.50230 runs/s (+21.66181 runs/s / +23.84599 %)
+               Worst performance: 67.37316 runs/s (-23.46733 runs/s / -25.83356 %)
+[ITERATIONS]        Average time: 110.083 us
+                         Fastest: 88.887 us (-21.196 us / -19.255 %)
+                         Slowest: 148.427 us (+38.344 us / +34.832 %)
+                                  
+             Average performance: 9084.04898 iterations/s
+                Best performance: 11250.23021 iterations/s (+2166.18123 iterations/s / +23.84599 %)
+               Worst performance: 6737.31550 iterations/s (-2346.73348 iterations/s / -25.83356 %)
+[==========] Ran 4 benchmarks.

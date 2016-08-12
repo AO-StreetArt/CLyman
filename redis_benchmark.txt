@@ -1,0 +1,82 @@
+[==========] Running 5 benchmarks.
+[ RUN      ] Redis.Save (10 runs, 100 iterations per run)
+[     DONE ] Redis.Save (27.330130 ms)
+[   RUNS   ]        Average time: 2733.013 us
+                         Fastest: 2370.713 us (-362.300 us / -13.256 %)
+                         Slowest: 3627.713 us (+894.700 us / +32.737 %)
+                                  
+             Average performance: 365.89654 runs/s
+                Best performance: 421.81403 runs/s (+55.91749 runs/s / +15.28232 %)
+               Worst performance: 275.65576 runs/s (-90.24078 runs/s / -24.66292 %)
+[ITERATIONS]        Average time: 27.330 us
+                         Fastest: 23.707 us (-3.623 us / -13.256 %)
+                         Slowest: 36.277 us (+8.947 us / +32.737 %)
+                                  
+             Average performance: 36589.65398 iterations/s
+                Best performance: 42181.40281 iterations/s (+5591.74883 iterations/s / +15.28232 %)
+               Worst performance: 27565.57644 iterations/s (-9024.07754 iterations/s / -24.66292 %)
+[ RUN      ] Redis.ExistsTrue (10 runs, 100 iterations per run)
+[     DONE ] Redis.ExistsTrue (28.170130 ms)
+[   RUNS   ]        Average time: 2817.013 us
+                         Fastest: 2291.713 us (-525.300 us / -18.647 %)
+                         Slowest: 3582.713 us (+765.700 us / +27.181 %)
+                                  
+             Average performance: 354.98594 runs/s
+                Best performance: 436.35481 runs/s (+81.36888 runs/s / +22.92172 %)
+               Worst performance: 279.11809 runs/s (-75.86785 runs/s / -21.37207 %)
+[ITERATIONS]        Average time: 28.170 us
+                         Fastest: 22.917 us (-5.253 us / -18.647 %)
+                         Slowest: 35.827 us (+7.657 us / +27.181 %)
+                                  
+             Average performance: 35498.59372 iterations/s
+                Best performance: 43635.48141 iterations/s (+8136.88768 iterations/s / +22.92172 %)
+               Worst performance: 27911.80873 iterations/s (-7586.78499 iterations/s / -21.37207 %)
+[ RUN      ] Redis.ExistsFalse (10 runs, 100 iterations per run)
+[     DONE ] Redis.ExistsFalse (30.504130 ms)
+[   RUNS   ]        Average time: 3050.413 us
+                         Fastest: 2264.713 us (-785.700 us / -25.757 %)
+                         Slowest: 3775.713 us (+725.300 us / +23.777 %)
+                                  
+             Average performance: 327.82446 runs/s
+                Best performance: 441.55705 runs/s (+113.73259 runs/s / +34.69314 %)
+               Worst performance: 264.85064 runs/s (-62.97382 runs/s / -19.20962 %)
+[ITERATIONS]        Average time: 30.504 us
+                         Fastest: 22.647 us (-7.857 us / -25.757 %)
+                         Slowest: 37.757 us (+7.253 us / +23.777 %)
+                                  
+             Average performance: 32782.44618 iterations/s
+                Best performance: 44155.70538 iterations/s (+11373.25920 iterations/s / +34.69314 %)
+               Worst performance: 26485.06388 iterations/s (-6297.38230 iterations/s / -19.20962 %)
+[ RUN      ] Redis.Load (10 runs, 100 iterations per run)
+[     DONE ] Redis.Load (33.406130 ms)
+[   RUNS   ]        Average time: 3340.613 us
+                         Fastest: 2639.713 us (-700.900 us / -20.981 %)
+                         Slowest: 3915.713 us (+575.100 us / +17.215 %)
+                                  
+             Average performance: 299.34626 runs/s
+                Best performance: 378.82906 runs/s (+79.48280 runs/s / +26.55213 %)
+               Worst performance: 255.38133 runs/s (-43.96493 runs/s / -14.68698 %)
+[ITERATIONS]        Average time: 33.406 us
+                         Fastest: 26.397 us (-7.009 us / -20.981 %)
+                         Slowest: 39.157 us (+5.751 us / +17.215 %)
+                                  
+             Average performance: 29934.62577 iterations/s
+                Best performance: 37882.90621 iterations/s (+7948.28044 iterations/s / +26.55213 %)
+               Worst performance: 25538.13316 iterations/s (-4396.49261 iterations/s / -14.68698 %)
+[ RUN      ] Redis.Delete (10 runs, 100 iterations per run)
+[     DONE ] Redis.Delete (28.626130 ms)
+[   RUNS   ]        Average time: 2862.613 us
+                         Fastest: 2419.713 us (-442.900 us / -15.472 %)
+                         Slowest: 4334.713 us (+1472.100 us / +51.425 %)
+                                  
+             Average performance: 349.33119 runs/s
+                Best performance: 413.27215 runs/s (+63.94096 runs/s / +18.30382 %)
+               Worst performance: 230.69578 runs/s (-118.63541 runs/s / -33.96073 %)
+[ITERATIONS]        Average time: 28.626 us
+                         Fastest: 24.197 us (-4.429 us / -15.472 %)
+                         Slowest: 43.347 us (+14.721 us / +51.425 %)
+                                  
+             Average performance: 34933.11880 iterations/s
+                Best performance: 41327.21525 iterations/s (+6394.09645 iterations/s / +18.30382 %)
+               Worst performance: 23069.57808 iterations/s (-11863.54072 iterations/s / -33.96073 %)
+[==========] Ran 5 benchmarks.
