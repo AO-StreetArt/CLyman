@@ -541,7 +541,27 @@ bool ConfigurationManager::configure ()
     }
 
     //Check if we have a consul address specified
+
+    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr") && cli->opt_exist("couchbase-pswd"))
+    {
+      bool s = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      DB_ConnStr = cli->get_opt("-couchbase-addr");
+      DB_AuthActive = true;
+      DB_Pswd = cli->get_opt("-couchbase-pswd");
+    }
+
+    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr"))
+    {
+      bool s = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      DB_ConnStr = cli->get_opt("-couchbase-addr");
+      DB_AuthActive = false;
+    }
+
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port"))
+    {
+      return configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+    }
+
     {
       return configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
     }
