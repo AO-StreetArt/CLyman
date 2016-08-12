@@ -124,8 +124,7 @@ void my_signal_handler(int s){
       }
 
       //Set up internal variables
-      int current_event_type;
-      int msg_type;
+      int msg_type = -1;
       rapidjson::Document d;
       rapidjson::Value *val;
       std::string resp = "nilresp";
@@ -202,6 +201,8 @@ void my_signal_handler(int s){
 
       while (true) {
 
+        msg_type = -1;
+
         //Convert the OMQ message into a string to be passed on the event
         std::string req_string = zmqi->recv();
         req_string = left_trim_string (req_string);
@@ -248,43 +249,8 @@ void my_signal_handler(int s){
         }
 
         if (msg_type == OBJ_UPD) {
-          current_event_type=OBJ_UPD;
           logging->debug("Current Event Type set to Object Update");
-        }
-        else if (msg_type == OBJ_CRT) {
-          current_event_type=OBJ_CRT;
-          logging->debug("Current Event Type set to Object Create");
-        }
-        else if (msg_type == OBJ_GET) {
-          current_event_type=OBJ_GET;
-          logging->debug("Current Event Type set to Object Get");
-        }
-        else if (msg_type == OBJ_DEL) {
-          current_event_type=OBJ_DEL;
-          logging->debug("Current Event Type set to Object Delete");
-        }
-        //Shutdown Message
-        else if (msg_type == KILL) {
 
-          //Send a success response
-          resp = "success";
-          zmqi->send(resp);
-
-          shutdown();
-
-          return 0;
-        }
-        else if (msg_type == PING) {
-          current_event_type=PING;
-        }
-        else {
-          current_event_type=-1;
-          logging->error("Current Event Type not found");
-        }
-
-
-        //Emit an event based on the event type & build the response message
-        if (current_event_type==OBJ_UPD) {
           resp = "success";
           logging->debug("Object Update Event Emitted, response:");
           logging->debug(resp);
@@ -302,7 +268,9 @@ void my_signal_handler(int s){
           }
 
         }
-        else if (current_event_type==OBJ_CRT) {
+        else if (msg_type == OBJ_CRT) {
+          logging->debug("Current Event Type set to Object Create");
+
           resp = "success";
           logging->debug("Object Create Event Emitted, response: ");
           logging->debug(resp);
@@ -318,8 +286,11 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             dm->create_objectpb(new_proto);
           }
+
         }
-        else if (current_event_type==OBJ_GET) {
+        else if (msg_type == OBJ_GET) {
+          logging->debug("Current Event Type set to Object Get");
+
           resp = "success";
           logging->debug("Object Get Event Emitted, response: ");
           logging->debug(resp);
@@ -335,8 +306,11 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             dm->get_objectpb (new_proto);
           }
+
         }
-        else if (current_event_type==OBJ_DEL) {
+        else if (msg_type == OBJ_DEL) {
+          logging->debug("Current Event Type set to Object Delete");
+
           resp = "success";
           logging->debug("Object Delete Event Emitted, response: ");
           logging->debug(resp);
@@ -352,13 +326,27 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             dm->delete_objectpb(new_proto);
           }
+
         }
-        else if (current_event_type == PING) {
+        //Shutdown Message
+        else if (msg_type == KILL) {
+
+          //Send a success response
+          resp = "success";
+          zmqi->send(resp);
+
+          shutdown();
+
+          return 0;
+        }
+        else if (msg_type == PING) {
+          logging->debug("Healthcheck Responded to");
           resp = "success";
           zmqi->send(resp);
         }
-        else
-        {
+        else {
+          logging->error("Current Event Type not found");
+
           resp = "failure";
           logging->error("Object Event not Emitted, response: ");
           logging->error(resp);
