@@ -12,7 +12,7 @@
 
 #include "aossl/factory/redis_interface.h"
 
-xRedisAdmin *xRedis;
+RedisInterface *xRedis;
 std::vector<std::string> uuid_list;
 int savecounter = 0;
 int getcounter = 0;
