@@ -1,13 +1,6 @@
 *.o
 *.a
-event_test
-obj_test
-test_client
-main_test
-cb_test
-redis_test
 lyman
-lyman.properties
 *.log
 *.log.*
 *.cc
