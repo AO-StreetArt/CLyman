@@ -40,7 +40,7 @@ obj3_test: src/Obj3.pb.cc src/obj3.o src/obj3_test.o
 src/obj3_test.o: src/test/obj3_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/obj3_test.cpp $(STD)
 
-couchbase_test: src/Obj3.pb.cc src/lyman_utils.o src/couchbase_test.o
+couchbase_test: src/Obj3.pb.cc src/lyman_utils.o src/couchbase_test.o src/obj3.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
 
 src/couchbase_test.o: src/test/couchbase_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
