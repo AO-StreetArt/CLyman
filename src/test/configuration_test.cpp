@@ -3,7 +3,7 @@
 
 #include "../configuration_manager.h"
 #include <assert.h>
-#include "aossl/factory/logging.h"
+#include "aossl/factory/logging_interface.h"
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/uuid_interface.h"
 #include "aossl/factory.h"
