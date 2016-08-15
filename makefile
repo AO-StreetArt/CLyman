@@ -5,7 +5,7 @@ CC = g++
 SLC = ar rcs
 CFLAGS  = -g -Wall
 STD = -std=c++11
-OBJS = src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o scripts/Obj3_pb2.py
+OBJS = src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o
 TESTS = redis_test obj3_test couchbase_test configuration_test
 BENCHMARKS = couchbase_benchmark obj3_benchmark redis_benchmark main_benchmark
 LIBS = -lpthread -llog4cpp
@@ -17,7 +17,7 @@ PROTO = src/Obj3.proto
 
 # -------------------------- Central Targets --------------------------------- #
 
-lyman: $(OBJS)
+lyman: $(OBJS) scripts/Obj3_pb2.py
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(FULL_LIBS) $(STD)
 
 tests: $(TESTS)
@@ -104,7 +104,7 @@ src/document_manager.o: src/document_manager.cpp src/document_manager.h
 main.o: main.cpp
 	$(CC) $(CFLAGS) -o $@ -c main.cpp $(STD)
 
-	# -------------------------- Clean Project --------------------------------- #
+# --------------------------- Clean Project ---------------------------------- #
 
 clean_local:
 	$(RM) lyman src/*.o *~ *.log *.log.*
