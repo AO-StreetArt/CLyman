@@ -20,7 +20,7 @@ PROTO = src/Obj3.proto
 lyman: $(OBJS) scripts/Obj3_pb2.py
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(FULL_LIBS) $(STD)
 
-tests: $(TESTS)
+test: $(TESTS)
 
 benchmarks: $(BENCHMARKS)
 

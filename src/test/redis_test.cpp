@@ -18,7 +18,7 @@
 
 std::vector<RedisConnChain> RedisConnectionList;
 
-xRedisAdmin *xRedis;
+RedisInterface *xRedis;
 
 int main()
 {
