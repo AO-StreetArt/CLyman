@@ -82,7 +82,7 @@ bool configure_from_file (std::string file_path);
 
 //Consul Config
 std::string get_consul_config_value(std::string key);
-bool configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua);
+bool configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidInterface *ua);
 
 public:
   //Constructor

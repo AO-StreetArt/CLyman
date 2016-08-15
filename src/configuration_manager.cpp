@@ -292,7 +292,7 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 }
 
 //Configure based on the Services List and Key/Value store from Consul
-bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua)
+bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidInterface *ua)
 {
 
   ca = factory->get_consul_interface( consul_path );
