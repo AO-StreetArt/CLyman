@@ -32,7 +32,7 @@
 
 class ConfigurationManager
 {
-ServiceComponentFactory *factory
+ServiceComponentFactory *factory;
 
 //Internal Consul Administrator
 ConsulInterface *ca;
