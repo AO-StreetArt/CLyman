@@ -3,22 +3,32 @@
 
 #include "../configuration_manager.h"
 #include <assert.h>
+#include "aossl/factory/logging.h"
+#include "aossl/factory/commandline_interface.h"
+#include "aossl/factory/uuid_interface.h"
+#include "aossl/factory.h"
 
 int main( int argc, char** argv )
 {
 
+  ServiceComponentFactory *factory = new ServiceComponentFactory;
+
+  //-------------------------------Logging--------------------------------------//
+  //----------------------------------------------------------------------------//
+
   std::string initFileName = "src/test/log4cpp_test.properties";
-  logging = new Logger(initFileName);
+  logging = factory->get_logging_interface(initFileName);
+
 
   logging->debug("PreTest Setup");
 
   //Set up the UUID Generator
-  uuidAdmin ua;
+  uuidInterface *ua = factory->get_uuid_interface();
 
   //Set up our command line interpreter
-  CommandLineInterpreter cli ( argc, argv );
+  CommandLineInterface *cli = factory->get_command_line_interface( argc, argv );
 
-  ConfigurationManager cm( &cli, &ua );
+  ConfigurationManager cm( cli, ua, factory );
 
   logging->debug("Configure the app");
 
@@ -60,7 +70,8 @@ int main( int argc, char** argv )
   assert( redis_chain2.elt6 == 5);
   assert( redis_chain2.elt7 == 0);
 
-
+  delete cli;
+  delete ua;
   delete logging;
   return 0;
 }

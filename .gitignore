@@ -14,3 +14,5 @@ lyman.properties
 *.pb.*
 *_test
 *_benchmark
+heartbeat_scripts/*
+heartbeat_scripts/*/*

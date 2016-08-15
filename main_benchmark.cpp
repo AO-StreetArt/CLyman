@@ -22,10 +22,12 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "aossl/couchbase_admin.h"
-#include "aossl/xredis_admin.h"
-#include "aossl/uuid_admin.h"
-#include "aossl/logging.h"
+#include "aossl/factory.h"
+#include "aossl/factory/couchbase_interface.h"
+#include "aossl/factory/redis_interface.h"
+#include "aossl/factory/logging_interface.h"
+#include "aossl/factory/uuid_interface.h"
+#include "aossl/factory/commandline_interface.h"
 
 #include "src/globals.h"
 
@@ -92,18 +94,21 @@ dm->update_objectpb(new_proto);
 int main( int argc, char** argv )
 {
 
-  ua = new uuidAdmin;
+  ServiceComponentFactory *factory = new ServiceComponentFactory;
+
+  //Set up the UUID Generator
+  ua = factory->get_uuid_interface();
 
   //Set up our command line interpreter
-  cli = new CommandLineInterpreter ( argc, argv );
+  cli = factory->get_command_line_interface( argc, argv );
 
-  //Set up our configuration manager
-  cm = new ConfigurationManager( cli, ua );
+  //Set up our configuration manager with the CLI and UUID Generator
+  cm = new ConfigurationManager(cli, ua, factory);
 
   //Set up logging
   //This reads the logging configuration file
   std::string initFileName = "src/test/log4cpp_test.properties";
-  logging = new Logger(initFileName);
+  logging = factory->get_logging_interface(initFileName);
 
   //Read the application configuration file
 
@@ -124,30 +129,7 @@ int main( int argc, char** argv )
 
   //Set up our Redis Connection List
   std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
-  int conn_list_size = RedisConnectionList.size();
-  RedisNode RedisList1[conn_list_size];
-  int y = 0;
-  for (int y = 0; y < conn_list_size; ++y)
-  {
-    //Pull the values from RedisConnectionList
-    RedisNode redis_n;
-    redis_n.dbindex = y;
-    RedisConnChain redis_chain = RedisConnectionList[y];
-    redis_n.host = redis_chain.ip.c_str();
-    redis_n.port = redis_chain.port;
-    redis_n.passwd = redis_chain.elt4.c_str();
-    redis_n.poolsize = redis_chain.elt5;
-    redis_n.timeout = redis_chain.elt6;
-    redis_n.role = redis_chain.elt7;
-    logging->debug("Line added to Redis Configuration List with IP:");
-    logging->debug(redis_n.host);
-
-    RedisList1[y] = redis_n;
-  }
-  logging->info("Redis Connection List Built");
-
-  //Set up Redis Connection
-  xRedis = new xRedisAdmin (RedisList1, conn_list_size);
+  xRedis = factory->get_redis_cluster_interface(RedisConnectionList);
   logging->info("Connected to Redis");
 
   //Set up the Couchbase Connection
@@ -155,10 +137,10 @@ int main( int argc, char** argv )
   bool DBAuthActive = cm->get_dbauthactive();
   if (DBAuthActive) {
     std::string DBPswd = cm->get_dbpswd();
-    cb = new CouchbaseAdmin ( DBConnStr.c_str(), DBPswd.c_str() );
+    cb = factory->get_couchbase_interface( DBConnStr.c_str(), DBPswd.c_str() );
   }
   else {
-    cb = new CouchbaseAdmin ( DBConnStr.c_str() );
+    cb = factory->get_couchbase_interface( DBConnStr.c_str() );
   }
   logging->info("Connected to Couchbase DB");
 
@@ -171,9 +153,7 @@ int main( int argc, char** argv )
 
   //Set up the outbound ZMQ Client
   //zmq::socket_t zout(context, ZMQ_REQ);
-  zmqo = new Zmqo (context);
-  logging->info("0MQ Constructor Called");
-  zmqo->connect(cm->get_obconnstr());
+  zmqo = factory->get_zmq_outbound_interface(cm->get_obconnstr());
   logging->info("Connected to Outbound OMQ Socket");
 
   //Set up the Document Manager
@@ -250,6 +230,7 @@ int main( int argc, char** argv )
   delete xRedis;
   delete dm;
   delete obj;
+  delete factory;
 
   return 0;
 

@@ -142,7 +142,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
           str1 = new_value.substr(0, spacer_position);
           logging->debug("CONFIGURE: Password Recovered");
           logging->debug(str1);
-          chain.elt4 = str1;
+          chain.password = str1;
 
           //Retrieve the fourth value
           new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
@@ -152,7 +152,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
           str1 = new_value.substr(0, spacer_position);
           logging->debug("CONFIGURE: Value Recovered");
           logging->debug(str1);
-          chain.elt5 = std::stoi(str1);
+          chain.pool_size = std::stoi(str1);
 
           //Retrieve the fifth value
           new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
@@ -162,7 +162,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
           str1 = new_value.substr(0, spacer_position);
           logging->debug("CONFIGURE: Value Recovered");
           logging->debug(str1);
-          chain.elt6 = std::stoi(str1);
+          chain.timeout = std::stoi(str1);
 
           //Retrieve the final value
           new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
@@ -172,7 +172,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
           str1 = new_value.substr(0, spacer_position);
           logging->debug("CONFIGURE: Value Recovered");
           logging->debug(str1);
-          chain.elt7 = std::stoi(str1);
+          chain.role = std::stoi(str1);
 
           RedisConnectionList.push_back(chain);
         }
@@ -295,7 +295,7 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua)
 {
 
-  ca = new ConsulAdmin ( consul_path );
+  ca = factory->get_consul_interface( consul_path );
   logging->info ("CONFIGURE: Connecting to Consul");
   logging->info (consul_path);
 
@@ -322,7 +322,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Build a new service definition for this currently running instance of clyman
   std::string name = "CLyman";
-  s = new Service (id, name, internal_address, port);
+  s = factory->get_service_interface(id, name, internal_address, port);
   s->add_tag("ZMQ");
 
   //Add the check
@@ -484,7 +484,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     str1 = new_value.substr(0, spacer_position);
     logging->debug("CONFIGURE: Password Recovered");
     logging->debug(str1);
-    chain.elt4 = str1;
+    chain.password = str1;
 
     //Retrieve the fourth value
     new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
@@ -494,7 +494,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     str1 = new_value.substr(0, spacer_position);
     logging->debug("CONFIGURE: Value Recovered");
     logging->debug(str1);
-    chain.elt5 = std::stoi(str1);
+    chain.pool_size = std::stoi(str1);
 
     //Retrieve the fifth value
     new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
@@ -504,7 +504,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     str1 = new_value.substr(0, spacer_position);
     logging->debug("CONFIGURE: Value Recovered");
     logging->debug(str1);
-    chain.elt6 = std::stoi(str1);
+    chain.timeout = std::stoi(str1);
 
     //Retrieve the final value
     new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
@@ -514,7 +514,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     str1 = new_value.substr(0, spacer_position);
     logging->debug("CONFIGURE: Value Recovered");
     logging->debug(str1);
-    chain.elt7 = std::stoi(str1);
+    chain.role = std::stoi(str1);
 
     RedisConnectionList.push_back(chain);
   }
@@ -544,7 +544,7 @@ bool ConfigurationManager::configure ()
 
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr") && cli->opt_exist("couchbase-pswd"))
     {
-      bool s = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      bool suc = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
       DB_ConnStr = cli->get_opt("-couchbase-addr");
       DB_AuthActive = true;
       DB_Pswd = cli->get_opt("-couchbase-pswd");
@@ -552,7 +552,7 @@ bool ConfigurationManager::configure ()
 
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr"))
     {
-      bool s = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      bool succ = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
       DB_ConnStr = cli->get_opt("-couchbase-addr");
       DB_AuthActive = false;
     }

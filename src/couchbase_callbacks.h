@@ -8,20 +8,16 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <exception>
-#include <uuid/uuid.h>
 #include <Eigen/Dense>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "aossl/couchbase_admin.h"
-#include "aossl/xredis_admin.h"
 #include "obj3.h"
 #include "configuration_manager.h"
 
-#include "aossl/logging.h"
-#include "aossl/zmqio.h"
+#include "aossl/factory/logging_interface.h"
 #include "globals.h"
 
 //-----------------------

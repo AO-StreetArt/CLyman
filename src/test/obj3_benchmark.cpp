@@ -5,7 +5,8 @@
 #include "../obj3.h"
 #include <string>
 #include <math.h>
-#include <aossl/logging.h>
+#include "aossl/factory/logging_interface.h"
+#include "aossl/factory.h"
 
 Obj3 *obj1;
 
@@ -131,11 +132,13 @@ Obj3 obj8 (new_proto);
 int main()
 {
 
+ServiceComponentFactory *factory = new ServiceComponentFactory;
+
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
 
 std::string initFileName = "src/test/log4cpp_test.properties";
-logging = new Logger(initFileName);
+logging = factory->get_logging_interface(initFileName);
 
 //---------------------------Pre-Test Setup-----------------------------------//
 //----------------------------------------------------------------------------//
@@ -207,6 +210,7 @@ hayai::Benchmarker::RunAllTests();
 
 delete obj1;
 delete logging;
+delete factory;
 
 return 0;
 }

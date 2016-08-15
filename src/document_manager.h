@@ -19,11 +19,11 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "aossl/couchbase_admin.h"
-#include "aossl/xredis_admin.h"
-#include "aossl/uuid_admin.h"
-#include "aossl/logging.h"
-#include "aossl/zmqio.h"
+#include "aossl/factory/couchbase_interface.h"
+#include "aossl/factory/redis_interface.h"
+#include "aossl/factory/uuid_interface.h"
+#include "aossl/factory/commandline_interface.h"
+#include "aossl/factory/zmq_interface.h"
 
 #include "obj3.h"
 #include "configuration_manager.h"
@@ -33,19 +33,19 @@
 
 class DocumentManager
 {
-CouchbaseAdmin *cb;
-xRedisAdmin *xRedis;
+CouchbaseInterface *cb;
+RedisInterface *xRedis;
 ConfigurationManager *cm;
-uuidAdmin *ua;
-Zmqo *zmqo;
+uuidInterface *ua;
+Zmqio *zmqo;
 void cr_obj_global(Obj3 *new_obj);
 void upd_obj_global(Obj3 *temp_obj);
 void get_obj_global(std::string rk_str);
 void del_obj_global(std::string key);
 public:
   //Initializer
-  DocumentManager(CouchbaseAdmin *cb_admin, xRedisAdmin *xr_admin, uuidAdmin *uadmin, ConfigurationManager *cm_admin, Zmqo *zmq_out) {cb = cb_admin; xRedis = xr_admin; cm = cm_admin;ua = uadmin; zmqo = zmq_out;}
-  DocumentManager(CouchbaseAdmin *cb_admin, xRedisAdmin *xr_admin, uuidAdmin *uadmin, Zmqo *zmq_out) {cb = cb_admin; xRedis = xr_admin;ua = uadmin;zmqo = zmq_out;}
+  DocumentManager(CouchbaseInterface *cb_admin, RedisInterface *xr_admin, uuidInterface *uadmin, ConfigurationManager *cm_admin, Zmqio *zmq_out) {cb = cb_admin; xRedis = xr_admin; cm = cm_admin;ua = uadmin; zmqo = zmq_out;}
+  DocumentManager(CouchbaseInterface *cb_admin, RedisInterface *xr_admin, uuidInterface *uadmin, Zmqio *zmq_out) {cb = cb_admin; xRedis = xr_admin;ua = uadmin;zmqo = zmq_out;}
 
   //configure
   void configure(ConfigurationManager *cm_admin) {cm = cm_admin;}

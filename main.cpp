@@ -41,6 +41,13 @@
 #include <aossl/uuid_admin.h>
 #include <aossl/cli.h>
 
+#include "aossl/factory.h"
+#include "aossl/factory/couchbase_interface.h"
+#include "aossl/factory/redis_interface.h"
+#include "aossl/factory/logging_interface.h"
+#include "aossl/factory/uuid_interface.h"
+#include "aossl/factory/commandline_interface.h"
+
 enum {
   CACHE_TYPE_1,
   CACHE_TYPE_2,
@@ -89,14 +96,16 @@ void my_signal_handler(int s){
 
       sigaction(SIGINT, &sigIntHandler, NULL);
 
+      ServiceComponentFactory *factory = new ServiceComponentFactory;
+
       //Set up the UUID Generator
-      ua = new uuidAdmin;
+      ua = factory->get_uuid_interface();
 
       //Set up our command line interpreter
-      cli = new CommandLineInterpreter ( argc, argv );
+      cli = factory->get_command_line_interface( argc, argv );
 
       //Set up our configuration manager with the CLI and UUID Generator
-      cm = new ConfigurationManager (cli, ua);
+      cm = new ConfigurationManager(cli, ua, factory);
 
       //Set up logging
 	    std::string initFileName;
@@ -111,7 +120,7 @@ void my_signal_handler(int s){
       }
 
       //This reads the logging configuration file
-      logging = new Logger(initFileName);
+      logging = factory->get_logging_interface(initFileName);
 
       //The configuration manager will  look at any command line arguments,
       //configuration files, and Consul connections to try and determine the correct
@@ -134,30 +143,8 @@ void my_signal_handler(int s){
       //Set up our Redis Connection List, which is passed to the Redis Admin to connect
       //The additional logic is needed to allow for connecting to clusters or single instance
       std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
-      int conn_list_size = RedisConnectionList.size();
-      RedisNode RedisList1[conn_list_size];
-      int y = 0;
-      for (int y = 0; y < conn_list_size; ++y)
-      {
-        //Pull the values from RedisConnectionList
-        RedisNode redis_n;
-        redis_n.dbindex = y;
-        RedisConnChain redis_chain = RedisConnectionList[y];
-        redis_n.host = redis_chain.ip.c_str();
-        redis_n.port = redis_chain.port;
-        redis_n.passwd = redis_chain.elt4.c_str();
-        redis_n.poolsize = redis_chain.elt5;
-        redis_n.timeout = redis_chain.elt6;
-        redis_n.role = redis_chain.elt7;
-        logging->debug("Line added to Redis Configuration List with IP:");
-        logging->debug(redis_n.host);
-
-        RedisList1[y] = redis_n;
-      }
-      logging->info("Redis Connection List Built");
-
       //Set up Redis Connection
-      xRedis = new xRedisAdmin (RedisList1, conn_list_size);
+      xRedis = factory->get_redis_cluster_interface(RedisConnectionList);
       logging->info("Connected to Redis");
 
       //Set up the Couchbase Connection
@@ -165,10 +152,10 @@ void my_signal_handler(int s){
       bool DBAuthActive = cm->get_dbauthactive();
       if (DBAuthActive) {
         std::string DBPswd = cm->get_dbpswd();
-        cb = new CouchbaseAdmin ( DBConnStr.c_str(), DBPswd.c_str() );
+        cb = factory->get_couchbase_interface( DBConnStr.c_str(), DBPswd.c_str() );
       }
       else {
-        cb = new CouchbaseAdmin ( DBConnStr.c_str() );
+        cb = factory->get_couchbase_interface( DBConnStr.c_str() );
       }
       logging->info("Connected to Couchbase DB");
 
@@ -177,19 +164,12 @@ void my_signal_handler(int s){
       cb->bind_get_callback(get_callback);
       cb->bind_delete_callback(del_callback);
 
-      //We maintain the ZMQ Context and pass it to the ZMQ objects coming from aossl
-      zmq::context_t context(1, 2);
-
       //Set up the outbound ZMQ Admin
-      zmqo = new Zmqo (context);
-      logging->info("0MQ Constructor Called");
-      zmqo->connect(cm->get_obconnstr());
+      zmqo = factory->get_zmq_outbound_interface(cm->get_obconnstr());
       logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Admin
-      zmqi = new Zmqi (context);
-      logging->info("0MQ Constructor Called");
-      zmqi->bind(cm->get_ibconnstr());
+      zmqi = factory->get_zmq_inbound_interface(cm->get_ibconnstr());
       logging->info("ZMQ Socket Open, opening request loop");
 
       //Set up the Document Manager

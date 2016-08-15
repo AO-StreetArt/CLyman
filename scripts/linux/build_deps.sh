@@ -77,13 +77,8 @@ if [ ! -d /usr/local/include/aossl ]; then
 
 fi
 
-#Install pyzmq, for the heartbeat scripts
-sudo apt-get install -y python-pip python-dev
+#Install python, pyzmq, protobuf, and the protobuf compiler
+sudo apt-get install -y python-pip python-dev libprotobuf-dev protobuf-compiler
 sudo pip install pyzmq
-
-#Install hayai, for compiling benchmarks
-sudo apt-add-repository -y ppa:bruun/hayai
-sudo apt-get update -y
-sudo apt-get install -y libhayai-dev
 
 printf "Finished installing dependencies"
