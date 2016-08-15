@@ -45,7 +45,7 @@ Obj3 obj (name, key, type, subtype, owner);
 obj.add_scene("1");
 
 //Build the Couchbase Admin (which will automatically connect to the DB)
-CouchbaseInterface *cb = factory.get_couchbase_interface("couchbase://localhost/default");
+CouchbaseInterface *cb = factory->get_couchbase_interface("couchbase://localhost/default");
 
 //Supports both password authentication and clustering
 printf("Connected to Couchbase");
