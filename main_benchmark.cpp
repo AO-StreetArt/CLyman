@@ -145,9 +145,9 @@ int main( int argc, char** argv )
   logging->info("Connected to Couchbase DB");
 
   //Bind Couchbase Callbacks
-  lcb_set_store_callback(cb->get_instance(), storage_callback);
-  lcb_set_get_callback(cb->get_instance(), get_callback);
-  lcb_set_remove_callback(cb->get_instance(), del_callback);
+  cb->bind_storage_callback(storage_callback);
+  cb->bind_get_callback(get_callback);
+  cb->bind_delete_callback(del_callback);
 
   zmq::context_t context(1, 2);
 
