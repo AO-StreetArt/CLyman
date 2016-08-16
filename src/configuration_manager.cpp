@@ -452,7 +452,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   std::vector<std::string> redis_chains = split( redis_conn_str,  delim);
   std::string var_value;
 
-  for (int i = 0; i < redis_chains.size(); i++)
+  for (std::size_t i = 0; i < redis_chains.size(); i++)
 	{
     //Read a string in the format 127.0.0.1--7000----2--5--0
     RedisConnChain chain;
@@ -586,4 +586,5 @@ bool ConfigurationManager::configure ()
 	  }
 
   }
+  return false;
 }
