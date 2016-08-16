@@ -60,10 +60,10 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
     std::string out_resp = "";
     if (err == LCB_SUCCESS) {
       logging->info("Retrieved: ");
-      logging->info( (char*)resp->v.v0.key );
-      logging->info( (char*)resp->v.v0.bytes );
       const char *k = (char*)resp->v.v0.key;
       const char *resp_obj = (char*)resp->v.v0.bytes;
+      logging->info( k );
+      logging->info( resp_obj );
       if (cm->get_smartupdatesactive()) {
         logging->debug("Smart Update Logic Activated");
         //Then, let's get and parse the response from the database

@@ -545,16 +545,26 @@ bool ConfigurationManager::configure ()
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr") && cli->opt_exist("couchbase-pswd"))
     {
       bool suc = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
-      DB_ConnStr = cli->get_opt("-couchbase-addr");
-      DB_AuthActive = true;
-      DB_Pswd = cli->get_opt("-couchbase-pswd");
+      if (suc) {
+        DB_ConnStr = cli->get_opt("-couchbase-addr");
+        DB_AuthActive = true;
+        DB_Pswd = cli->get_opt("-couchbase-pswd");
+      }
+      else {
+        logging->error("Configuration from Consul failed, keeping defaults");
+      }
     }
 
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr"))
     {
       bool succ = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
-      DB_ConnStr = cli->get_opt("-couchbase-addr");
-      DB_AuthActive = false;
+      if (succ) {
+        DB_ConnStr = cli->get_opt("-couchbase-addr");
+        DB_AuthActive = false;
+      }
+      else {
+      logging->error("Configuration from Consul failed, keeping defaults");
+      }
     }
 
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port"))
@@ -573,7 +583,7 @@ bool ConfigurationManager::configure ()
 	  bool file_success;
       file_success = configure_from_file( "lyman.properties" );
       return file_success;
-	}
+	  }
 
   }
 }
