@@ -36,6 +36,7 @@ ServiceComponentFactory *factory;
 
 //Internal Consul Administrator
 ConsulInterface *ca;
+bool isConsulActive;
 
 //Command Line Interpreter holding config arguments
 CommandLineInterface *cli;
@@ -91,7 +92,7 @@ public:
     DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; \
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
-          RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;}
+          RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;isConsulActive=false;}
   ~ConfigurationManager();
 
   //Populate the configuration variables

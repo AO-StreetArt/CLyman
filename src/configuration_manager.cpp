@@ -1,7 +1,7 @@
 #include "configuration_manager.h"
 
 ConfigurationManager::~ConfigurationManager() {
-  if (!ca)
+  if (!isConsulActive)
   {
     logging->debug("Configuration Manager delete called, no Consul data to delete");
   }
@@ -549,6 +549,7 @@ bool ConfigurationManager::configure ()
         DB_ConnStr = cli->get_opt("-couchbase-addr");
         DB_AuthActive = true;
         DB_Pswd = cli->get_opt("-couchbase-pswd");
+        isConsulActive = true;
       }
       else {
         logging->error("Configuration from Consul failed, keeping defaults");
@@ -561,6 +562,7 @@ bool ConfigurationManager::configure ()
       if (succ) {
         DB_ConnStr = cli->get_opt("-couchbase-addr");
         DB_AuthActive = false;
+        isConsulActive = true;
       }
       else {
       logging->error("Configuration from Consul failed, keeping defaults");
@@ -569,7 +571,11 @@ bool ConfigurationManager::configure ()
 
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port"))
     {
-      return configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      bool ret_val =  configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      if (ret_val) {
+        isConsulActive = true;
+      }
+      return ret_val;
     }
 
     //Check for the dev flag, which starts up with default ports and no consul connection
