@@ -3,11 +3,8 @@
 //Global Object Creation
 void DocumentManager::cr_obj_global(Obj3 *new_obj) {
 
-  //Generate a new key for the object
-  std::string new_key = ua->generate();
-
   //Set the new key on the new object
-  new_obj->set_key(new_key);
+  new_obj->set_key( ua->generate() );
 
   //Output a message on the outbound ZMQ Port
   std::string new_obj_string;

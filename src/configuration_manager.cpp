@@ -1,11 +1,7 @@
 #include "configuration_manager.h"
 
 ConfigurationManager::~ConfigurationManager() {
-  if (!isConsulActive)
-  {
-    logging->debug("Configuration Manager delete called, no Consul data to delete");
-  }
-  else
+  if (isConsulActive)
   {
     ca->deregister_service(*s);
     delete s;
