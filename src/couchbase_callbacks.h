@@ -8,20 +8,16 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <exception>
-#include <uuid/uuid.h>
 #include <Eigen/Dense>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "aossl/couchbase_admin.h"
-#include "aossl/xredis_admin.h"
 #include "obj3.h"
 #include "configuration_manager.h"
 
-#include "aossl/logging.h"
-#include "aossl/zmqio.h"
+#include "aossl/factory/logging_interface.h"
 #include "globals.h"
 
 //-----------------------
@@ -61,12 +57,13 @@ inline static void del_callback(lcb_t instance, const void *cookie, lcb_error_t 
 inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t err,
   const lcb_get_resp_t *resp)
   {
+    std::string out_resp = "";
     if (err == LCB_SUCCESS) {
       logging->info("Retrieved: ");
-      logging->info( (char*)resp->v.v0.key );
-      logging->info( (char*)resp->v.v0.bytes );
       const char *k = (char*)resp->v.v0.key;
       const char *resp_obj = (char*)resp->v.v0.bytes;
+      logging->info( k );
+      logging->info( resp_obj );
       if (cm->get_smartupdatesactive()) {
         logging->debug("Smart Update Logic Activated");
         //Then, let's get and parse the response from the database
@@ -209,6 +206,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
                     obj_string = new_obj->to_protobuf_msg(OBJ_UPD);
                   }
                   zmqo->send(obj_string);
+		  out_resp = zmqo->recv();
                 }
 
                 //Remove the element from the smart updbate buffer
@@ -241,6 +239,7 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
                 object_string = new_obj->to_protobuf_msg(OBJ_UPD);
               }
               zmqo->send(object_string);
+	      out_resp = zmqo->recv();
             }
           }
           else {
@@ -274,9 +273,12 @@ inline static void get_callback(lcb_t instance, const void *cookie, lcb_error_t 
             new_obj_str = new_obj->to_protobuf_msg(OBJ_GET);
           }
           zmqo->send(new_obj_str);
+	  out_resp = zmqo->recv();
           delete new_obj;
         }
       }
+	logging->debug("Response Recieved:");
+	logging->debug(out_resp);
     }
     else {
       logging->error("Couldn't retrieve item:");

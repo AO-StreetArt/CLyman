@@ -41,6 +41,13 @@
 #include <aossl/uuid_admin.h>
 #include <aossl/cli.h>
 
+#include "aossl/factory.h"
+#include "aossl/factory/couchbase_interface.h"
+#include "aossl/factory/redis_interface.h"
+#include "aossl/factory/logging_interface.h"
+#include "aossl/factory/uuid_interface.h"
+#include "aossl/factory/commandline_interface.h"
+
 enum {
   CACHE_TYPE_1,
   CACHE_TYPE_2,
@@ -55,6 +62,7 @@ void shutdown()
   delete xRedis;
   delete cb;
   delete zmqo;
+  delete zmqi;
   delete cm;
   delete ua;
   delete cli;
@@ -88,14 +96,16 @@ void my_signal_handler(int s){
 
       sigaction(SIGINT, &sigIntHandler, NULL);
 
+      ServiceComponentFactory *factory = new ServiceComponentFactory;
+
       //Set up the UUID Generator
-      ua = new uuidAdmin;
+      ua = factory->get_uuid_interface();
 
       //Set up our command line interpreter
-      cli = new CommandLineInterpreter ( argc, argv );
+      cli = factory->get_command_line_interface( argc, argv );
 
       //Set up our configuration manager with the CLI and UUID Generator
-      cm = new ConfigurationManager (cli, ua);
+      cm = new ConfigurationManager(cli, ua, factory);
 
       //Set up logging
 	    std::string initFileName;
@@ -110,7 +120,7 @@ void my_signal_handler(int s){
       }
 
       //This reads the logging configuration file
-      logging = new Logger(initFileName);
+      logging = factory->get_logging_interface(initFileName);
 
       //The configuration manager will  look at any command line arguments,
       //configuration files, and Consul connections to try and determine the correct
@@ -123,8 +133,7 @@ void my_signal_handler(int s){
       }
 
       //Set up internal variables
-      int current_event_type;
-      int msg_type;
+      int msg_type = -1;
       rapidjson::Document d;
       rapidjson::Value *val;
       std::string resp = "nilresp";
@@ -134,30 +143,8 @@ void my_signal_handler(int s){
       //Set up our Redis Connection List, which is passed to the Redis Admin to connect
       //The additional logic is needed to allow for connecting to clusters or single instance
       std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
-      int conn_list_size = RedisConnectionList.size();
-      RedisNode RedisList1[conn_list_size];
-      int y = 0;
-      for (int y = 0; y < conn_list_size; ++y)
-      {
-        //Pull the values from RedisConnectionList
-        RedisNode redis_n;
-        redis_n.dbindex = y;
-        RedisConnChain redis_chain = RedisConnectionList[y];
-        redis_n.host = redis_chain.ip.c_str();
-        redis_n.port = redis_chain.port;
-        redis_n.passwd = redis_chain.elt4.c_str();
-        redis_n.poolsize = redis_chain.elt5;
-        redis_n.timeout = redis_chain.elt6;
-        redis_n.role = redis_chain.elt7;
-        logging->debug("Line added to Redis Configuration List with IP:");
-        logging->debug(redis_n.host);
-
-        RedisList1[y] = redis_n;
-      }
-      logging->info("Redis Connection List Built");
-
       //Set up Redis Connection
-      xRedis = new xRedisAdmin (RedisList1, conn_list_size);
+      xRedis = factory->get_redis_cluster_interface(RedisConnectionList);
       logging->info("Connected to Redis");
 
       //Set up the Couchbase Connection
@@ -165,10 +152,10 @@ void my_signal_handler(int s){
       bool DBAuthActive = cm->get_dbauthactive();
       if (DBAuthActive) {
         std::string DBPswd = cm->get_dbpswd();
-        cb = new CouchbaseAdmin ( DBConnStr.c_str(), DBPswd.c_str() );
+        cb = factory->get_couchbase_interface( DBConnStr.c_str(), DBPswd.c_str() );
       }
       else {
-        cb = new CouchbaseAdmin ( DBConnStr.c_str() );
+        cb = factory->get_couchbase_interface( DBConnStr.c_str() );
       }
       logging->info("Connected to Couchbase DB");
 
@@ -177,19 +164,12 @@ void my_signal_handler(int s){
       cb->bind_get_callback(get_callback);
       cb->bind_delete_callback(del_callback);
 
-      //We maintain the ZMQ Context and pass it to the ZMQ objects coming from aossl
-      zmq::context_t context(1, 2);
-
       //Set up the outbound ZMQ Admin
-      zmqo = new Zmqo (context);
-      logging->info("0MQ Constructor Called");
-      zmqo->connect(cm->get_obconnstr());
+      zmqo = factory->get_zmq_outbound_interface(cm->get_obconnstr());
       logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Admin
-      zmqi = new Zmqi (context);
-      logging->info("0MQ Constructor Called");
-      zmqi->bind(cm->get_ibconnstr());
+      zmqi = factory->get_zmq_inbound_interface(cm->get_ibconnstr());
       logging->info("ZMQ Socket Open, opening request loop");
 
       //Set up the Document Manager
@@ -200,6 +180,8 @@ void my_signal_handler(int s){
       //Main Request Loop
 
       while (true) {
+
+        msg_type = -1;
 
         //Convert the OMQ message into a string to be passed on the event
         std::string req_string = zmqi->recv();
@@ -247,43 +229,8 @@ void my_signal_handler(int s){
         }
 
         if (msg_type == OBJ_UPD) {
-          current_event_type=OBJ_UPD;
           logging->debug("Current Event Type set to Object Update");
-        }
-        else if (msg_type == OBJ_CRT) {
-          current_event_type=OBJ_CRT;
-          logging->debug("Current Event Type set to Object Create");
-        }
-        else if (msg_type == OBJ_GET) {
-          current_event_type=OBJ_GET;
-          logging->debug("Current Event Type set to Object Get");
-        }
-        else if (msg_type == OBJ_DEL) {
-          current_event_type=OBJ_DEL;
-          logging->debug("Current Event Type set to Object Delete");
-        }
-        //Shutdown Message
-        else if (msg_type == KILL) {
 
-          //Send a success response
-          resp = "success";
-          zmqi->send(resp);
-
-          shutdown();
-
-          return 0;
-        }
-        else if (msg_type == PING) {
-          current_event_type=PING;
-        }
-        else {
-          current_event_type=-1;
-          logging->error("Current Event Type not found");
-        }
-
-
-        //Emit an event based on the event type & build the response message
-        if (current_event_type==OBJ_UPD) {
           resp = "success";
           logging->debug("Object Update Event Emitted, response:");
           logging->debug(resp);
@@ -301,7 +248,9 @@ void my_signal_handler(int s){
           }
 
         }
-        else if (current_event_type==OBJ_CRT) {
+        else if (msg_type == OBJ_CRT) {
+          logging->debug("Current Event Type set to Object Create");
+
           resp = "success";
           logging->debug("Object Create Event Emitted, response: ");
           logging->debug(resp);
@@ -317,8 +266,11 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             dm->create_objectpb(new_proto);
           }
+
         }
-        else if (current_event_type==OBJ_GET) {
+        else if (msg_type == OBJ_GET) {
+          logging->debug("Current Event Type set to Object Get");
+
           resp = "success";
           logging->debug("Object Get Event Emitted, response: ");
           logging->debug(resp);
@@ -334,8 +286,11 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             dm->get_objectpb (new_proto);
           }
+
         }
-        else if (current_event_type==OBJ_DEL) {
+        else if (msg_type == OBJ_DEL) {
+          logging->debug("Current Event Type set to Object Delete");
+
           resp = "success";
           logging->debug("Object Delete Event Emitted, response: ");
           logging->debug(resp);
@@ -351,13 +306,27 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             dm->delete_objectpb(new_proto);
           }
+
         }
-        else if (current_event_type == PING) {
+        //Shutdown Message
+        else if (msg_type == KILL) {
+
+          //Send a success response
+          resp = "success";
+          zmqi->send(resp);
+
+          shutdown();
+
+          return 0;
+        }
+        else if (msg_type == PING) {
+          logging->debug("Healthcheck Responded to");
           resp = "success";
           zmqi->send(resp);
         }
-        else
-        {
+        else {
+          logging->error("Current Event Type not found");
+
           resp = "failure";
           logging->error("Object Event not Emitted, response: ");
           logging->error(resp);

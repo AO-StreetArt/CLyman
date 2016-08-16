@@ -7,11 +7,12 @@
 #include <cstdlib>
 #include <uuid/uuid.h>
 
-#include <aossl/logging.h>
+#include "aossl/factory/logging_interface.h"
+#include "aossl/factory.h"
 
-#include <aossl/xredis_admin.h>
+#include "aossl/factory/redis_interface.h"
 
-xRedisAdmin *xRedis;
+RedisInterface *xRedis;
 std::vector<std::string> uuid_list;
 int savecounter = 0;
 int getcounter = 0;
@@ -87,18 +88,10 @@ delcounter=delcounter+1;
 //------------------------------Main Method-----------------------------------//
 //----------------------------------------------------------------------------//
 
-struct RedisConnChain
-{
-  std::string ip;
-  int port;
-  std::string elt4;
-  int elt5;
-  int elt6;
-  int elt7;
-};
-
 int main()
 {
+
+
 
 //Application Setup
 std::vector<RedisConnChain> RedisConnectionList;
@@ -146,25 +139,25 @@ if (file.is_open()) {
         new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
         spacer_position = new_value.find("--", 0);
         str1 = new_value.substr(0, spacer_position);
-        chain.elt4 = str1;
+        chain.password = str1;
 
         //Retrieve the fourth value
         new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
         spacer_position = new_value.find("--", 0);
         str1 = new_value.substr(0, spacer_position);
-        chain.elt5 = std::stoi(str1);
+        chain.pool_size = std::stoi(str1);
 
         //Retrieve the fifth value
         new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
           spacer_position = new_value.find("--", 0);
           str1 = new_value.substr(0, spacer_position);
-        chain.elt6 = std::stoi(str1);
+        chain.timeout = std::stoi(str1);
 
         //Retrieve the final value
         new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
         spacer_position = new_value.find("--", 0);
         str1 = new_value.substr(0, spacer_position);
-        chain.elt7 = std::stoi(str1);
+        chain.role = std::stoi(str1);
 
         RedisConnectionList.push_back(chain);
       }
@@ -174,37 +167,20 @@ if (file.is_open()) {
 }
 
 
-//Read the Logging Configuration File
+ServiceComponentFactory *factory = new ServiceComponentFactory;
+
+//-------------------------------Logging--------------------------------------//
+//----------------------------------------------------------------------------//
+
 std::string initFileName = "src/test/log4cpp_test.properties";
-logging = new Logger(initFileName);
+logging = factory->get_logging_interface(initFileName);
 
 //Set up internal variables
 logging->info("Internal Variables Intialized");
 
 //Set up the Redis Admin
 //Set up our Redis Connection List
-int conn_list_size = RedisConnectionList.size();
-RedisNode RedisList1[conn_list_size];
-{
-int y = 0;
-for (int y = 0; y < conn_list_size; ++y)
-{
-  //Pull the values from RedisConnectionList
-  RedisNode redis_n;
-  redis_n.dbindex = y;
-  RedisConnChain redis_chain = RedisConnectionList[y];
-  redis_n.host = redis_chain.ip.c_str();
-  redis_n.port = redis_chain.port;
-  redis_n.passwd = redis_chain.elt4.c_str();
-  redis_n.poolsize = redis_chain.elt5;
-  redis_n.timeout = redis_chain.elt6;
-  redis_n.role = redis_chain.elt7;
-  logging->debug("Line added to Redis Configuration List with IP:");
-  logging->debug(redis_n.host);
-
-  RedisList1[y] = redis_n;
-}
-}
+xRedis = factory->get_redis_cluster_interface(RedisConnectionList);
 logging->info("Redis Connection List Built");
 
 //Generate the UUID's for the benchmarks
@@ -214,10 +190,6 @@ for (i=0; i< 1001; i++) {
   std::string uuid_str = std::to_string(i);
   uuid_list.push_back(uuid_str);
 }
-
-//Set up Redis Connection
-xRedis = new xRedisAdmin (RedisList1, conn_list_size);
-logging->info("Connected to Redis");
 
 //------------------------------Run Tests-------------------------------------//
 //----------------------------------------------------------------------------//
@@ -232,6 +204,7 @@ hayai::Benchmarker::RunAllTests();
 
 delete xRedis;
 delete logging;
+delete factory;
 
 return 0;
 

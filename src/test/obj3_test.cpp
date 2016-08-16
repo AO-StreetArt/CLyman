@@ -4,7 +4,8 @@
 #include "../obj3.h"
 #include <string>
 #include <math.h>
-#include <aossl/logging.h>
+#include "aossl/factory/logging_interface.h"
+#include "aossl/factory.h"
 
 #include <assert.h>
 
@@ -40,11 +41,13 @@ std::cout << obj.to_json_msg(0) << std::endl;
 int main()
 {
 
+ServiceComponentFactory *factory = new ServiceComponentFactory;
+
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
 
 std::string initFileName = "src/test/log4cpp_test.properties";
-logging = new Logger(initFileName);
+logging = factory->get_logging_interface(initFileName);
 
 //----------------------------Basic Tests-------------------------------------//
 //----------------------------------------------------------------------------//
@@ -258,6 +261,7 @@ std::cout << "From Protobuffer" << std::endl;
 print_obj_attributes(obj8);
 
 delete logging;
+delete factory;
 
 return 0;
 

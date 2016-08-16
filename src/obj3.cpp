@@ -415,10 +415,6 @@ void Obj3::translate_object(double x, double y, double z, std::string locality)
 	tran_matrix(1, 3) = y;
 	tran_matrix(2, 3) = z;
 
-	double r_x;
-        double r_y;
-        double r_z;
-
 	//Perform the matrix multiplication
 	if (locality=="Global")
 	{

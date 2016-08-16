@@ -3,23 +3,23 @@
 //Declare our global variables
 
 //UUID Generator
-uuidAdmin *ua;
+uuidInterface *ua;
 
 //Configuration Manager
 ConfigurationManager *cm;
 
 //Global Couchbase Admin Object
-CouchbaseAdmin *cb;
+CouchbaseInterface *cb;
 
 //Smart Update Buffer
-xRedisAdmin *xRedis;
+RedisInterface *xRedis;
 
 //Document Manager, highest level object
 DocumentManager *dm;
 
 //Command Line interpreter
-CommandLineInterpreter *cli;
+CommandLineInterface *cli;
 
 //ZMQ Admins
-Zmqo *zmqo;
-Zmqi *zmqi;
+Zmqio *zmqo;
+Zmqio *zmqi;

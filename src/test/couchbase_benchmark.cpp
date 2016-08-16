@@ -1,11 +1,13 @@
 #include <hayai/hayai.hpp>
 #include <uuid/uuid.h>
-#include <aossl/couchbase_admin.h>
+#include "aossl/factory/couchbase_interface.h"
+#include "aossl/factory.h"
+#include "aossl/factory/logging_interface.h"
 #include "../obj3.h"
 #include <libcouchbase/couchbase.h>
 
 Obj3 *obj;
-CouchbaseAdmin *cb;
+CouchbaseInterface *cb;
 std::vector<std::string> uuid_list;
 int savecounter = 0;
 int getcounter = 0;
@@ -89,8 +91,13 @@ int main()
 
 //Application Setup
 
+ServiceComponentFactory *factory = new ServiceComponentFactory;
+
+//-------------------------------Logging--------------------------------------//
+//----------------------------------------------------------------------------//
+
 std::string initFileName = "src/test/log4cpp_test.properties";
-logging = new Logger(initFileName);
+logging = factory->get_logging_interface(initFileName);
 
 //Generate the UUID's for the benchmarks
 int i=0;
@@ -157,7 +164,7 @@ obj = new Obj3 (name, key, type, subtype, owner, scns, new_location, new_rotatio
 
 //Set up the Couchbase Admin
 //Build the Couchbase Admin (which will automatically connect to the DB)
-cb = new CouchbaseAdmin ("couchbase://localhost/default");
+cb = factory->get_couchbase_interface( "couchbase://localhost/default" );
 
 //Supports both password authentication and clustering
 printf("Connected to Couchbase");
@@ -180,6 +187,7 @@ hayai::Benchmarker::RunAllTests();
 delete obj;
 delete cb;
 delete logging;
+delete factory;
 
 return 0;
 

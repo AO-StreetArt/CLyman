@@ -3,11 +3,8 @@
 //Global Object Creation
 void DocumentManager::cr_obj_global(Obj3 *new_obj) {
 
-  //Generate a new key for the object
-  std::string new_key = ua->generate();
-
   //Set the new key on the new object
-  new_obj->set_key(new_key);
+  new_obj->set_key( ua->generate() );
 
   //Output a message on the outbound ZMQ Port
   std::string new_obj_string;
@@ -17,7 +14,15 @@ void DocumentManager::cr_obj_global(Obj3 *new_obj) {
   else if (cm->get_mfprotobuf()) {
     new_obj_string = new_obj->to_protobuf_msg(OBJ_CRT);
   }
+
+  //Send outbound message
   zmqo->send(new_obj_string);
+
+  //Get outbound response
+  std::string out_resp = "";
+  out_resp = zmqo->recv();
+  logging->debug("Response Recieved:");
+	logging->debug(out_resp);
 
   //Save the object to the couchbase DB
   cb->create_object (new_obj);
@@ -150,6 +155,12 @@ void DocumentManager::upd_obj_global(Obj3 *temp_obj) {
 
     zmqo->send(temp_obj_str);
 
+    //Get outbound response
+    std::string out_resp = "";
+    out_resp = zmqo->recv();
+    logging->debug("Response Recieved:");
+  	logging->debug(out_resp);
+
     cb->save_object (temp_obj);
     delete temp_obj;
     cb->wait();
@@ -235,6 +246,12 @@ void DocumentManager::del_obj_global(std::string key) {
     nobj_str = obj.to_protobuf_msg(OBJ_DEL);
   }
   zmqo->send(nobj_str);
+
+  //Get outbound response
+  std::string out_resp = "";
+  out_resp = zmqo->recv();
+  logging->debug("Response Recieved:");
+	logging->debug(out_resp);
 
   cb->delete_object( kc_str );
   cb->wait();

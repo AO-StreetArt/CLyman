@@ -16,10 +16,12 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "aossl/cli.h"
-#include "aossl/consul_admin.h"
-#include "aossl/logging.h"
-#include "aossl/uuid_admin.h"
+#include "aossl/factory.h"
+#include "aossl/factory/commandline_interface.h"
+#include "aossl/factory/consul_interface.h"
+#include "aossl/factory/logging_interface.h"
+#include "aossl/factory/uuid_interface.h"
+#include "aossl/factory/redis_interface.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -28,29 +30,22 @@
 #ifndef CONFIG_MANAGER
 #define CONFIG_MANAGER
 
-struct RedisConnChain
-{
-  std::string ip;
-  int port;
-  std::string elt4;
-  int elt5;
-  int elt6;
-  int elt7;
-};
-
 class ConfigurationManager
 {
+ServiceComponentFactory *factory;
+
 //Internal Consul Administrator
-ConsulAdmin *ca;
+ConsulInterface *ca;
+bool isConsulActive;
 
 //Command Line Interpreter holding config arguments
-CommandLineInterpreter *cli;
+CommandLineInterface *cli;
 
 //UUID Generator
-uuidAdmin *ua;
+uuidInterface *ua;
 
 //Consul Service Definition
-Service *s;
+ServiceInterface *s;
 
 //Configuration Variables
 std::string DB_ConnStr;
@@ -88,16 +83,16 @@ bool configure_from_file (std::string file_path);
 
 //Consul Config
 std::string get_consul_config_value(std::string key);
-bool configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidAdmin *ua);
+bool configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidInterface *ua);
 
 public:
   //Constructor
   //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
-  ConfigurationManager(CommandLineInterpreter *c, uuidAdmin *u) {cli = c;ua = u;\
+  ConfigurationManager(CommandLineInterface *c, uuidInterface *u, ServiceComponentFactory *fact) {cli = c;ua = u;factory=fact;\
     DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; \
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
-          RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;}
+          RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;isConsulActive=false;}
   ~ConfigurationManager();
 
   //Populate the configuration variables
