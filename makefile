@@ -107,7 +107,7 @@ main.o: main.cpp
 # --------------------------- Clean Project ---------------------------------- #
 
 clean_local:
-	$(RM) lyman src/*.o *~ *.log *.log.*
+	$(RM) lyman *.o src/*.o *~ *.log *.log.*
 
 clean_tests:
 	$(RM) *_test
