@@ -417,6 +417,7 @@ bool Obj3::transform_object(Obj3 *temp_obj)
 		std::string nsubtype = temp_obj->get_subtype();
 		set_subtype(nsubtype);
 	}
+	return true;
 }
 
 bool Obj3::transform_object(Eigen::Matrix4d trans_matrix)

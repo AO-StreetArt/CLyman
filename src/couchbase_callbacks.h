@@ -129,7 +129,6 @@ std::string my_retrieval_callback (Request *r)
 
       rapidjson::Document temp_d;
       Obj3 *temp_obj = NULL;
-      bool go_ahead=false;
       try {
         temp_d.Parse(resp_obj);
         new_obj = new Obj3 (temp_d);
@@ -164,7 +163,7 @@ std::string my_retrieval_callback (Request *r)
         {
           logging->debug("Object found in Smart Update Buffer");
           //Let's get the object out of the active update list
-          std::string strValue = xRedis->load(temp_key);
+          std::string strValue = xRedis->load(k);
           if (strValue.empty()) {
             logging->error("Unable to load object and perform smart update");
           }
