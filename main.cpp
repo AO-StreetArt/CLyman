@@ -160,9 +160,9 @@ void my_signal_handler(int s){
       logging->info("Connected to Couchbase DB");
 
       //Bind Couchbase Callbacks
-      cb->bind_storage_callback(storage_callback);
-      cb->bind_get_callback(get_callback);
-      cb->bind_delete_callback(del_callback);
+      cb->bind_storage_callback(my_storage_callback);
+      cb->bind_get_callback(my_retrieval_callback);
+      cb->bind_delete_callback(my_delete_callback);
 
       //Set up the outbound ZMQ Admin
       zmqo = factory->get_zmq_outbound_interface(cm->get_obconnstr());

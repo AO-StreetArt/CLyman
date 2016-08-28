@@ -369,6 +369,56 @@ Obj3::Obj3(const rapidjson::Document& d)
 	  logging->debug("Obj3 Built");
 }
 
+bool Obj3::transform_object(Obj3 *temp_obj)
+{
+	//First, we apply any matrix transforms present
+	if (temp_obj->get_locx() > 0.0001 || temp_obj->get_locy() > 0.0001 || temp_obj->get_locz() > 0.0001) {
+		logging->debug("Location Transformation Detected");
+		translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+	}
+
+	if (temp_obj->get_rotex() > 0.0001 || temp_obj->get_rotey() > 0.0001 || temp_obj->get_rotez() > 0.0001) {
+		logging->debug("Euler Rotation Transformation Detected");
+		rotatee(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), "Global");
+	}
+
+	if (temp_obj->get_rotqw() > 0.0001 || temp_obj->get_rotqx() > 0.0001 || temp_obj->get_rotqy() > 0.0001 || temp_obj->get_rotqz() > 0.0001) {
+		logging->debug("Quaternion Rotation Transformation Detected");
+		rotateq(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), "Global");
+	}
+
+	if (temp_obj->get_sclx() > 0.0001 || temp_obj->get_scly() > 0.0001 || temp_obj->get_sclz() > 0.0001) {
+		logging->debug("Scale Transformation Detected");
+		resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+	}
+
+	logging->debug("Applying Transform Matrix and full transform stack");
+	transform_object(temp_obj->get_transform());
+
+	apply_transforms();
+
+	//Next, we write any string attributes
+	if (temp_obj->get_owner() != "") {
+		std::string nowner = temp_obj->get_owner();
+		set_owner(nowner);
+	}
+
+	if (temp_obj->get_name() != "") {
+		std::string nname = temp_obj->get_name();
+		set_name(nname);
+	}
+
+	if (temp_obj->get_type() != "") {
+		std::string ntype = temp_obj->get_type();
+		set_type(ntype);
+	}
+
+	if (temp_obj->get_subtype() != "") {
+		std::string nsubtype = temp_obj->get_subtype();
+		set_subtype(nsubtype);
+	}
+}
+
 bool Obj3::transform_object(Eigen::Matrix4d trans_matrix)
 {
 	logging->info("Obj3:Transform Object Called with Matrix4d");
