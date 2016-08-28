@@ -219,8 +219,8 @@ std::string my_retrieval_callback (Request *r)
             }
 
             //Remove the element from the smart updbate buffer
-            if (xRedis->exists(temp_key)) {
-              xRedis->del(temp_key);
+            if (xRedis->exists(k)) {
+              xRedis->del(k);
             }
             else {
               logging->debug("Key already expired from update buffer, not deleting");
