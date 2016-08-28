@@ -9,7 +9,7 @@ OBJS = src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.
 TESTS = redis_test obj3_test couchbase_test configuration_test
 BENCHMARKS = couchbase_benchmark obj3_benchmark redis_benchmark main_benchmark
 LIBS = -lpthread -llog4cpp
-FULL_LIBS = -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis`
+FULL_LIBS = -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -levent `pkg-config --cflags --libs protobuf hiredis`
 
 PROTOC = protoc
 PROTO_OPTS = -I=src
