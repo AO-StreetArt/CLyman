@@ -49,7 +49,7 @@ inline std::string my_delete_callback (Request *r)
 {
   if (r->req_err->err_code == NOERROR)
   {
-    logging->debug("delete:");
+    logging->debug("deleted:");
     logging->debug(r->req_addr);
   }
   else
@@ -65,7 +65,7 @@ inline std::string my_delete_callback (Request *r)
 std::string my_retrieval_callback (Request *r)
 {
   //Set up our base objects
-  Obj3 *new_obj = NULL;
+  Obj3 *new_obj;
   std::string out_resp = "";
   std::string obj_string = "";
 
