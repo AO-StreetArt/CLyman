@@ -67,7 +67,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       MessageFormatJSON=true;
       MessageFormatProtoBuf=false;
     }
-    else if (props->get_opt("DB_ConnectionString")="protocol-buffer") {
+    else if (props->get_opt("DB_ConnectionString") == "protocol-buffer") {
       MessageFormatJSON=false;
       MessageFormatProtoBuf=true;
     }
@@ -84,7 +84,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   }
   else if (props->list_exist("RedisConnectionString")) {
     std::vector<std::string> conn_list = props->get_list("RedisConnectionString");
-    for (int i = 0; i < conn_list.size(); i++)
+    for (std::size_t i = 0; i < conn_list.size(); i++)
     {
 
       std::string var_value = conn_list[i];
@@ -131,6 +131,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     }
   }
   delete props;
+  return true;
 }
 
 //---------------------------Configure from Consul----------------------------//
