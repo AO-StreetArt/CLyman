@@ -1,30 +1,44 @@
 #include <sstream>
-#include <zmq.hpp>
 #include <string>
 #include <strings.h>
 #include <stdint.h>
-#include <stdio.h>
+
+#include <algorithm>
+#include <functional>
+#include <cctype>
+#include <locale>
 
 #ifndef LYMAN_UTILS
 #define LYMAN_UTILS
 
 //This defines a set of universal event types
 
-extern const int OBJ_UPD;
-extern const int OBJ_CRT;
-extern const int OBJ_GET;
-extern const int OBJ_DEL;
-extern const int OBJ_PUSH;
-extern const int KILL;
-extern const int PING;
+const int OBJ_UPD = 0;
+const int OBJ_CRT = 1;
+const int OBJ_GET = 2;
+const int OBJ_DEL = 3;
+const int OBJ_PUSH = 4;
+const int KILL = 999;
+const int PING = 555;
 
-//Trims Strings
-inline std::string left_trim_string (std::string str) {
-    size_t start_pos = str.find_first_not_of(" \t");
-    if (std::string::npos != start_pos) {
-        str = str.substr(start_pos);
-    }
-    return str;
+//Trim Strings
+// trim from start
+static inline std::string &ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+            std::not1(std::ptr_fun<int, int>(std::isspace))));
+    return s;
+}
+
+// trim from end
+static inline std::string &rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(),
+            std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    return s;
+}
+
+// trim from both ends
+static inline std::string &trim(std::string &s) {
+    return ltrim(rtrim(s));
 }
 
 /*Reliable To String Method*/

@@ -27,212 +27,134 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   //Open the file
   logging->info("CONFIGURE: Opening properties file:");
   logging->info(file_path);
-  std::string line;
 
-  struct stat buffer;
-  if (stat (file_path.c_str(), &buffer) == 0) {
-  //if ( file_exists( file_path ) ) {
+  //Get a properties file manager, which will give us access to the file in a hashmap
+  PropertiesReaderInterface *props = factory->get_properties_reader_interface(file_path);
 
-  std::ifstream file (file_path);
-
-  if (file.is_open()) {
-    while (getline (file, line) ) {
-      //Read a line from the property file
-      logging->debug("CONFIGURE: Line read from configuration file:");
-      logging->debug(line);
-
-      //Figure out if we have a blank or comment line
-      bool keep_going = true;
-      if (line.length() > 0) {
-        if (line[0] == '/' && line[1] == '/') {
-          keep_going=false;
-        }
-      }
-      else {
-        keep_going=false;
-      }
-
-      if (keep_going==true) {
-        int eq_pos = line.find("=", 0);
-        std::string var_name = line.substr(0, eq_pos);
-        std::string var_value = line.substr(eq_pos+1, line.length() - eq_pos);
-        logging->debug(var_name);
-        logging->debug(var_value);
-        if (var_name=="DB_ConnectionString") {
-          DB_ConnStr=var_value;
-        }
-        if (var_name=="Smart_Update_Buffer_Duration") {
-          SUB_Duration=std::stoi(var_value);
-        }
-        else if (var_name=="DB_AuthenticationActive") {
-          if (var_value=="True") {
-            DB_AuthActive=true;
-          }
-          else {
-            DB_AuthActive=false;
-          }
-        }
-        else if (var_name=="DB_Password") {
-          DB_Pswd=var_value;
-        }
-        else if (var_name=="0MQ_OutboundConnectionString") {
-          OMQ_OBConnStr = var_value;
-        }
-        else if (var_name=="0MQ_InboundConnectionString") {
-          OMQ_IBConnStr = var_value;
-        }
-        else if (var_name=="SmartUpdatesActive") {
-          if (var_value=="True") {
-            SmartUpdatesActive=true;
-          }
-          else {
-            SmartUpdatesActive=false;
-          }
-        }
-        else if (var_name=="MessageFormat") {
-          if (var_value=="json") {
-            MessageFormatJSON=true;
-            MessageFormatProtoBuf=false;
-          }
-          else if (var_value=="protocol-buffer") {
-            MessageFormatJSON=false;
-            MessageFormatProtoBuf=true;
-          }
-        }
-        else if (var_name=="RedisBufferFormat") {
-          if (var_value=="json") {
-            RedisFormatJSON=true;
-            RedisFormatProtoBuf=false;
-          }
-          else if (var_value=="protocol-buffer") {
-            RedisFormatJSON=false;
-            RedisFormatProtoBuf=true;
-          }
-        }
-        else if (var_name=="RedisConnectionString") {
-          //Read a string in the format 127.0.0.1--7000----2--5--0
-          RedisConnChain chain;
-
-          //Retrieve the first value
-          int spacer_position = var_value.find("--", 0);
-          std::string str1 = var_value.substr(0, spacer_position);
-          logging->debug("CONFIGURE: IP Address Recovered");
-          logging->debug(str1);
-          chain.ip = str1;
-
-          //Retrieve the second value
-          std::string new_value = var_value.substr(spacer_position+2, var_value.length() - 1);
-          logging->debug("CONFIGURE: New Search String");
-          logging->debug(new_value);
-          spacer_position = new_value.find("--", 0);
-          str1 = new_value.substr(0, spacer_position);
-          logging->debug("CONFIGURE: Port Recovered");
-          logging->debug(str1);
-          chain.port = std::stoi(str1);
-
-          //Retrieve the third value
-          new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-          logging->debug("CONFIGURE: New Search String");
-          logging->debug(new_value);
-          spacer_position = new_value.find("--", 0);
-          str1 = new_value.substr(0, spacer_position);
-          logging->debug("CONFIGURE: Password Recovered");
-          logging->debug(str1);
-          chain.password = str1;
-
-          //Retrieve the fourth value
-          new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-          logging->debug("CONFIGURE: New Search String");
-          logging->debug(new_value);
-          spacer_position = new_value.find("--", 0);
-          str1 = new_value.substr(0, spacer_position);
-          logging->debug("CONFIGURE: Value Recovered");
-          logging->debug(str1);
-          chain.pool_size = std::stoi(str1);
-
-          //Retrieve the fifth value
-          new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-          logging->debug("CONFIGURE: New Search String");
-          logging->debug(new_value);
-          spacer_position = new_value.find("--", 0);
-          str1 = new_value.substr(0, spacer_position);
-          logging->debug("CONFIGURE: Value Recovered");
-          logging->debug(str1);
-          chain.timeout = std::stoi(str1);
-
-          //Retrieve the final value
-          new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-          logging->debug("CONFIGURE: New Search String");
-          logging->debug(new_value);
-          spacer_position = new_value.find("--", 0);
-          str1 = new_value.substr(0, spacer_position);
-          logging->debug("CONFIGURE: Value Recovered");
-          logging->debug(str1);
-          chain.role = std::stoi(str1);
-
-          RedisConnectionList.push_back(chain);
-        }
-      }
-    }
-    file.close();
+  if (props->opt_exist("DB_ConnectionString")) {
+    DB_ConnStr=props->get_opt("DB_ConnectionString");
+    logging->info("CONFIGURE: DB Connection String:");
+    logging->info(DB_ConnStr);
   }
-}
-else
-{
-  logging->error("CONFIGURE: Configuration File not found");
-  return false;
-}
-return true;
+  if (props->opt_exist("Smart_Update_Buffer_Duration")) {
+    SUB_Duration=std::stoi(props->get_opt("Smart_Update_Buffer_Duration"));
+    logging->info("CONFIGURE: Smart Update Buffer Duration:");
+    logging->info(props->get_opt("Smart_Update_Buffer_Duration"));
+  }
+  if (props->opt_exist("DB_AuthenticationActive")) {
+    if (props->get_opt("DB_AuthenticationActive")=="True") {
+      DB_AuthActive=true;
+      logging->info("CONFIGURE: DB Authentication Active");
+    }
+    else {
+      DB_AuthActive=false;
+      logging->info("CONFIGURE: DB Authentication Inactive");
+    }
+  }
+  if (props->opt_exist("DB_Password")) {
+    DB_Pswd=props->get_opt("DB_Password");
+    logging->info("CONFIGURE: DB Password:");
+    logging->info(DB_Pswd);
+  }
+  if (props->opt_exist("0MQ_OutboundConnectionString")) {
+    OMQ_OBConnStr = props->get_opt("0MQ_OutboundConnectionString");
+    logging->info("CONFIGURE: Outbound 0MQ Connection:");
+    logging->info(OMQ_OBConnStr);
+  }
+  if (props->opt_exist("0MQ_InboundConnectionString")) {
+    OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
+    logging->info("CONFIGURE: Inbound 0MQ Connection:");
+    logging->info(OMQ_IBConnStr);
+  }
+  if (props->opt_exist("SmartUpdatesActive")) {
+    if (props->get_opt("SmartUpdatesActive")=="True") {
+      SmartUpdatesActive=true;
+      logging->info("CONFIGURE: Smart Updates Active");
+    }
+    else {
+      SmartUpdatesActive=false;
+      logging->info("CONFIGURE: Smart Updates Inactive");
+    }
+  }
+  if (props->opt_exist("MessageFormat")) {
+    if (props->get_opt("MessageFormat")=="json") {
+      MessageFormatJSON=true;
+      MessageFormatProtoBuf=false;
+      logging->info("CONFIGURE: Message Format set to JSON");
+    }
+    else if (props->get_opt("MessageFormat") == "protocol-buffer") {
+      MessageFormatJSON=false;
+      MessageFormatProtoBuf=true;
+      logging->info("CONFIGURE: Message Format set to Protocol Buffers");
+    }
+  }
+  if (props->opt_exist("RedisBufferFormat")) {
+    if (props->get_opt("RedisBufferFormat")=="json") {
+      RedisFormatJSON=true;
+      RedisFormatProtoBuf=false;
+      logging->info("CONFIGURE: Redis Buffer Format set to JSON");
+    }
+    else if (props->get_opt("RedisBufferFormat") == "protocol-buffer") {
+      RedisFormatJSON=false;
+      RedisFormatProtoBuf=true;
+      logging->info("CONFIGURE: Redis Buffer Format set to Protocol Buffers");
+    }
+  }
+  if (props->list_exist("RedisConnectionString")) {
+    std::vector<std::string> conn_list = props->get_list("RedisConnectionString");
+    for (std::size_t i = 0; i < conn_list.size(); i++)
+    {
+
+      std::string var_value = conn_list[i];
+      logging->info("CONFIGURE: Redis Connection:");
+      logging->debug(var_value);
+
+      //Read a string in the format 127.0.0.1--7000----2--5--0
+      RedisConnChain chain;
+
+      //Retrieve the first value
+      int spacer_position = var_value.find("--", 0);
+      std::string str1 = var_value.substr(0, spacer_position);
+      chain.ip = str1;
+
+      //Retrieve the second value
+      std::string new_value = var_value.substr(spacer_position+2, var_value.length() - 1);
+      spacer_position = new_value.find("--", 0);
+      str1 = new_value.substr(0, spacer_position);
+      chain.port = std::stoi(str1);
+
+      //Retrieve the third value
+      new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
+      spacer_position = new_value.find("--", 0);
+      str1 = new_value.substr(0, spacer_position);
+      chain.password = str1;
+
+      //Retrieve the fourth value
+      new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
+      spacer_position = new_value.find("--", 0);
+      str1 = new_value.substr(0, spacer_position);
+      chain.pool_size = std::stoi(str1);
+
+      //Retrieve the fifth value
+      new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
+      spacer_position = new_value.find("--", 0);
+      str1 = new_value.substr(0, spacer_position);
+      chain.timeout = std::stoi(str1);
+
+      //Retrieve the final value
+      new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
+      spacer_position = new_value.find("--", 0);
+      str1 = new_value.substr(0, spacer_position);
+      chain.role = std::stoi(str1);
+
+      RedisConnectionList.push_back(chain);
+    }
+  }
+  delete props;
+  return true;
 }
 
 //---------------------------Configure from Consul----------------------------//
-
-std::string ConfigurationManager::base64_decode(std::string const& encoded_string) {
-
-  static const std::string base64_chars =
-               "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-               "abcdefghijklmnopqrstuvwxyz"
-               "0123456789+/";
-
-  int in_len = encoded_string.size();
-  int i = 0;
-  int j = 0;
-  int in_ = 0;
-  unsigned char char_array_4[4], char_array_3[3];
-  std::string ret;
-
-  while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
-    char_array_4[i++] = encoded_string[in_]; in_++;
-    if (i ==4) {
-      for (i = 0; i <4; i++)
-        char_array_4[i] = base64_chars.find(char_array_4[i]);
-
-      char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-      char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-      char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-      for (i = 0; (i < 3); i++)
-        ret += char_array_3[i];
-      i = 0;
-    }
-  }
-
-  if (i) {
-    for (j = i; j <4; j++)
-      char_array_4[j] = 0;
-
-    for (j = 0; j <4; j++)
-      char_array_4[j] = base64_chars.find(char_array_4[j]);
-
-    char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-    char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-    char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-    for (j = 0; (j < i - 1); j++) ret += char_array_3[j];
-  }
-
-  return ret;
-}
 
 std::vector<std::string> ConfigurationManager::split(std::string inp_string, char delim)
 {
@@ -284,7 +206,7 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
   }
 
   //Transform the object from base64
-  return base64_decode(resp_str);
+  return ca->base64_decode(resp_str);
 }
 
 //Configure based on the Services List and Key/Value store from Consul

@@ -22,6 +22,7 @@
 #include "aossl/factory/logging_interface.h"
 #include "aossl/factory/uuid_interface.h"
 #include "aossl/factory/redis_interface.h"
+#include "aossl/factory/properties_reader_interface.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -32,20 +33,20 @@
 
 class ConfigurationManager
 {
-ServiceComponentFactory *factory;
+ServiceComponentFactory *factory = NULL;
 
 //Internal Consul Administrator
-ConsulInterface *ca;
+ConsulInterface *ca = NULL;
 bool isConsulActive;
 
 //Command Line Interpreter holding config arguments
-CommandLineInterface *cli;
+CommandLineInterface *cli = NULL;
 
 //UUID Generator
-uuidInterface *ua;
+uuidInterface *ua = NULL;
 
 //Consul Service Definition
-ServiceInterface *s;
+ServiceInterface *s = NULL;
 
 //Configuration Variables
 std::string DB_ConnStr;
@@ -64,13 +65,6 @@ std::string HealthCheckScript;
 int HealthCheckInterval;
 
 //String Manipulations
-
-//Base64 Decoding, for responses from the Key-Value store in Consul
-
-static bool is_base64(unsigned char c) {
-  return (isalnum(c) || (c == '+') || (c == '/'));
-}
-std::string base64_decode(std::string const& s);
 
 //Split a string, based on python's split method
 std::vector<std::string> split(std::string inp_string, char delim);

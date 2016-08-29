@@ -129,6 +129,9 @@ class Obj3: public Writeable
 
 		//Transformation Methods
 
+		//Smart Update
+		bool transform_object(Obj3 *obj);
+
 		//Transform
 		bool transform_object(Eigen::Matrix4d trans_matrix);
 

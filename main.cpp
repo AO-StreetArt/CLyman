@@ -160,9 +160,9 @@ void my_signal_handler(int s){
       logging->info("Connected to Couchbase DB");
 
       //Bind Couchbase Callbacks
-      cb->bind_storage_callback(storage_callback);
-      cb->bind_get_callback(get_callback);
-      cb->bind_delete_callback(del_callback);
+      cb->bind_storage_callback(my_storage_callback);
+      cb->bind_get_callback(my_retrieval_callback);
+      cb->bind_delete_callback(my_delete_callback);
 
       //Set up the outbound ZMQ Admin
       zmqo = factory->get_zmq_outbound_interface(cm->get_obconnstr());
@@ -185,7 +185,7 @@ void my_signal_handler(int s){
 
         //Convert the OMQ message into a string to be passed on the event
         std::string req_string = zmqi->recv();
-        req_string = left_trim_string (req_string);
+        req_string = ltrim(req_string);
         const char * req_ptr = req_string.c_str();
         logging->debug("Conversion to C String performed with result: ");
         logging->debug(req_ptr);
