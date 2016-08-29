@@ -105,7 +105,7 @@ class Obj3: public Writeable
 		//Copy Constructor
 		Obj3(const Obj3 &obj)
 		{
-			Copy the string attributes
+			//Copy the string attributes
 			name = obj.get_name();
 			key = obj.get_key();
 			type = obj.get_type();
@@ -114,11 +114,11 @@ class Obj3: public Writeable
 			is_locked = obj.locked();
 			lock_owner = obj.get_lock_id();
 
-			Copy the scene list
+			//Copy the scene list
 			scene_list.reserve(obj.get_scenes().size());
 			copy(obj.scene_list.begin(), obj.scene_list.end(), back_inserter(scene_list));
 
-			Copy the matrix elements
+			//Copy the matrix elements
 			location = obj.location;
 			rotation_euler = obj.rotation_euler;
 			rotation_quaternion = obj.rotation_quaternion;
