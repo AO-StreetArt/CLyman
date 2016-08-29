@@ -21,17 +21,6 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
   std::vector<std::string> scn_list;
   logging->debug("New Variables Declared");
 
-  //scale
-  new_scale(0) = 1.0;
-  new_scale(1) = 1.0;
-  new_scale(2) = 1.0;
-
-  //Transform
-  new_transform(0, 0) = 1.0;
-  new_transform(1, 1) = 1.0;
-  new_transform(2, 2) = 1.0;
-  new_transform(3, 3) = 1.0;
-
   //Perform the Conversion
   if (buffer.has_name()) {
     new_name = buffer.name();
@@ -158,17 +147,6 @@ Obj3::Obj3(const rapidjson::Document& d)
   std::string new_lock_id="";
   std::vector<std::string> scn_list;
   logging->debug("New Variables Declared");
-
-  //scale
-  new_scale(0) = 1.0;
-  new_scale(1) = 1.0;
-  new_scale(2) = 1.0;
-
-  //Transform and buffer
-  new_transform(0, 0) = 1.0;
-  new_transform(1, 1) = 1.0;
-  new_transform(2, 2) = 1.0;
-  new_transform(3, 3) = 1.0;
 
 	if (d.IsObject()) {
 
