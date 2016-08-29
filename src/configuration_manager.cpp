@@ -319,20 +319,30 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Step 2: Get the key-value information for deployment-wide config (Including OB ZeroMQ Connectivity)
   DB_ConnStr=get_consul_config_value("DB_ConnectionString");
+  logging->debug("CONFIGURE: Database Connection String:");
+  logging->debug(DB_ConnStr);
   std::string sub_dur_str = get_consul_config_value("Smart_Update_Buffer_Duration");
   if (!sub_dur_str.empty()) {
     SUB_Duration=std::stoi(sub_dur_str);
+    logging->debug("CONFIGURE: Smart Update Buffer Duration:");
+    logging->debug(sub_dur_str);
   }
   else {
     logging->error("No Smart Update Buffer duration found");
   }
   DB_Pswd = get_consul_config_value("DB_Password");
+  logging->debug("CONFIGURE: Database Password:");
+  logging->debug(DB_Pswd);
   DB_AuthActive=false;
   if (!DB_Pswd.empty()) {
     DB_AuthActive=true;
   }
   OMQ_OBConnStr = get_consul_config_value("0MQ_OutboundConnectionString");
+  logging->debug("CONFIGURE: Outbound 0MQ Connection String:");
+  logging->debug(OMQ_OBConnStr);
   std::string sua = get_consul_config_value("Smart_Updates_Active");
+  logging->debug("CONFIGURE: Smart Updates Active:");
+  logging->debug(sua);
   if (sua == "True") {
     SmartUpdatesActive=true;
   }
@@ -340,6 +350,8 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     SmartUpdatesActive=false;
   }
   std::string msg_format_str = get_consul_config_value("MessageFormat");
+  logging->debug("CONFIGURE: Message Format:");
+  logging->debug(msg_format_str);
   if (msg_format_str == "json")
   {
     MessageFormatJSON=true;
@@ -351,6 +363,8 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     MessageFormatProtoBuf=true;
   }
   std::string redis_format_str = get_consul_config_value("RedisBufferFormat");
+  logging->debug("CONFIGURE: Redis Buffer Format:");
+  logging->debug(redis_format_str);
   if (redis_format_str == "json")
   {
     RedisFormatJSON=true;
@@ -369,7 +383,8 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   char delim (';');
   std::vector<std::string> redis_chains = split( redis_conn_str,  delim);
   std::string var_value;
-
+  logging->debug("CONFIGURE: Redis Connections:");
+  logging->debug(redis_format_str);
   for (std::size_t i = 0; i < redis_chains.size(); i++)
 	{
     //Read a string in the format 127.0.0.1--7000----2--5--0

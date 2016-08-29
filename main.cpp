@@ -158,7 +158,6 @@ void my_signal_handler(int s){
       else {
         cb = factory->get_couchbase_interface( DBConnStr.c_str() );
       }
-      logging->info("Connected to Couchbase DB");
 
       //Bind Couchbase Callbacks
       cb->bind_storage_callback(my_storage_callback);
