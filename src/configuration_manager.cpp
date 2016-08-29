@@ -88,6 +88,8 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     {
 
       std::string var_value = conn_list[i];
+      logging->debug("Redis Connection:");
+      logging->debug(var_value);
 
       //Read a string in the format 127.0.0.1--7000----2--5--0
       RedisConnChain chain;
