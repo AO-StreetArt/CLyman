@@ -148,7 +148,7 @@ void my_signal_handler(int s){
       logging->info("Connected to Redis");
 
       //Set up the Couchbase Connection
-      std::string DBConnStr = cm->get_dbconnstr();
+      std::string DBConnStr = trim(cm->get_dbconnstr());
       bool DBAuthActive = cm->get_dbauthactive();
       if (DBAuthActive) {
         std::string DBPswd = cm->get_dbpswd();
