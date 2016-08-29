@@ -207,10 +207,6 @@ obj5.apply_transforms();
 std::cout << "Object 5 after scale of 2 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
 
-assert (obj5.get_sclx() == 2.0);
-assert (obj5.get_scly() == 2.0);
-assert (obj5.get_sclz() == 2.0);
-
 //TO-DO: Asserts to check the transformations
 
 //------------------------JSON & Protocol Buffer Tests------------------------//
