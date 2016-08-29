@@ -35,10 +35,10 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     DB_ConnStr=props->get_opt("DB_ConnectionString");
   }
   if (props->opt_exist("Smart_Update_Buffer_Duration")) {
-    SUB_Duration=std::stoi(props->get_opt("DB_ConnectionString"));
+    SUB_Duration=std::stoi(props->get_opt("Smart_Update_Buffer_Duration"));
   }
   else if (props->opt_exist("DB_AuthenticationActive")) {
-    if (props->get_opt("DB_ConnectionString")=="True") {
+    if (props->get_opt("DB_AuthenticationActive")=="True") {
       DB_AuthActive=true;
     }
     else {
@@ -46,16 +46,16 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     }
   }
   else if (props->opt_exist("DB_Password")) {
-    DB_Pswd=props->get_opt("DB_ConnectionString");
+    DB_Pswd=props->get_opt("DB_Password");
   }
   else if (props->opt_exist("0MQ_OutboundConnectionString")) {
-    OMQ_OBConnStr = props->get_opt("DB_ConnectionString");
+    OMQ_OBConnStr = props->get_opt("0MQ_OutboundConnectionString");
   }
   else if (props->opt_exist("0MQ_InboundConnectionString")) {
-    OMQ_IBConnStr = props->get_opt("DB_ConnectionString");
+    OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
   }
   else if (props->opt_exist("SmartUpdatesActive")) {
-    if (props->get_opt("DB_ConnectionString")=="True") {
+    if (props->get_opt("SmartUpdatesActive")=="True") {
       SmartUpdatesActive=true;
     }
     else {
@@ -63,11 +63,11 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     }
   }
   else if (props->opt_exist("MessageFormat")) {
-    if (props->get_opt("DB_ConnectionString")=="json") {
+    if (props->get_opt("MessageFormat")=="json") {
       MessageFormatJSON=true;
       MessageFormatProtoBuf=false;
     }
-    else if (props->get_opt("DB_ConnectionString") == "protocol-buffer") {
+    else if (props->get_opt("MessageFormat") == "protocol-buffer") {
       MessageFormatJSON=false;
       MessageFormatProtoBuf=true;
     }
