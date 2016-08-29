@@ -39,7 +39,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   if (props->opt_exist("Smart_Update_Buffer_Duration")) {
     SUB_Duration=std::stoi(props->get_opt("Smart_Update_Buffer_Duration"));
     logging->info("CONFIGURE: Smart Update Buffer Duration:");
-    logging->info(SUB_Duration);
+    logging->info(props->get_opt("Smart_Update_Buffer_Duration"));
   }
   else if (props->opt_exist("DB_AuthenticationActive")) {
     if (props->get_opt("DB_AuthenticationActive")=="True") {
