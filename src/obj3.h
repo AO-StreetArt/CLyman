@@ -102,31 +102,6 @@ class Obj3: public Writeable
                 Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, std::vector<std::string> scns, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = scns;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;}
 
-		//Copy Constructor
-		Obj3(const Obj3 &obj)
-		{
-			//Copy the string attributes
-			name = obj.get_name();
-			key = obj.get_key();
-			type = obj.get_type();
-			subtype = obj.get_subtype();
-			owner = obj.get_owner();
-			is_locked = obj.locked();
-			lock_owner = obj.get_lock_id();
-
-			//Copy the scene list
-			scene_list.reserve(obj.get_scenes().size());
-			copy(obj.scene_list.begin(), obj.scene_list.end(), back_inserter(scene_list));
-
-			//Copy the matrix elements
-			location = obj.location;
-			rotation_euler = obj.rotation_euler;
-			rotation_quaternion = obj.rotation_quaternion;
-			scaling = obj.scaling;
-			transform_matrix = obj.transform_matrix;
-			bounding_box = obj.bounding_box;
-		}
-
 		//Transformation Methods
 
 		//Smart Update
