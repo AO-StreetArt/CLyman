@@ -7,7 +7,7 @@ CFLAGS  = -g -Wall
 STD = -std=c++11
 OBJS = src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o
 TESTS = redis_test obj3_test couchbase_test configuration_test
-BENCHMARKS = couchbase_benchmark obj3_benchmark redis_benchmark main_benchmark
+BENCHMARKS = obj3_benchmark redis_benchmark main_benchmark
 LIBS = -lpthread -llog4cpp
 FULL_LIBS = -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -levent `pkg-config --cflags --libs protobuf hiredis`
 
@@ -53,12 +53,6 @@ src/configuration_test.o: src/test/configuration_test.cpp src/configuration_mana
 	$(CC) $(CFLAGS) -o $@ -c src/test/configuration_test.cpp $(STD)
 
 # ----------------------------- Benchmarks ----------------------------------- #
-
-couchbase_benchmark: src/Obj3.pb.cc src/lyman_utils.o src/couchbase_benchmark.o src/obj3.o
-	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
-
-src/couchbase_benchmark.o: src/test/couchbase_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
-	$(CC) $(CFLAGS) -o $@ -c src/test/couchbase_benchmark.cpp $(STD)
 
 obj3_benchmark: src/Obj3.pb.cc src/obj3.o src/obj3_benchmark.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
