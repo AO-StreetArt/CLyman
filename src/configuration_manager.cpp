@@ -59,12 +59,12 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   else if (props->opt_exist("0MQ_OutboundConnectionString")) {
     OMQ_OBConnStr = props->get_opt("0MQ_OutboundConnectionString");
     logging->info("CONFIGURE: Outbound 0MQ Connection:");
-    logging->info(0MQ_OBConnStr);
+    logging->info(OMQ_OBConnStr);
   }
   else if (props->opt_exist("0MQ_InboundConnectionString")) {
     OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
     logging->info("CONFIGURE: Inbound 0MQ Connection:");
-    logging->info(0MQ_IBConnStr);
+    logging->info(OMQ_IBConnStr);
   }
   else if (props->opt_exist("SmartUpdatesActive")) {
     if (props->get_opt("SmartUpdatesActive")=="True") {
