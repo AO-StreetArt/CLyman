@@ -41,7 +41,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     logging->info("CONFIGURE: Smart Update Buffer Duration:");
     logging->info(props->get_opt("Smart_Update_Buffer_Duration"));
   }
-  else if (props->opt_exist("DB_AuthenticationActive")) {
+  if (props->opt_exist("DB_AuthenticationActive")) {
     if (props->get_opt("DB_AuthenticationActive")=="True") {
       DB_AuthActive=true;
       logging->info("CONFIGURE: DB Authentication Active");
@@ -51,22 +51,22 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       logging->info("CONFIGURE: DB Authentication Inactive");
     }
   }
-  else if (props->opt_exist("DB_Password")) {
+  if (props->opt_exist("DB_Password")) {
     DB_Pswd=props->get_opt("DB_Password");
     logging->info("CONFIGURE: DB Password:");
     logging->info(DB_Pswd);
   }
-  else if (props->opt_exist("0MQ_OutboundConnectionString")) {
+  if (props->opt_exist("0MQ_OutboundConnectionString")) {
     OMQ_OBConnStr = props->get_opt("0MQ_OutboundConnectionString");
     logging->info("CONFIGURE: Outbound 0MQ Connection:");
     logging->info(OMQ_OBConnStr);
   }
-  else if (props->opt_exist("0MQ_InboundConnectionString")) {
+  if (props->opt_exist("0MQ_InboundConnectionString")) {
     OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
     logging->info("CONFIGURE: Inbound 0MQ Connection:");
     logging->info(OMQ_IBConnStr);
   }
-  else if (props->opt_exist("SmartUpdatesActive")) {
+  if (props->opt_exist("SmartUpdatesActive")) {
     if (props->get_opt("SmartUpdatesActive")=="True") {
       SmartUpdatesActive=true;
       logging->info("CONFIGURE: Smart Updates Active");
@@ -76,7 +76,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       logging->info("CONFIGURE: Smart Updates Inactive");
     }
   }
-  else if (props->opt_exist("MessageFormat")) {
+  if (props->opt_exist("MessageFormat")) {
     if (props->get_opt("MessageFormat")=="json") {
       MessageFormatJSON=true;
       MessageFormatProtoBuf=false;
@@ -88,7 +88,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       logging->info("CONFIGURE: Message Format set to Protocol Buffers");
     }
   }
-  else if (props->opt_exist("RedisBufferFormat")) {
+  if (props->opt_exist("RedisBufferFormat")) {
     if (props->get_opt("RedisBufferFormat")=="json") {
       RedisFormatJSON=true;
       RedisFormatProtoBuf=false;
@@ -100,7 +100,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       logging->info("CONFIGURE: Redis Buffer Format set to Protocol Buffers");
     }
   }
-  else if (props->list_exist("RedisConnectionString")) {
+  if (props->list_exist("RedisConnectionString")) {
     std::vector<std::string> conn_list = props->get_list("RedisConnectionString");
     for (std::size_t i = 0; i < conn_list.size(); i++)
     {
