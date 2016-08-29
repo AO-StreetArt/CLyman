@@ -18,12 +18,6 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
   std::string new_type="";
   std::string new_subtype="";
   std::string new_lock_id="";
-  Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
-  Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
-  Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
-  Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
-  Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
-  Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
   std::vector<std::string> scn_list;
   logging->debug("New Variables Declared");
 
@@ -32,25 +26,11 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
   new_scale(1) = 1.0;
   new_scale(2) = 1.0;
 
-  //Transform and buffer
+  //Transform
   new_transform(0, 0) = 1.0;
   new_transform(1, 1) = 1.0;
   new_transform(2, 2) = 1.0;
   new_transform(3, 3) = 1.0;
-
-  //Bounding Box
-  new_bounding_box(0, 1) = 1.0;
-  new_bounding_box(1, 2) = 1.0;
-  new_bounding_box(0, 3) = 1.0;
-  new_bounding_box(1, 3) = 1.0;
-  new_bounding_box(2, 4) = 1.0;
-  new_bounding_box(0, 5) = 1.0;
-  new_bounding_box(2, 5) = 1.0;
-  new_bounding_box(1, 6) = 1.0;
-  new_bounding_box(2, 6) = 1.0;
-  new_bounding_box(0, 7) = 1.0;
-  new_bounding_box(1, 7) = 1.0;
-  new_bounding_box(2, 7) = 1.0;
 
   //Perform the Conversion
   if (buffer.has_name()) {
@@ -72,32 +52,40 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
     new_lock_id = buffer.lock_device_id();
   }
   if (buffer.has_location()) {
+		Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
     protoObj3::Obj3_Vertex3 loc = buffer.location();
     new_location(0) = loc.x();
     new_location(1) = loc.y();
     new_location(2) = loc.z();
+		location=new_location;
   }
   if (buffer.has_rotation_euler()) {
+		Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
     protoObj3::Obj3_Vertex3 rote = buffer.rotation_euler();
     new_rotatione(0) = rote.x();
     new_rotatione(1) = rote.y();
     new_rotatione(2) = rote.z();
-
+		rotation_euler=new_rotatione;
   }
   if (buffer.has_rotation_quaternion()) {
+		Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
     protoObj3::Obj3_Vertex4 rotq = buffer.rotation_quaternion();
     new_rotationq(0) = rotq.w();
     new_rotationq(1) = rotq.x();
     new_rotationq(2) = rotq.y();
     new_rotationq(3) = rotq.z();
+		rotation_quaternion=new_rotationq;
   }
   if (buffer.has_scale()) {
+		Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
     protoObj3::Obj3_Vertex3 scl = buffer.scale();
     new_scale(0) = scl.x();
     new_scale(1) = scl.y();
     new_scale(2) = scl.z();
+		scaling=new_scale;
   }
   if (buffer.has_transform()) {
+		Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
     protoObj3::Obj3_Matrix4 trn = buffer.transform();
     int i = 0;
     for (i=0; i < trn.col_size(); i++) {
@@ -108,8 +96,10 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
       new_transform(3, i) = c.z();
     }
     logging->debug("Transform Matrix Parsed");
+		transform_matrix=new_transform;
   }
   if (buffer.has_bounding_box()) {
+		Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
     protoObj3::Obj3_Matrix4 bb = buffer.bounding_box();
     int i = 0;
     for (i=0; i < bb.col_size(); i++) {
@@ -120,6 +110,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
       new_bounding_box(3, i) = c.z();
     }
     logging->debug("Bounding Box Parsed");
+		bounding_box=new_bounding_box;
   }
   if (buffer.scenes_size() > 0) {
     int j = 0;
@@ -137,9 +128,6 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	subtype = new_subtype;
 	owner = new_owner;
 
-	//Create Matrices
-	initialize_matrices();
-
 	//Lock Attributes
 	if (new_lock_id == "") {
 		is_locked=false;
@@ -153,14 +141,6 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	//Scenes
 	scene_list.reserve(scn_list.size());
 	copy(scn_list.begin(), scn_list.end(), back_inserter(scene_list));
-
-	//Matrix Attributes
-	location=new_location;
-	rotation_euler=new_rotatione;
-	rotation_quaternion=new_rotationq;
-	scaling=new_scale;
-	transform_matrix=new_transform;
-	bounding_box=new_bounding_box;
 
   logging->debug("Obj3 Built");
 }
@@ -177,12 +157,6 @@ Obj3::Obj3(const rapidjson::Document& d)
   std::string new_subtype="";
   std::string new_lock_id="";
   std::vector<std::string> scn_list;
-  Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
-  Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
-  Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
-  Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
-  Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
-  Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
   logging->debug("New Variables Declared");
 
   //scale
@@ -195,20 +169,6 @@ Obj3::Obj3(const rapidjson::Document& d)
   new_transform(1, 1) = 1.0;
   new_transform(2, 2) = 1.0;
   new_transform(3, 3) = 1.0;
-
-  //Bounding Box
-  new_bounding_box(0, 1) = 1.0;
-  new_bounding_box(1, 2) = 1.0;
-  new_bounding_box(0, 3) = 1.0;
-  new_bounding_box(1, 3) = 1.0;
-  new_bounding_box(2, 4) = 1.0;
-  new_bounding_box(0, 5) = 1.0;
-  new_bounding_box(2, 5) = 1.0;
-  new_bounding_box(1, 6) = 1.0;
-  new_bounding_box(2, 6) = 1.0;
-  new_bounding_box(0, 7) = 1.0;
-  new_bounding_box(1, 7) = 1.0;
-  new_bounding_box(2, 7) = 1.0;
 
 	if (d.IsObject()) {
 
@@ -245,6 +205,7 @@ Obj3::Obj3(const rapidjson::Document& d)
       new_lock_id = lock_val->GetString();
     }
     if (d.HasMember("location")) {
+			Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
       //Read the array values and stuff them into new_location
       const rapidjson::Value& loc = d["location"];
       if (loc.IsArray()) {
@@ -254,8 +215,10 @@ Obj3::Obj3(const rapidjson::Document& d)
           j++;
         }
       }
+			location=new_location;
     }
     if (d.HasMember("rotation_euler")) {
+			Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
       //Read the array values and stuff them into new_location
       const rapidjson::Value& rote = d["rotation_euler"];
       if (rote.IsArray()) {
@@ -265,8 +228,10 @@ Obj3::Obj3(const rapidjson::Document& d)
           j++;
         }
       }
+			rotation_euler=new_rotatione;
     }
     if (d.HasMember("rotation_quaternion")) {
+			Eigen::Vector4d new_rotationq=Eigen::Vector4d::Zero(4);
       //Read the array values and stuff them into new_location
       const rapidjson::Value& rotq = d["rotation_quaternion"];
       if (rotq.IsArray()) {
@@ -276,8 +241,10 @@ Obj3::Obj3(const rapidjson::Document& d)
           j++;
         }
       }
+			rotation_quaternion=new_rotationq;
     }
     if (d.HasMember("scale")) {
+			Eigen::Vector3d new_scale=Eigen::Vector3d::Zero(3);
       //Read the array values and stuff them into new_location
       const rapidjson::Value& scl = d["scale"];
       if (scl.IsArray()) {
@@ -287,8 +254,10 @@ Obj3::Obj3(const rapidjson::Document& d)
           j++;
         }
       }
+			scaling=new_scale;
     }
     if (d.HasMember("transform")) {
+			Eigen::Matrix4d new_transform=Eigen::Matrix4d::Zero(4, 4);
       //Read the array values and stuff them into new_transform
       const rapidjson::Value& tran = d["transform"];
       if (tran.IsArray()) {
@@ -301,8 +270,10 @@ Obj3::Obj3(const rapidjson::Document& d)
         }
       }
       logging->debug("Transform Matrix Parsed");
+			transform_matrix=new_transform;
     }
     if (d.HasMember("bounding_box")) {
+			Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
       //Read the array values and stuff them into new_bounding_box
       const rapidjson::Value& bb = d["bounding_box"];
       if (bb.IsArray()) {
@@ -317,6 +288,7 @@ Obj3::Obj3(const rapidjson::Document& d)
         }
       }
       logging->debug("Bounding Box Parsed");
+			bounding_box=new_bounding_box;
     }
 
     if (d.HasMember("scenes")) {
@@ -334,16 +306,6 @@ Obj3::Obj3(const rapidjson::Document& d)
 
     logging->debug("Variables Filled");
 
-		//Set the String Attributes
-		name = new_name;
-		key = new_key;
-		type = new_type;
-		subtype = new_subtype;
-		owner = new_owner;
-
-		//Create Matrices
-		initialize_matrices();
-
 		//Lock Attributes
 		if (new_lock_id == "") {
 			is_locked=false;
@@ -357,14 +319,6 @@ Obj3::Obj3(const rapidjson::Document& d)
 		//Scenes
 		scene_list.reserve(scn_list.size());
 		copy(scn_list.begin(), scn_list.end(), back_inserter(scene_list));
-
-		//Matrix Attributes
-		location=new_location;
-		rotation_euler=new_rotatione;
-		rotation_quaternion=new_rotationq;
-		scaling=new_scale;
-		transform_matrix=new_transform;
-		bounding_box=new_bounding_box;
 
 	  logging->debug("Obj3 Built");
 }
