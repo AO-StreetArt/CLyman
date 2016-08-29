@@ -33,53 +33,71 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
 
   if (props->opt_exist("DB_ConnectionString")) {
     DB_ConnStr=props->get_opt("DB_ConnectionString");
+    logging->info("CONFIGURE: DB Connection String:");
+    logging->info(DB_ConnStr);
   }
   if (props->opt_exist("Smart_Update_Buffer_Duration")) {
     SUB_Duration=std::stoi(props->get_opt("Smart_Update_Buffer_Duration"));
+    logging->info("CONFIGURE: Smart Update Buffer Duration:");
+    logging->info(SUB_Duration);
   }
   else if (props->opt_exist("DB_AuthenticationActive")) {
     if (props->get_opt("DB_AuthenticationActive")=="True") {
       DB_AuthActive=true;
+      logging->info("CONFIGURE: DB Authentication Active");
     }
     else {
       DB_AuthActive=false;
+      logging->info("CONFIGURE: DB Authentication Inactive");
     }
   }
   else if (props->opt_exist("DB_Password")) {
     DB_Pswd=props->get_opt("DB_Password");
+    logging->info("CONFIGURE: DB Password:");
+    logging->info(DB_Pswd);
   }
   else if (props->opt_exist("0MQ_OutboundConnectionString")) {
     OMQ_OBConnStr = props->get_opt("0MQ_OutboundConnectionString");
+    logging->info("CONFIGURE: Outbound 0MQ Connection:");
+    logging->info(0MQ_OBConnStr);
   }
   else if (props->opt_exist("0MQ_InboundConnectionString")) {
     OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
+    logging->info("CONFIGURE: Inbound 0MQ Connection:");
+    logging->info(0MQ_IBConnStr);
   }
   else if (props->opt_exist("SmartUpdatesActive")) {
     if (props->get_opt("SmartUpdatesActive")=="True") {
       SmartUpdatesActive=true;
+      logging->info("CONFIGURE: Smart Updates Active");
     }
     else {
       SmartUpdatesActive=false;
+      logging->info("CONFIGURE: Smart Updates Inactive");
     }
   }
   else if (props->opt_exist("MessageFormat")) {
     if (props->get_opt("MessageFormat")=="json") {
       MessageFormatJSON=true;
       MessageFormatProtoBuf=false;
+      logging->info("CONFIGURE: Message Format set to JSON");
     }
     else if (props->get_opt("MessageFormat") == "protocol-buffer") {
       MessageFormatJSON=false;
       MessageFormatProtoBuf=true;
+      logging->info("CONFIGURE: Message Format set to Protocol Buffers");
     }
   }
   else if (props->opt_exist("RedisBufferFormat")) {
     if (props->get_opt("RedisBufferFormat")=="json") {
       RedisFormatJSON=true;
       RedisFormatProtoBuf=false;
+      logging->info("CONFIGURE: Redis Buffer Format set to JSON");
     }
     else if (props->get_opt("RedisBufferFormat") == "protocol-buffer") {
       RedisFormatJSON=false;
       RedisFormatProtoBuf=true;
+      logging->info("CONFIGURE: Redis Buffer Format set to Protocol Buffers");
     }
   }
   else if (props->list_exist("RedisConnectionString")) {
@@ -88,7 +106,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     {
 
       std::string var_value = conn_list[i];
-      logging->debug("Redis Connection:");
+      logging->info("CONFIGURE: Redis Connection:");
       logging->debug(var_value);
 
       //Read a string in the format 127.0.0.1--7000----2--5--0
