@@ -23,7 +23,14 @@ std::cout << obj.get_key() << std::endl;
 std::cout << obj.get_type() << std::endl;
 std::cout << obj.get_subtype() << std::endl;
 
+std::cout << "Location:" << std::endl;
 std::cout << obj.get_loc() << std::endl;
+std::cout << "Rotation Euler:" << std::endl;
+std::cout << obj.get_rote() << std::endl;
+std::cout << "Rotation Quaternion:" << std::endl;
+std::cout << obj.get_rotq() << std::endl;
+std::cout << "Scale:" << std::endl;
+std::cout << obj.get_scl() << std::endl;
 std::cout << obj.get_transform() << std::endl;
 std::cout << obj.get_bounding_box() << std::endl;
 
