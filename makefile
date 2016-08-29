@@ -5,7 +5,7 @@ CC = g++
 SLC = ar rcs
 CFLAGS  = -g -Wall
 STD = -std=c++11
-OBJS = src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main.o
+OBJS = src/Obj3.pb.cc src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main.o
 TESTS = redis_test obj3_test couchbase_test configuration_test
 BENCHMARKS = obj3_benchmark redis_benchmark main_benchmark
 LIBS = -lpthread -llog4cpp
@@ -40,7 +40,7 @@ obj3_test: src/Obj3.pb.cc src/obj3.o src/obj3_test.o
 src/obj3_test.o: src/test/obj3_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/obj3_test.cpp $(STD)
 
-couchbase_test: src/Obj3.pb.cc src/lyman_utils.o src/couchbase_test.o src/obj3.o
+couchbase_test: src/Obj3.pb.cc src/couchbase_test.o src/obj3.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
 
 src/couchbase_test.o: src/test/couchbase_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
@@ -66,10 +66,10 @@ redis_benchmark: src/redis_benchmark.o
 src/redis_benchmark.o: src/test/redis_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/redis_benchmark.cpp $(STD)
 
-main_benchmark: src/Obj3.pb.cc src/configuration_manager.o src/lyman_utils.o src/globals.o src/obj3.o src/document_manager.o main_benchmark.o
+main_benchmark: src/Obj3.pb.cc src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main_benchmark.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
 
-main_benchmark.o: main_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto src/configuration_manager.cpp src/configuration_manager.h src/document_manager.cpp src/document_manager.h src/lyman_utils.cpp src/lyman_utils.h src/globals.cpp src/globals.h
+main_benchmark.o: main_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto src/configuration_manager.cpp src/configuration_manager.h src/document_manager.cpp src/document_manager.h src/lyman_utils.h src/globals.cpp src/globals.h
 	$(CC) $(CFLAGS) -o $@ -c main_benchmark.cpp $(STD)
 
 # ---------------------------- Main Project ---------------------------------- #
@@ -85,8 +85,6 @@ src/Obj3.pb.cc: $(PROTO)
 
 src/obj3.o: src/obj3.cpp src/obj3.h src/Obj3.pb.cc
 	$(CC) $(CFLAGS) -o $@ -c src/obj3.cpp $(STD)
-
-src/lyman_utils.o: src/lyman_utils.cpp src/lyman_utils.h
 	$(CC) $(CFLAGS) -o $@ -c src/lyman_utils.cpp $(STD)
 
 src/globals.o: src/globals.cpp src/globals.h
@@ -95,7 +93,7 @@ src/globals.o: src/globals.cpp src/globals.h
 src/document_manager.o: src/document_manager.cpp src/document_manager.h
 	$(CC) $(CFLAGS) -o $@ -c src/document_manager.cpp $(STD)
 
-main.o: main.cpp
+main.o: main.cpp src/couchbase_callbacks.h src/lyman_utils.h
 	$(CC) $(CFLAGS) -o $@ -c main.cpp $(STD)
 
 # --------------------------- Clean Project ---------------------------------- #

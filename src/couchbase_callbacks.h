@@ -65,7 +65,7 @@ inline std::string my_delete_callback (Request *r)
 std::string my_retrieval_callback (Request *r)
 {
   //Set up our base objects
-  Obj3 *new_obj;
+  Obj3 *new_obj = NULL;
   std::string out_resp = "";
   std::string obj_string = "";
 
@@ -88,6 +88,7 @@ std::string my_retrieval_callback (Request *r)
     //Smart updates are not active
     if (!cm->get_smartupdatesactive()) {
       //Parse the document from the DB
+      logging->debug("Smart Updates Disabled, outputting response to Get Request");
       rapidjson::Document temp_d;
       try {
         temp_d.Parse(resp_obj);
@@ -110,6 +111,7 @@ std::string my_retrieval_callback (Request *r)
         else if (cm->get_mfprotobuf()) {
           obj_string = new_obj->to_protobuf_msg(OBJ_GET);
         }
+        logging->debug("Sending Outbound Message");
         zmqo->send(obj_string);
         out_resp = zmqo->recv();
         logging->debug("Response Recieved:");
