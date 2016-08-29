@@ -384,7 +384,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   std::vector<std::string> redis_chains = split( redis_conn_str,  delim);
   std::string var_value;
   logging->debug("CONFIGURE: Redis Connections:");
-  logging->debug(redis_format_str);
+  logging->debug(redis_conn_str);
   for (std::size_t i = 0; i < redis_chains.size(); i++)
 	{
     //Read a string in the format 127.0.0.1--7000----2--5--0
@@ -395,58 +395,36 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     //Retrieve the first value
     int spacer_position = var_value.find("--", 0);
     std::string str1 = var_value.substr(0, spacer_position);
-    logging->debug("CONFIGURE: IP Address Recovered");
-    logging->debug(str1);
     chain.ip = str1;
 
     //Retrieve the second value
     std::string new_value = var_value.substr(spacer_position+2, var_value.length() - 1);
-    logging->debug("CONFIGURE: New Search String");
-    logging->debug(new_value);
     spacer_position = new_value.find("--", 0);
     str1 = new_value.substr(0, spacer_position);
-    logging->debug("CONFIGURE: Port Recovered");
-    logging->debug(str1);
     chain.port = std::stoi(str1);
 
     //Retrieve the third value
     new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-    logging->debug("CONFIGURE: New Search String");
-    logging->debug(new_value);
     spacer_position = new_value.find("--", 0);
     str1 = new_value.substr(0, spacer_position);
-    logging->debug("CONFIGURE: Password Recovered");
-    logging->debug(str1);
     chain.password = str1;
 
     //Retrieve the fourth value
     new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-    logging->debug("CONFIGURE: New Search String");
-    logging->debug(new_value);
     spacer_position = new_value.find("--", 0);
     str1 = new_value.substr(0, spacer_position);
-    logging->debug("CONFIGURE: Value Recovered");
-    logging->debug(str1);
     chain.pool_size = std::stoi(str1);
 
     //Retrieve the fifth value
     new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-    logging->debug("CONFIGURE: New Search String");
-    logging->debug(new_value);
     spacer_position = new_value.find("--", 0);
     str1 = new_value.substr(0, spacer_position);
-    logging->debug("CONFIGURE: Value Recovered");
-    logging->debug(str1);
     chain.timeout = std::stoi(str1);
 
     //Retrieve the final value
     new_value = new_value.substr(spacer_position+2, new_value.length() - 1);
-    logging->debug("CONFIGURE: New Search String");
-    logging->debug(new_value);
     spacer_position = new_value.find("--", 0);
     str1 = new_value.substr(0, spacer_position);
-    logging->debug("CONFIGURE: Value Recovered");
-    logging->debug(str1);
     chain.role = std::stoi(str1);
 
     RedisConnectionList.push_back(chain);
