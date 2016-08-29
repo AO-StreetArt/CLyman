@@ -66,13 +66,6 @@ int HealthCheckInterval;
 
 //String Manipulations
 
-//Base64 Decoding, for responses from the Key-Value store in Consul
-
-static bool is_base64(unsigned char c) {
-  return (isalnum(c) || (c == '+') || (c == '/'));
-}
-std::string base64_decode(std::string const& s);
-
 //Split a string, based on python's split method
 std::vector<std::string> split(std::string inp_string, char delim);
 
