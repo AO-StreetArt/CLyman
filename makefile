@@ -85,7 +85,6 @@ src/Obj3.pb.cc: $(PROTO)
 
 src/obj3.o: src/obj3.cpp src/obj3.h src/Obj3.pb.cc
 	$(CC) $(CFLAGS) -o $@ -c src/obj3.cpp $(STD)
-	$(CC) $(CFLAGS) -o $@ -c src/lyman_utils.cpp $(STD)
 
 src/globals.o: src/globals.cpp src/globals.h
 	$(CC) $(CFLAGS) -o $@ -c src/globals.cpp $(STD)
