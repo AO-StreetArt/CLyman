@@ -202,11 +202,15 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
   if (v.IsObject())
   {
     const rapidjson::Value& resp = v["Value"];
-    resp_str = resp.GetString();
+    if (resp.IsString()){
+      resp_str = resp.GetString();
+      //Transform the object from base64
+      return ca->base64_decode(resp_str);
+    }
+    else{
+      return "";
+    }
   }
-
-  //Transform the object from base64
-  return ca->base64_decode(resp_str);
 }
 
 //Configure based on the Services List and Key/Value store from Consul
