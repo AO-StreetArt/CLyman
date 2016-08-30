@@ -207,10 +207,8 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
       //Transform the object from base64
       return ca->base64_decode(resp_str);
     }
-    else{
-      return "";
-    }
   }
+  return "";
 }
 
 //Configure based on the Services List and Key/Value store from Consul

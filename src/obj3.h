@@ -32,15 +32,21 @@ class Obj3: public Writeable
 		//Externally Referenceable data
 		//Float Matrix for location
 		Eigen::Vector3d location;
+		bool locn_flag = false;
 		Eigen::Vector3d rotation_euler;
+		bool rote_flag = false;
 		Eigen::Vector4d rotation_quaternion;
+		bool rotq_flag = false;
 		Eigen::Vector3d scaling;
+		bool scl_flag = false;
 
 		//Transform Matrix
-                Eigen::Matrix4d transform_matrix;
+    Eigen::Matrix4d transform_matrix;
+		bool trns_flag = false;
 
 		//Bounding Box
-                Eigen::MatrixXd bounding_box;
+    Eigen::MatrixXd bounding_box;
+		bool boun_flag;
 
 		//Transform Buffers
 		Eigen::Matrix4d transform_buffer;
@@ -84,23 +90,23 @@ class Obj3: public Writeable
 		//Matrix Constructors
 		//Location only
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;}
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;locn_flag = true;}
 
 		//Location & Bounding Box
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;bounding_box=ibounding_box;}
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;}
 
 		//Location, Transform, & Bounding Box
                 Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;transform_matrix=itransform;bounding_box=ibounding_box;}
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;}
 
 		//Location, Rotation, Scale, Transform, & Bounding Box
                 Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;}
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;rote_flag=true;rotq_flag=true;scl_flag=true;}
 
                 //All elements
                 Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, std::vector<std::string> scns, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = scns;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;}
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = scns;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;rote_flag=true;rotq_flag=true;scl_flag=true;}
 
 		//Transformation Methods
 
@@ -182,6 +188,14 @@ class Obj3: public Writeable
 		bool set_owner(std::string new_owner){if (is_locked==false) {owner=new_owner; return true;} else {return false;}}
 
 		bool set_owner(std::string new_owner, std::string device_id){if (is_locked==false || lock_owner==device_id) {owner=new_owner; return true;} else {return false;}}
+
+		//Exist methods
+		bool has_location() {return locn_flag;}
+		bool has_rotatione() {return locn_flag;}
+		bool has_rotationq() {return locn_flag;}
+		bool has_scaling() {return locn_flag;}
+		bool has_transforms() {return locn_flag;}
+		bool has_bounds() {return locn_flag;}
 
 		//Getters
                 std::string get_owner() const {return owner;}
