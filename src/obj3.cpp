@@ -197,32 +197,33 @@ Obj3::Obj3(const rapidjson::Document& d)
     if (d.HasMember("name")) {
       const rapidjson::Value *name_val;
       name_val = &d["name"];
-      new_name = name_val->GetString();
+      name = name_val->GetString();
     }
     if (d.HasMember("key")) {
       const rapidjson::Value *key_val;
       key_val = &d["key"];
-      new_key = key_val->GetString();
+      key = key_val->GetString();
     }
     if (d.HasMember("owner")) {
       const rapidjson::Value *owner_val;
       owner_val = &d["owner"];
-      new_owner = owner_val->GetString();
+      owner = owner_val->GetString();
     }
     if (d.HasMember("type")) {
       const rapidjson::Value *type_val;
       type_val = &d["type"];
-      new_type = type_val->GetString();
+      type = type_val->GetString();
     }
     if (d.HasMember("subtype")) {
       const rapidjson::Value *subtype_val;
       subtype_val = &d["subtype"];
-      new_subtype = subtype_val->GetString();
+      subtype = subtype_val->GetString();
     }
     if (d.HasMember("lock_device_id")) {
       const rapidjson::Value *lock_val;
       lock_val = &d["lock_device_id"];
-      new_lock_id = lock_val->GetString();
+      lock_owner = lock_val->GetString();
+			is_locked = true;
     }
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
@@ -316,7 +317,7 @@ Obj3::Obj3(const rapidjson::Document& d)
       const rapidjson::Value& sc = d["scenes"];
       if (sc.IsArray()) {
         for (rapidjson::SizeType i = 0; i < sc.Size();i++) {
-          scn_list.push_back(sc[i].GetString());
+          scene_list.push_back(sc[i].GetString());
         }
       }
     }
