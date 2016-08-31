@@ -200,7 +200,6 @@ print_obj_attributes(obj5);
 
 //Apply some transforms to the objects
 obj5.translate(1.0, 1.0, 1.0);
-obj5.apply_transforms();
 std::cout << "Object 5 after transform of 1 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
 
