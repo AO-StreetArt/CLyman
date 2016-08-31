@@ -492,15 +492,15 @@ apply_transforms( tran_matrix );
 void Obj3::rotate_object(double x, double y, double z)
 {
 logging->info("Obj3:RotateE Object Called");
-if (std::abs(x) < 0.001)
+if (std::abs(x) > 0.001)
 {
 	rotate_objectx(x);
 }
-if (std::abs(y) < 0.001)
+if (std::abs(y) > 0.001)
 {
 	rotate_objecty(y);
 }
-if (std::abs(z) < 0.001)
+if (std::abs(z) > 0.001)
 {
 	rotate_objectz(z);
 }
