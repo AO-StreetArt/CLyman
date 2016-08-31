@@ -100,41 +100,49 @@ new_transform(3, 3) = 1.0;
 new_bounding_box(0, 0) = 1.0;
 new_bounding_box(1, 0) = 1.0;
 new_bounding_box(2, 0) = 1.0;
+new_bounding_box(3, 0) = 1.0;
 
 //Vertex 2
 new_bounding_box(0, 1) = -1.0;
 new_bounding_box(1, 1) = 1.0;
 new_bounding_box(2, 1) = 1.0;
+new_bounding_box(3, 1) = 1.0;
 
 //Vertex 3
 new_bounding_box(0, 2) = 1.0;
 new_bounding_box(1, 2) = -1.0;
 new_bounding_box(2, 2) = 1.0;
+new_bounding_box(3, 2) = 1.0;
 
 //Vertex 4
 new_bounding_box(0, 3) = -1.0;
 new_bounding_box(1, 3) = -1.0;
 new_bounding_box(2, 3) = 1.0;
+new_bounding_box(3, 3) = 1.0;
 
 //Vertex 5
 new_bounding_box(0, 4) = 1.0;
 new_bounding_box(1, 4) = 1.0;
 new_bounding_box(2, 4) = -1.0;
+new_bounding_box(3, 4) = 1.0;
 
 //Vertex 6
 new_bounding_box(0, 5) = -1.0;
 new_bounding_box(1, 5) = 1.0;
 new_bounding_box(2, 5) = -1.0;
+new_bounding_box(3, 5) = 1.0;
 
 //Vertex 7
 new_bounding_box(0, 6) = 1.0;
 new_bounding_box(1, 6) = -1.0;
 new_bounding_box(2, 6) = -1.0;
+new_bounding_box(3, 6) = 1.0;
 
 //Vertex 8
 new_bounding_box(0, 7) = -1.0;
 new_bounding_box(1, 7) = -1.0;
 new_bounding_box(2, 7) = -1.0;
+new_bounding_box(3, 7) = 1.0;
 
 //Set up a scenes vector
 std::vector<std::string> scns;
