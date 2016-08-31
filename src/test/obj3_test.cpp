@@ -199,7 +199,7 @@ std::cout << "Object 5" << std::endl;
 print_obj_attributes(obj5);
 
 //Apply some transforms to the objects
-obj5.translate(1.0, 1.0, 1.0, "Global");
+obj5.translate(1.0, 1.0, 1.0);
 obj5.apply_transforms();
 std::cout << "Object 5 after transform of 1 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
@@ -219,19 +219,24 @@ assert( tr2(1, 3) == 1.0 );
 assert( tr2(2, 3) == 1.0 );
 assert( tr2(3, 3) == 1.0 );
 
-obj5.rotatee(45.0, 45.0, 45.0, "Local");
-obj5.apply_transforms();
-std::cout << "Object 5 after euler rotation of 45 degrees:" << std::endl;
-print_obj_attributes(obj5);
-
-obj5.rotateq( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), 45.0, "Local");
-obj5.apply_transforms();
-std::cout << "Object 5 after quaternion rotation of 45 degrees" << std::endl;
-print_obj_attributes(obj5);
-
 obj5.resize(2.0, 2.0, 2.0);
-obj5.apply_transforms();
 std::cout << "Object 5 after scale of 2 on x, y, and z axis:" << std::endl;
+print_obj_attributes(obj5);
+
+obj5.rotate(45.0, 0.0, 0.0);
+std::cout << "Object 5 after rotation of 45 degrees about x axis:" << std::endl;
+print_obj_attributes(obj5);
+
+obj5.rotate(0.0, 0.0, 45.0);
+std::cout << "Object 5 after rotation of 45 degrees about y axis:" << std::endl;
+print_obj_attributes(obj5);
+
+obj5.rotate(0.0, 45.0, 0.0);
+std::cout << "Object 5 after rotation of 45 degrees about z axis:" << std::endl;
+print_obj_attributes(obj5);
+
+obj5.rotate( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), 45.0);
+std::cout << "Object 5 after rotation of 45 degrees about unit vector" << std::endl;
 print_obj_attributes(obj5);
 
 //TO-DO: Asserts to check the transformations

@@ -203,7 +203,7 @@ std::string my_retrieval_callback (Request *r)
 
               //Now, we can compare the two and apply any updates from the
               //object list to the object returned from the database
-              new_obj->transform_object( temp_obj );
+              new_obj->transform( temp_obj );
 
               //Generate the message to be output
               if (cm->get_mfjson()) {
