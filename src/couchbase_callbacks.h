@@ -348,10 +348,19 @@ std::string my_retrieval_callback (Request *r)
     }
 
     //Smart Updates are active
-    //We need to update the object in the DB, then output the object
-    //On the Outbound ZeroMQ port.
     else
     {
+      //We have a get message in the smart update flow
+      if (msg_type == OBJ_GET)
+      {
+        logging->debug("Get response initiated with smart updates active");
+        object_string = create_response(db_object, msg_type, transaction_id);
+        out_resp = send_outbound_msg(object_string);
+        logging->debug("Response Recieved:");
+        logging->debug(out_resp);
+      }
+      //We need to update the object in the DB, then output the object
+      //On the Outbound ZeroMQ port.
       logging->debug("Smart Update Logic Activated");
       //Then, let's get and parse the response from the database
       //We need to clean the response since Couchbase gives dirty responses
