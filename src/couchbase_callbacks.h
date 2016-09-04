@@ -106,7 +106,7 @@ inline Obj3* set_db_response_object(std::string object_string)
   if (!object_string.empty()) {
     //Process the DB Object
     try {
-      temp_d.Parse(object_string);
+      temp_d.Parse(object_string.c_str());
       return new Obj3 (temp_d);
     }
     catch (std::exception& e) {

@@ -250,7 +250,7 @@ void my_signal_handler(int s){
             object_key = dm->update_objectd( d, tran_id_str );
 
             //Add the Object Key to the Response
-            resp->set_object_key(object_key);
+            resp->set_object_id(object_key);
 
             //  Send reply back to client
             zmqi->send(resp->to_json());
@@ -262,7 +262,7 @@ void my_signal_handler(int s){
             object_key = dm->update_objectpb(new_proto, tran_id_str);
 
             //Add the Object Key to the Response
-            resp->set_object_key(object_key);
+            resp->set_object_id(object_key);
 
             //  Send reply back to client
             zmqi->send(response_to_protobuffer(resp));
@@ -281,7 +281,7 @@ void my_signal_handler(int s){
             object_key = dm->create_objectd( d, tran_id_str );
 
             //Add the Object Key to the Response
-            resp->set_object_key(object_key);
+            resp->set_object_id(object_key);
 
             //Send the response
             zmqi->send(resp->to_json());
@@ -293,7 +293,7 @@ void my_signal_handler(int s){
             object_key = dm->create_objectpb(new_proto, tran_id_str);
 
             //Add the Object Key to the Response
-            resp->set_object_key(object_key);
+            resp->set_object_id(object_key);
 
             //Send the response
             zmqi->send(response_to_protobuffer(resp));
@@ -312,7 +312,7 @@ void my_signal_handler(int s){
             object_key = dm->get_objectd( d, tran_id_str );
 
             //Add the Object Key to the Response
-            resp->set_object_key(object_key);
+            resp->set_object_id(object_key);
 
             //Send the response
             zmqi->send(resp->to_json());
@@ -324,7 +324,7 @@ void my_signal_handler(int s){
             object_key = dm->get_objectpb (new_proto, tran_id_str);
 
             //Add the Object Key to the Response
-            resp->set_object_key(object_key);
+            resp->set_object_id(object_key);
 
             //Send the response
             zmqi->send(response_to_protobuffer(resp));
@@ -343,7 +343,7 @@ void my_signal_handler(int s){
             object_key = dm->delete_objectd( d, tran_id_str );
 
             //Add the Object Key to the Response
-            resp->set_object_key(object_key);
+            resp->set_object_id(object_key);
 
             //Send the response
             zmqi->send(resp->to_json());
@@ -355,7 +355,7 @@ void my_signal_handler(int s){
             object_key = dm->delete_objectpb(new_proto, tran_id_str);
 
             //Add the Object Key to the Response
-            resp->set_object_key(object_key);
+            resp->set_object_id(object_key);
 
             //Send the response
             zmqi->send(response_to_protobuffer(resp));
