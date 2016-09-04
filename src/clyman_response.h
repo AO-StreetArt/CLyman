@@ -3,7 +3,7 @@
 //singletons which form the backbone of the service.
 
 #include "aossl/factory/response_interface.h"
-#include "src/Response.pb.h"
+#include "Response.pb.h"
 
 #ifndef CLYMAN_RESPONSE
 #define CLYMAN_RESPONSE

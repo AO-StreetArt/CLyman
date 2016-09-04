@@ -5,7 +5,7 @@ CC = g++
 SLC = ar rcs
 CFLAGS  = -g -Wall
 STD = -std=c++11
-OBJS = src/Obj3.pb.cc src/ProtoResponse.pb.cc src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main.o
+OBJS = src/Obj3.pb.cc src/Response.pb.cc src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main.o
 TESTS = redis_test obj3_test configuration_test
 BENCHMARKS = obj3_benchmark redis_benchmark main_benchmark
 LIBS = -lpthread -llog4cpp
