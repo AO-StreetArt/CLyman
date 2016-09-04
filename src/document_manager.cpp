@@ -105,7 +105,7 @@ std::string DocumentManager::upd_obj_global(Obj3 *temp_obj, std::string transact
 
       if (cm->get_transactionidsactive()) {
         while (xRedis->exists(temp_key) == true) {
-          cb->load_object( rkc_str );
+          cb->load_object( temp_key );
           cb->wait();
         }
       }
@@ -114,9 +114,7 @@ std::string DocumentManager::upd_obj_global(Obj3 *temp_obj, std::string transact
 
       put_to_redis(temp_obj, OBJ_UPD, transaction_id);
 
-      cb->load_object(su_key);
-
-      delete sub_obj;
+      cb->load_object(su_key.c_str());
     }
   }
   else {
@@ -163,7 +161,7 @@ std::string DocumentManager::get_obj_global(std::string rk_str, std::string tran
   temp_obj->set_key(rk_str);
 
   if (cm->get_transactionidsactive()) {
-    while (xRedis->exists(temp_key) == true) {
+    while (xRedis->exists(rkc_str) == true) {
       cb->load_object( rkc_str );
       cb->wait();
     }
