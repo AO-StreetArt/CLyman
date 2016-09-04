@@ -139,7 +139,6 @@ void my_signal_handler(int s){
       int msg_type = -1;
       rapidjson::Document d;
       rapidjson::Value *val;
-      std::string resp = "nilresp";
       logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
 
