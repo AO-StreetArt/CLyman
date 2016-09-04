@@ -153,7 +153,7 @@ std::string DocumentManager::update_objectpb(protoObj3::Obj3 p_obj, std::string 
 }
 
 //Get Object Global
-std::string DocumentManager::get_obj_global(std::string rk_str, std::string transaction_id) {
+void DocumentManager::get_obj_global(std::string rk_str, std::string transaction_id) {
   const char * rkc_str = rk_str.c_str();
 
   //Generate a new Obj3 to put to Redis
@@ -210,7 +210,7 @@ std::string DocumentManager::get_objectd(rapidjson::Document& d, std::string tra
 }
 
 //Delete Object Global
-std::string DocumentManager::del_obj_global(std::string key, std::string transaction_id) {
+void DocumentManager::del_obj_global(std::string key, std::string transaction_id) {
   const char * kc_str = key.c_str();
 
   //Output a delete message on the outbound ZMQ Port

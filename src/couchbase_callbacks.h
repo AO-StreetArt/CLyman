@@ -54,7 +54,7 @@ inline int set_redis_response_object(Request *r, Obj3 *redis_object)
   rapidjson::Value *val;
   int msg_type = -1;
   //Check Redis for transaction information
-  if ( !(xRedis->exists(response_key)) ) {
+  if ( !(xRedis->exists(response_key.c_str())) ) {
     logging->error("Storage Callback Returned with no Redis Information");
   }
   else
@@ -100,7 +100,7 @@ inline int set_redis_response_object(Request *r, Obj3 *redis_object)
 }
 
 //Return an Obj3 pointer built from the json string passed in, assumed to be from the DB
-inline Obj3* set_db_response_object(object_string)
+inline Obj3* set_db_response_object(std::stringobject_string)
 {
   rapidjson::Document temp_d;
   if (!object_string.empty()) {
