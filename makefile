@@ -76,7 +76,7 @@ src/configuration_manager.o: src/configuration_manager.cpp src/configuration_man
 src/Obj3.pb.cc: src/Obj3.proto
 	$(PROTOC) $(PROTO_OPTS) --cpp_out=src src/Obj3.proto
 
-src/ProtoResponse.pb.cc: src/Response.proto
+src/Response.pb.cc: src/Response.proto
 	$(PROTOC) $(PROTO_OPTS) --cpp_out=src src/Response.proto
 
 src/obj3.o: src/obj3.cpp src/obj3.h src/Obj3.pb.cc
