@@ -61,7 +61,7 @@ inline int set_redis_response_object(Request *r, Obj3 *redis_object)
   {
     logging->debug("Object found in Smart Update Buffer");
     //Let's get the object out of the active update list
-    std::string strValue = xRedis->load(response_key);
+    std::string strValue = xRedis->load(response_key.c_str());
     if (strValue.empty()) {
       logging->error("Unable to load object from Redis");
     }
@@ -100,7 +100,7 @@ inline int set_redis_response_object(Request *r, Obj3 *redis_object)
 }
 
 //Return an Obj3 pointer built from the json string passed in, assumed to be from the DB
-inline Obj3* set_db_response_object(std::stringobject_string)
+inline Obj3* set_db_response_object(std::string object_string)
 {
   rapidjson::Document temp_d;
   if (!object_string.empty()) {
