@@ -234,7 +234,7 @@ void my_signal_handler(int s){
         }
 
         //Generate a Transaction ID
-        std::string tran_id_str = uuid->generate();
+        std::string tran_id_str = ua->generate();
         resp->set_transaction_id(tran_id_str);
 
         //Set up the object key to be passed back on the response
