@@ -42,7 +42,7 @@ std::string cr_obj_global(Obj3 *new_obj, std::string transaction_id);
 std::string upd_obj_global(Obj3 *temp_obj, std::string transaction_id);
 std::string get_obj_global(std::string rk_str, std::string transaction_id);
 std::string del_obj_global(std::string key, std::string transaction_id);
-void put_to_redis(Obj3 *temp_obj);
+void put_to_redis(Obj3 *temp_obj, int msg_type, std::string transaction_id);
 public:
   //Initializer
   DocumentManager(CouchbaseInterface *cb_admin, RedisInterface *xr_admin, uuidInterface *uadmin, ConfigurationManager *cm_admin, Zmqio *zmq_out) {cb = cb_admin; xRedis = xr_admin; cm = cm_admin;ua = uadmin; zmqo = zmq_out;}
