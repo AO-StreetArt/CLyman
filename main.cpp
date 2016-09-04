@@ -247,7 +247,7 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Make the update
-            object_key = dm->update_objectd( d );
+            object_key = dm->update_objectd( d, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_key(object_key);
@@ -259,7 +259,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Make the update
-            object_key = dm->update_objectpb(new_proto);
+            object_key = dm->update_objectpb(new_proto, tran_id_str);
 
             //Add the Object Key to the Response
             resp->set_object_key(object_key);
@@ -278,7 +278,7 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Create the object
-            object_key = dm->create_objectd( d );
+            object_key = dm->create_objectd( d, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_key(object_key);
@@ -290,7 +290,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Create the object
-            object_key = dm->create_objectpb(new_proto);
+            object_key = dm->create_objectpb(new_proto, tran_id_str);
 
             //Add the Object Key to the Response
             resp->set_object_key(object_key);
@@ -309,7 +309,7 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Get the object
-            object_key = dm->get_objectd( d );
+            object_key = dm->get_objectd( d, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_key(object_key);
@@ -321,7 +321,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Get the object
-            object_key = dm->get_objectpb (new_proto);
+            object_key = dm->get_objectpb (new_proto, tran_id_str);
 
             //Add the Object Key to the Response
             resp->set_object_key(object_key);
@@ -340,7 +340,7 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Delete the object
-            object_key = dm->delete_objectd( d );
+            object_key = dm->delete_objectd( d, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_key(object_key);
@@ -352,7 +352,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Delete the object
-            object_key = dm->delete_objectpb(new_proto);
+            object_key = dm->delete_objectpb(new_proto, tran_id_str);
 
             //Add the Object Key to the Response
             resp->set_object_key(object_key);
