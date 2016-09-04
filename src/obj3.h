@@ -29,6 +29,9 @@ class Obj3: public Writeable
 		std::string type;
 		std::string subtype;
 		std::string owner;
+		std::string app_transaction_id;
+		std::string mesh_id;
+		std::string err_string;
 
 		//Externally Referenceable data
 		//Float Matrix for location
@@ -82,6 +85,9 @@ class Obj3: public Writeable
 
 		//Transform
 		void transform_object(double trans_matrix[]);
+
+		//Base protobuffer message
+		void to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const;
 
 	public:
 		//Constructors & Destructor
@@ -201,6 +207,19 @@ class Obj3: public Writeable
 
 		bool set_owner(std::string new_owner, std::string device_id){if (is_locked==false || lock_owner==device_id) {owner=new_owner; return true;} else {return false;}}
 
+		//Set the Transaction ID
+		bool set_transaction_id(std::string new_tran_id){if (is_locked==false) {app_transaction_id=new_tran_id; return true;} else {return false;}}
+
+		bool set_transaction_id(std::string new_tran_id, std::string device_id){if (is_locked==false || lock_owner==device_id) {app_transaction_id=new_tran_id; return true;} else {return false;}}
+
+		//Set the Mesh ID
+		bool set_mesh_id(std::string new_mesh){if (is_locked==false) {mesh_id=new_mesh; return true;} else {return false;}}
+
+		bool set_mesh_id(std::string new_mesh, std::string device_id){if (is_locked==false || lock_owner==device_id) {mesh_id=new_mesh; return true;} else {return false;}}
+
+		//Set an error
+		void set_error(std::string err_msg) {err_string = err_msg;}
+
 		//Exist methods
 		bool has_location() {return locn_flag;}
 		bool has_rotatione() {return locn_flag;}
@@ -215,6 +234,9 @@ class Obj3: public Writeable
 		std::string get_key() {return key;}
 		std::string get_type() const {return type;}
 		std::string get_subtype() const {return subtype;}
+		std::string get_transaction_id() const {return app_transaction_id;}
+		std::string get_mesh_id() const {return mesh_id;}
+		std::string get_error() const {return err_string;}
 		double get_locx() const {return location(0);}
 		double get_locy() const {return location(1);}
 		double get_locz() const {return location(2);}
@@ -252,5 +274,11 @@ class Obj3: public Writeable
 
 		//Convert the object to a protocol buffer message
 		std::string to_protobuf_msg(int msg_type) const;
+
+		//Convert the object to JSON Message
+    std::string to_json_msg(int msg_type, std::string trans_id) const;
+
+		//Convert the object to a protocol buffer message
+		std::string to_protobuf_msg(int msg_type, std::string trans_id) const;
 };
 #endif

@@ -13,7 +13,6 @@ FULL_LIBS = -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid
 
 PROTOC = protoc
 PROTO_OPTS = -I=src
-PROTO = src/Obj3.proto
 
 # -------------------------- Central Targets --------------------------------- #
 
@@ -68,14 +67,17 @@ main_benchmark.o: main_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto src/
 
 # ---------------------------- Main Project ---------------------------------- #
 
-scripts/Obj3_pb2.py: $(PROTO)
-	$(PROTOC) $(PROTO_OPTS) --python_out=scripts $(PROTO)
+scripts/Obj3_pb2.py: src/Obj3.proto
+	$(PROTOC) $(PROTO_OPTS) --python_out=scripts src/Obj3.proto
 
 src/configuration_manager.o: src/configuration_manager.cpp src/configuration_manager.h
 	$(CC) $(CFLAGS) -o $@ -c src/configuration_manager.cpp $(STD)
 
-src/Obj3.pb.cc: $(PROTO)
-	$(PROTOC) $(PROTO_OPTS) --cpp_out=src $(PROTO)
+src/Obj3.pb.cc: src/Obj3.proto
+	$(PROTOC) $(PROTO_OPTS) --cpp_out=src src/Obj3.proto
+
+src/ProtoResponse.pb.cc: src/Response.proto
+	$(PROTOC) $(PROTO_OPTS) --cpp_out=src src/Response.proto
 
 src/obj3.o: src/obj3.cpp src/obj3.h src/Obj3.pb.cc
 	$(CC) $(CFLAGS) -o $@ -c src/obj3.cpp $(STD)

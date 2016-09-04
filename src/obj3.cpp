@@ -46,6 +46,8 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
   std::string new_type="";
   std::string new_subtype="";
   std::string new_lock_id="";
+	std::string new_tran_id="";
+	std::string new_mesh_id="";
   std::vector<std::string> scn_list;
   logging->debug("New Variables Declared");
 
@@ -75,6 +77,12 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
   if (buffer.has_lock_device_id()) {
     new_lock_id = buffer.lock_device_id();
   }
+	if (buffer.has_transaction_id()) {
+		new_tran_id = buffer.transaction_id();
+	}
+	if (buffer.has_mesh_id()) {
+		new_mesh_id = buffer.mesh_id();
+	}
   if (buffer.has_location()) {
     protoObj3::Obj3_Vertex3 loc = buffer.location();
     new_location(0) = loc.x();
@@ -180,6 +188,8 @@ Obj3::Obj3(const rapidjson::Document& d)
   std::string new_type="";
   std::string new_subtype="";
   std::string new_lock_id="";
+	std::string new_tran_id="";
+	std::string new_mesh_id="";
   std::vector<std::string> scn_list;
   logging->debug("New Variables Declared");
 
@@ -204,6 +214,16 @@ Obj3::Obj3(const rapidjson::Document& d)
       key_val = &d["key"];
       key = key_val->GetString();
     }
+		if (d.HasMember("transaction_id")) {
+			const rapidjson::Value *tran_id_val;
+      tran_id_val = &d["transaction_id"];
+      app_transaction_id = tran_id_val->GetString();
+		}
+		if (d.HasMember("mesh_id")) {
+			const rapidjson::Value *mesh_id_val;
+      mesh_id_val = &d["mesh_id"];
+      mesh_id = mesh_id_val->GetString();
+		}
     if (d.HasMember("owner")) {
       const rapidjson::Value *owner_val;
       owner_val = &d["owner"];
@@ -699,6 +719,11 @@ std::string Obj3::to_json_msg(int msg_type) const
         std::string name = get_name();
         writer.String( name.c_str(), (SizeType)name.length() );
 
+				if (!err_string.empty()) {
+					writer.Key("error");
+					writer.String( err_string.c_str(), (SizeType)err_string.length() );
+				}
+
         writer.Key("type");
         std::string type = get_type();
         writer.String( type.c_str(), (SizeType)type.length() );
@@ -780,48 +805,161 @@ std::string Obj3::to_json_msg(int msg_type) const
         return ret_string;
 }
 
-//Writes out all object attributes for storage in Smart Update Buffer
-std::string Obj3::to_protobuf_msg(int msg_type) const {
-	logging->info("Obj3:To Proto message Called on object");
+//Convert the object to JSON Message
+std::string to_json_msg(int msg_type, std::string trans_id) const {
+	logging->info("Obj3:To JSON message Called on object");
 	logging->info(key);
-	protoObj3::Obj3 new_proto;
-	new_proto.set_message_type(msg_type);
-	new_proto.set_key(key);
+	//Initialize the string buffer and writer
+	StringBuffer s;
+	Writer<StringBuffer> writer(s);
+
+	//Start writing the object
+	//Syntax taken directly from
+	//simplewriter.cpp in rapidjson examples
+
+	writer.StartObject();
+
+	writer.Key("message_type");
+	writer.Uint(msg_type);
+
+	writer.Key("key");
+	writer.String( key.c_str(), (SizeType)key.length() );
+
+writer.Key("owner");
+	std::string owner_dev = get_owner();
+	writer.String( owner_dev.c_str(), (SizeType)owner_dev.length() );
+
+	writer.Key("name");
+	std::string name = get_name();
+	writer.String( name.c_str(), (SizeType)name.length() );
+
+	if (!err_string.empty()) {
+		writer.Key("error");
+		writer.String( err_string.c_str(), (SizeType)err_string.length() );
+	}
+
+	writer.Key("type");
+	std::string type = get_type();
+	writer.String( type.c_str(), (SizeType)type.length() );
+
+	writer.Key("subtype");
+	std::string subtype = get_subtype();
+	writer.String( subtype.c_str(), (SizeType)subtype.length() );
+
+	int i;
+	int j;
+
+	writer.Key("location");
+	writer.StartArray();
+	for (i=0; i<3; i++) {
+					writer.Double( static_cast<double>(get_loc(i)) );
+	}
+	writer.EndArray();
+
+	writer.Key("rotation_euler");
+	writer.StartArray();
+	for (i=0; i<3; i++) {
+					writer.Double( static_cast<double>(get_rote(i)) );
+	}
+	writer.EndArray();
+
+	writer.Key("rotation_quaternion");
+	writer.StartArray();
+	for (i=0; i<4; i++) {
+					writer.Double( static_cast<double>(get_rotq(i)) );
+	}
+	writer.EndArray();
+
+	writer.Key("scale");
+	writer.StartArray();
+	for (i=0; i<3; i++) {
+					writer.Double( static_cast<double>(get_scl(i)) );
+	}
+	writer.EndArray();
+
+	writer.Key("transform");
+writer.StartArray();
+
+	for (i=0; i<4; i++) {
+					for (j=0; j<4; j++) {
+									writer.Double( static_cast<double>(transform_matrix(i, j) ));
+					}
+	}
+
+	writer.EndArray();
+
+	writer.Key("bounding_box");
+writer.StartArray();
+
+	for (i=0; i<4; i++) {
+					for (j=0; j<8; j++) {
+									writer.Double( static_cast<double>(bounding_box(i, j) ));
+					}
+	}
+
+	writer.EndArray();
+
+	writer.Key("scenes");
+	writer.StartArray();
+	for (i=0; i<num_scenes(); i++) {
+					std::string sc = get_scene(i);
+					writer.String( sc.c_str(), (SizeType)sc.length() );
+	}
+	writer.EndArray();
+
+	writer.Key("locked");
+writer.Bool(is_locked);
+
+	writer.Key("transaction_id");
+	writer.String(trans_id.c_str(), (SizeType)trans_id.length())
+
+	writer.EndObject();
+
+	//The Stringbuffer now contains a json message
+	//of the object
+const char* ret_val = s.GetString();
+std::string ret_string (ret_val);
+	return ret_string;
+}
+
+void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const {
+	new_proto->set_key(key);
 	logging->debug("Obj3: Key = ");
 	logging->debug(key);
-	new_proto.set_name(name);
+	new_proto->set_name(name);
 	logging->debug("Obj3: Name = ");
 	logging->debug(name);
-	new_proto.set_type(type);
+	new_proto->set_type(type);
 	logging->debug("Obj3: Type = ");
 	logging->debug(type);
-	new_proto.set_subtype(subtype);
+	new_proto->set_subtype(subtype);
 	logging->debug("Obj3: Subtype = ");
 	logging->debug(subtype);
-	new_proto.set_owner(owner);
+	new_proto->set_owner(owner);
 	logging->debug("Obj3: Owner = ");
 	logging->debug(owner);
-	new_proto.set_lock_device_id(lock_owner);
+	new_proto->set_lock_device_id(lock_owner);
 	logging->debug("Obj3: Lock Owner = ");
 	logging->debug(lock_owner);
-	protoObj3::Obj3_Vertex3 *loc = new_proto.mutable_location();
+	new_proto->set_error_message(err_string);
+	protoObj3::Obj3_Vertex3 *loc = new_proto->mutable_location();
 	loc->set_x(get_locx());
 	loc->set_y(get_locy());
 	loc->set_z(get_locz());
-	protoObj3::Obj3_Vertex3 *rote = new_proto.mutable_rotation_euler();
+	protoObj3::Obj3_Vertex3 *rote = new_proto->mutable_rotation_euler();
 	rote->set_x(get_rotex());
 	rote->set_y(get_rotey());
 	rote->set_z(get_rotez());
-	protoObj3::Obj3_Vertex4 *rotq = new_proto.mutable_rotation_quaternion();
+	protoObj3::Obj3_Vertex4 *rotq = new_proto->mutable_rotation_quaternion();
 	rotq->set_w(get_rotqw());
 	rotq->set_x(get_rotqx());
 	rotq->set_y(get_rotqy());
 	rotq->set_z(get_rotqz());
-	protoObj3::Obj3_Vertex3 *scl = new_proto.mutable_scale();
+	protoObj3::Obj3_Vertex3 *scl = new_proto->mutable_scale();
 	scl->set_x(get_sclx());
 	scl->set_y(get_scly());
 	scl->set_z(get_sclz());
-	protoObj3::Obj3_Matrix4 *trn = new_proto.mutable_transform();
+	protoObj3::Obj3_Matrix4 *trn = new_proto->mutable_transform();
 	int i = 0;
 	for (i = 0; i < 4; i++) {
 		protoObj3::Obj3_Vertex4* c1 = trn->add_col();
@@ -830,7 +968,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 		c1->set_y(transform_matrix(2, i));
 		c1->set_z(transform_matrix(3, i));
 	}
-	protoObj3::Obj3_Matrix4 *bbox = new_proto.mutable_bounding_box();
+	protoObj3::Obj3_Matrix4 *bbox = new_proto->mutable_bounding_box();
 	int k = 0;
 	for (k = 0; k < 8; k++) {
 		protoObj3::Obj3_Vertex4* cl = bbox->add_col();
@@ -841,11 +979,38 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	}
 	int j = 0;
 	for (j = 0; j < num_scenes(); j++) {
-		new_proto.add_scenes(get_scene(j));
+		new_proto->add_scenes(get_scene(j));
 	}
+}
+
+//Writes out all object attributes for storage in Smart Update Buffer
+std::string Obj3::to_protobuf_msg(int msg_type) const {
+	logging->info("Obj3:To Proto message Called on object");
+	logging->info(key);
+	protoObj3::Obj3 *new_proto = new protoObj3::Obj3;
+	new_proto->set_message_type(msg_type);
+	to_base_protobuf_msg(new_proto);
 	std::string wstr;
-  new_proto.SerializeToString(&wstr);
+  new_proto->SerializeToString(&wstr);
 	logging->debug("Protocol Buffer Serialized to String");
 	logging->debug(wstr);
+	delete new_proto;
+	return wstr;
+}
+
+//Convert the object to a protocol buffer message
+std::string to_protobuf_msg(int msg_type, std::string trans_id) const
+{
+	logging->info("Obj3:To Proto message Called on object");
+	logging->info(key);
+	protoObj3::Obj3 *new_proto = new protoObj3::Obj3;
+	new_proto->set_message_type(msg_type);
+	to_base_protobuf_msg(new_proto);
+	new_proto->set_transaction_id(trans_id);
+	std::string wstr;
+  new_proto->SerializeToString(&wstr);
+	logging->debug("Protocol Buffer Serialized to String");
+	logging->debug(wstr);
+	delete new_proto;
 	return wstr;
 }

@@ -18,8 +18,234 @@
 #include "configuration_manager.h"
 
 #include "aossl/factory/logging_interface.h"
+#include "aossl/factory/response_interface.h"
 #include "aossl/factory/callbacks.h"
 #include "globals.h"
+
+//-----------------------
+//-----Base Methods------
+//-----------------------
+
+//Write an object to Redis
+inline void post_to_redis(Obj3 *temp_obj, int msg_type, std::string transaction_id) {
+  const char * temp_key = temp_obj->get_key().c_str();
+  bool bRet;
+  if (cm->get_rfjson()) {
+    bRet = xRedis->save(temp_key, temp_obj->to_json_msg(msg_type, transaction_id));
+  }
+  else if (cm->get_rfprotobuf()) {
+    bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(msg_type, transaction_id));
+  }
+  if (!bRet) {
+    logging->error("Error putting object to Redis Smart Update Buffer");
+  }
+  bool bRet2 = xRedis->expire(temp_key, cm->get_subduration());
+  if (!bRet2) {
+    logging->error("Error expiring object in Redis Smart Update Buffer");
+  }
+}
+
+//Parse the Redis Response string into the provided Obj3, and return the message type
+//Returns a message type of -1 in case of failure (ie. object not found in redis)
+inline int set_redis_response_object(Request *r, Obj3 *redis_object)
+{
+  std::string response_key = r->req_addr;
+  rapidjson::Document temp_d2;
+  rapidjson::Value *val;
+  int msg_type = -1;
+  //Check Redis for transaction information
+  if ( !(xRedis->exists(response_key)) ) {
+    logging->error("Storage Callback Returned with no Redis Information");
+  }
+  else
+  {
+    logging->debug("Object found in Smart Update Buffer");
+    //Let's get the object out of the active update list
+    std::string strValue = xRedis->load(response_key);
+    if (strValue.empty()) {
+      logging->error("Unable to load object from Redis");
+    }
+    else
+    {
+      //Are we writing to redis with json?
+      if (cm->get_rfjson()) {
+        try {
+          temp_d2.Parse(strValue.c_str());
+          redis_object = new Obj3 (temp_d2);
+          val = &temp_d2["message_type"];
+          msg_type = val->GetInt();
+        }
+        catch (std::exception& e) {
+          logging->error("Exception Occurred parsing message from Couchbase");
+          logging->error(e.what());
+        }
+      }
+
+      //Or are we writing to redis with Protocol buffers?
+      else if (cm->get_rfprotobuf()) {
+        protoObj3::Obj3 pobj;
+        try {
+          pobj.ParseFromString(strValue);
+          redis_object = new Obj3 (pobj);
+          msg_type = pobj.message_type();
+        }
+        catch (std::exception& e) {
+          logging->error("Exception Occurred parsing message from Couchbase");
+          logging->error(e.what());
+        }
+      }
+    }
+  }
+  return msg_type;
+}
+
+//Return an Obj3 pointer built from the json string passed in, assumed to be from the DB
+inline Obj3* set_db_response_object(object_string)
+{
+  rapidjson::Document temp_d;
+  if (!object_string.empty()) {
+    //Process the DB Object
+    try {
+      temp_d.Parse(obj_string);
+      return new Obj3 (temp_d);
+    }
+    catch (std::exception& e) {
+      logging->error("Exception Occurred parsing message from DB");
+      logging->error(e.what());
+    }
+  }
+  return NULL;
+}
+
+//create an error response and return the string
+inline std::string create_error_response(int msg_type, std::string transaction_id, std::string response_key, std::string resp_err_string)
+{
+  Obj3 *new_obj = new Obj3;
+  new_obj->set_key(response_key);
+  new_obj->set_error(resp_err_string);
+
+  //Build the outbound message
+  if (cm->get_mfjson()) {
+    object_string = new_obj->to_json_msg(msg_type, transaction_id);
+  }
+  else if (cm->get_mfprotobuf()) {
+    object_string = new_obj->to_protobuf_msg(msg_type, transaction_id);
+  }
+
+  delete new_obj;
+  return object_string;
+}
+
+//Create a standard response and return the string
+inline std::string create_response(Obj3 *obj, int msg_type, std::string transaction_id)
+{
+  std::string object_string = "";
+  if (cm->get_mfjson()) {
+    object_string = obj->to_json_msg(msg_type, transaction_id);
+  }
+  else if (cm->get_mfprotobuf()) {
+    object_string = obj->to_protobuf_msg(msg_type, transaction_id);
+  }
+  return object_string;
+}
+
+//Send an outbound message and return the response
+inline std::string send_outbound_msg(std::string message_string)
+{
+  std::string out_resp = "";
+  if (!message_string.empty()) {
+    //output the message on the ZMQ Port
+    logging->debug("Sending Outbound Message:");
+    logging->debug(message_string);
+    zmqo->send(message_string);
+
+    //Get the response
+    out_resp = zmqo->recv();
+  }
+  return out_resp;
+}
+
+inline std::string default_callback (Request *r, std::string operation_error_string)
+{
+  Obj3 *new_obj = NULL;
+  std::string object_string;
+  std::string obj_string = r->req_data;
+  int msg_type = ERR;
+  std::string transaction_id = "";
+  std::string out_resp = "";
+
+  std::string response_key = r->req_addr;
+
+  //Check Redis for transaction information
+  msg_type = set_redis_response_object(r, new_obj);
+
+  //If the Redis update failed, set the message type back to error
+  if (msg_type == -1)
+  {
+    msg_type = ERR;
+  }
+  else
+  {
+    if (!new_obj)
+    {
+      logging->error("No error code returned from set_redis_response method, but null pointer detected");
+    }
+    else
+    {
+      //Use the Redis message to populate transaction ID
+      transaction_id = new_obj->get_transaction_id();
+      delete new_obj;
+    }
+  }
+
+  //Actions when the storage operation is successful
+  if (r->req_err->err_code == NOERROR)
+  {
+    logging->debug("stored:");
+    logging->debug(response_key);
+
+    //Build the DB Response Object
+    db_object = set_db_response_object(obj_string);
+
+    if (!db_object)
+    {
+      logging->error("Error parsing DB Response, null pointer detected");
+    }
+    else
+    {
+      //Build the outbound message
+      object_string = create_response(db_object, msg_type, transaction_id);
+      delete db_object;
+    }
+  }
+  else
+  {
+    std::string resp_err_string = r->req_err->err_message;
+    logging->error(operation_error_string);
+    logging->error(response_key);
+    logging->error(resp_err_string);
+
+    //If configuration for OB Failure Responses is active, we build a failure response
+    if (cm->get_sendobfailuresactive()) {
+      //Set up a failure response
+      object_string = create_error_response(msg_type, transaction_id, response_key, resp_err_string);
+    }
+  }
+
+  //Send an OB Message if our response string isn't empty
+  out_resp = send_outbound_msg(object_string);
+
+  //Process the response
+  logging->debug("Response to Outbound Message:");
+  logging->debug(out_resp);
+
+  //Remove the element from the smart updbate buffer
+  if (xRedis->exists(response_key)) {
+    xRedis->del(response_key);
+  }
+
+  return r->req_addr;
+}
 
 //-----------------------
 //---Callback Methods----
@@ -30,93 +256,94 @@
 //The storage callback is simple, just logging the storage act and result
 inline std::string my_storage_callback (Request *r)
 {
-  if (r->req_err->err_code == NOERROR)
-  {
-    logging->debug("stored:");
-    logging->debug(r->req_addr);
-  }
-  else
-  {
-    logging->error("Failed to store:");
-    logging->error(r->req_addr);
-    logging->error(r->req_err->err_message);
-  }
-  return r->req_addr;
+  return default_callback(r, "Failed to Store:");
 }
 
 //The delete callback is also simple, just logging the storage act and result
 inline std::string my_delete_callback (Request *r)
 {
-  if (r->req_err->err_code == NOERROR)
-  {
-    logging->debug("deleted:");
-    logging->debug(r->req_addr);
-  }
-  else
-  {
-    logging->error("Failed to delete:");
-    logging->error(r->req_addr);
-    logging->error(r->req_err->err_message);
-  }
-  return r->req_addr;
+  return default_callback(r, "Failed to Delete:");
 }
 
 //The get callback has the complex logic for the smart updates
 std::string my_retrieval_callback (Request *r)
 {
-  //Set up our base objects
   Obj3 *new_obj = NULL;
+  Obj3* db_object = NULL;
+  std::string object_string;
+  std::string obj_string = r->req_data;
+  int msg_type = ERR;
+  std::string transaction_id = "";
   std::string out_resp = "";
-  std::string obj_string = "";
+
+  std::string key_string = r->req_addr;
+
+  //Check Redis for transaction information
+  msg_type = set_redis_response_object(r, new_obj);
+
+  //If the Redis update failed, set the message type back to error
+  if (msg_type == -1)
+  {
+    msg_type = ERR;
+  }
+  else
+  {
+    if (!new_obj)
+    {
+      logging->error("No error code returned from set_redis_response method, but null pointer detected");
+    }
+    else
+    {
+      //Use the Redis message to populate transaction ID
+      transaction_id = new_obj->get_transaction_id();
+    }
+  }
 
   //Are there any errors coming back from Couchbase?
   if (r->req_err->err_code != NOERROR) {
     logging->error("Failed to retrieve:");
-    logging->error(r->req_addr);
+    logging->error(key_string);
     logging->error(r->req_err->err_message);
+    //If configuration for OB Failure Responses is active, we build a failure response
+    if (cm->get_sendobfailuresactive()) {
+      //Set up a failure response
+      object_string = create_error_response(msg_type, transaction_id, key_string, r->req_err->err_message);
+      out_resp = send_outbound_msg(object_string);
+      logging->debug("Response Recieved:");
+      logging->debug(out_resp);
+    }
   }
   else
   {
-    logging->info("Retrieved: ");
-    std::string key_string = r->req_addr;
-    const char *k = key_string.c_str();
-    std::string obj_string = r->req_data;
-    const char *resp_obj = obj_string.c_str();
-    logging->info( key_string );
-    logging->info( obj_string );
+    logging->debug("stored:");
+    logging->debug(response_key);
 
-    //Smart updates are not active
+    //Build the DB Response Object
+    db_object = set_db_response_object(obj_string);
+
+    if (!db_object)
+    {
+      logging->error("Error parsing DB Response, null pointer detected");
+    }
+    else
+    {
+      //Build the outbound message
+      object_string = create_response(db_object, msg_type, transaction_id);
+    }
+
+    //Smart updates are not active, so we just have a get request
     if (!cm->get_smartupdatesactive()) {
-      //Parse the document from the DB
-      logging->debug("Smart Updates Disabled, outputting response to Get Request");
-      rapidjson::Document temp_d;
-      try {
-        temp_d.Parse(resp_obj);
-        new_obj = new Obj3 (temp_d);
-      }
-      catch (std::exception& e) {
-        logging->error("Exception Occurred parsing message from DB");
-        logging->error(e.what());
-      }
 
       //Output the object on the Outbound ZeroMQ port
-      if (!new_obj) {
+      if (!db_object) {
         logging->error("Null Pointer Object detected from DB");
       }
       else
       {
-        if (cm->get_mfjson()) {
-          obj_string = new_obj->to_json_msg(OBJ_GET);
-        }
-        else if (cm->get_mfprotobuf()) {
-          obj_string = new_obj->to_protobuf_msg(OBJ_GET);
-        }
-        logging->debug("Sending Outbound Message");
-        zmqo->send(obj_string);
-        out_resp = zmqo->recv();
+        object_string = create_response(db_object, msg_type, transaction_id);
+        out_resp = send_outbound_msg(object_string);
         logging->debug("Response Recieved:");
         logging->debug(out_resp);
-        delete new_obj;
       }
     }
 
@@ -128,117 +355,62 @@ std::string my_retrieval_callback (Request *r)
       logging->debug("Smart Update Logic Activated");
       //Then, let's get and parse the response from the database
       //We need to clean the response since Couchbase gives dirty responses
-
-      rapidjson::Document temp_d;
-      Obj3 *temp_obj = NULL;
-      try {
-        temp_d.Parse(resp_obj);
-        new_obj = new Obj3 (temp_d);
-      }
-      catch (std::exception& e) {
-        //Catch a possible exception and write it to the logs
-        logging->error("Exception Occurred parsing message from Couchbase");
-        logging->error(e.what());
-      }
-      if (!new_obj)
+      if (!db_object)
       {
         logging->error("Null Pointer Object detected from DB");
       }
       else
       {
-        logging->debug("Database Object Parsed");
-
-        if ( !(xRedis->exists(k)) ) {
-          logging->error("Active Updates enabled but object not found in smart update buffer, outputting DB Object on OB ZMQ Port");
+        if ( !new_obj ) {
+          std::string err_msg = "Active Updates enabled but object not found in smart update buffer";
+          logging->error(err_msg);
           //And output the message on the ZMQ Port
-          std::string object_string;
-          if (cm->get_mfjson()) {
-            object_string = new_obj->to_json_msg(OBJ_UPD);
+          //If configuration for OB Failure Responses is active, we build a failure response
+          if (cm->get_sendobfailuresactive()) {
+            //Set up a failure response
+            object_string = create_error_response(msg_type, transaction_id, key_string, err_msg);
+            out_resp = send_outbound_msg(object_string);
+            logging->debug("Response Recieved:");
+            logging->debug(out_resp);
           }
-          else if (cm->get_mfprotobuf()) {
-            object_string = new_obj->to_protobuf_msg(OBJ_UPD);
-          }
-          zmqo->send(object_string);
-          out_resp = zmqo->recv();
         }
         else
         {
-          logging->debug("Object found in Smart Update Buffer");
-          //Let's get the object out of the active update list
-          std::string strValue = xRedis->load(k);
-          if (strValue.empty()) {
-            logging->error("Unable to load object and perform smart update");
+          //Now, we can compare the two and apply any updates from the
+          //object list to the object returned from the database
+          db_object->transform( new_obj );
+
+          //Remove the element from the smart updbate buffer
+          if (xRedis->exists(key_string)) {
+            xRedis->del(key_string);
           }
-          else
-          {
-            logging->debug(strValue);
 
-            //Are we writing to redis with json?
-            if (cm->get_rfjson()) {
-              rapidjson::Document temp_d;
-              try {
-                temp_d.Parse(strValue.c_str());
-                temp_obj = new Obj3 (temp_d);
-              }
-              catch (std::exception& e) {
-                logging->error("Exception Occurred parsing message from Couchbase");
-                logging->error(e.what());
-              }
-            }
+          //Replace the element in the smart update buffer
+          post_to_redis(new_obj, msg_type, transaction_id);
 
-            //Or are we writing to redis with Protocol buffers?
-            else if (cm->get_rfprotobuf()) {
-              protoObj3::Obj3 pobj;
-              try {
-                pobj.ParseFromString(strValue);
-                temp_obj = new Obj3 (pobj);
-              }
-              catch (std::exception& e) {
-                logging->error("Exception Occurred parsing message from Couchbase");
-                logging->error(e.what());
-              }
-            }
+          //Save the resulting object back to the DB
+          cb->save_object (new_obj);
+          cb->wait();
 
-            if (temp_obj) {
-
-              //Now, we can compare the two and apply any updates from the
-              //object list to the object returned from the database
-              new_obj->transform( temp_obj );
-
-              //Generate the message to be output
-              if (cm->get_mfjson()) {
-                obj_string = new_obj->to_json_msg(OBJ_UPD);
-              }
-              else if (cm->get_mfprotobuf()) {
-                obj_string = new_obj->to_protobuf_msg(OBJ_UPD);
-              }
-
-              //output the message on the ZMQ Port
-              zmqo->send(obj_string);
-              out_resp = zmqo->recv();
-              logging->debug("Response Recieved:");
-              logging->debug(out_resp);
-            }
-
-            //Remove the element from the smart updbate buffer
-            if (xRedis->exists(k)) {
-              xRedis->del(k);
-            }
-            else {
-              logging->debug("Key already expired from update buffer, not deleting");
-            }
-
-            //Save the resulting object back to the DB
-            cb->save_object (new_obj);
-            cb->wait();
-
-            //Cleanup
-            delete new_obj;
-            delete temp_obj;
-          }
         }
       }
     }
+  }
+  if (!db_object)
+  {
+    logging->debug("DB Object not instantiated");
+  }
+  else
+  {
+    delete db_object;
+  }
+  if (!new_obj)
+  {
+    logging->debug("Redis Object not instantiated");
+  }
+  else
+  {
+    delete new_obj;
   }
   return out_resp;
 }

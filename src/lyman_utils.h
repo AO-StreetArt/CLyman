@@ -18,8 +18,12 @@ const int OBJ_CRT = 1;
 const int OBJ_GET = 2;
 const int OBJ_DEL = 3;
 const int OBJ_PUSH = 4;
+const int ERR = 100;
 const int KILL = 999;
 const int PING = 555;
+
+//Internal Message Types
+const int OBJ_UPD_GLOBAL = 5;
 
 //Trim Strings
 // trim from start

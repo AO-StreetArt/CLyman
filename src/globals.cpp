@@ -23,3 +23,6 @@ CommandLineInterface *cli;
 //ZMQ Admins
 Zmqio *zmqo;
 Zmqio *zmqi;
+
+//Response Object
+ApplicationResponseInterface *resp;

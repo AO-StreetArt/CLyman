@@ -100,6 +100,26 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       logging->info("CONFIGURE: Redis Buffer Format set to Protocol Buffers");
     }
   }
+  if (props->opt_exist("StampTransactionId")) {
+    if (props->get_opt("StampTransactionId") == "True") {
+      StampTransactionId = true;
+      logging->info("CONFIGURE: Transaction ID's Enabled");
+    }
+    else {
+      StampTransactionId = false;
+      logging->info("CONFIGURE: Transaction ID's Disabled");
+    }
+  }
+  if (props->opt_exist("SendOutboundFailureMsg")) {
+    if (props->get_opt("SendOutboundFailureMsg") == "True") {
+      SendOutboundFailureMsg = true;
+      logging->info("CONFIGURE: Sending Outbound Failure Messages Enabled");
+    }
+    else {
+      SendOutboundFailureMsg = false;
+      logging->info("CONFIGURE: Sending Outbound Failure Messages Disabled");
+    }
+  }
   if (props->list_exist("RedisConnectionString")) {
     std::vector<std::string> conn_list = props->get_list("RedisConnectionString");
     for (std::size_t i = 0; i < conn_list.size(); i++)
@@ -376,6 +396,26 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   {
     RedisFormatJSON=false;
     RedisFormatProtoBuf=true;
+  }
+
+  std::string tran_ids_active = get_consul_config_value("StampTransactionId");
+  logging->debug("CONFIGURE: Transaction ID & Atomic Transactions Enabled:");
+  logging->debug(tran_ids_active);
+  if (tran_ids_active == "True") {
+    StampTransactionId = true;
+  }
+  else {
+    StampTransactionId = false;
+  }
+
+  std::string ob_failure_msg = get_consul_config_value("SendOutboundFailureMsg");
+  logging->debug("CONFIGURE: Sending Outbound Failure Messages Enabled:");
+  logging->debug(ob_failure_msg);
+  if (ob_failure_msg == "True") {
+    SendOutboundFailureMsg = true;
+  }
+  else {
+    SendOutboundFailureMsg = false;
   }
 
   //Read from a set of global config values in consul

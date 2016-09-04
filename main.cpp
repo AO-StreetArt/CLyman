@@ -30,6 +30,7 @@
 #include "src/configuration_manager.h"
 #include "src/couchbase_callbacks.h"
 #include "src/globals.h"
+#include "src/clyman_response.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -47,6 +48,7 @@
 #include "aossl/factory/logging_interface.h"
 #include "aossl/factory/uuid_interface.h"
 #include "aossl/factory/commandline_interface.h"
+#include "aossl/factory/response_interface.h"
 
 enum {
   CACHE_TYPE_1,
@@ -67,6 +69,7 @@ void shutdown()
   delete ua;
   delete cli;
   delete logging;
+  delete resp;
 
   //Shut down protocol buffer library
   google::protobuf::ShutdownProtobufLibrary();
@@ -177,6 +180,9 @@ void my_signal_handler(int s){
       //and drives the central functionality, along with the couchbase callbacks
       dm = new DocumentManager (cb, xRedis, ua, cm, zmqo);
 
+      //Set up a response object to be sent back to the client
+      resp = factory->get_application_response_interface();
+
       //Main Request Loop
 
       while (true) {
@@ -228,92 +234,147 @@ void my_signal_handler(int s){
           }
         }
 
+        //Generate a Transaction ID
+        std::string tran_id_str = uuid->generate();
+        resp->set_transaction_id(tran_id_str);
+
+        //Set up the object key to be passed back on the response
+        std::string object_key;
+
         if (msg_type == OBJ_UPD) {
           logging->debug("Current Event Type set to Object Update");
 
-          resp = "success";
-          logging->debug("Object Update Event Emitted, response:");
-          logging->debug(resp);
-
-          //  Send reply back to client
-          zmqi->send(resp);
-          logging->debug("Response Sent");
-
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
-            dm->update_objectd( d );
+
+            //Make the update
+            object_key = dm->update_objectd( d );
+
+            //Add the Object Key to the Response
+            resp->set_object_key(object_key);
+
+            //  Send reply back to client
+            zmqi->send(resp->to_json());
+            logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
-            dm->update_objectpb(new_proto);
+
+            //Make the update
+            object_key = dm->update_objectpb(new_proto);
+
+            //Add the Object Key to the Response
+            resp->set_object_key(object_key);
+
+            //  Send reply back to client
+            zmqi->send(response_to_protobuffer(resp));
+            logging->debug("Response Sent");
           }
+          dm->wait();
 
         }
         else if (msg_type == OBJ_CRT) {
           logging->debug("Current Event Type set to Object Create");
 
-          resp = "success";
-          logging->debug("Object Create Event Emitted, response: ");
-          logging->debug(resp);
-
-          //Send the response
-          zmqi->send(resp);
-          logging->debug("Response Sent");
-
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
-            dm->create_objectd( d );
+
+            //Create the object
+            object_key = dm->create_objectd( d );
+
+            //Add the Object Key to the Response
+            resp->set_object_key(object_key);
+
+            //Send the response
+            zmqi->send(resp->to_json());
+            logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
-            dm->create_objectpb(new_proto);
+
+            //Create the object
+            object_key = dm->create_objectpb(new_proto);
+
+            //Add the Object Key to the Response
+            resp->set_object_key(object_key);
+
+            //Send the response
+            zmqi->send(response_to_protobuffer(resp));
+            logging->debug("Response Sent");
           }
+          dm->wait();
 
         }
         else if (msg_type == OBJ_GET) {
           logging->debug("Current Event Type set to Object Get");
 
-          resp = "success";
-          logging->debug("Object Get Event Emitted, response: ");
-          logging->debug(resp);
-
-          //  Send reply back to client
-          zmqi->send(resp);
-          logging->debug("Response Sent");
-
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
-            dm->get_objectd( d );
+
+            //Get the object
+            object_key = dm->get_objectd( d );
+
+            //Add the Object Key to the Response
+            resp->set_object_key(object_key);
+
+            //Send the response
+            zmqi->send(resp->to_json());
+            logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
-            dm->get_objectpb (new_proto);
+
+            //Get the object
+            object_key = dm->get_objectpb (new_proto);
+
+            //Add the Object Key to the Response
+            resp->set_object_key(object_key);
+
+            //Send the response
+            zmqi->send(response_to_protobuffer(resp));
+            logging->debug("Response Sent");
           }
+          dm->wait();
 
         }
         else if (msg_type == OBJ_DEL) {
           logging->debug("Current Event Type set to Object Delete");
 
-          resp = "success";
-          logging->debug("Object Delete Event Emitted, response: ");
-          logging->debug(resp);
-
-          //  Send reply back to client
-          zmqi->send(resp);
-          logging->debug("Response Sent");
-
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
-            dm->delete_objectd( d );
+
+            //Delete the object
+            object_key = dm->delete_objectd( d );
+
+            //Add the Object Key to the Response
+            resp->set_object_key(object_key);
+
+            //Send the response
+            zmqi->send(resp->to_json());
+            logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
-            dm->delete_objectpb(new_proto);
+
+            //Delete the object
+            object_key = dm->delete_objectpb(new_proto);
+
+            //Add the Object Key to the Response
+            resp->set_object_key(object_key);
+
+            //Send the response
+            zmqi->send(response_to_protobuffer(resp));
+            logging->debug("Response Sent");
           }
+          dm->wait();
 
         }
         //Shutdown Message
         else if (msg_type == KILL) {
 
           //Send a success response
-          resp = "success";
-          zmqi->send(resp);
+          if (cm->get_mfjson()) {
+            zmqi->send(resp->to_json());
+          }
+          else if (cm->get_mfprotobuf()) {
+            zmqi->send(response_to_protobuffer(resp));
+          }
 
           shutdown();
 
@@ -321,20 +382,31 @@ void my_signal_handler(int s){
         }
         else if (msg_type == PING) {
           logging->debug("Healthcheck Responded to");
-          resp = "success";
-          zmqi->send(resp);
+          if (cm->get_mfjson()) {
+            zmqi->send(resp->to_json());
+          }
+          else if (cm->get_mfprotobuf()) {
+            zmqi->send(response_to_protobuffer(resp));
+          }
         }
         else {
           logging->error("Current Event Type not found");
 
-          resp = "failure";
+          resp->set_error(BAD_REQUEST_ERROR, "No Message type found");
           logging->error("Object Event not Emitted, response: ");
-          logging->error(resp);
 
           //  Send reply back to client
-          zmqi->send(resp);
+          if (cm->get_mfjson()) {
+            zmqi->send(resp->to_json());
+          }
+          else if (cm->get_mfprotobuf()) {
+            zmqi->send(response_to_protobuffer(resp));
+          }
           logging->debug("Response Sent");
         }
+
+        //Clear the response
+        resp->clear();
       }
 
       return 0;
