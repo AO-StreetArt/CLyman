@@ -12,15 +12,15 @@ inline std::string response_to_protobuffer(ApplicationResponseInterface *resp)
 {
 
 //Transfer the response interface elements to a protocol buffer object
-pResponse::ProtoResponse resp;
-resp.set_error_code(resp->get_error_code());
-resp.set_error_message(resp->get_error_message());
-resp.set_transaction_id(resp->get_transaction_id());
-resp.set_object_id(resp->get_object_id());
+pResponse::ProtoResponse resp_buffer;
+resp_buffer.set_error_code(resp->get_error_code());
+resp_buffer.set_error_message(resp->get_error_message());
+resp_buffer.set_transaction_id(resp->get_transaction_id());
+resp_buffer.set_object_id(resp->get_object_id());
 
 //Serialize the object to a string and return it
 std::string wstr;
-resp.SerializeToString(&wstr);
+resp_buffer.SerializeToString(&wstr);
 return wstr;
 }
 

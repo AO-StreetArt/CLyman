@@ -106,7 +106,7 @@ inline Obj3* set_db_response_object(std::string object_string)
   if (!object_string.empty()) {
     //Process the DB Object
     try {
-      temp_d.Parse(obj_string);
+      temp_d.Parse(object_string);
       return new Obj3 (temp_d);
     }
     catch (std::exception& e) {
@@ -120,6 +120,7 @@ inline Obj3* set_db_response_object(std::string object_string)
 //create an error response and return the string
 inline std::string create_error_response(int msg_type, std::string transaction_id, std::string response_key, std::string resp_err_string)
 {
+  std::string object_string = "";
   Obj3 *new_obj = new Obj3;
   new_obj->set_key(response_key);
   new_obj->set_error(resp_err_string);
@@ -168,6 +169,7 @@ inline std::string send_outbound_msg(std::string message_string)
 inline std::string default_callback (Request *r, std::string operation_error_string)
 {
   Obj3 *new_obj = NULL;
+  Obj3 *db_object = NULL;
   std::string object_string;
   std::string obj_string = r->req_data;
   int msg_type = ERR;
@@ -240,8 +242,8 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   logging->debug(out_resp);
 
   //Remove the element from the smart updbate buffer
-  if (xRedis->exists(response_key)) {
-    xRedis->del(response_key);
+  if (xRedis->exists(response_key.c_str())) {
+    xRedis->del(response_key.c_str());
   }
 
   return r->req_addr;
@@ -316,7 +318,7 @@ std::string my_retrieval_callback (Request *r)
   else
   {
     logging->debug("stored:");
-    logging->debug(response_key);
+    logging->debug(key_string);
 
     //Build the DB Response Object
     db_object = set_db_response_object(obj_string);
@@ -390,8 +392,8 @@ std::string my_retrieval_callback (Request *r)
           db_object->transform( new_obj );
 
           //Remove the element from the smart updbate buffer
-          if (xRedis->exists(key_string)) {
-            xRedis->del(key_string);
+          if (xRedis->exists(key_string.c_str())) {
+            xRedis->del(key_string.c_str());
           }
 
           //Replace the element in the smart update buffer
