@@ -806,7 +806,7 @@ std::string Obj3::to_json_msg(int msg_type) const
 }
 
 //Convert the object to JSON Message
-std::string to_json_msg(int msg_type, std::string trans_id) const {
+std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
 	logging->info("Obj3:To JSON message Called on object");
 	logging->info(key);
 	//Initialize the string buffer and writer
@@ -911,7 +911,7 @@ writer.StartArray();
 writer.Bool(is_locked);
 
 	writer.Key("transaction_id");
-	writer.String(trans_id.c_str(), (SizeType)trans_id.length())
+	writer.String(trans_id.c_str(), (SizeType)trans_id.length());
 
 	writer.EndObject();
 
@@ -999,7 +999,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 }
 
 //Convert the object to a protocol buffer message
-std::string to_protobuf_msg(int msg_type, std::string trans_id) const
+std::string Obj3::to_protobuf_msg(int msg_type, std::string trans_id) const
 {
 	logging->info("Obj3:To Proto message Called on object");
 	logging->info(key);
