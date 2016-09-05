@@ -103,9 +103,6 @@ void my_signal_handler(int s){
 
       ServiceComponentFactory *factory = new ServiceComponentFactory;
 
-      //Set up the UUID Generator
-      ua = factory->get_uuid_interface();
-
       //Set up our command line interpreter
       cli = factory->get_command_line_interface( argc, argv );
 
@@ -126,6 +123,9 @@ void my_signal_handler(int s){
 
       //Set up the logging submodules for each category
       start_logging_submodules();
+
+      //Set up the UUID Generator
+      ua = factory->get_uuid_interface();
 
       //Set up our configuration manager with the CLI and UUID Generator
       cm = new ConfigurationManager(cli, ua, factory);
