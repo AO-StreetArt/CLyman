@@ -683,6 +683,9 @@ std::string Obj3::to_json()
 	writer.Key("mesh_id");
 	writer.String(mesh_id.c_str(), (SizeType)mesh_id.length());
 
+	writer.Key("error_message");
+	writer.String(err_string.c_str(), (SizeType)err_string.length());
+
   writer.EndObject();
 
   //The Stringbuffer now contains a json message
@@ -801,6 +804,9 @@ std::string Obj3::to_json_msg(int msg_type) const
 
 				writer.Key("mesh_id");
 				writer.String(mesh_id.c_str(), (SizeType)mesh_id.length());
+
+				writer.Key("error_message");
+				writer.String(err_string.c_str(), (SizeType)err_string.length());
 
         writer.EndObject();
 
@@ -921,6 +927,9 @@ writer.Bool(is_locked);
 
 	writer.Key("mesh_id");
 	writer.String(mesh_id.c_str(), (SizeType)mesh_id.length());
+
+	writer.Key("error_message");
+	writer.String(err_string.c_str(), (SizeType)err_string.length());
 
 	writer.EndObject();
 
