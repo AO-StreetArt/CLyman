@@ -47,11 +47,11 @@ Below you can find a summary of the options in the Properties File or Consul Key
 * RedisConnectionString - We have a list of Redis Connections in our cluster in the format "ip--port--password--poolsize--timeout--role"
 
 ### Behavior
-* SmartUpdatesActive - True if we want to allow partial messages, and only update fields included in the partial messages.  False if we want to enforce full replace update messages.
+* SmartUpdatesActive - True if we want to allow partial messages, and only update fields included in the partial messages.  False if we want to enforce full replace update messages.  When enabled, sending in a location, rotation, scaling, or transform matrix will result in that transformation being applied to the existing object in the DB.  When disabled, the object sent in is sent directly back for storage.
 * MessageFormat - json to take in and read out JSON Format, protocol-buffer to take in and read out Google Protocol Buffer Format
 * RedisBufferFormat - json to read and write JSON format to the Redis Buffer, protocol-buffer to read and write Protocol Buffers to the Redis Buffer
 * Smart_Update_Buffer_Duration - An Integer value denoting the seconds before an object is expired in the Redis buffer
-* StampTransactionId - True to stamp Transaction ID's on both inbound responses and outbound messages, and to enforce atomic transactions for get/update messages.  False to turn off this functionality.  This is recommended, to guarantee that updates on the same object across different instances of Clyman are applied in order.
+* StampTransactionId - True to stamp Transaction ID's on both inbound responses and outbound messages, and to enforce atomic transactions for get/update messages.  False to turn off this functionality.
 * SendOutboundFailureMsg - True to send outbound messages on errors.  False to suppress outbound messages in the case of an error.
 
 # Next
