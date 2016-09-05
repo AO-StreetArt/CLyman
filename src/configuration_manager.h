@@ -16,6 +16,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include "lyman_log.h"
+
 #include "aossl/factory.h"
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/consul_interface.h"

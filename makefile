@@ -5,7 +5,7 @@ CC = g++
 SLC = ar rcs
 CFLAGS  = -g -Wall
 STD = -std=c++11
-OBJS = src/Obj3.pb.cc src/Response.pb.cc src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main.o
+OBJS = src/Obj3.pb.cc src/Response.pb.cc src/lyman_log.o src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main.o
 TESTS = redis_test obj3_test configuration_test
 BENCHMARKS = obj3_benchmark redis_benchmark main_benchmark
 LIBS = -lpthread -llog4cpp
@@ -66,6 +66,9 @@ main_benchmark.o: main_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto src/
 	$(CC) $(CFLAGS) -o $@ -c main_benchmark.cpp $(STD)
 
 # ---------------------------- Main Project ---------------------------------- #
+
+src/lyman_log.o: src/lyman_log.cpp src/lyman_log.h
+	$(CC) $(CFLAGS) -o $@ -c src/lyman_log.cpp $(STD)
 
 scripts/Obj3_pb2.py: src/Obj3.proto
 	$(PROTOC) $(PROTO_OPTS) --python_out=scripts src/Obj3.proto

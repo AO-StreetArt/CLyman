@@ -16,9 +16,9 @@
 #include <cmath>
 #include <vector>
 #include "Obj3.pb.h"
+#include "lyman_log.h"
 
 #include "aossl/factory/writeable.h"
-#include "aossl/factory/logging_interface.h"
 
 class Obj3: public Writeable
 {

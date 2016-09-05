@@ -24,6 +24,7 @@
 #include <zmq.hpp>
 #include <Eigen/Dense>
 
+#include "src/lyman_log.h"
 #include "src/obj3.h"
 #include "src/lyman_utils.h"
 #include "src/document_manager.h"
@@ -68,6 +69,7 @@ void shutdown()
   delete cm;
   delete ua;
   delete cli;
+  shutdown_logging_submodules();
   delete logging;
   delete resp;
 
@@ -77,9 +79,9 @@ void shutdown()
 
 //Catch a Signal (for example, keyboard interrupt)
 void my_signal_handler(int s){
-   logging->error("Caught signal");
+   main_logging->error("Caught signal");
    std::string signal_type = std::to_string(s);
-   logging->error(signal_type);
+   main_logging->error(signal_type);
    shutdown();
    exit(1);
 }
@@ -107,9 +109,6 @@ void my_signal_handler(int s){
       //Set up our command line interpreter
       cli = factory->get_command_line_interface( argc, argv );
 
-      //Set up our configuration manager with the CLI and UUID Generator
-      cm = new ConfigurationManager(cli, ua, factory);
-
       //Set up logging
 	    std::string initFileName;
 
@@ -125,6 +124,12 @@ void my_signal_handler(int s){
       //This reads the logging configuration file
       logging = factory->get_logging_interface(initFileName);
 
+      //Set up the logging submodules for each category
+      start_logging_submodules();
+
+      //Set up our configuration manager with the CLI and UUID Generator
+      cm = new ConfigurationManager(cli, ua, factory);
+
       //The configuration manager will  look at any command line arguments,
       //configuration files, and Consul connections to try and determine the correct
       //configuration for the service
@@ -132,14 +137,14 @@ void my_signal_handler(int s){
       bool config_success = cm->configure();
       if (!config_success)
       {
-        logging->error("Configuration Failed, defaults kept");
+        main_logging->error("Configuration Failed, defaults kept");
       }
 
       //Set up internal variables
       int msg_type = -1;
       rapidjson::Document d;
       rapidjson::Value *val;
-      logging->info("Internal Variables Intialized");
+      main_logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
 
       //Set up our Redis Connection List, which is passed to the Redis Admin to connect
@@ -147,7 +152,7 @@ void my_signal_handler(int s){
       std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
       //Set up Redis Connection
       xRedis = factory->get_redis_cluster_interface(RedisConnectionList);
-      logging->info("Connected to Redis");
+      main_logging->info("Connected to Redis");
 
       //Set up the Couchbase Connection
       std::string DBConnStr = cm->get_dbconnstr();
@@ -168,11 +173,11 @@ void my_signal_handler(int s){
 
       //Set up the outbound ZMQ Admin
       zmqo = factory->get_zmq_outbound_interface(cm->get_obconnstr());
-      logging->info("Connected to Outbound OMQ Socket");
+      main_logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Admin
       zmqi = factory->get_zmq_inbound_interface(cm->get_ibconnstr());
-      logging->info("ZMQ Socket Open, opening request loop");
+      main_logging->info("ZMQ Socket Open, opening request loop");
 
       //Set up the Document Manager
       //This relies on pointers to all the other objects we set up,
@@ -192,8 +197,8 @@ void my_signal_handler(int s){
         std::string req_string = zmqi->recv();
         req_string = ltrim(req_string);
         const char * req_ptr = req_string.c_str();
-        logging->debug("Conversion to C String performed with result: ");
-        logging->debug(req_ptr);
+        main_logging->debug("Conversion to C String performed with result: ");
+        main_logging->debug(req_ptr);
         bool go_ahead=false;
 
         //If we are expecting JSON Messages, then parse in this fashion
@@ -205,8 +210,8 @@ void my_signal_handler(int s){
           }
           //Catch a possible error and write to logs
           catch (std::exception& e) {
-            logging->error("Exception occurred while parsing inbound document:");
-            logging->error(e.what());
+            main_logging->error("Exception occurred while parsing inbound document:");
+            main_logging->error(e.what());
           }
           //Find the message type
           if (go_ahead) {
@@ -224,8 +229,8 @@ void my_signal_handler(int s){
           }
           //Catch a possible error and write to logs
           catch (std::exception& e) {
-            logging->error("Exception occurred while parsing inbound document:");
-            logging->error(e.what());
+            main_logging->error("Exception occurred while parsing inbound document:");
+            main_logging->error(e.what());
           }
           //Find the message type
           if (go_ahead) {
@@ -241,7 +246,7 @@ void my_signal_handler(int s){
         std::string object_key;
 
         if (msg_type == OBJ_UPD) {
-          logging->debug("Current Event Type set to Object Update");
+          main_logging->debug("Current Event Type set to Object Update");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
@@ -254,7 +259,7 @@ void my_signal_handler(int s){
 
             //  Send reply back to client
             zmqi->send(resp->to_json());
-            logging->debug("Response Sent");
+            main_logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
 
@@ -266,13 +271,13 @@ void my_signal_handler(int s){
 
             //  Send reply back to client
             zmqi->send(response_to_protobuffer(resp));
-            logging->debug("Response Sent");
+            main_logging->debug("Response Sent");
           }
           dm->wait();
 
         }
         else if (msg_type == OBJ_CRT) {
-          logging->debug("Current Event Type set to Object Create");
+          main_logging->debug("Current Event Type set to Object Create");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
@@ -285,7 +290,7 @@ void my_signal_handler(int s){
 
             //Send the response
             zmqi->send(resp->to_json());
-            logging->debug("Response Sent");
+            main_logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
 
@@ -297,13 +302,13 @@ void my_signal_handler(int s){
 
             //Send the response
             zmqi->send(response_to_protobuffer(resp));
-            logging->debug("Response Sent");
+            main_logging->debug("Response Sent");
           }
           dm->wait();
 
         }
         else if (msg_type == OBJ_GET) {
-          logging->debug("Current Event Type set to Object Get");
+          main_logging->debug("Current Event Type set to Object Get");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
@@ -316,7 +321,7 @@ void my_signal_handler(int s){
 
             //Send the response
             zmqi->send(resp->to_json());
-            logging->debug("Response Sent");
+            main_logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
 
@@ -328,13 +333,13 @@ void my_signal_handler(int s){
 
             //Send the response
             zmqi->send(response_to_protobuffer(resp));
-            logging->debug("Response Sent");
+            main_logging->debug("Response Sent");
           }
           dm->wait();
 
         }
         else if (msg_type == OBJ_DEL) {
-          logging->debug("Current Event Type set to Object Delete");
+          main_logging->debug("Current Event Type set to Object Delete");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
@@ -347,7 +352,7 @@ void my_signal_handler(int s){
 
             //Send the response
             zmqi->send(resp->to_json());
-            logging->debug("Response Sent");
+            main_logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
 
@@ -359,7 +364,7 @@ void my_signal_handler(int s){
 
             //Send the response
             zmqi->send(response_to_protobuffer(resp));
-            logging->debug("Response Sent");
+            main_logging->debug("Response Sent");
           }
           dm->wait();
 
@@ -380,7 +385,7 @@ void my_signal_handler(int s){
           return 0;
         }
         else if (msg_type == PING) {
-          logging->debug("Healthcheck Responded to");
+          main_logging->debug("Healthcheck Responded to");
           if (cm->get_mfjson()) {
             zmqi->send(resp->to_json());
           }
@@ -389,10 +394,10 @@ void my_signal_handler(int s){
           }
         }
         else {
-          logging->error("Current Event Type not found");
+          main_logging->error("Current Event Type not found");
 
           resp->set_error(BAD_REQUEST_ERROR, "No Message type found");
-          logging->error("Object Event not Emitted, response: ");
+          main_logging->error("Object Event not Emitted, response: ");
 
           //  Send reply back to client
           if (cm->get_mfjson()) {
@@ -401,7 +406,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
             zmqi->send(response_to_protobuffer(resp));
           }
-          logging->debug("Response Sent");
+          main_logging->debug("Response Sent");
         }
 
         //Clear the response

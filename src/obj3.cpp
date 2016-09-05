@@ -15,7 +15,7 @@ using namespace rapidjson;
 
 void Obj3::initialize_buffers()
 {
-	logging->info("Obj3:Initialize Buffers Called");
+	obj_logging->info("Obj3:Initialize Buffers Called");
 	transform_buffer = Eigen::Matrix4d::Zero(4, 4);
 	transform_buffer(0, 0) = 1.0;
   transform_buffer(1, 1) = 1.0;
@@ -25,7 +25,7 @@ void Obj3::initialize_buffers()
 
 void Obj3::initialize_matrices()
 {
-	logging->info("Obj3:Intialize Matrices Called");
+	obj_logging->info("Obj3:Intialize Matrices Called");
 	//Set initial values with function calls
 	bounding_box = Eigen::MatrixXd::Zero(4, 8);
 	location = Eigen::Vector3d::Zero(3);
@@ -39,7 +39,7 @@ void Obj3::initialize_matrices()
 
 Obj3::Obj3(protoObj3::Obj3 buffer)
 {
-	logging->debug("Build Proto-Object Called");
+	obj_logging->debug("Build Proto-Object Called");
   std::string new_name="";
   std::string new_key="";
   std::string new_owner="";
@@ -49,7 +49,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	std::string new_tran_id="";
 	std::string new_mesh_id="";
   std::vector<std::string> scn_list;
-  logging->debug("New Variables Declared");
+  obj_logging->debug("New Variables Declared");
 
 	Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
 	Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
@@ -126,7 +126,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
       new_transform(2, i) = c.y();
       new_transform(3, i) = c.z();
     }
-    logging->debug("Transform Matrix Parsed");
+    obj_logging->debug("Transform Matrix Parsed");
 		transform_matrix=new_transform;
 		trns_flag=true;
   }
@@ -140,7 +140,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
       new_bounding_box(2, i) = c.y();
       new_bounding_box(3, i) = c.z();
     }
-    logging->debug("Bounding Box Parsed");
+    obj_logging->debug("Bounding Box Parsed");
 		bounding_box=new_bounding_box;
 		boun_flag=true;
   }
@@ -151,7 +151,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
     }
   }
 
-  logging->debug("Variables Filled");
+  obj_logging->debug("Variables Filled");
 
 	//Set the String Attributes
 	name = new_name;
@@ -174,12 +174,12 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	scene_list.reserve(scn_list.size());
 	copy(scn_list.begin(), scn_list.end(), back_inserter(scene_list));
 
-  logging->debug("Obj3 Built");
+  obj_logging->debug("Obj3 Built");
 }
 
 Obj3::Obj3(const rapidjson::Document& d)
 {
-	logging->debug("Build Object Called");
+	obj_logging->debug("Build Object Called");
 
   //Building replacement variables
   std::string new_name="";
@@ -191,7 +191,7 @@ Obj3::Obj3(const rapidjson::Document& d)
 	std::string new_tran_id="";
 	std::string new_mesh_id="";
   std::vector<std::string> scn_list;
-  logging->debug("New Variables Declared");
+  obj_logging->debug("New Variables Declared");
 
 	Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
 	Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
@@ -202,7 +202,7 @@ Obj3::Obj3(const rapidjson::Document& d)
 
 	if (d.IsObject()) {
 
-		logging->debug("Object-Format Message Detected");
+		obj_logging->debug("Object-Format Message Detected");
 
     if (d.HasMember("name")) {
       const rapidjson::Value *name_val;
@@ -309,7 +309,7 @@ Obj3::Obj3(const rapidjson::Document& d)
           }
         }
       }
-      logging->debug("Transform Matrix Parsed");
+      obj_logging->debug("Transform Matrix Parsed");
 			transform_matrix=new_transform;
 			trns_flag=true;
     }
@@ -327,7 +327,7 @@ Obj3::Obj3(const rapidjson::Document& d)
           }
         }
       }
-      logging->debug("Bounding Box Parsed");
+      obj_logging->debug("Bounding Box Parsed");
 			bounding_box=new_bounding_box;
 			boun_flag=true;
     }
@@ -345,7 +345,7 @@ Obj3::Obj3(const rapidjson::Document& d)
 	}
 
 
-    logging->debug("Variables Filled");
+    obj_logging->debug("Variables Filled");
 
 		//Lock Attributes
 		if (new_lock_id == "") {
@@ -361,7 +361,7 @@ Obj3::Obj3(const rapidjson::Document& d)
 		scene_list.reserve(scn_list.size());
 		copy(scn_list.begin(), scn_list.end(), back_inserter(scene_list));
 
-	  logging->debug("Obj3 Built");
+	  obj_logging->debug("Obj3 Built");
 }
 
 //----------------------------------------------------------------------------//
@@ -370,7 +370,7 @@ Obj3::Obj3(const rapidjson::Document& d)
 
 void Obj3::apply_transforms(Eigen::Matrix4d trans_matrix)
 {
-	logging->info("Obj3:Apply Transforms Called");
+	obj_logging->info("Obj3:Apply Transforms Called");
 
 	//Update the transformation matrix
 	transform_matrix = trans_matrix * transform_matrix;
@@ -394,7 +394,7 @@ void Obj3::apply_transforms(Eigen::Matrix4d trans_matrix)
 
 void Obj3::transform_object(double trans_matrix[])
 {
-	logging->info("Obj3:Transform Object called with double[]");
+	obj_logging->info("Obj3:Transform Object called with double[]");
 	Eigen::Matrix4d tran_matrix;
 	int i, j;
 	for (i=0;i<4;i=i+1)
@@ -411,7 +411,7 @@ void Obj3::transform_object(double trans_matrix[])
 //Translate an object by some amounts x, y, and z on the respective axis
 void Obj3::translate_object(double x, double y, double z)
 {
-	logging->info("Obj3:Translate Object called");
+	obj_logging->info("Obj3:Translate Object called");
 	//Variable Declarations
 	Eigen::Matrix4d tran_matrix;
 
@@ -434,7 +434,7 @@ void Obj3::translate_object(double x, double y, double z)
 //Rotate an object by a magnitude theta about the axis x, y, z
 void Obj3::rotate_object(double x, double y, double z, double theta)
 {
-logging->info("Obj3:RotateQ Object Called");
+obj_logging->info("Obj3:RotateQ Object Called");
 Eigen::Matrix4d tran_matrix;
 
 //Set up the transformation matrix
@@ -457,7 +457,7 @@ apply_transforms( tran_matrix );
 //Rotate an object about the X Axis
 void Obj3::rotate_objectx(double x)
 {
-logging->info("Obj3:Rotate Object about X-Axis Called");
+obj_logging->info("Obj3:Rotate Object about X-Axis Called");
 //Variable Declarations
 Eigen::Matrix4d tran_matrix = Eigen::Matrix4d::Zero(4, 4);
 
@@ -476,7 +476,7 @@ apply_transforms( tran_matrix );
 //Rotate an object about the Y Axis
 void Obj3::rotate_objecty(double y)
 {
-logging->info("Obj3:Rotate Object about Y-Axis Called");
+obj_logging->info("Obj3:Rotate Object about Y-Axis Called");
 //Variable Declarations
 Eigen::Matrix4d tran_matrix = Eigen::Matrix4d::Zero(4, 4);
 
@@ -494,7 +494,7 @@ apply_transforms( tran_matrix );
 //Rotate an object about the Z Axis
 void Obj3::rotate_objectz(double z)
 {
-logging->info("Obj3:Rotate Object about Z-Axis Called");
+obj_logging->info("Obj3:Rotate Object about Z-Axis Called");
 //Variable Declarations
 Eigen::Matrix4d tran_matrix = Eigen::Matrix4d::Zero(4, 4);
 
@@ -512,7 +512,7 @@ apply_transforms( tran_matrix );
 
 void Obj3::rotate_object(double x, double y, double z)
 {
-logging->info("Obj3:RotateE Object Called");
+obj_logging->info("Obj3:RotateE Object Called");
 if (std::abs(x) > 0.001)
 {
 	rotate_objectx(x);
@@ -530,7 +530,7 @@ if (std::abs(z) > 0.001)
 
 void Obj3::scale_object(double x, double y, double z)
 {
-	logging->info("Obj3:Scale Object Called");
+	obj_logging->info("Obj3:Scale Object Called");
 	//Variable Declarations
   Eigen::Matrix4d tran_matrix;
 
@@ -552,28 +552,28 @@ void Obj3::transform_object(Obj3 *temp_obj)
 
 	//Are we doing a transform matrx transform?
 	if (!(temp_obj->has_location()) && !(temp_obj->has_rotatione()) && !(temp_obj->has_rotationq()) && !(temp_obj->has_scaling())) {
-		logging->debug("Applying Transform Matrix and full transform stack");
+		obj_logging->debug("Applying Transform Matrix and full transform stack");
 		apply_transforms(temp_obj->get_transform());
 	}
 	else
 	{
 		if (temp_obj->has_location()) {
-			logging->debug("Location Transformation Detected");
+			obj_logging->debug("Location Transformation Detected");
 			translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
 		}
 
 		if (temp_obj->has_rotatione()) {
-			logging->debug("Euler Rotation Transformation Detected");
+			obj_logging->debug("Euler Rotation Transformation Detected");
 			rotate(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez());
 		}
 
 		if (temp_obj->has_rotationq()) {
-			logging->debug("Quaternion Rotation Transformation Detected");
+			obj_logging->debug("Quaternion Rotation Transformation Detected");
 			rotate(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz());
 		}
 
 		if (temp_obj->has_scaling()) {
-			logging->debug("Scale Transformation Detected");
+			obj_logging->debug("Scale Transformation Detected");
 			resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
 		}
 	}
@@ -606,8 +606,8 @@ void Obj3::transform_object(Obj3 *temp_obj)
 
 std::string Obj3::to_json()
 {
-  logging->info("Obj3:To JSON Called on object");
-  logging->info(get_key());
+  obj_logging->info("Obj3:To JSON Called on object");
+  obj_logging->info(get_key());
   //Initialize the string buffer and writer
   StringBuffer s;
   Writer<StringBuffer> writer(s);
@@ -686,15 +686,15 @@ std::string Obj3::to_json()
   //of the object
 	const char* ret_val = s.GetString();
 	std::string ret_string (ret_val);
-	logging->debug("JSON Returned:");
-	logging->debug(ret_val);
+	obj_logging->debug("JSON Returned:");
+	obj_logging->debug(ret_val);
   return ret_string;
 }
 
 std::string Obj3::to_json_msg(int msg_type) const
 {
-        logging->info("Obj3:To JSON message Called on object");
-        logging->info(key);
+        obj_logging->info("Obj3:To JSON message Called on object");
+        obj_logging->info(key);
         //Initialize the string buffer and writer
         StringBuffer s;
         Writer<StringBuffer> writer(s);
@@ -807,8 +807,8 @@ std::string Obj3::to_json_msg(int msg_type) const
 
 //Convert the object to JSON Message
 std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
-	logging->info("Obj3:To JSON message Called on object");
-	logging->info(key);
+	obj_logging->info("Obj3:To JSON message Called on object");
+	obj_logging->info(key);
 	//Initialize the string buffer and writer
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -924,23 +924,23 @@ std::string ret_string (ret_val);
 
 void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const {
 	new_proto->set_key(key);
-	logging->debug("Obj3: Key = ");
-	logging->debug(key);
+	obj_logging->debug("Obj3: Key = ");
+	obj_logging->debug(key);
 	new_proto->set_name(name);
-	logging->debug("Obj3: Name = ");
-	logging->debug(name);
+	obj_logging->debug("Obj3: Name = ");
+	obj_logging->debug(name);
 	new_proto->set_type(type);
-	logging->debug("Obj3: Type = ");
-	logging->debug(type);
+	obj_logging->debug("Obj3: Type = ");
+	obj_logging->debug(type);
 	new_proto->set_subtype(subtype);
-	logging->debug("Obj3: Subtype = ");
-	logging->debug(subtype);
+	obj_logging->debug("Obj3: Subtype = ");
+	obj_logging->debug(subtype);
 	new_proto->set_owner(owner);
-	logging->debug("Obj3: Owner = ");
-	logging->debug(owner);
+	obj_logging->debug("Obj3: Owner = ");
+	obj_logging->debug(owner);
 	new_proto->set_lock_device_id(lock_owner);
-	logging->debug("Obj3: Lock Owner = ");
-	logging->debug(lock_owner);
+	obj_logging->debug("Obj3: Lock Owner = ");
+	obj_logging->debug(lock_owner);
 	new_proto->set_error_message(err_string);
 	protoObj3::Obj3_Vertex3 *loc = new_proto->mutable_location();
 	loc->set_x(get_locx());
@@ -985,15 +985,15 @@ void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const {
 
 //Writes out all object attributes for storage in Smart Update Buffer
 std::string Obj3::to_protobuf_msg(int msg_type) const {
-	logging->info("Obj3:To Proto message Called on object");
-	logging->info(key);
+	obj_logging->info("Obj3:To Proto message Called on object");
+	obj_logging->info(key);
 	protoObj3::Obj3 *new_proto = new protoObj3::Obj3;
 	new_proto->set_message_type(msg_type);
 	to_base_protobuf_msg(new_proto);
 	std::string wstr;
   new_proto->SerializeToString(&wstr);
-	logging->debug("Protocol Buffer Serialized to String");
-	logging->debug(wstr);
+	obj_logging->debug("Protocol Buffer Serialized to String");
+	obj_logging->debug(wstr);
 	delete new_proto;
 	return wstr;
 }
@@ -1001,16 +1001,16 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 //Convert the object to a protocol buffer message
 std::string Obj3::to_protobuf_msg(int msg_type, std::string trans_id) const
 {
-	logging->info("Obj3:To Proto message Called on object");
-	logging->info(key);
+	obj_logging->info("Obj3:To Proto message Called on object");
+	obj_logging->info(key);
 	protoObj3::Obj3 *new_proto = new protoObj3::Obj3;
 	new_proto->set_message_type(msg_type);
 	to_base_protobuf_msg(new_proto);
 	new_proto->set_transaction_id(trans_id);
 	std::string wstr;
   new_proto->SerializeToString(&wstr);
-	logging->debug("Protocol Buffer Serialized to String");
-	logging->debug(wstr);
+	obj_logging->debug("Protocol Buffer Serialized to String");
+	obj_logging->debug(wstr);
 	delete new_proto;
 	return wstr;
 }

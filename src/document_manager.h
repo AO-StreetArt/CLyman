@@ -27,6 +27,7 @@
 
 #include "obj3.h"
 #include "configuration_manager.h"
+#include "lyman_log.h"
 
 #ifndef DOCUMENT_ADMIN
 #define DOCUMENT_ADMIN
