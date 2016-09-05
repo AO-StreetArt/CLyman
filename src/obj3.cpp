@@ -680,6 +680,9 @@ std::string Obj3::to_json()
   writer.Key("locked");
 	writer.Bool(is_locked);
 
+	writer.Key("mesh_id");
+	writer.String(mesh_id.c_str(), (SizeType)mesh_id.length());
+
   writer.EndObject();
 
   //The Stringbuffer now contains a json message
@@ -794,7 +797,10 @@ std::string Obj3::to_json_msg(int msg_type) const
         writer.EndArray();
 
         writer.Key("locked");
-		writer.Bool(is_locked);
+				writer.Bool(is_locked);
+
+				writer.Key("mesh_id");
+				writer.String(mesh_id.c_str(), (SizeType)mesh_id.length());
 
         writer.EndObject();
 
@@ -913,6 +919,9 @@ writer.Bool(is_locked);
 	writer.Key("transaction_id");
 	writer.String(trans_id.c_str(), (SizeType)trans_id.length());
 
+	writer.Key("mesh_id");
+	writer.String(mesh_id.c_str(), (SizeType)mesh_id.length());
+
 	writer.EndObject();
 
 	//The Stringbuffer now contains a json message
@@ -942,6 +951,7 @@ void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const {
 	obj_logging->debug("Obj3: Lock Owner = ");
 	obj_logging->debug(lock_owner);
 	new_proto->set_error_message(err_string);
+	new_proto->set_mesh_id(mesh_id);
 	protoObj3::Obj3_Vertex3 *loc = new_proto->mutable_location();
 	loc->set_x(get_locx());
 	loc->set_y(get_locy());
