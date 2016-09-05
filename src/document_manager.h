@@ -41,8 +41,8 @@ uuidInterface *ua;
 Zmqio *zmqo;
 std::string cr_obj_global(Obj3 *new_obj, std::string transaction_id);
 std::string upd_obj_global(Obj3 *temp_obj, std::string transaction_id);
-void get_obj_global(std::string rk_str, std::string transaction_id);
-void del_obj_global(std::string key, std::string transaction_id);
+void get_obj_global(std::string rk_str, std::string transaction_id, Obj3 *new_obj);
+void del_obj_global(std::string key, std::string transaction_id, Obj3 *new_obj);
 void put_to_redis(Obj3 *temp_obj, int msg_type, std::string transaction_id);
 public:
   //Initializer
@@ -53,24 +53,24 @@ public:
   void configure(ConfigurationManager *cm_admin) {cm = cm_admin;}
 
   //Create Object called with a Rapidjson Document
-  std::string create_objectd(rapidjson::Document& d, std::string transaction_id);
+  std::string create_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj);
   //Create Object from a Protobuffer object
-  std::string create_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id);
+  std::string create_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj);
 
   //Update Object called with a Rapidjson Document
-  std::string update_objectd(rapidjson::Document& d, std::string transaction_id);
+  std::string update_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj);
   //Update Object called with a Protobuffer object
-  std::string update_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id);
+  std::string update_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj);
 
   //Get object Protobuffer
-  std::string get_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id);
+  std::string get_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj);
   //Get Object Rapidson Document
-  std::string get_objectd(rapidjson::Document& d, std::string transaction_id);
+  std::string get_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj);
 
   //Delete Object Protobuffer
-  std::string delete_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id);
+  std::string delete_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj);
   //Delete Object Rapidjson Document
-  std::string delete_objectd(rapidjson::Document& d, std::string transaction_id);
+  std::string delete_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj);
 
   //Wait for couchbase threads to finish
   void wait() {cb->wait();}

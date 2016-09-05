@@ -51,6 +51,9 @@
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/response_interface.h"
 
+//Set up an Obj3 pointer to hold the currently translated document information
+Obj3 *translated_object = NULL;
+
 enum {
   CACHE_TYPE_1,
   CACHE_TYPE_2,
@@ -72,6 +75,9 @@ void shutdown()
   shutdown_logging_submodules();
   delete logging;
   delete resp;
+
+  if (!translated_object) {main_logging->debug("No translated object active at time of shutdown");}
+  else {delete translated_object;}
 
   //Shut down protocol buffer library
   google::protobuf::ShutdownProtobufLibrary();
@@ -252,7 +258,7 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Make the update
-            object_key = dm->update_objectd( d, tran_id_str );
+            object_key = dm->update_objectd( d, tran_id_str, translated_object );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -264,7 +270,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Make the update
-            object_key = dm->update_objectpb(new_proto, tran_id_str);
+            object_key = dm->update_objectpb(new_proto, tran_id_str, translated_object);
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -273,7 +279,23 @@ void my_signal_handler(int s){
             zmqi->send(response_to_protobuffer(resp));
             main_logging->debug("Response Sent");
           }
-          dm->wait();
+
+          //Send the update to couchbase
+          if (!translated_object) {
+            main_logging->debug("Translated Object not found");
+          }
+          else
+          {
+            if (cm->get_smartupdatesactive()) {
+              cb->load_object( object_key.c_str() );
+              cb->wait();
+            }
+            else
+            {
+              cb->save_object (translated_object);
+              cb->wait();
+            }
+          }
 
         }
         else if (msg_type == OBJ_CRT) {
@@ -283,7 +305,7 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Create the object
-            object_key = dm->create_objectd( d, tran_id_str );
+            object_key = dm->create_objectd( d, tran_id_str, translated_object );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -295,7 +317,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Create the object
-            object_key = dm->create_objectpb(new_proto, tran_id_str);
+            object_key = dm->create_objectpb(new_proto, tran_id_str, translated_object);
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -304,7 +326,16 @@ void my_signal_handler(int s){
             zmqi->send(response_to_protobuffer(resp));
             main_logging->debug("Response Sent");
           }
-          dm->wait();
+          if (!translated_object)
+          {
+            main_logging->debug("Translated Object not found");
+          }
+          else
+          {
+            //Save the object to the couchbase DB
+            cb->create_object (translated_object);
+            cb->wait();
+          }
 
         }
         else if (msg_type == OBJ_GET) {
@@ -314,7 +345,7 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Get the object
-            object_key = dm->get_objectd( d, tran_id_str );
+            object_key = dm->get_objectd( d, tran_id_str, translated_object );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -326,7 +357,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Get the object
-            object_key = dm->get_objectpb (new_proto, tran_id_str);
+            object_key = dm->get_objectpb (new_proto, tran_id_str, translated_object);
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -335,8 +366,16 @@ void my_signal_handler(int s){
             zmqi->send(response_to_protobuffer(resp));
             main_logging->debug("Response Sent");
           }
-          dm->wait();
 
+          if (!translated_object)
+          {
+            main_logging->debug("Translated Object not found");
+          }
+          else
+          {
+            cb->load_object( object_key );
+            cb->wait();
+          }
         }
         else if (msg_type == OBJ_DEL) {
           main_logging->debug("Current Event Type set to Object Delete");
@@ -345,7 +384,7 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Delete the object
-            object_key = dm->delete_objectd( d, tran_id_str );
+            object_key = dm->delete_objectd( d, tran_id_str, translated_object );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -357,7 +396,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Delete the object
-            object_key = dm->delete_objectpb(new_proto, tran_id_str);
+            object_key = dm->delete_objectpb(new_proto, tran_id_str, translated_object);
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -366,8 +405,16 @@ void my_signal_handler(int s){
             zmqi->send(response_to_protobuffer(resp));
             main_logging->debug("Response Sent");
           }
-          dm->wait();
 
+          if (!translated_object)
+          {
+            main_logging->debug("Translated Object not found");
+          }
+          else
+          {
+            cb->delete_object( object_key );
+            cb->wait();
+          }
         }
         //Shutdown Message
         else if (msg_type == KILL) {
@@ -411,6 +458,8 @@ void my_signal_handler(int s){
 
         //Clear the response
         resp->clear();
+        delete translated_object;
+        translated_object = NULL;
       }
 
       return 0;

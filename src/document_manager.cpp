@@ -31,21 +31,18 @@ std::string DocumentManager::cr_obj_global(Obj3 *new_obj, std::string transactio
     put_to_redis(new_obj, OBJ_CRT, transaction_id);
   }
 
-  //Save the object to the couchbase DB
-  cb->create_object (new_obj);
-
   //Return the object key
   return object_key;
 }
 
 //Create Object from a Rapidjson Document
-std::string DocumentManager::create_objectd(rapidjson::Document& d, std::string transaction_id) {
+std::string DocumentManager::create_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj) {
   doc_logging->info("Create object called with document: ");
 
   if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
 
     //Build the object and the key
-    Obj3 *new_obj = new Obj3 (d);
+    new_obj = new Obj3 (d);
     return cr_obj_global(new_obj, transaction_id);
   }
   else {
@@ -55,13 +52,13 @@ std::string DocumentManager::create_objectd(rapidjson::Document& d, std::string 
 }
 
 //Create Object from a Protobuffer object
-std::string DocumentManager::create_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id) {
+std::string DocumentManager::create_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj) {
   doc_logging->info("Create object called with buffer: ");
 
   if (p_obj.has_location() && p_obj.has_bounding_box() && p_obj.scenes_size() > 0) {
 
     //Build the object and the key
-    Obj3 *new_obj = new Obj3 (p_obj);
+    new_obj = new Obj3 (p_obj);
     return cr_obj_global(new_obj, transaction_id);
   }
   else {
@@ -93,7 +90,6 @@ std::string DocumentManager::upd_obj_global(Obj3 *temp_obj, std::string transact
     const char * temp_key = object_key.c_str();
     if (xRedis->exists(temp_key) == false) {
       put_to_redis(temp_obj, OBJ_UPD, transaction_id);
-      cb->load_object(temp_key);
     }
     else {
       doc_logging->error("Collision in Active Update Buffer Detected");
@@ -114,7 +110,6 @@ std::string DocumentManager::upd_obj_global(Obj3 *temp_obj, std::string transact
 
       put_to_redis(temp_obj, OBJ_UPD, transaction_id);
 
-      cb->load_object(su_key.c_str());
     }
   }
   else {
@@ -126,39 +121,37 @@ std::string DocumentManager::upd_obj_global(Obj3 *temp_obj, std::string transact
       put_to_redis(temp_obj, OBJ_UPD_GLOBAL, transaction_id);
     }
 
-    cb->save_object (temp_obj);
-    delete temp_obj;
   }
   return object_key;
 }
 
 //Update Object called with a Rapidjson Document
-std::string DocumentManager::update_objectd(rapidjson::Document& d, std::string transaction_id) {
+std::string DocumentManager::update_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj) {
   doc_logging->info("Update object called with document: ");
   if (d.HasMember("key")) {
-    Obj3 *temp_obj = new Obj3 (d);
-    return upd_obj_global(temp_obj, transaction_id);
+    new_obj = new Obj3 (d);
+    return upd_obj_global(new_obj, transaction_id);
   }
   return "";
 }
 
 //Update Object called with a Protobuffer object
-std::string DocumentManager::update_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id) {
+std::string DocumentManager::update_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj) {
   doc_logging->info("Update object called with buffer: ");
   if (p_obj.has_key()) {
-    Obj3 *temp_obj = new Obj3 (p_obj);
-    return upd_obj_global(temp_obj, transaction_id);
+    new_obj = new Obj3 (p_obj);
+    return upd_obj_global(new_obj, transaction_id);
   }
   return "";
 }
 
 //Get Object Global
-void DocumentManager::get_obj_global(std::string rk_str, std::string transaction_id) {
+void DocumentManager::get_obj_global(std::string rk_str, std::string transaction_id, Obj3 *new_obj) {
   const char * rkc_str = rk_str.c_str();
 
   //Generate a new Obj3 to put to Redis
-  Obj3 *temp_obj = new Obj3;
-  temp_obj->set_key(rk_str);
+  new_obj = new Obj3;
+  new_obj->set_key(rk_str);
 
   if (cm->get_transactionidsactive()) {
     while (xRedis->exists(rkc_str) == true) {
@@ -166,22 +159,16 @@ void DocumentManager::get_obj_global(std::string rk_str, std::string transaction
       cb->wait();
     }
 
-    put_to_redis(temp_obj, OBJ_UPD_GLOBAL, transaction_id);
+    put_to_redis(new_obj, OBJ_UPD_GLOBAL, transaction_id);
   }
-
-  //Get the object from the DB
-  //If it's in the active update buffer, then this will
-  //force through the update prior to returning the value
-  cb->load_object( rkc_str );
-  delete temp_obj;
 }
 
 //Get object Protobuffer
-std::string DocumentManager::get_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id) {
+std::string DocumentManager::get_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj) {
   doc_logging->info("Get object called with buffer: ");
   if (p_obj.has_key()) {
     std::string rk_str = p_obj.key();
-    get_obj_global(rk_str, transaction_id);
+    get_obj_global(rk_str, transaction_id, new_obj);
     return rk_str;
   }
   else {
@@ -191,7 +178,7 @@ std::string DocumentManager::get_objectpb(protoObj3::Obj3 p_obj, std::string tra
 }
 
 //Get Object Rapidson Document
-std::string DocumentManager::get_objectd(rapidjson::Document& d, std::string transaction_id) {
+std::string DocumentManager::get_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj) {
   doc_logging->info("Get object called with document: ");
   if (d.HasMember("key")) {
     rapidjson::Value *rkey;
@@ -200,7 +187,7 @@ std::string DocumentManager::get_objectd(rapidjson::Document& d, std::string tra
     //If we have any, then we should pull the value from there
     //And return it.
     std::string rk_str = rkey->GetString();
-    get_obj_global(rk_str, transaction_id);
+    get_obj_global(rk_str, transaction_id, new_obj);
     return rk_str;
   }
   else {
@@ -210,31 +197,28 @@ std::string DocumentManager::get_objectd(rapidjson::Document& d, std::string tra
 }
 
 //Delete Object Global
-void DocumentManager::del_obj_global(std::string key, std::string transaction_id) {
+void DocumentManager::del_obj_global(std::string key, std::string transaction_id, Obj3 *new_obj) {
   const char * kc_str = key.c_str();
 
   //Output a delete message on the outbound ZMQ Port
 
   doc_logging->debug("Building Delete Message");
 
-  Obj3 *new_obj = new Obj3;
+  new_obj = new Obj3;
   new_obj->set_key(key);
 
   //See if we need to write the transaction to Redis
   if (cm->get_transactionidsactive()) {
     put_to_redis(new_obj, OBJ_DEL, transaction_id);
   }
-
-  cb->delete_object( kc_str );
-  delete new_obj;
 }
 
 //Delete Object Protobuffer
-std::string DocumentManager::delete_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id) {
+std::string DocumentManager::delete_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj) {
   doc_logging->info("Delete object called with buffer: ");
   if (p_obj.has_key()) {
     std::string k = p_obj.key();
-    del_obj_global(k, transaction_id);
+    del_obj_global(k, transaction_id, new_obj);
     return k;
   }
   else {
@@ -244,13 +228,13 @@ std::string DocumentManager::delete_objectpb(protoObj3::Obj3 p_obj, std::string 
 }
 
 //Delete Object Rapidjson Document
-std::string DocumentManager::delete_objectd(rapidjson::Document& d, std::string transaction_id) {
+std::string DocumentManager::delete_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj) {
   doc_logging->info("Delete object called with document: ");
   if (d.HasMember("key")) {
     rapidjson::Value *val;
     val = &d["key"];
     std::string key = val->GetString();
-    del_obj_global(key, transaction_id);
+    del_obj_global(key, transaction_id, new_obj);
     return key;
   }
   else {
