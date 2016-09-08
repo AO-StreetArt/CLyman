@@ -58,7 +58,7 @@ This will result in creation of the lyman executable, which we can run with the 
 
 You may also build the test modules with:
 
-`./build_tests.sh`
+`make tests`
 
 You will need to have an instance of Couchbase Server & Redis Server up and running as well.  This can be done via Docker, or manually.
 
