@@ -373,7 +373,7 @@ void my_signal_handler(int s){
           }
           else
           {
-            cb->load_object( object_key );
+            cb->load_object( object_key.c_str() );
             cb->wait();
           }
         }
@@ -412,7 +412,7 @@ void my_signal_handler(int s){
           }
           else
           {
-            cb->delete_object( object_key );
+            cb->delete_object( object_key.c_str() );
             cb->wait();
           }
         }
