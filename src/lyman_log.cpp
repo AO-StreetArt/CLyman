@@ -23,6 +23,7 @@ void shutdown_logging_submodules()
   }
   else
   {
+    logging->debug("Configuration Logging Module delete called");
     delete config_logging;
   }
   if (!obj_logging)
@@ -31,6 +32,7 @@ void shutdown_logging_submodules()
   }
   else
   {
+    logging->debug("Object3 Logging Module delete called");
     delete obj_logging;
   }
   if (!doc_logging)
@@ -39,14 +41,16 @@ void shutdown_logging_submodules()
   }
   else
   {
+    logging->debug("Document Manager Logging Module delete called");
     delete doc_logging;
   }
   if (!callback_logging)
   {
-    logging->debug("Couchbase Callback Logging Module delete called without initialized object");
+    logging->debug("Couchbase Couchbase Logging Module delete called without initialized object");
   }
   else
   {
+    logging->debug("Couchbase Couchbase Logging Module delete called");
     delete callback_logging;
   }
   if (!main_logging)
@@ -55,6 +59,7 @@ void shutdown_logging_submodules()
   }
   else
   {
+    logging->debug("Main Logging Module delete called");
     delete main_logging;
   }
   shutdown_framework_logging();
