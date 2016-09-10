@@ -3,26 +3,26 @@
 //Declare our global variables
 
 //UUID Generator
-uuidInterface *ua;
+uuidInterface *ua = NULL;
 
 //Configuration Manager
-ConfigurationManager *cm;
+ConfigurationManager *cm = NULL;
 
 //Global Couchbase Admin Object
-CouchbaseInterface *cb;
+CouchbaseInterface *cb = NULL;
 
 //Smart Update Buffer
-RedisInterface *xRedis;
+RedisInterface *xRedis = NULL;
 
 //Document Manager, highest level object
-DocumentManager *dm;
+DocumentManager *dm = NULL;
 
 //Command Line interpreter
-CommandLineInterface *cli;
+CommandLineInterface *cli = NULL;
 
 //ZMQ Admins
-Zmqio *zmqo;
-Zmqio *zmqi;
+Zmqio *zmqo = NULL;
+Zmqio *zmqi = NULL;
 
 //Response Object
-ApplicationResponseInterface *resp;
+ApplicationResponseInterface *resp = NULL;
