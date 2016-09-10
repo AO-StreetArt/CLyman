@@ -198,10 +198,8 @@ std::string DocumentManager::get_objectd(rapidjson::Document& d, std::string tra
 
 //Delete Object Global
 void DocumentManager::del_obj_global(std::string key, std::string transaction_id, Obj3 *new_obj) {
-  const char * kc_str = key.c_str();
 
   //Output a delete message on the outbound ZMQ Port
-
   doc_logging->debug("Building Delete Message");
 
   new_obj = new Obj3;
