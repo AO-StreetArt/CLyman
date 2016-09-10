@@ -72,14 +72,16 @@ void shutdown()
   delete cm;
   delete ua;
   delete cli;
-  shutdown_logging_submodules();
-  delete logging;
+  
   if(!resp) {
     delete resp;
   }
 
   if (!translated_object) {main_logging->debug("No translated object active at time of shutdown");}
   else {delete translated_object;}
+
+  shutdown_logging_submodules();
+  delete logging;
 
   //Shut down protocol buffer library
   google::protobuf::ShutdownProtobufLibrary();
