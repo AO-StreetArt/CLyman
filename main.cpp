@@ -72,7 +72,7 @@ void shutdown()
   delete cm;
   delete ua;
   delete cli;
-  
+
   if(!resp) {
     delete resp;
   }
@@ -210,6 +210,7 @@ void my_signal_handler(int s){
         main_logging->debug("Conversion to C String performed with result: ");
         main_logging->debug(req_ptr);
         bool go_ahead=false;
+        resp->set_error(NO_ERROR);
 
         //If we are expecting JSON Messages, then parse in this fashion
         if (cm->get_mfjson()) {
@@ -222,6 +223,7 @@ void my_signal_handler(int s){
           catch (std::exception& e) {
             main_logging->error("Exception occurred while parsing inbound document:");
             main_logging->error(e.what());
+            resp->set_error(TRANSLATION_ERROR, e.what());
           }
           //Find the message type
           if (go_ahead) {
@@ -241,6 +243,7 @@ void my_signal_handler(int s){
           catch (std::exception& e) {
             main_logging->error("Exception occurred while parsing inbound document:");
             main_logging->error(e.what());
+            resp->set_error(TRANSLATION_ERROR, e.what());
           }
           //Find the message type
           if (go_ahead) {
@@ -262,7 +265,8 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Make the update
-            object_key = dm->update_objectd( d, tran_id_str, translated_object );
+            translated_object = new Obj3 (d);
+            object_key = dm->update_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -274,7 +278,8 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Make the update
-            object_key = dm->update_objectpb(new_proto, tran_id_str, translated_object);
+            translated_object = new Obj3 (new_proto);
+            object_key = dm->update_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -287,17 +292,27 @@ void my_signal_handler(int s){
           //Send the update to couchbase
           if (!translated_object) {
             main_logging->debug("Translated Object not found");
+            if (resp->get_error_code == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found";
+            }
           }
           else
           {
-            if (cm->get_smartupdatesactive()) {
-              cb->load_object( object_key.c_str() );
-              cb->wait();
+            if (!object_key.empty()) {
+              if (cm->get_smartupdatesactive()) {
+                cb->load_object( object_key.c_str() );
+                cb->wait();
+              }
+              else
+              {
+                cb->save_object (translated_object);
+                cb->wait();
+              }
             }
             else
             {
-              cb->save_object (translated_object);
-              cb->wait();
+              main_logging->debug("Message recieved without key");
+              resp->set_error(BAD_REQUEST_ERROR, "Message recieved without key");
             }
           }
 
@@ -309,7 +324,8 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Create the object
-            object_key = dm->create_objectd( d, tran_id_str, translated_object );
+            translated_object = new Obj3 (d);
+            object_key = dm->create_object(translated_object, tran_id_str);
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -321,7 +337,8 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Create the object
-            object_key = dm->create_objectpb(new_proto, tran_id_str, translated_object);
+            translated_object = new Obj3 (new_proto);
+            object_key = dm->create_object(translated_object, tran_id_str);
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -332,16 +349,26 @@ void my_signal_handler(int s){
           }
           if (!translated_object)
           {
+            if (resp->get_error_code == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found";
+            }
             main_logging->debug("Translated Object not found");
           }
           else
           {
-            //Save the object to the couchbase DB
-            cb->create_object (translated_object);
-            cb->wait();
+            if (!object_key.empty()) {
+              //Save the object to the couchbase DB
+              cb->create_object (translated_object);
+              cb->wait();
+            }
+            else
+            {
+              main_logging->debug("Creation of new object key failed");
+              resp->set_error(BAD_REQUEST_ERROR, "Creation of new object key failed");
+            }
           }
-
         }
+
         else if (msg_type == OBJ_GET) {
           main_logging->debug("Current Event Type set to Object Get");
 
@@ -349,7 +376,8 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Get the object
-            object_key = dm->get_objectd( d, tran_id_str, translated_object );
+            translated_object = new Obj3 (d);
+            object_key = dm->get_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -361,7 +389,8 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Get the object
-            object_key = dm->get_objectpb (new_proto, tran_id_str, translated_object);
+            translated_object = new Obj3 (new_proto);
+            object_key = dm->get_object (translated_object, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -373,12 +402,22 @@ void my_signal_handler(int s){
 
           if (!translated_object)
           {
+            if (resp->get_error_code == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found";
+            }
             main_logging->debug("Translated Object not found");
           }
           else
           {
-            cb->load_object( object_key.c_str() );
-            cb->wait();
+            if (!object_key.empty()) {
+              cb->load_object( object_key.c_str() );
+              cb->wait();
+            }
+            else
+            {
+              main_logging->debug("Message recieved without key");
+              resp->set_error(BAD_REQUEST_ERROR, "Message recieved without key");
+            }
           }
         }
         else if (msg_type == OBJ_DEL) {
@@ -388,7 +427,8 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Delete the object
-            object_key = dm->delete_objectd( d, tran_id_str, translated_object );
+            translated_object = new Obj3 (d);
+            object_key = dm->delete_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -400,7 +440,8 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Delete the object
-            object_key = dm->delete_objectpb(new_proto, tran_id_str, translated_object);
+            translated_object = new Obj3 (new_proto);
+            object_key = dm->delete_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -412,12 +453,22 @@ void my_signal_handler(int s){
 
           if (!translated_object)
           {
+            if (resp->get_error_code == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found";
+            }
             main_logging->debug("Translated Object not found");
           }
           else
           {
-            cb->delete_object( object_key.c_str() );
-            cb->wait();
+            if (!object_key.empty()) {
+              cb->delete_object( object_key.c_str() );
+              cb->wait();
+            }
+            else
+            {
+              main_logging->debug("Message recieved without key");
+              resp->set_error(BAD_REQUEST_ERROR, "Message recieved without key");
+            }
           }
         }
         //Shutdown Message

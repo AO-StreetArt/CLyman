@@ -20,7 +20,7 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
 }
 
 //Global Object Creation
-std::string DocumentManager::cr_obj_global(Obj3 *new_obj, std::string transaction_id) {
+std::string DocumentManager::create_object(Obj3 *new_obj, std::string transaction_id) {
 
   //Set the new key on the new object
   std::string object_key = ua->generate();
@@ -35,46 +35,8 @@ std::string DocumentManager::cr_obj_global(Obj3 *new_obj, std::string transactio
   return object_key;
 }
 
-//Create Object from a Rapidjson Document
-std::string DocumentManager::create_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj) {
-  doc_logging->info("Create object called with document: ");
-
-  if (d.HasMember("location") && d.HasMember("bounding_box") && d.HasMember("scenes")) {
-
-    //Build the object and the key
-    new_obj = new Obj3 (d);
-    return cr_obj_global(new_obj, transaction_id);
-  }
-  else {
-    doc_logging->error("Create Message recieved without location, bounding box, or scene");
-  }
-  return "";
-}
-
-//Create Object from a Protobuffer object
-std::string DocumentManager::create_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj) {
-  doc_logging->info("Create object called with buffer: ");
-
-  if (p_obj.has_location() && p_obj.has_bounding_box() && p_obj.scenes_size() > 0) {
-
-    //Build the object and the key
-    new_obj = new Obj3 (p_obj);
-    return cr_obj_global(new_obj, transaction_id);
-  }
-  else {
-    doc_logging->error("Create Message recieved without location, bounding box, or scene");
-    doc_logging->debug(p_obj.key());
-    doc_logging->debug(p_obj.name());
-    for (int m = 0; m < p_obj.scenes_size(); ++m)
-    {
-      doc_logging->debug(p_obj.scenes(m));
-    }
-  }
-  return "";
-}
-
 //Global Update Object
-std::string DocumentManager::upd_obj_global(Obj3 *temp_obj, std::string transaction_id) {
+std::string DocumentManager::update_object(Obj3 *temp_obj, std::string transaction_id) {
   std::string object_key = temp_obj->get_key();
   if (cm->get_smartupdatesactive()) {
     //We start by writing the object into the smart update buffer
@@ -125,118 +87,37 @@ std::string DocumentManager::upd_obj_global(Obj3 *temp_obj, std::string transact
   return object_key;
 }
 
-//Update Object called with a Rapidjson Document
-std::string DocumentManager::update_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj) {
-  doc_logging->info("Update object called with document: ");
-  if (d.HasMember("key")) {
-    new_obj = new Obj3 (d);
-    return upd_obj_global(new_obj, transaction_id);
-  }
-  return "";
-}
-
-//Update Object called with a Protobuffer object
-std::string DocumentManager::update_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj) {
-  doc_logging->info("Update object called with buffer: ");
-  if (p_obj.has_key()) {
-    new_obj = new Obj3 (p_obj);
-    return upd_obj_global(new_obj, transaction_id);
-  }
-  return "";
-}
-
 //Get Object Global
-void DocumentManager::get_obj_global(std::string rk_str, std::string transaction_id, Obj3 *new_obj) {
-  const char * rkc_str = rk_str.c_str();
+std::string DocumentManager::get_object(Obj3 *new_obj, std::string transaction_id) {
+  std::string object_key = new_obj->get_key();
+  const char * rkc_str = object_key.c_str();
 
-  //Generate a new Obj3 to put to Redis
-  new_obj = new Obj3;
-  new_obj->set_key(rk_str);
-
+  //Clear the active update buffer for this object prior to executing the get
   if (cm->get_transactionidsactive()) {
     while (xRedis->exists(rkc_str) == true) {
       cb->load_object( rkc_str );
       cb->wait();
     }
 
+    //Put the object to Redis
     put_to_redis(new_obj, OBJ_UPD_GLOBAL, transaction_id);
   }
-}
 
-//Get object Protobuffer
-std::string DocumentManager::get_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj) {
-  doc_logging->info("Get object called with buffer: ");
-  if (p_obj.has_key()) {
-    std::string rk_str = p_obj.key();
-    get_obj_global(rk_str, transaction_id, new_obj);
-    return rk_str;
-  }
-  else {
-    doc_logging->error("Message Recieved without key");
-  }
-  return "";
-}
-
-//Get Object Rapidson Document
-std::string DocumentManager::get_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj) {
-  doc_logging->info("Get object called with document: ");
-  if (d.HasMember("key")) {
-    rapidjson::Value *rkey;
-    rkey = &d["key"];
-    //Check the Active Update Buffer for inflight transactions
-    //If we have any, then we should pull the value from there
-    //And return it.
-    std::string rk_str = rkey->GetString();
-    get_obj_global(rk_str, transaction_id, new_obj);
-    return rk_str;
-  }
-  else {
-    doc_logging->error("Message Recieved without key");
-  }
-  return "";
+  return object_key;
 }
 
 //Delete Object Global
-void DocumentManager::del_obj_global(std::string key, std::string transaction_id, Obj3 *new_obj) {
+std::string DocumentManager::delete_object( Obj3 *new_obj, std::string transaction_id ) {
+
+  std::string object_key = new_obj->get_key();
 
   //Output a delete message on the outbound ZMQ Port
   doc_logging->debug("Building Delete Message");
-
-  new_obj = new Obj3;
-  new_obj->set_key(key);
 
   //See if we need to write the transaction to Redis
   if (cm->get_transactionidsactive()) {
     put_to_redis(new_obj, OBJ_DEL, transaction_id);
   }
-}
 
-//Delete Object Protobuffer
-std::string DocumentManager::delete_objectpb(protoObj3::Obj3 p_obj, std::string transaction_id, Obj3 *new_obj) {
-  doc_logging->info("Delete object called with buffer: ");
-  if (p_obj.has_key()) {
-    std::string k = p_obj.key();
-    del_obj_global(k, transaction_id, new_obj);
-    return k;
-  }
-  else {
-    doc_logging->error("Message Recieved without key");
-  }
-  return "";
-}
-
-//Delete Object Rapidjson Document
-std::string DocumentManager::delete_objectd(rapidjson::Document& d, std::string transaction_id, Obj3 *new_obj) {
-  doc_logging->info("Delete object called with document: ");
-  if (d.HasMember("key")) {
-    rapidjson::Value *val;
-    val = &d["key"];
-    std::string key = val->GetString();
-    del_obj_global(key, transaction_id, new_obj);
-    return key;
-  }
-  else {
-    doc_logging->error("Message Recieved without key");
-  }
-  return "";
+  return object_key;
 }
