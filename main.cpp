@@ -74,7 +74,9 @@ void shutdown()
   delete cli;
   shutdown_logging_submodules();
   delete logging;
-  delete resp;
+  if(!resp) {
+    delete resp;
+  }
 
   if (!translated_object) {main_logging->debug("No translated object active at time of shutdown");}
   else {delete translated_object;}
