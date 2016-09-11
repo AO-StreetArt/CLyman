@@ -242,7 +242,7 @@ class Obj3: public Writeable
 		std::string get_transaction_id() const {return app_transaction_id;}
 		std::string get_mesh_id() const {return mesh_id;}
 		std::string get_error() const {return err_string;}
-		int get_message_type() const (return mes_type;)
+		int get_message_type() const {return mes_type;}
 		double get_locx() const {return location(0);}
 		double get_locy() const {return location(1);}
 		double get_locz() const {return location(2);}
