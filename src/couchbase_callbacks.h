@@ -169,6 +169,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   int message_type = -1;
   std::string transaction_id = "";
   std::string out_resp = "";
+  rapidjson::Document d;
 
   callback_logging->debug("Pulling Request Data");
 
@@ -177,40 +178,6 @@ inline std::string default_callback (Request *r, std::string operation_error_str
 
   //And the Response Key from the Request Address
   std::string response_key = r->req_addr;
-
-  callback_logging->debug("Checking Redis for transaction information");
-
-  //Check Redis for transaction information
-  new_obj = set_redis_response_object(r, msg_type, response_key);
-
-  if (!msg_type) {
-    callback_logging->debug("No Message Type found");
-  }
-  else {
-    message_type = *msg_type;
-  }
-
-  //If the Redis update failed, set the message type back to error
-  if (message_type == -1)
-  {
-    callback_logging->error("Redis Update Failed");
-    message_type = ERR;
-  }
-  else
-  {
-    if (!new_obj)
-    {
-      callback_logging->error("No error code returned from set_redis_response method, but null pointer detected");
-    }
-    else
-    {
-      //Use the Redis message to populate transaction ID
-      transaction_id = new_obj->get_transaction_id();
-      callback_logging->debug("Transaction ID pulled");
-      callback_logging->debug(transaction_id);
-      delete new_obj;
-    }
-  }
 
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
@@ -227,6 +194,41 @@ inline std::string default_callback (Request *r, std::string operation_error_str
     }
     else
     {
+      if (cm->get_transactionidsactive()) {
+        callback_logging->debug("Checking Redis for transaction information");
+
+        //Check Redis for transaction information
+        new_obj = set_redis_response_object(r, msg_type, db_object->get_key());
+
+        if (!msg_type) {
+          callback_logging->debug("No Message Type found");
+        }
+        else {
+          message_type = *msg_type;
+        }
+
+        //If the Redis update failed, set the message type back to error
+        if (message_type == -1)
+        {
+          callback_logging->error("Redis Update Failed");
+          message_type = ERR;
+        }
+        else
+        {
+          if (!new_obj)
+          {
+            callback_logging->error("No error code returned from set_redis_response method, but null pointer detected");
+          }
+          else
+          {
+            //Use the Redis message to populate transaction ID
+            transaction_id = new_obj->get_transaction_id();
+            callback_logging->debug("Transaction ID pulled");
+            callback_logging->debug(transaction_id);
+            delete new_obj;
+          }
+        }
+      }
       //Build the outbound message
       object_string = create_response(db_object, message_type, transaction_id);
       delete db_object;
@@ -300,27 +302,6 @@ std::string my_retrieval_callback (Request *r)
 
   std::string key_string = r->req_addr;
 
-  //Check Redis for transaction information
-  new_obj = set_redis_response_object(r, &msg_type, key_string);
-
-  //If the Redis update failed, set the message type back to error
-  if (msg_type == -1)
-  {
-    msg_type = ERR;
-  }
-  else
-  {
-    if (!new_obj)
-    {
-      callback_logging->error("No error code returned from set_redis_response method, but null pointer detected");
-    }
-    else
-    {
-      //Use the Redis message to populate transaction ID
-      transaction_id = new_obj->get_transaction_id();
-    }
-  }
-
   //Are there any errors coming back from Couchbase?
   if (r->req_err->err_code != NOERROR) {
     callback_logging->error("Failed to retrieve:");
@@ -349,8 +330,29 @@ std::string my_retrieval_callback (Request *r)
     }
     else
     {
+      //Check Redis for transaction information
+      new_obj = set_redis_response_object(r, &msg_type, db_object->get_key());
+
+      //If the Redis update failed, set the message type back to error
+      if (msg_type == -1)
+      {
+        msg_type = ERR;
+      }
+      else
+      {
+        if (!new_obj)
+        {
+          callback_logging->error("No error code returned from set_redis_response method, but null pointer detected");
+        }
+        else
+        {
+          //Use the Redis message to populate transaction ID
+          transaction_id = new_obj->get_transaction_id();
+        }
+      }
       //Build the outbound message
       object_string = create_response(db_object, msg_type, transaction_id);
+      delete db_object;
     }
 
     //Smart updates are not active, so we just have a get request
