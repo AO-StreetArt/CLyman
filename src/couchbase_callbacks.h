@@ -216,7 +216,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
         response_key = db_object->get_key();
         callback_logging->debug(response_key);
         //Check Redis for transaction information
-        if (!response_key/empty()) {
+        if (!response_key.empty()) {
           new_obj = set_redis_response_object(r, msg_type, response_key);
 
           if (!msg_type) {
