@@ -189,6 +189,9 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   //Get the Object String from the Request Data
   std::string obj_string = r->req_addr;
 
+  //Cut the Key off of the object string
+  std::string cleaned_obj_string = obj_string.substr(obj_string.find("{") - 1, obj_string.length());
+
   //And the Response Key from the Request Address
   std::string response_key;
 
@@ -196,10 +199,10 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   if (r->req_err->err_code == NOERROR)
   {
     callback_logging->debug("stored:");
-    callback_logging->debug(obj_string);
+    callback_logging->debug(cleaned_obj_string);
 
     //Build the DB Response Object
-    db_object = set_db_response_object(obj_string);
+    db_object = set_db_response_object(cleaned_obj_string);
 
     if (!db_object)
     {
@@ -213,13 +216,19 @@ inline std::string default_callback (Request *r, std::string operation_error_str
         response_key = db_object->get_key();
         callback_logging->debug(response_key);
         //Check Redis for transaction information
-        new_obj = set_redis_response_object(r, msg_type, response_key);
+        if (!response_key/empty()) {
+          new_obj = set_redis_response_object(r, msg_type, response_key);
 
-        if (!msg_type) {
-          callback_logging->debug("No Message Type found");
+          if (!msg_type) {
+            callback_logging->debug("No Message Type found");
+          }
+          else {
+            message_type = *msg_type;
+          }
         }
-        else {
-          message_type = *msg_type;
+        else
+        {
+          callback_logging->debug("No Response Key Detected");
         }
 
         //If the Redis update failed, set the message type back to error
