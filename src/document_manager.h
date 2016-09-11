@@ -53,8 +53,8 @@ public:
   //CRUD Exposures for Obj3
   std::string create_object(Obj3 *new_obj, std::string transaction_id);
   std::string update_object(Obj3 *temp_obj, std::string transaction_id);
-  std::string get_object(std::string rk_str, std::string transaction_id, Obj3 *new_obj);
-  std::string delete_object(std::string key, std::string transaction_id, Obj3 *new_obj);
+  std::string get_object(Obj3 *temp_obj, std::string transaction_id);
+  std::string delete_object(Obj3 *temp_obj, std::string transaction_id);
 
   //Wait for couchbase threads to finish
   void wait() {cb->wait();}
