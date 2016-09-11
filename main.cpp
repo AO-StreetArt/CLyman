@@ -254,7 +254,9 @@ void my_signal_handler(int s){
         }
 
         //Generate a Transaction ID
+        main_logging->debug("Generating Transaction ID");
         std::string tran_id_str = ua->generate();
+        main_logging->debug(tran_id_str);
         resp->set_transaction_id(tran_id_str);
         if (!translated_object)
         {
@@ -329,10 +331,16 @@ void my_signal_handler(int s){
 
           //Set the new key on the new object
           std::string object_key = ua->generate();
-          translated_object->set_key( object_key );
+          bool key_is_set = translated_object->set_key( object_key );
 
-          main_logging->debug("New Key Generated");
-          main_logging->debug(object_key);
+          if (key_is_set) {
+            main_logging->debug("New Key Generated");
+            main_logging->debug(object_key);
+          }
+          else {
+            main_logging->debug("Object Lock Detected, Key taken from message");
+            main_logging->debug(object_key);
+          }
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {

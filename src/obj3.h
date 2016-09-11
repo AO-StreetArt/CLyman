@@ -209,9 +209,7 @@ class Obj3: public Writeable
 		bool set_owner(std::string new_owner, std::string device_id){if (is_locked==false || lock_owner==device_id) {owner=new_owner; return true;} else {return false;}}
 
 		//Set the Transaction ID
-		bool set_transaction_id(std::string new_tran_id){if (is_locked==false) {app_transaction_id=new_tran_id; return true;} else {return false;}}
-
-		bool set_transaction_id(std::string new_tran_id, std::string device_id){if (is_locked==false || lock_owner==device_id) {app_transaction_id=new_tran_id; return true;} else {return false;}}
+		void set_transaction_id(std::string new_tran_id){app_transaction_id=new_tran_id;}
 
 		//Set the Mesh ID
 		bool set_mesh_id(std::string new_mesh){if (is_locked==false) {mesh_id=new_mesh; return true;} else {return false;}}
