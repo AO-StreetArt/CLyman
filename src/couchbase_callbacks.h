@@ -361,8 +361,9 @@ std::string my_retrieval_callback (Request *r)
   }
   else
   {
-    callback_logging->debug("stored:");
+    callback_logging->debug("Loaded:");
     callback_logging->debug(key_string);
+    callback_logging->debug(obj_string);
 
     //Build the DB Response Object
     db_object = set_db_response_object(obj_string);
