@@ -190,7 +190,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   std::string obj_string = r->req_addr;
 
   //Cut the Key off of the object string
-  std::string cleaned_obj_string = obj_string.substr(obj_string.find("{") - 1, obj_string.length());
+  std::string cleaned_obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
 
   //And the Response Key from the Request Address
   std::string response_key;
