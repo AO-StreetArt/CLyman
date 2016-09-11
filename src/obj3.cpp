@@ -905,7 +905,7 @@ std::string Obj3::to_protobuf_msg(int msg_type, std::string trans_id) const
 	obj_logging->info("Obj3:To Proto message Called on object");
 	obj_logging->info(key);
 	protoObj3::Obj3 *new_proto = new protoObj3::Obj3;
-	if (!msg_type.empty()) {
+	if (msg_type != -1) {
 		new_proto->set_message_type(msg_type);
 	}
 	if (!trans_id.empty()) {
