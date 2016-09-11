@@ -150,15 +150,25 @@ inline std::string send_outbound_msg(std::string message_string)
 
 inline std::string default_callback (Request *r, std::string operation_error_string)
 {
+  callback_logging->info("Default Couchbase Callback Triggered");
+
+  //Build base objects
   Obj3 *new_obj = NULL;
   Obj3 *db_object = NULL;
   std::string object_string;
-  std::string obj_string = r->req_data;
   int msg_type = ERR;
   std::string transaction_id = "";
   std::string out_resp = "";
 
+  callback_logging->debug("Pulling Request Data");
+
+  //Get the Object String from the Request Data
+  std::string obj_string = r->req_data;
+
+  //And the Response Key from the Request Address
   std::string response_key = r->req_addr;
+
+  callback_logging->debug("Checking Redis for transaction information");
 
   //Check Redis for transaction information
   msg_type = set_redis_response_object(r, new_obj);
@@ -166,6 +176,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   //If the Redis update failed, set the message type back to error
   if (msg_type == -1)
   {
+    callback_logging->error("Redis Update Failed");
     msg_type = ERR;
   }
   else
@@ -178,6 +189,8 @@ inline std::string default_callback (Request *r, std::string operation_error_str
     {
       //Use the Redis message to populate transaction ID
       transaction_id = new_obj->get_transaction_id();
+      callback_logging->debug("Transaction ID pulled");
+      callback_logging->debug(transaction_id);
       delete new_obj;
     }
   }
