@@ -34,7 +34,6 @@ inline Obj3* set_redis_response_object(Request *r, std::string response_key)
   Obj3 *redis_object = NULL;
   callback_logging->debug("Setting up Rapidjson Objects");
   rapidjson::Document temp_d2;
-  rapidjson::Value *val;
 
   //Check Redis for transaction information
   callback_logging->debug("Checking if the Redis transaction exists");
