@@ -206,11 +206,6 @@ inline std::string default_callback (Request *r, std::string operation_error_str
       if (cm->get_transactionidsactive()) {
         callback_logging->debug("Checking DB Object for transaction information on key:");
 
-        //Use the Couchbase message to populate transaction ID
-        transaction_id = db_object->get_transaction_id();
-        callback_logging->debug("Transaction ID pulled");
-        callback_logging->debug(transaction_id);
-
         response_key = db_object->get_key();
         callback_logging->debug(response_key);
         //Check Redis for transaction information
@@ -244,6 +239,10 @@ inline std::string default_callback (Request *r, std::string operation_error_str
           }
           else
           {
+            //Use the Couchbase message to populate transaction ID
+            transaction_id = new_obj->get_transaction_id();
+            callback_logging->debug("Transaction ID pulled");
+            callback_logging->debug(transaction_id);
             delete new_obj;
           }
         //Build the outbound message

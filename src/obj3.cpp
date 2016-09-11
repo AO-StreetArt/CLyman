@@ -164,6 +164,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	subtype = new_subtype;
 	owner = new_owner;
 	mes_type = new_message_type;
+	app_transaction_id = new_tran_id;
 
 	//Lock Attributes
 	if (new_lock_id == "" || new_lock_id == "-1") {
@@ -362,6 +363,7 @@ Obj3::Obj3(const rapidjson::Document& d)
 	subtype = new_subtype;
 	owner = new_owner;
 	mes_type = new_message_type;
+	app_transaction_id = new_tran_id;
 
   obj_logging->debug("Variables Filled");
 
