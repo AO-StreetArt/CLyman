@@ -360,7 +360,7 @@ std::string my_retrieval_callback (Request *r)
     {
       key_string = db_object->get_key();
       //Check Redis for transaction information
-      new_obj = set_redis_response_object(r, &msg_type, key_string);
+      new_obj = set_redis_response_object(r, key_string);
 
       //If the Redis update failed, set the message type back to error
       msg_type = new_obj->get_message_type();
