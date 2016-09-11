@@ -292,8 +292,8 @@ void my_signal_handler(int s){
           //Send the update to couchbase
           if (!translated_object) {
             main_logging->debug("Translated Object not found");
-            if (resp->get_error_code == NOERROR) {
-              resp->set_error(TRANSLATION_ERROR, "Translated Object not found";
+            if (resp->get_error_code() == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found");
             }
           }
           else
@@ -347,8 +347,8 @@ void my_signal_handler(int s){
           }
           if (!translated_object)
           {
-            if (resp->get_error_code == NOERROR) {
-              resp->set_error(TRANSLATION_ERROR, "Translated Object not found";
+            if (resp->get_error_code() == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found");
             }
             main_logging->debug("Translated Object not found");
           }
@@ -398,8 +398,8 @@ void my_signal_handler(int s){
 
           if (!translated_object)
           {
-            if (resp->get_error_code == NOERROR) {
-              resp->set_error(TRANSLATION_ERROR, "Translated Object not found";
+            if (resp->get_error_code() == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found");
             }
             main_logging->debug("Translated Object not found");
           }
@@ -448,8 +448,8 @@ void my_signal_handler(int s){
 
           if (!translated_object)
           {
-            if (resp->get_error_code == NOERROR) {
-              resp->set_error(TRANSLATION_ERROR, "Translated Object not found";
+            if (resp->get_error_code() == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found");
             }
             main_logging->debug("Translated Object not found");
           }
@@ -493,7 +493,7 @@ void my_signal_handler(int s){
             zmqi->send(response_to_protobuffer(resp));
           }
         }
-        
+
         //Message type failure
         else {
           main_logging->error("Current Event Type not found");
