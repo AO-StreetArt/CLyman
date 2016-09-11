@@ -650,13 +650,11 @@ std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
 
 	if (!owner_dev.empty()) {
 		writer.Key("owner");
-		std::string owner_dev = get_owner();
-		writer.String( owner_dev.c_str(), (SizeType)owner_dev.length() );
+		writer.String( owner.c_str(), (SizeType)owner.length() );
 	}
 
 	if (!name.empty()) {
 		writer.Key("name");
-		std::string name = get_name();
 		writer.String( name.c_str(), (SizeType)name.length() );
 	}
 
@@ -667,13 +665,11 @@ std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
 
 	if (!type.empty()) {
 		writer.Key("type");
-		std::string type = get_type();
 		writer.String( type.c_str(), (SizeType)type.length() );
 	}
 
 	if (!subtype.empty()) {
 		writer.Key("subtype");
-		std::string subtype = get_subtype();
 		writer.String( subtype.c_str(), (SizeType)subtype.length() );
 	}
 
@@ -888,7 +884,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	obj_logging->info("Obj3:To Proto message Called on object");
 	obj_logging->info(key);
 	protoObj3::Obj3 *new_proto = new protoObj3::Obj3;
-	if (!msg_type.empty()) {
+	if (msg_type != -1) {
 		new_proto->set_message_type(msg_type);
 	}
 	if (!app_transaction_id.empty()) {
