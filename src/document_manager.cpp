@@ -5,10 +5,10 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
   const char * temp_key = temp_obj->get_key().c_str();
   bool bRet;
   if (cm->get_rfjson()) {
-    bRet = xRedis->save(temp_key, temp_obj->to_json_msg(msg_type, transaction_id));
+    bRet = xRedis->save(temp_key, temp_obj->to_json_msg(msg_type));
   }
   else if (cm->get_rfprotobuf()) {
-    bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(msg_type, transaction_id));
+    bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(msg_type));
   }
   if (!bRet) {
     doc_logging->error("Error putting object to Redis Smart Update Buffer");

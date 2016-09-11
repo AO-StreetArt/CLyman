@@ -655,6 +655,9 @@ std::string Obj3::to_json()
   std::string subtype = get_subtype();
   writer.String( subtype.c_str(), (SizeType)subtype.length() );
 
+	writer.Key("transaction_id");
+	writer.String(app_transaction_id.c_str(), (SizeType)app_transaction_id.length());
+
   int i;
   int j;
 
@@ -755,6 +758,9 @@ std::string Obj3::to_json_msg(int msg_type) const
         writer.Key("subtype");
         std::string subtype = get_subtype();
         writer.String( subtype.c_str(), (SizeType)subtype.length() );
+
+				writer.Key("transaction_id");
+				writer.String(app_transaction_id.c_str(), (SizeType)app_transaction_id.length());
 
         int i;
         int j;
@@ -1026,6 +1032,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	obj_logging->info(key);
 	protoObj3::Obj3 *new_proto = new protoObj3::Obj3;
 	new_proto->set_message_type(msg_type);
+	new_proto->set_transaction_id(app_transaction_id);
 	to_base_protobuf_msg(new_proto);
 	std::string wstr;
   new_proto->SerializeToString(&wstr);
@@ -1042,8 +1049,8 @@ std::string Obj3::to_protobuf_msg(int msg_type, std::string trans_id) const
 	obj_logging->info(key);
 	protoObj3::Obj3 *new_proto = new protoObj3::Obj3;
 	new_proto->set_message_type(msg_type);
-	to_base_protobuf_msg(new_proto);
 	new_proto->set_transaction_id(trans_id);
+	to_base_protobuf_msg(new_proto);
 	std::string wstr;
   new_proto->SerializeToString(&wstr);
 	obj_logging->debug("Protocol Buffer Serialized to String");

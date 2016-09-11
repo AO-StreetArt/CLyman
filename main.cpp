@@ -339,7 +339,7 @@ void my_signal_handler(int s){
           }
           else {
             main_logging->debug("Object Lock Detected, Key taken from message");
-            main_logging->debug(object_key);
+            main_logging->debug(translated_object->get_key());
           }
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
