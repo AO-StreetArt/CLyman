@@ -174,7 +174,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   callback_logging->debug("Pulling Request Data");
 
   //Get the Object String from the Request Data
-  std::string obj_string = r->req_data;
+  std::string obj_string = r->addr;
 
   //And the Response Key from the Request Address
   std::string response_key;
