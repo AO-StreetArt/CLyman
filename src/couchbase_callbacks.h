@@ -27,25 +27,6 @@
 //-----Base Methods------
 //-----------------------
 
-//Write an object to Redis
-inline void post_to_redis(Obj3 *temp_obj, int msg_type, std::string transaction_id) {
-  const char * temp_key = temp_obj->get_key().c_str();
-  bool bRet;
-  if (cm->get_rfjson()) {
-    bRet = xRedis->save(temp_key, temp_obj->to_json_msg(msg_type, transaction_id));
-  }
-  else if (cm->get_rfprotobuf()) {
-    bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(msg_type, transaction_id));
-  }
-  if (!bRet) {
-    callback_logging->error("Error putting object to Redis Smart Update Buffer");
-  }
-  bool bRet2 = xRedis->expire(temp_key, cm->get_subduration());
-  if (!bRet2) {
-    callback_logging->error("Error expiring object in Redis Smart Update Buffer");
-  }
-}
-
 //Parse the Redis Response string into the provided Obj3, and return the message type
 //Returns a message type of -1 in case of failure (ie. object not found in redis)
 inline int set_redis_response_object(Request *r, Obj3 *redis_object)
@@ -398,7 +379,7 @@ std::string my_retrieval_callback (Request *r)
           }
 
           //Replace the element in the smart update buffer
-          post_to_redis(new_obj, msg_type, transaction_id);
+          dm->post_to_redis(new_obj, msg_type, transaction_id);
 
           //Save the resulting object back to the DB
           cb->save_object (new_obj);

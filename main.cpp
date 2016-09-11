@@ -217,6 +217,7 @@ void my_signal_handler(int s){
           //Process the message header and set current_event_type
           try {
             d.Parse(req_ptr);
+            translated_object = new Obj3 (d);
             go_ahead=true;
           }
           //Catch a possible error and write to logs
@@ -237,6 +238,7 @@ void my_signal_handler(int s){
           try {
             new_proto.Clear();
             new_proto.ParseFromString(req_string);
+            translated_object = new Obj3 (new_proto);
             go_ahead=true;
           }
           //Catch a possible error and write to logs
@@ -265,7 +267,6 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Make the update
-            translated_object = new Obj3 (d);
             object_key = dm->update_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
@@ -278,7 +279,6 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Make the update
-            translated_object = new Obj3 (new_proto);
             object_key = dm->update_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
@@ -324,7 +324,6 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Create the object
-            translated_object = new Obj3 (d);
             object_key = dm->create_object(translated_object, tran_id_str);
 
             //Add the Object Key to the Response
@@ -337,7 +336,6 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Create the object
-            translated_object = new Obj3 (new_proto);
             object_key = dm->create_object(translated_object, tran_id_str);
 
             //Add the Object Key to the Response
@@ -376,7 +374,6 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Get the object
-            translated_object = new Obj3 (d);
             object_key = dm->get_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
@@ -389,7 +386,6 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Get the object
-            translated_object = new Obj3 (new_proto);
             object_key = dm->get_object (translated_object, tran_id_str );
 
             //Add the Object Key to the Response
@@ -420,6 +416,7 @@ void my_signal_handler(int s){
             }
           }
         }
+
         else if (msg_type == OBJ_DEL) {
           main_logging->debug("Current Event Type set to Object Delete");
 
@@ -427,7 +424,6 @@ void my_signal_handler(int s){
           if (cm->get_mfjson()) {
 
             //Delete the object
-            translated_object = new Obj3 (d);
             object_key = dm->delete_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
@@ -440,7 +436,6 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Delete the object
-            translated_object = new Obj3 (new_proto);
             object_key = dm->delete_object( translated_object, tran_id_str );
 
             //Add the Object Key to the Response
@@ -471,6 +466,7 @@ void my_signal_handler(int s){
             }
           }
         }
+
         //Shutdown Message
         else if (msg_type == KILL) {
 
@@ -486,6 +482,8 @@ void my_signal_handler(int s){
 
           return 0;
         }
+
+        //Healthcheck message
         else if (msg_type == PING) {
           main_logging->debug("Healthcheck Responded to");
           if (cm->get_mfjson()) {
@@ -495,6 +493,8 @@ void my_signal_handler(int s){
             zmqi->send(response_to_protobuffer(resp));
           }
         }
+        
+        //Message type failure
         else {
           main_logging->error("Current Event Type not found");
 
@@ -513,8 +513,15 @@ void my_signal_handler(int s){
 
         //Clear the response
         resp->clear();
-        delete translated_object;
-        translated_object = NULL;
+
+        //Clear the translated object
+        if (!translated_object) {
+          main_logging->debug("Translated Object not found for deletion");
+        }
+        else {
+          delete translated_object;
+          translated_object = NULL;
+        }
       }
 
       return 0;

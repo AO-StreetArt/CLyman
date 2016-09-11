@@ -39,7 +39,6 @@ RedisInterface *xRedis;
 ConfigurationManager *cm;
 uuidInterface *ua;
 Zmqio *zmqo;
-void put_to_redis(Obj3 *temp_obj, int msg_type, std::string transaction_id);
 public:
   //Initializer
   DocumentManager(CouchbaseInterface *cb_admin, RedisInterface *xr_admin, uuidInterface *uadmin, ConfigurationManager *cm_admin, Zmqio *zmq_out) {cb = cb_admin; xRedis = xr_admin; cm = cm_admin;ua = uadmin; zmqo = zmq_out;}
@@ -48,6 +47,10 @@ public:
   //configure
   void configure(ConfigurationManager *cm_admin) {cm = cm_admin;}
 
+  //Put an obj to redis
+  void put_to_redis(Obj3 *temp_obj, int msg_type, std::string transaction_id);
+
+  //CRUD Exposures for Obj3
   std::string create_object(Obj3 *new_obj, std::string transaction_id);
   std::string update_object(Obj3 *temp_obj, std::string transaction_id);
   std::string get_object(std::string rk_str, std::string transaction_id, Obj3 *new_obj);
