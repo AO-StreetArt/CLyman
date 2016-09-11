@@ -186,7 +186,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   std::string cleaned_obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
 
   //And the Response Key from the Request Address
-  std::string response_key;
+  std::string response_key = "";
 
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
@@ -204,7 +204,12 @@ inline std::string default_callback (Request *r, std::string operation_error_str
     else
     {
       if (cm->get_transactionidsactive()) {
-        callback_logging->debug("Checking Redis for transaction information on key:");
+        callback_logging->debug("Checking DB Object for transaction information on key:");
+
+        //Use the Couchbase message to populate transaction ID
+        transaction_id = db_object->get_transaction_id();
+        callback_logging->debug("Transaction ID pulled");
+        callback_logging->debug(transaction_id);
 
         response_key = db_object->get_key();
         callback_logging->debug(response_key);
@@ -239,10 +244,6 @@ inline std::string default_callback (Request *r, std::string operation_error_str
           }
           else
           {
-            //Use the Redis message to populate transaction ID
-            transaction_id = new_obj->get_transaction_id();
-            callback_logging->debug("Transaction ID pulled");
-            callback_logging->debug(transaction_id);
             delete new_obj;
           }
         //Build the outbound message
@@ -281,7 +282,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   callback_logging->debug(out_resp);
 
   //Remove the element from the smart updbate buffer
-  if (cm->get_transactionidsactive()) {
+  if (cm->get_transactionidsactive() && !(response_key.empty())) {
     if (xRedis->exists(response_key.c_str())) {
       xRedis->del(response_key.c_str());
     }
