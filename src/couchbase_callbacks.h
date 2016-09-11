@@ -39,7 +39,7 @@ inline Obj3* set_redis_response_object(Request *r, int *msg_type, std::string re
   *mt = -1;
 
   //Check Redis for transaction information
-  callback_logging->debug("Checking Redis for Transaction information");
+  callback_logging->debug("Checking if the Redis transaction exists");
   if ( !(xRedis->exists(response_key.c_str())) ) {
     callback_logging->error("Storage Callback Returned with no Redis Information");
   }
