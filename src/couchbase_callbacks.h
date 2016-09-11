@@ -428,48 +428,52 @@ std::string my_retrieval_callback (Request *r)
         callback_logging->debug("Response Recieved:");
         callback_logging->debug(out_resp);
       }
-      //We need to update the object in the DB, then output the object
-      //On the Outbound ZeroMQ port.
-      callback_logging->debug("Smart Update Logic Activated");
-      //Then, let's get and parse the response from the database
-      //We need to clean the response since Couchbase gives dirty responses
-      if (!db_object)
-      {
-        callback_logging->error("Null Pointer Object detected from DB");
-      }
-      else
-      {
-        if ( !new_obj ) {
-          std::string err_msg = "Active Updates enabled but object not found in smart update buffer";
-          callback_logging->error(err_msg);
-          //And output the message on the ZMQ Port
-          //If configuration for OB Failure Responses is active, we build a failure response
-          if (cm->get_sendobfailuresactive()) {
-            //Set up a failure response
-            object_string = create_error_response(msg_type, transaction_id, key_string, err_msg);
-            out_resp = send_outbound_msg(object_string);
-            callback_logging->debug("Response Recieved:");
-            callback_logging->debug(out_resp);
-          }
+
+      //We have an update message
+      else {
+        //We need to update the object in the DB, then output the object
+        //On the Outbound ZeroMQ port.
+        callback_logging->debug("Smart Update Logic Activated");
+        //Then, let's get and parse the response from the database
+        //We need to clean the response since Couchbase gives dirty responses
+        if (!db_object)
+        {
+          callback_logging->error("Null Pointer Object detected from DB");
         }
         else
         {
-          //Now, we can compare the two and apply any updates from the
-          //object list to the object returned from the database
-          db_object->transform( new_obj );
-
-          //Remove the element from the smart updbate buffer
-          if (xRedis->exists(key_string.c_str())) {
-            xRedis->del(key_string.c_str());
+          if ( !new_obj ) {
+            std::string err_msg = "Active Updates enabled but object not found in smart update buffer";
+            callback_logging->error(err_msg);
+            //And output the message on the ZMQ Port
+            //If configuration for OB Failure Responses is active, we build a failure response
+            if (cm->get_sendobfailuresactive()) {
+              //Set up a failure response
+              object_string = create_error_response(msg_type, transaction_id, key_string, err_msg);
+              out_resp = send_outbound_msg(object_string);
+              callback_logging->debug("Response Recieved:");
+              callback_logging->debug(out_resp);
+            }
           }
+          else
+          {
+            //Now, we can compare the two and apply any updates from the
+            //object list to the object returned from the database
+            db_object->transform( new_obj );
 
-          //Replace the element in the smart update buffer
-          dm->put_to_redis(new_obj, OBJ_UPD, transaction_id);
+            //Remove the element from the smart updbate buffer
+            if (xRedis->exists(key_string.c_str())) {
+              xRedis->del(key_string.c_str());
+            }
 
-          //Save the resulting object back to the DB
-          cb->save_object (new_obj);
-          cb->wait();
+            //Replace the element in the smart update buffer
+            dm->put_to_redis(new_obj, OBJ_UPD, transaction_id);
 
+            //Save the resulting object back to the DB
+            cb->save_object (new_obj);
+            cb->wait();
+
+          }
         }
       }
     }

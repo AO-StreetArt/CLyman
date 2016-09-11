@@ -90,6 +90,7 @@ std::string DocumentManager::get_object(Obj3 *new_obj, std::string transaction_i
   std::string object_key = new_obj->get_key();
   const char * rkc_str = object_key.c_str();
 
+  //Transaction ID's are active
   //Clear the active update buffer for this object prior to executing the get
   if (cm->get_transactionidsactive()) {
     while (xRedis->exists(rkc_str) == true) {
@@ -97,8 +98,7 @@ std::string DocumentManager::get_object(Obj3 *new_obj, std::string transaction_i
       cb->wait();
     }
 
-    //Put the object to Redis
-    put_to_redis(new_obj, OBJ_UPD_GLOBAL, transaction_id);
+    put_to_redis(new_obj, OBJ_GET, transaction_id);
   }
 
   return object_key;
