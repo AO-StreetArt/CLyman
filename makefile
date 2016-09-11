@@ -16,7 +16,7 @@ PROTO_OPTS = -I=src
 
 # -------------------------- Central Targets --------------------------------- #
 
-lyman: $(OBJS) scripts/Obj3_pb2.py
+lyman: $(OBJS) scripts/Obj3_pb2.py scripts/Response_pb2.py
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(FULL_LIBS) $(STD)
 
 test: $(TESTS)
@@ -72,6 +72,9 @@ src/lyman_log.o: src/lyman_log.cpp src/lyman_log.h
 
 scripts/Obj3_pb2.py: src/Obj3.proto
 	$(PROTOC) $(PROTO_OPTS) --python_out=scripts src/Obj3.proto
+
+scripts/Response_pb2.py: src/Response.proto
+	$(PROTOC) $(PROTO_OPTS) --python_out=scripts src/Response.proto
 
 src/configuration_manager.o: src/configuration_manager.cpp src/configuration_manager.h
 	$(CC) $(CFLAGS) -o $@ -c src/configuration_manager.cpp $(STD)
