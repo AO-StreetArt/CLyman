@@ -379,7 +379,7 @@ std::string my_retrieval_callback (Request *r)
           }
 
           //Replace the element in the smart update buffer
-          dm->post_to_redis(new_obj, msg_type, transaction_id);
+          dm->put_to_redis(new_obj, msg_type, transaction_id);
 
           //Save the resulting object back to the DB
           cb->save_object (new_obj);
