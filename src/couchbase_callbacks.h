@@ -177,7 +177,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   std::string obj_string = r->req_data;
 
   //And the Response Key from the Request Address
-  std::string response_key = r->req_addr;
+  std::string response_key;
 
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
@@ -197,8 +197,9 @@ inline std::string default_callback (Request *r, std::string operation_error_str
       if (cm->get_transactionidsactive()) {
         callback_logging->debug("Checking Redis for transaction information");
 
+        response_key = db_object->get_key();
         //Check Redis for transaction information
-        new_obj = set_redis_response_object(r, msg_type, db_object->get_key());
+        new_obj = set_redis_response_object(r, msg_type, response_key);
 
         if (!msg_type) {
           callback_logging->debug("No Message Type found");
@@ -256,8 +257,10 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   callback_logging->debug(out_resp);
 
   //Remove the element from the smart updbate buffer
-  if (xRedis->exists(response_key.c_str())) {
-    xRedis->del(response_key.c_str());
+  if (cm->get_transactionidsactive()) {
+    if (xRedis->exists(response_key.c_str())) {
+      xRedis->del(response_key.c_str());
+    }
   }
 
   if (!msg_type)
@@ -293,14 +296,14 @@ inline std::string my_delete_callback (Request *r)
 std::string my_retrieval_callback (Request *r)
 {
   Obj3 *new_obj = NULL;
-  Obj3* db_object = NULL;
+  Obj3 *db_object = NULL;
   std::string object_string;
   std::string obj_string = r->req_data;
   int msg_type = ERR;
   std::string transaction_id = "";
   std::string out_resp = "";
 
-  std::string key_string = r->req_addr;
+  std::string key_string;
 
   //Are there any errors coming back from Couchbase?
   if (r->req_err->err_code != NOERROR) {
@@ -330,8 +333,9 @@ std::string my_retrieval_callback (Request *r)
     }
     else
     {
+      key_string = db_object->get_key();
       //Check Redis for transaction information
-      new_obj = set_redis_response_object(r, &msg_type, db_object->get_key());
+      new_obj = set_redis_response_object(r, &msg_type, key_string);
 
       //If the Redis update failed, set the message type back to error
       if (msg_type == -1)
@@ -352,7 +356,6 @@ std::string my_retrieval_callback (Request *r)
       }
       //Build the outbound message
       object_string = create_response(db_object, msg_type, transaction_id);
-      delete db_object;
     }
 
     //Smart updates are not active, so we just have a get request
