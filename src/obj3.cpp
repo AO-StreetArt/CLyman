@@ -648,7 +648,7 @@ std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
 		writer.String( key.c_str(), (SizeType)key.length() );
 	}
 
-	if (!owner_dev.empty()) {
+	if (!owner.empty()) {
 		writer.Key("owner");
 		writer.String( owner.c_str(), (SizeType)owner.length() );
 	}
