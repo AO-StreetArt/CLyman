@@ -35,7 +35,8 @@ inline Obj3* set_redis_response_object(Request *r, int *msg_type, std::string re
   callback_logging->debug("Setting up Rapidjson Objects");
   rapidjson::Document temp_d2;
   rapidjson::Value *val;
-  msg_type = -1;
+  int *mt = new int;
+  *mt = -1;
 
   //Check Redis for transaction information
   callback_logging->debug("Checking Redis for Transaction information");
@@ -59,7 +60,7 @@ inline Obj3* set_redis_response_object(Request *r, int *msg_type, std::string re
           temp_d2.Parse(strValue.c_str());
           redis_object = new Obj3 (temp_d2);
           val = &temp_d2["message_type"];
-          msg_type = val->GetInt();
+          *mt = val->GetInt();
         }
         catch (std::exception& e) {
           callback_logging->error("Exception Occurred parsing message from Couchbase");
@@ -74,7 +75,7 @@ inline Obj3* set_redis_response_object(Request *r, int *msg_type, std::string re
         try {
           pobj.ParseFromString(strValue);
           redis_object = new Obj3 (pobj);
-          msg_type = pobj.message_type();
+          *mt = pobj.message_type();
         }
         catch (std::exception& e) {
           callback_logging->error("Exception Occurred parsing message from Couchbase");
@@ -83,6 +84,7 @@ inline Obj3* set_redis_response_object(Request *r, int *msg_type, std::string re
       }
     }
   }
+  msg_type = mt;
   return redis_object;
 }
 
@@ -163,7 +165,8 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   Obj3 *new_obj = NULL;
   Obj3 *db_object = NULL;
   std::string object_string;
-  int msg_type = ERR;
+  int *msg_type = NULL;
+  int message_type = -1;
   std::string transaction_id = "";
   std::string out_resp = "";
 
@@ -178,13 +181,20 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   callback_logging->debug("Checking Redis for transaction information");
 
   //Check Redis for transaction information
-  new_obj = set_redis_response_object(r, &msg_type, response_key);
+  new_obj = set_redis_response_object(r, msg_type, response_key);
+
+  if (!msg_type) {
+    callback_logging->debug("No Message Type found");
+  }
+  else {
+    message_type = *msg_type;
+  }
 
   //If the Redis update failed, set the message type back to error
-  if (msg_type == -1)
+  if (message_type == -1)
   {
     callback_logging->error("Redis Update Failed");
-    msg_type = ERR;
+    message_type = ERR;
   }
   else
   {
@@ -218,7 +228,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
     else
     {
       //Build the outbound message
-      object_string = create_response(db_object, msg_type, transaction_id);
+      object_string = create_response(db_object, message_type, transaction_id);
       delete db_object;
     }
   }
@@ -232,7 +242,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
     //If configuration for OB Failure Responses is active, we build a failure response
     if (cm->get_sendobfailuresactive()) {
       //Set up a failure response
-      object_string = create_error_response(msg_type, transaction_id, response_key, resp_err_string);
+      object_string = create_error_response(message_type, transaction_id, response_key, resp_err_string);
     }
   }
 
@@ -246,6 +256,14 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   //Remove the element from the smart updbate buffer
   if (xRedis->exists(response_key.c_str())) {
     xRedis->del(response_key.c_str());
+  }
+
+  if (!msg_type)
+  {
+    callback_logging->debug("No Message Type found");
+  }
+  else {
+    delete msg_type;
   }
 
   return r->req_addr;
