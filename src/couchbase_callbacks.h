@@ -141,6 +141,19 @@ inline std::string create_response(Obj3 *obj, int msg_type, std::string transact
   return object_string;
 }
 
+//Create a response without transaction ID's and return the string
+inline std::string create_notran_response(Obj3 *obj, int msg_type)
+{
+  std::string object_string = "";
+  if (cm->get_mfjson()) {
+    object_string = obj->to_json_msg(msg_type);
+  }
+  else if (cm->get_mfprotobuf()) {
+    object_string = obj->to_protobuf_msg(msg_type);
+  }
+  return object_string;
+}
+
 //Send an outbound message and return the response
 inline std::string send_outbound_msg(std::string message_string)
 {
@@ -183,7 +196,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   if (r->req_err->err_code == NOERROR)
   {
     callback_logging->debug("stored:");
-    callback_logging->debug(response_key);
+    callback_logging->debug(obj_string);
 
     //Build the DB Response Object
     db_object = set_db_response_object(obj_string);
@@ -195,9 +208,10 @@ inline std::string default_callback (Request *r, std::string operation_error_str
     else
     {
       if (cm->get_transactionidsactive()) {
-        callback_logging->debug("Checking Redis for transaction information");
+        callback_logging->debug("Checking Redis for transaction information on key:");
 
         response_key = db_object->get_key();
+        callback_logging->debug(response_key);
         //Check Redis for transaction information
         new_obj = set_redis_response_object(r, msg_type, response_key);
 
@@ -228,10 +242,17 @@ inline std::string default_callback (Request *r, std::string operation_error_str
             callback_logging->debug(transaction_id);
             delete new_obj;
           }
+        //Build the outbound message
+        object_string = create_response(db_object, message_type, transaction_id);
         }
       }
-      //Build the outbound message
-      object_string = create_response(db_object, message_type, transaction_id);
+
+      //Transaction ID's are inactive
+      else
+      {
+        int message_type = OBJ_CRT;
+        object_string = create_notran_response(db_object, message_type);
+      }
       delete db_object;
     }
   }
