@@ -335,14 +335,16 @@ inline std::string my_delete_callback (Request *r)
 //The get callback has the complex logic for the smart updates
 std::string my_retrieval_callback (Request *r)
 {
+  //Set up our base objects
   Obj3 *new_obj = NULL;
   Obj3 *db_object = NULL;
   std::string object_string;
-  std::string obj_string = r->req_data;
   int msg_type = ERR;
   std::string transaction_id = "";
   std::string out_resp = "";
 
+  //Get the Request Data and Key
+  std::string obj_string = r->req_data;
   std::string key_string = r->req_addr;
 
   //Are there any errors coming back from Couchbase?
@@ -409,7 +411,6 @@ std::string my_retrieval_callback (Request *r)
       }
       else
       {
-        object_string = create_response(db_object, msg_type, transaction_id);
         out_resp = send_outbound_msg(object_string);
         callback_logging->debug("Response Recieved:");
         callback_logging->debug(out_resp);
@@ -423,7 +424,6 @@ std::string my_retrieval_callback (Request *r)
       if (msg_type == OBJ_GET)
       {
         callback_logging->debug("Get response initiated with smart updates active");
-        object_string = create_response(db_object, msg_type, transaction_id);
         out_resp = send_outbound_msg(object_string);
         callback_logging->debug("Response Recieved:");
         callback_logging->debug(out_resp);
@@ -464,7 +464,7 @@ std::string my_retrieval_callback (Request *r)
           }
 
           //Replace the element in the smart update buffer
-          dm->put_to_redis(new_obj, msg_type, transaction_id);
+          dm->put_to_redis(new_obj, OBJ_UPD, transaction_id);
 
           //Save the resulting object back to the DB
           cb->save_object (new_obj);

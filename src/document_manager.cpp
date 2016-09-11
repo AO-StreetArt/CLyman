@@ -59,10 +59,11 @@ std::string DocumentManager::update_object(Obj3 *temp_obj, std::string transacti
       //force through the update prior to returning the value
 
       if (cm->get_transactionidsactive()) {
-        while (xRedis->exists(temp_key) == true) {
-          cb->load_object( temp_key );
-          cb->wait();
-        }
+        // while (xRedis->exists(temp_key) == true) {
+        //   cb->load_object( temp_key );
+        //   cb->wait();
+        // }
+        doc_logging->debug("Collision detected in Update Buffer");
       }
 
       std::string su_key = temp_obj->get_key();
