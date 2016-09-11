@@ -21,10 +21,7 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
 
 //Global Object Creation
 std::string DocumentManager::create_object(Obj3 *new_obj, std::string transaction_id) {
-
-  //Set the new key on the new object
-  std::string object_key = ua->generate();
-  new_obj->set_key( object_key );
+  std::string object_key = temp_obj->get_key();
 
   //See if we need to write the transaction to Redis
   if (cm->get_transactionidsactive()) {

@@ -256,6 +256,13 @@ void my_signal_handler(int s){
         //Generate a Transaction ID
         std::string tran_id_str = ua->generate();
         resp->set_transaction_id(tran_id_str);
+        if (!translated_object)
+        {
+          main_logging->debug("No translated object to assign Transaction ID to");
+        }
+        else {
+          translated_object->set_transaction_id(tran_id_str);
+        }
 
         //Set up the object key to be passed back on the response
         std::string object_key;
@@ -319,6 +326,13 @@ void my_signal_handler(int s){
         }
         else if (msg_type == OBJ_CRT) {
           main_logging->debug("Current Event Type set to Object Create");
+
+          //Set the new key on the new object
+          std::string object_key = ua->generate();
+          translated_object->set_key( object_key );
+
+          main_logging->debug("New Key Generated");
+          main_logging->debug(object_key);
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
