@@ -343,7 +343,7 @@ std::string my_retrieval_callback (Request *r)
   std::string transaction_id = "";
   std::string out_resp = "";
 
-  std::string key_string;
+  std::string key_string = r->req_addr;
 
   //Are there any errors coming back from Couchbase?
   if (r->req_err->err_code != NOERROR) {
