@@ -176,6 +176,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   std::string transaction_id = "";
   std::string out_resp = "";
   rapidjson::Document d;
+  std::string resp_err_string;
 
   callback_logging->debug("Pulling Request Data");
 
@@ -200,6 +201,8 @@ inline std::string default_callback (Request *r, std::string operation_error_str
     if (!db_object)
     {
       callback_logging->error("Error parsing DB Response, null pointer detected");
+      message_type = ERR;
+      resp_err_string = "No error code returned from set_redis_response method, but null pointer detected";
     }
     else
     {
@@ -212,7 +215,6 @@ inline std::string default_callback (Request *r, std::string operation_error_str
         if (!response_key.empty()) {
           new_obj = set_redis_response_object(r, response_key);
 
-
           if (new_obj->get_message_type() == -1) {
             callback_logging->debug("No Message Type found");
           }
@@ -223,6 +225,8 @@ inline std::string default_callback (Request *r, std::string operation_error_str
         else
         {
           callback_logging->debug("No Response Key Detected");
+          message_type = ERR;
+          resp_err_string = "No error code returned from set_redis_response method, but null pointer detected";
         }
 
         //If the Redis update failed, set the message type back to error
@@ -230,12 +234,15 @@ inline std::string default_callback (Request *r, std::string operation_error_str
         {
           callback_logging->error("Redis Update Failed");
           message_type = ERR;
+          resp_err_string = "No error code returned from set_redis_response method, but null pointer detected";
         }
         else
         {
           if (!new_obj)
           {
             callback_logging->error("No error code returned from set_redis_response method, but null pointer detected");
+            message_type = ERR;
+            resp_err_string = "No error code returned from set_redis_response method, but null pointer detected";
           }
           else
           {
@@ -258,10 +265,19 @@ inline std::string default_callback (Request *r, std::string operation_error_str
       }
       delete db_object;
     }
+
+    //If we have any errors, then we send back an appropriate error response
+    if (message_type == ERR) {
+      if (cm->get_sendobfailuresactive()) {
+        //Set up a failure response
+        object_string = create_error_response(message_type, transaction_id, response_key, resp_err_string);
+      }
+    }
+
   }
   else
   {
-    std::string resp_err_string = r->req_err->err_message;
+    resp_err_string = r->req_err->err_message;
     callback_logging->error(operation_error_string);
     callback_logging->error(response_key);
     callback_logging->error(resp_err_string);
@@ -289,7 +305,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
 
   if (!msg_type)
   {
-    callback_logging->debug("No Message Type found");
+    callback_logging->debug("No Message Type found for deletion");
   }
   else {
     delete msg_type;
