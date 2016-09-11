@@ -32,6 +32,7 @@ class Obj3: public Writeable
 		std::string app_transaction_id;
 		std::string mesh_id;
 		std::string err_string;
+		int mes_type;
 
 		//Externally Referenceable data
 		//Float Matrix for location
@@ -217,6 +218,10 @@ class Obj3: public Writeable
 
 		bool set_mesh_id(std::string new_mesh, std::string device_id){if (is_locked==false || lock_owner==device_id) {mesh_id=new_mesh; return true;} else {return false;}}
 
+		//message type
+		bool set_message_type(int new_mes_type) {if (is_locked==false) {mes_type=new_mes_type; return true;} else {return false;}}
+		bool set_message_type(int new_mes_type, std::string device_id){if (is_locked==false || lock_owner==device_id) {mes_type=new_mes_type; return true;} else {return false;}}
+
 		//Set an error
 		void set_error(std::string err_msg) {err_string = err_msg;}
 
@@ -237,6 +242,7 @@ class Obj3: public Writeable
 		std::string get_transaction_id() const {return app_transaction_id;}
 		std::string get_mesh_id() const {return mesh_id;}
 		std::string get_error() const {return err_string;}
+		int get_message_type() const (return mes_type;)
 		double get_locx() const {return location(0);}
 		double get_locy() const {return location(1);}
 		double get_locz() const {return location(2);}

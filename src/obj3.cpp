@@ -50,6 +50,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	std::string new_mesh_id="";
   std::vector<std::string> scn_list;
   obj_logging->debug("New Variables Declared");
+	int new_message_type;
 
 	Eigen::Vector3d new_location=Eigen::Vector3d::Zero(3);
 	Eigen::Vector3d new_rotatione=Eigen::Vector3d::Zero(3);
@@ -59,6 +60,9 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	Eigen::MatrixXd new_bounding_box=Eigen::MatrixXd::Zero(4, 8);
 
   //Perform the Conversion
+	if (buffer.has_message_type()) {
+		new_message_type = buffer.message_type();
+	}
   if (buffer.has_name()) {
     new_name = buffer.name();
   }
@@ -159,6 +163,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	type = new_type;
 	subtype = new_subtype;
 	owner = new_owner;
+	mes_type = new_message_type;
 
 	//Lock Attributes
 	if (new_lock_id == "") {
@@ -190,6 +195,8 @@ Obj3::Obj3(const rapidjson::Document& d)
   std::string new_lock_id="";
 	std::string new_tran_id="";
 	std::string new_mesh_id="";
+	std::string new_app_transaction_id="";
+	int new_message_type;
   std::vector<std::string> scn_list;
   obj_logging->debug("New Variables Declared");
 
@@ -204,46 +211,50 @@ Obj3::Obj3(const rapidjson::Document& d)
 
 		obj_logging->debug("Object-Format Message Detected");
 
+		if (d.HasMember("message_type")) {
+      const rapidjson::Value *ms_type_val;
+      ms_type_val = &d["message_type"];
+      new_message_type = ms_type_val->GetInt();
+    }
     if (d.HasMember("name")) {
       const rapidjson::Value *name_val;
       name_val = &d["name"];
-      name = name_val->GetString();
+      new_name = name_val->GetString();
     }
     if (d.HasMember("key")) {
       const rapidjson::Value *key_val;
       key_val = &d["key"];
-      key = key_val->GetString();
+      new_key = key_val->GetString();
     }
 		if (d.HasMember("transaction_id")) {
 			const rapidjson::Value *tran_id_val;
       tran_id_val = &d["transaction_id"];
-      app_transaction_id = tran_id_val->GetString();
+      new_app_transaction_id = tran_id_val->GetString();
 		}
 		if (d.HasMember("mesh_id")) {
 			const rapidjson::Value *mesh_id_val;
       mesh_id_val = &d["mesh_id"];
-      mesh_id = mesh_id_val->GetString();
+      new_mesh_id = mesh_id_val->GetString();
 		}
     if (d.HasMember("owner")) {
       const rapidjson::Value *owner_val;
       owner_val = &d["owner"];
-      owner = owner_val->GetString();
+      new_owner = owner_val->GetString();
     }
     if (d.HasMember("type")) {
       const rapidjson::Value *type_val;
       type_val = &d["type"];
-      type = type_val->GetString();
+      new_type = type_val->GetString();
     }
     if (d.HasMember("subtype")) {
       const rapidjson::Value *subtype_val;
       subtype_val = &d["subtype"];
-      subtype = subtype_val->GetString();
+      new_subtype = subtype_val->GetString();
     }
     if (d.HasMember("lock_device_id")) {
       const rapidjson::Value *lock_val;
       lock_val = &d["lock_device_id"];
-      lock_owner = lock_val->GetString();
-			is_locked = true;
+      new_lock_id = lock_val->GetString();
     }
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
@@ -344,24 +355,31 @@ Obj3::Obj3(const rapidjson::Document& d)
 
 	}
 
+	//Set the String Attributes
+	name = new_name;
+	key = new_key;
+	type = new_type;
+	subtype = new_subtype;
+	owner = new_owner;
+	mes_type = new_message_type;
 
-    obj_logging->debug("Variables Filled");
+  obj_logging->debug("Variables Filled");
 
-		//Lock Attributes
-		if (new_lock_id == "") {
-			is_locked=false;
-			lock_owner="";
-		}
-		else {
-			is_locked = true;
-			lock_owner = new_lock_id;
-		}
+	//Lock Attributes
+	if (new_lock_id == "") {
+		is_locked=false;
+		lock_owner="";
+	}
+	else {
+		is_locked = true;
+		lock_owner = new_lock_id;
+	}
 
-		//Scenes
-		scene_list.reserve(scn_list.size());
-		copy(scn_list.begin(), scn_list.end(), back_inserter(scene_list));
+	//Scenes
+	scene_list.reserve(scn_list.size());
+	copy(scn_list.begin(), scn_list.end(), back_inserter(scene_list));
 
-	  obj_logging->debug("Obj3 Built");
+  obj_logging->debug("Obj3 Built");
 }
 
 //----------------------------------------------------------------------------//
