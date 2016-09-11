@@ -166,7 +166,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	mes_type = new_message_type;
 
 	//Lock Attributes
-	if (new_lock_id == "") {
+	if (new_lock_id == "" || new_lock_id == "-1") {
 		is_locked=false;
 		lock_owner="";
 	}
