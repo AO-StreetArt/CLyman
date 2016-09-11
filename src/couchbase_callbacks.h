@@ -29,13 +29,16 @@
 
 //Parse the Redis Response string into the provided Obj3, and return the message type
 //Returns a message type of -1 in case of failure (ie. object not found in redis)
-inline int set_redis_response_object(Request *r, Obj3 *redis_object)
+inline Obj3* set_redis_response_object(Request *r, int *msg_type, std::string response_key)
 {
-  std::string response_key = r->req_addr;
+  Obj3 *redis_object = NULL;
+  callback_logging->debug("Setting up Rapidjson Objects");
   rapidjson::Document temp_d2;
   rapidjson::Value *val;
-  int msg_type = -1;
+  msg_type = -1;
+
   //Check Redis for transaction information
+  callback_logging->debug("Checking Redis for Transaction information");
   if ( !(xRedis->exists(response_key.c_str())) ) {
     callback_logging->error("Storage Callback Returned with no Redis Information");
   }
@@ -51,6 +54,7 @@ inline int set_redis_response_object(Request *r, Obj3 *redis_object)
     {
       //Are we writing to redis with json?
       if (cm->get_rfjson()) {
+        callback_logging->debug("Parsing a JSON Object from Redis");
         try {
           temp_d2.Parse(strValue.c_str());
           redis_object = new Obj3 (temp_d2);
@@ -65,6 +69,7 @@ inline int set_redis_response_object(Request *r, Obj3 *redis_object)
 
       //Or are we writing to redis with Protocol buffers?
       else if (cm->get_rfprotobuf()) {
+        callback_logging->debug("Parsing a Protocol Buffer Object from Redis");
         protoObj3::Obj3 pobj;
         try {
           pobj.ParseFromString(strValue);
@@ -78,12 +83,13 @@ inline int set_redis_response_object(Request *r, Obj3 *redis_object)
       }
     }
   }
-  return msg_type;
+  return redis_object;
 }
 
 //Return an Obj3 pointer built from the json string passed in, assumed to be from the DB
 inline Obj3* set_db_response_object(std::string object_string)
 {
+  callback_logging->debug("Parsing DB Object");
   rapidjson::Document temp_d;
   if (!object_string.empty()) {
     //Process the DB Object
@@ -102,6 +108,7 @@ inline Obj3* set_db_response_object(std::string object_string)
 //create an error response and return the string
 inline std::string create_error_response(int msg_type, std::string transaction_id, std::string response_key, std::string resp_err_string)
 {
+  callback_logging->debug("Creating an Error Response");
   std::string object_string = "";
   Obj3 *new_obj = new Obj3;
   new_obj->set_key(response_key);
@@ -171,7 +178,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   callback_logging->debug("Checking Redis for transaction information");
 
   //Check Redis for transaction information
-  msg_type = set_redis_response_object(r, new_obj);
+  new_obj = set_redis_response_object(r, &msg_type, response_key);
 
   //If the Redis update failed, set the message type back to error
   if (msg_type == -1)
@@ -276,7 +283,7 @@ std::string my_retrieval_callback (Request *r)
   std::string key_string = r->req_addr;
 
   //Check Redis for transaction information
-  msg_type = set_redis_response_object(r, new_obj);
+  new_obj = set_redis_response_object(r, &msg_type, key_string);
 
   //If the Redis update failed, set the message type back to error
   if (msg_type == -1)
