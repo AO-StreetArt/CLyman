@@ -110,4 +110,4 @@ EXPOSE 11210
 EXPOSE 12345
 
 #Start up the SSH terminal so that we can connect & start the app
-CMD tail -f /var/log
+CMD tail -f /dev/null
