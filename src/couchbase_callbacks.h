@@ -185,12 +185,13 @@ inline std::string default_callback (Request *r, std::string operation_error_str
 
   //Cut the Key off of the object string
   std::size_t obj_char_position = obj_string.find("{");
+  std::string cleaned_obj_string = "";
   if (obj_char_position != std::string::npos) {
-    std::string cleaned_obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
+    cleaned_obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
   }
   else
   {
-    std::string cleaned_obj_string = obj_string;
+    cleaned_obj_string = obj_string;
   }
 
   //And the Response Key from the Request Address
