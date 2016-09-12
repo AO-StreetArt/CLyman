@@ -285,6 +285,7 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   }
   else
   {
+    message_type = ERR;
     resp_err_string = r->req_err->err_message;
     callback_logging->error(operation_error_string);
     callback_logging->error(response_key);
