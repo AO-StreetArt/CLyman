@@ -40,7 +40,7 @@ The recommended deployment for development of CLyman is a VM with either Ubuntu 
 
 `mkdir clyman_deps`
 
-`cp CLyman/build_deps.sh clyman_deps/build_deps.sh`
+`cp CLyman/scripts/linux/deb/build_deps.sh clyman_deps/build_deps.sh`
 
 `cd clyman_deps`
 
