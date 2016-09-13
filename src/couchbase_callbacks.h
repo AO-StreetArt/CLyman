@@ -38,7 +38,7 @@ inline Obj3* set_redis_response_object(Request *r, std::string response_key)
   //Check Redis for transaction information
   callback_logging->debug("Checking if the Redis transaction exists");
   if ( !(xRedis->exists(response_key.c_str())) ) {
-    callback_logging->error("Storage Callback Returned with no Redis Information");
+    callback_logging->error("Callback Returned with no Redis Information");
   }
   else
   {
@@ -195,15 +195,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   }
 
   //And the Response Key from the Request Address
-  std::string response_key = "";
-
-  //Get the Response Key directly from the DB Response in the case of a Delete
-  if (inp_msg_type == OBJ_DEL) {
-    response_key = obj_string;
-  }
-  else {
-    response_key = r->req_addr;
-  }
+  std::string response_key = r->req_addr;
 
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
@@ -249,11 +241,16 @@ inline std::string default_callback (Request *r, int inp_msg_type)
       if (cm->get_transactionidsactive()) {
         new_obj = set_redis_response_object(r, response_key);
 
-        if (new_obj->get_message_type() == -1) {
-          callback_logging->debug("No Message Type found");
+        if (!new_obj) {
+          callback_logging->debug("No Redis Response Object found");
         }
         else {
-          message_type = new_obj->get_message_type();
+          if (new_obj->get_message_type() == -1) {
+            callback_logging->debug("No Message Type found");
+          }
+          else {
+            message_type = new_obj->get_message_type();
+          }
         }
       }
     }
