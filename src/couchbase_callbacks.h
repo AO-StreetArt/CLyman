@@ -183,6 +183,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
 
   //Get the Object String from the Request Data
   std::string obj_string = r->req_addr;
+  std::string obj_data_string = r->req_data;
 
   //Cut the Key off of the object string
   std::size_t obj_char_position = obj_string.find("{");
@@ -215,6 +216,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
       callback_logging->debug("Deleted:");
     }
     callback_logging->debug(cleaned_obj_string);
+    callback_logging->debug(obj_data_string);
 
     //Determine if we have a DB Response Object.  If not, then we either have an error
     //Or we have a delete message
