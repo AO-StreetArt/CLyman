@@ -163,7 +163,7 @@ inline std::string send_outbound_msg(std::string message_string)
   return out_resp;
 }
 
-inline std::string default_callback (Request *r, std::string operation_error_string)
+inline std::string default_callback (Request *r, int inp_msg_type)
 {
   callback_logging->info("Default Couchbase Callback Triggered");
 
@@ -200,7 +200,12 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
   {
-    callback_logging->debug("stored:");
+    if (inp_msg_type == OBJ_CRT) {
+      callback_logging->debug("Stored:");
+    }
+    else if (inp_msg_type == OBJ_DEL) {
+      callback_logging->debug("Delete:");
+    }
     callback_logging->debug(cleaned_obj_string);
 
     //Build the DB Response Object
@@ -287,7 +292,12 @@ inline std::string default_callback (Request *r, std::string operation_error_str
   {
     message_type = ERR;
     resp_err_string = r->req_err->err_message;
-    callback_logging->error(operation_error_string);
+    if (inp_msg_type == OBJ_CRT) {
+      callback_logging->error("Failed to Create");
+    }
+    else if (inp_msg_type == OBJ_DEL) {
+      callback_logging->error("Failed to Delete");
+    }
     callback_logging->error(response_key);
     callback_logging->error(resp_err_string);
 
@@ -332,13 +342,13 @@ inline std::string default_callback (Request *r, std::string operation_error_str
 //The storage callback is simple, just callback_logging the storage act and result
 inline std::string my_storage_callback (Request *r)
 {
-  return default_callback(r, "Failed to Store:");
+  return default_callback(r, OBJ_CRT);
 }
 
 //The delete callback is also simple, just logging the storage act and result
 inline std::string my_delete_callback (Request *r)
 {
-  return default_callback(r, "Failed to Delete:");
+  return default_callback(r, OBJ_DEL);
 }
 
 //The get callback has the complex logic for the smart updates
