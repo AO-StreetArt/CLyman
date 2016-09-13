@@ -17,6 +17,7 @@
 #include "obj3.h"
 #include "configuration_manager.h"
 #include "lyman_log.h"
+#include "lyman_utils.h"
 
 #include "aossl/factory/logging_interface.h"
 #include "aossl/factory/response_interface.h"
@@ -197,7 +198,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   //And the Response Key from the Request Address
   std::string response_key = r->req_addr;
   if (inp_msg_type == OBJ_DEL) {
-    response_key = response_key.substr(0, response_key.size() - 3);
+    stripUnicode(response_key);
   }
 
   //Actions when the storage operation is successful

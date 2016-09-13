@@ -26,6 +26,17 @@ const int PING = 555;
 const int OBJ_UPD_GLOBAL = 5;
 
 //Trim Strings
+
+// remove non-ascii characters
+bool invalidChar (char c)
+{
+    return !(c>=0 && c <128);
+}
+void stripUnicode(std::string &str)
+{
+    str.erase(std::remove_if(str.begin(),str.end(), invalidChar), str.end());
+}
+
 // trim from start
 static inline std::string &ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(),
