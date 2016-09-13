@@ -51,7 +51,7 @@ class Obj3: public Writeable
 
 		//Bounding Box
     Eigen::MatrixXd bounding_box;
-		bool boun_flag;
+		bool boun_flag = false;
 
 		//Transform Buffers
 		Eigen::Matrix4d transform_buffer;
