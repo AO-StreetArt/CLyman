@@ -196,6 +196,9 @@ inline std::string default_callback (Request *r, int inp_msg_type)
 
   //And the Response Key from the Request Address
   std::string response_key = r->req_addr;
+  if (inp_msg_type == OBJ_DEL) {
+    response_key = response_key.substr(0, response_key.size() - 3);
+  }
 
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
