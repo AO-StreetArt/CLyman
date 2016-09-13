@@ -216,8 +216,12 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   callback_logging->debug("Pulling Request Data");
 
   //Get the Object String from the Request Data
-  std::string obj_string = r->req_addr;
-  std::string obj_data_string = r->req_data;
+  if (inp_msg_type == OBJ_GET) {
+    std::string obj_string = r->req_data;
+  }
+  else {
+    std::string obj_string = r->req_addr;
+  }
 
   //Cut the Key off of the object string
   std::size_t obj_char_position = obj_string.find("{");
@@ -230,13 +234,6 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     cleaned_obj_string = obj_string;
   }
 
-  //And the Response Key from the Request Address
-  //TO-DO: Still getting extra characters after the actual key
-  std::string response_key = r->req_addr;
-  if (inp_msg_type == OBJ_DEL) {
-    stripUnicode(response_key);
-  }
-
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
   {
@@ -244,7 +241,6 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     //When we have a create message, we can take the response string and parse it to find our DB Object
     if (inp_msg_type == OBJ_CRT) {
       callback_logging->debug("Stored:");
-      //Build the DB Response Object
       db_object = set_db_response_object(cleaned_obj_string);
     }
     else if (inp_msg_type == OBJ_DEL) {
@@ -252,6 +248,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     }
     else if (inp_msg_type == OBJ_GET) {
       callback_logging->debug("Retrieved:");
+      db_object = set_db_response_object(cleaned_obj_string);
     }
     callback_logging->debug(cleaned_obj_string);
     callback_logging->debug(obj_data_string);
