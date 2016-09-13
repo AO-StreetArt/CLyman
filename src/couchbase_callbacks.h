@@ -197,90 +197,105 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   //And the Response Key from the Request Address
   std::string response_key = "";
 
+  //Get the Response Key directly from the DB Response in the case of a Delete
+  if (inp_msg_type == OBJ_DEL) {
+    response_key = obj_string;
+  }
+  else {
+    response_key = r->req_addr;
+  }
+
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
   {
+
+    //When we have a create message, we can take the response string and parse it to find our DB Object
     if (inp_msg_type == OBJ_CRT) {
       callback_logging->debug("Stored:");
+      //Build the DB Response Object
+      db_object = set_db_response_object(cleaned_obj_string);
     }
     else if (inp_msg_type == OBJ_DEL) {
-      callback_logging->debug("Delete:");
+      callback_logging->debug("Deleted:");
     }
     callback_logging->debug(cleaned_obj_string);
 
-    //Build the DB Response Object
-    db_object = set_db_response_object(cleaned_obj_string);
-
+    //Determine if we have a DB Response Object.  If not, then we either have an error
+    //Or we have a delete message
     if (!db_object)
     {
-      callback_logging->error("Error parsing DB Response, null pointer detected");
-      message_type = ERR;
-      resp_err_string = "No error code returned from set_redis_response method, but null pointer detected";
+      callback_logging->error("Null DB Response Detected");
     }
     else
     {
       if (cm->get_transactionidsactive()) {
-        callback_logging->debug("Checking DB Object for transaction information on key:");
-
-        response_key = db_object->get_key();
-        callback_logging->debug(response_key);
-        //Check Redis for transaction information
-        if (!response_key.empty()) {
-          new_obj = set_redis_response_object(r, response_key);
-
-          if (new_obj->get_message_type() == -1) {
-            callback_logging->debug("No Message Type found");
-          }
-          else {
-            message_type = new_obj->get_message_type();
-          }
-        }
-        else
-        {
-          callback_logging->debug("No Response Key Detected");
-          message_type = ERR;
-          resp_err_string = "No Response Key Detected";
-        }
-
-        //If the Redis update failed, set the message type back to error
-        if (message_type == -1)
-        {
-          callback_logging->error("Redis Update Failed");
-          message_type = ERR;
-          resp_err_string = "Redis Update Failed";
-        }
-        else
-        {
-          if (!new_obj)
-          {
-            callback_logging->error("No error code returned from set_redis_response method, but null pointer detected");
-            message_type = ERR;
-            resp_err_string = "No error code returned from set_redis_response method, but null pointer detected";
-          }
-          else
-          {
-            //Use the Couchbase message to populate transaction ID
-            transaction_id = new_obj->get_transaction_id();
-            callback_logging->debug("Transaction ID pulled");
-            callback_logging->debug(transaction_id);
-            delete new_obj;
-            //Build the outbound message
-            object_string = create_response(db_object, message_type, transaction_id);
-          }
+        if (inp_msg_type == OBJ_CRT) {
+          response_key = db_object->get_key();
         }
       }
-
       //Transaction ID's are inactive
       else
       {
         int message_type = OBJ_CRT;
         object_string = create_notran_response(db_object, message_type);
       }
-      delete db_object;
+    }
+
+    callback_logging->debug("Checking Redis for transaction information on key:");
+    callback_logging->debug(response_key);
+
+    //Check Redis for transaction information
+    if (!response_key.empty()) {
+      if (cm->get_transactionidsactive()) {
+        new_obj = set_redis_response_object(r, response_key);
+
+        if (new_obj->get_message_type() == -1) {
+          callback_logging->debug("No Message Type found");
+        }
+        else {
+          message_type = new_obj->get_message_type();
+        }
+      }
+    }
+    else
+    {
+      callback_logging->debug("No Response Key Detected");
+      message_type = ERR;
+      resp_err_string = "No Response Key Detected";
+    }
+
+    //If the Redis update failed, set the message type back to error
+    if (message_type == -1)
+    {
+      callback_logging->error("Redis Update Failed");
+      message_type = ERR;
+      resp_err_string = "Redis Update Failed";
+    }
+
+    //either the Redis update was successful or never done
+    else if (message_type != ERR)
+    {
+      //redis update never done
+      if (!new_obj)
+      {
+        callback_logging->error("Redis Update not performed");
+      }
+
+      //Redis update successful
+      else
+      {
+        //Use the Couchbase message to populate transaction ID
+        transaction_id = new_obj->get_transaction_id();
+        callback_logging->debug("Transaction ID pulled");
+        callback_logging->debug(transaction_id);
+        delete new_obj;
+        //Build the outbound message
+        object_string = create_response(db_object, message_type, transaction_id);
+      }
     }
 
     //If we have any errors, then we send back an appropriate error response
-    if (message_type == ERR) {
+    else {
       if (cm->get_sendobfailuresactive()) {
         //Set up a failure response
         object_string = create_error_response(message_type, transaction_id, response_key, resp_err_string);
@@ -309,11 +324,12 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   }
 
   //Send an OB Message if our response string isn't empty
-  out_resp = send_outbound_msg(object_string);
-
-  //Process the response
-  callback_logging->debug("Response to Outbound Message:");
-  callback_logging->debug(out_resp);
+  if (!object_string.empty()) {
+    out_resp = send_outbound_msg(object_string);
+    //Process the response
+    callback_logging->debug("Response to Outbound Message:");
+    callback_logging->debug(out_resp);
+  }
 
   //Remove the element from the smart updbate buffer
   if (cm->get_transactionidsactive() && !(response_key.empty())) {
@@ -328,6 +344,14 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   }
   else {
     delete msg_type;
+  }
+
+  if (!db_object)
+  {
+    callback_logging->debug("No DB Object found for deletion");
+  }
+  else {
+    delete db_object;
   }
 
   return r->req_addr;
