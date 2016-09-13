@@ -239,7 +239,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         {
           callback_logging->debug("No Response Key Detected");
           message_type = ERR;
-          resp_err_string = "No error code returned from set_redis_response method, but null pointer detected";
+          resp_err_string = "No Response Key Detected";
         }
 
         //If the Redis update failed, set the message type back to error
@@ -247,7 +247,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         {
           callback_logging->error("Redis Update Failed");
           message_type = ERR;
-          resp_err_string = "No error code returned from set_redis_response method, but null pointer detected";
+          resp_err_string = "Redis Update Failed";
         }
         else
         {
@@ -264,9 +264,9 @@ inline std::string default_callback (Request *r, int inp_msg_type)
             callback_logging->debug("Transaction ID pulled");
             callback_logging->debug(transaction_id);
             delete new_obj;
+            //Build the outbound message
+            object_string = create_response(db_object, message_type, transaction_id);
           }
-        //Build the outbound message
-        object_string = create_response(db_object, message_type, transaction_id);
         }
       }
 
