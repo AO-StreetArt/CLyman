@@ -76,12 +76,6 @@ RUN git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git
 #Install the shared service library
 RUN cd AOSharedServiceLibrary && make && make install
 
-#Get the RapidJSON Dependency
-RUN git clone https://github.com/miloyip/rapidjson.git
-
-#Move the RapidJSON header files to the include path
-RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
-
 #Get the Eigen Dependencies
 RUN wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
 
