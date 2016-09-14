@@ -269,13 +269,9 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     }
     else
     {
-      if (cm->get_transactionidsactive()) {
-        if (inp_msg_type == OBJ_CRT) {
-          response_key = db_object->get_key();
-        }
-      }
+      response_key = db_object->get_key();
       //Transaction ID's are inactive
-      else
+      if (cm->get_transactionidsactive())
       {
         int message_type = inp_msg_type;
         object_string = create_notran_response(db_object, message_type);
