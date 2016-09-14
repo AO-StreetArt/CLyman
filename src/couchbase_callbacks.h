@@ -232,7 +232,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
   }
 
-  std::size_t obj_char_position = obj_string.find("}");
+  obj_char_position = obj_string.find("}");
   if (obj_char_position != std::string::npos && obj_char_position != obj_string.length() {
     obj_string = obj_string.substr(0, obj_char_position);
   }
