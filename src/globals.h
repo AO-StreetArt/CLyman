@@ -11,6 +11,8 @@
 #include "document_manager.h"
 #include "configuration_manager.h"
 
+#include <unordered_map>
+
 #ifndef GLOBALS
 #define GLOBALS
 
@@ -25,5 +27,6 @@ extern uuidInterface *ua;
 extern Zmqio *zmqo;
 extern Zmqio *zmqi;
 extern CommandLineInterface *cli;
+extern ApplicationResponseInterface *resp;
 
 #endif

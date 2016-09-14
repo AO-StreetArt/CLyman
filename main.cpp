@@ -24,12 +24,14 @@
 #include <zmq.hpp>
 #include <Eigen/Dense>
 
+#include "src/lyman_log.h"
 #include "src/obj3.h"
 #include "src/lyman_utils.h"
 #include "src/document_manager.h"
 #include "src/configuration_manager.h"
 #include "src/couchbase_callbacks.h"
 #include "src/globals.h"
+#include "src/clyman_response.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -47,6 +49,10 @@
 #include "aossl/factory/logging_interface.h"
 #include "aossl/factory/uuid_interface.h"
 #include "aossl/factory/commandline_interface.h"
+#include "aossl/factory/response_interface.h"
+
+//Set up an Obj3 pointer to hold the currently translated document information
+Obj3 *translated_object = NULL;
 
 enum {
   CACHE_TYPE_1,
@@ -66,6 +72,15 @@ void shutdown()
   delete cm;
   delete ua;
   delete cli;
+
+  if(!resp) {
+    delete resp;
+  }
+
+  if (!translated_object) {main_logging->debug("No translated object active at time of shutdown");}
+  else {delete translated_object;}
+
+  shutdown_logging_submodules();
   delete logging;
 
   //Shut down protocol buffer library
@@ -74,9 +89,9 @@ void shutdown()
 
 //Catch a Signal (for example, keyboard interrupt)
 void my_signal_handler(int s){
-   logging->error("Caught signal");
+   main_logging->error("Caught signal");
    std::string signal_type = std::to_string(s);
-   logging->error(signal_type);
+   main_logging->error(signal_type);
    shutdown();
    exit(1);
 }
@@ -98,14 +113,8 @@ void my_signal_handler(int s){
 
       ServiceComponentFactory *factory = new ServiceComponentFactory;
 
-      //Set up the UUID Generator
-      ua = factory->get_uuid_interface();
-
       //Set up our command line interpreter
       cli = factory->get_command_line_interface( argc, argv );
-
-      //Set up our configuration manager with the CLI and UUID Generator
-      cm = new ConfigurationManager(cli, ua, factory);
 
       //Set up logging
 	    std::string initFileName;
@@ -122,6 +131,15 @@ void my_signal_handler(int s){
       //This reads the logging configuration file
       logging = factory->get_logging_interface(initFileName);
 
+      //Set up the logging submodules for each category
+      start_logging_submodules();
+
+      //Set up the UUID Generator
+      ua = factory->get_uuid_interface();
+
+      //Set up our configuration manager with the CLI and UUID Generator
+      cm = new ConfigurationManager(cli, ua, factory);
+
       //The configuration manager will  look at any command line arguments,
       //configuration files, and Consul connections to try and determine the correct
       //configuration for the service
@@ -129,15 +147,14 @@ void my_signal_handler(int s){
       bool config_success = cm->configure();
       if (!config_success)
       {
-        logging->error("Configuration Failed, defaults kept");
+        main_logging->error("Configuration Failed, defaults kept");
       }
 
       //Set up internal variables
       int msg_type = -1;
       rapidjson::Document d;
       rapidjson::Value *val;
-      std::string resp = "nilresp";
-      logging->info("Internal Variables Intialized");
+      main_logging->info("Internal Variables Intialized");
       protoObj3::Obj3 new_proto;
 
       //Set up our Redis Connection List, which is passed to the Redis Admin to connect
@@ -145,10 +162,11 @@ void my_signal_handler(int s){
       std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
       //Set up Redis Connection
       xRedis = factory->get_redis_cluster_interface(RedisConnectionList);
-      logging->info("Connected to Redis");
+      main_logging->info("Connected to Redis");
 
       //Set up the Couchbase Connection
       std::string DBConnStr = cm->get_dbconnstr();
+      DBConnStr = trim(DBConnStr);
       bool DBAuthActive = cm->get_dbauthactive();
       if (DBAuthActive) {
         std::string DBPswd = cm->get_dbpswd();
@@ -157,7 +175,6 @@ void my_signal_handler(int s){
       else {
         cb = factory->get_couchbase_interface( DBConnStr.c_str() );
       }
-      logging->info("Connected to Couchbase DB");
 
       //Bind Couchbase Callbacks
       cb->bind_storage_callback(my_storage_callback);
@@ -166,16 +183,19 @@ void my_signal_handler(int s){
 
       //Set up the outbound ZMQ Admin
       zmqo = factory->get_zmq_outbound_interface(cm->get_obconnstr());
-      logging->info("Connected to Outbound OMQ Socket");
+      main_logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Admin
       zmqi = factory->get_zmq_inbound_interface(cm->get_ibconnstr());
-      logging->info("ZMQ Socket Open, opening request loop");
+      main_logging->info("ZMQ Socket Open, opening request loop");
 
       //Set up the Document Manager
       //This relies on pointers to all the other objects we set up,
       //and drives the central functionality, along with the couchbase callbacks
       dm = new DocumentManager (cb, xRedis, ua, cm, zmqo);
+
+      //Set up a response object to be sent back to the client
+      resp = factory->get_application_response_interface();
 
       //Main Request Loop
 
@@ -187,21 +207,24 @@ void my_signal_handler(int s){
         std::string req_string = zmqi->recv();
         req_string = ltrim(req_string);
         const char * req_ptr = req_string.c_str();
-        logging->debug("Conversion to C String performed with result: ");
-        logging->debug(req_ptr);
+        main_logging->debug("Conversion to C String performed with result: ");
+        main_logging->debug(req_ptr);
         bool go_ahead=false;
+        resp->set_error(NO_ERROR);
 
         //If we are expecting JSON Messages, then parse in this fashion
         if (cm->get_mfjson()) {
           //Process the message header and set current_event_type
           try {
             d.Parse(req_ptr);
+            translated_object = new Obj3 (d);
             go_ahead=true;
           }
           //Catch a possible error and write to logs
           catch (std::exception& e) {
-            logging->error("Exception occurred while parsing inbound document:");
-            logging->error(e.what());
+            main_logging->error("Exception occurred while parsing inbound document:");
+            main_logging->error(e.what());
+            resp->set_error(TRANSLATION_ERROR, e.what());
           }
           //Find the message type
           if (go_ahead) {
@@ -215,12 +238,14 @@ void my_signal_handler(int s){
           try {
             new_proto.Clear();
             new_proto.ParseFromString(req_string);
+            translated_object = new Obj3 (new_proto);
             go_ahead=true;
           }
           //Catch a possible error and write to logs
           catch (std::exception& e) {
-            logging->error("Exception occurred while parsing inbound document:");
-            logging->error(e.what());
+            main_logging->error("Exception occurred while parsing inbound document:");
+            main_logging->error(e.what());
+            resp->set_error(TRANSLATION_ERROR, e.what());
           }
           //Find the message type
           if (go_ahead) {
@@ -228,112 +253,296 @@ void my_signal_handler(int s){
           }
         }
 
+        //Generate a Transaction ID
+        main_logging->debug("Generating Transaction ID");
+        std::string tran_id_str = ua->generate();
+        main_logging->debug(tran_id_str);
+        resp->set_transaction_id(tran_id_str);
+        if (!translated_object)
+        {
+          main_logging->debug("No translated object to assign Transaction ID to");
+        }
+        else {
+          translated_object->set_transaction_id(tran_id_str);
+        }
+
+        //Set up the object key to be passed back on the response
+        std::string object_key;
+
         if (msg_type == OBJ_UPD) {
-          logging->debug("Current Event Type set to Object Update");
-
-          resp = "success";
-          logging->debug("Object Update Event Emitted, response:");
-          logging->debug(resp);
-
-          //  Send reply back to client
-          zmqi->send(resp);
-          logging->debug("Response Sent");
+          main_logging->debug("Current Event Type set to Object Update");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
-            dm->update_objectd( d );
+
+            //Make the update
+            object_key = dm->update_object( translated_object, tran_id_str );
+
+            //Add the Object Key to the Response
+            resp->set_object_id(object_key);
+
+            //  Send reply back to client
+            zmqi->send(resp->to_json());
+            main_logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
-            dm->update_objectpb(new_proto);
+
+            //Make the update
+            object_key = dm->update_object( translated_object, tran_id_str );
+
+            //Add the Object Key to the Response
+            resp->set_object_id(object_key);
+
+            //  Send reply back to client
+            zmqi->send(response_to_protobuffer(resp));
+            main_logging->debug("Response Sent");
+          }
+
+          //Send the update to couchbase
+          if (!translated_object) {
+            main_logging->debug("Translated Object not found");
+            if (resp->get_error_code() == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found");
+            }
+          }
+          else
+          {
+            if (!object_key.empty()) {
+              if (cm->get_smartupdatesactive()) {
+                cb->load_object( object_key.c_str() );
+                cb->wait();
+              }
+              else
+              {
+                cb->save_object (translated_object);
+                cb->wait();
+              }
+            }
+            else
+            {
+              main_logging->debug("Message recieved without key");
+              resp->set_error(BAD_REQUEST_ERROR, "Message recieved without key");
+            }
           }
 
         }
         else if (msg_type == OBJ_CRT) {
-          logging->debug("Current Event Type set to Object Create");
+          main_logging->debug("Current Event Type set to Object Create");
 
-          resp = "success";
-          logging->debug("Object Create Event Emitted, response: ");
-          logging->debug(resp);
+          //Set the new key on the new object
+          std::string object_key = ua->generate();
+          bool key_is_set = translated_object->set_key( object_key );
 
-          //Send the response
-          zmqi->send(resp);
-          logging->debug("Response Sent");
+          if (key_is_set) {
+            main_logging->debug("New Key Generated");
+            main_logging->debug(object_key);
+          }
+          else {
+            main_logging->debug("Object Lock Detected, Key taken from message");
+            main_logging->debug(translated_object->get_key());
+          }
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
-            dm->create_objectd( d );
+
+            //Create the object
+            object_key = dm->create_object(translated_object, tran_id_str);
+
+            //Add the Object Key to the Response
+            resp->set_object_id(object_key);
+
+            //Send the response
+            zmqi->send(resp->to_json());
+            main_logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
-            dm->create_objectpb(new_proto);
-          }
 
+            //Create the object
+            object_key = dm->create_object(translated_object, tran_id_str);
+
+            //Add the Object Key to the Response
+            resp->set_object_id(object_key);
+
+            //Send the response
+            zmqi->send(response_to_protobuffer(resp));
+            main_logging->debug("Response Sent");
+          }
+          if (!translated_object)
+          {
+            if (resp->get_error_code() == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found");
+            }
+            main_logging->debug("Translated Object not found");
+          }
+          else
+          {
+            if (!object_key.empty()) {
+              //Save the object to the couchbase DB
+              cb->create_object (translated_object);
+              cb->wait();
+            }
+            else
+            {
+              main_logging->debug("Creation of new object key failed");
+              resp->set_error(BAD_REQUEST_ERROR, "Creation of new object key failed");
+            }
+          }
         }
+
         else if (msg_type == OBJ_GET) {
-          logging->debug("Current Event Type set to Object Get");
-
-          resp = "success";
-          logging->debug("Object Get Event Emitted, response: ");
-          logging->debug(resp);
-
-          //  Send reply back to client
-          zmqi->send(resp);
-          logging->debug("Response Sent");
+          main_logging->debug("Current Event Type set to Object Get");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
-            dm->get_objectd( d );
+
+            //Get the object
+            object_key = dm->get_object( translated_object, tran_id_str );
+
+            //Add the Object Key to the Response
+            resp->set_object_id(object_key);
+
+            //Send the response
+            zmqi->send(resp->to_json());
+            main_logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
-            dm->get_objectpb (new_proto);
+
+            //Get the object
+            object_key = dm->get_object (translated_object, tran_id_str );
+
+            //Add the Object Key to the Response
+            resp->set_object_id(object_key);
+
+            //Send the response
+            zmqi->send(response_to_protobuffer(resp));
+            main_logging->debug("Response Sent");
           }
 
+          if (!translated_object)
+          {
+            if (resp->get_error_code() == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found");
+            }
+            main_logging->debug("Translated Object not found");
+          }
+          else
+          {
+            if (!object_key.empty()) {
+              cb->load_object( object_key.c_str() );
+              cb->wait();
+            }
+            else
+            {
+              main_logging->debug("Message recieved without key");
+              resp->set_error(BAD_REQUEST_ERROR, "Message recieved without key");
+            }
+          }
         }
+
         else if (msg_type == OBJ_DEL) {
-          logging->debug("Current Event Type set to Object Delete");
-
-          resp = "success";
-          logging->debug("Object Delete Event Emitted, response: ");
-          logging->debug(resp);
-
-          //  Send reply back to client
-          zmqi->send(resp);
-          logging->debug("Response Sent");
+          main_logging->debug("Current Event Type set to Object Delete");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
-            dm->delete_objectd( d );
+
+            //Delete the object
+            object_key = dm->delete_object( translated_object, tran_id_str );
+
+            //Add the Object Key to the Response
+            resp->set_object_id(object_key);
+
+            //Send the response
+            zmqi->send(resp->to_json());
+            main_logging->debug("Response Sent");
           }
           else if (cm->get_mfprotobuf()) {
-            dm->delete_objectpb(new_proto);
+
+            //Delete the object
+            object_key = dm->delete_object( translated_object, tran_id_str );
+
+            //Add the Object Key to the Response
+            resp->set_object_id(object_key);
+
+            //Send the response
+            zmqi->send(response_to_protobuffer(resp));
+            main_logging->debug("Response Sent");
           }
 
+          if (!translated_object)
+          {
+            if (resp->get_error_code() == NOERROR) {
+              resp->set_error(TRANSLATION_ERROR, "Translated Object not found");
+            }
+            main_logging->debug("Translated Object not found");
+          }
+          else
+          {
+            if (!object_key.empty()) {
+              cb->delete_object( object_key.c_str() );
+              cb->wait();
+            }
+            else
+            {
+              main_logging->debug("Message recieved without key");
+              resp->set_error(BAD_REQUEST_ERROR, "Message recieved without key");
+            }
+          }
         }
+
         //Shutdown Message
         else if (msg_type == KILL) {
 
           //Send a success response
-          resp = "success";
-          zmqi->send(resp);
+          if (cm->get_mfjson()) {
+            zmqi->send(resp->to_json());
+          }
+          else if (cm->get_mfprotobuf()) {
+            zmqi->send(response_to_protobuffer(resp));
+          }
 
           shutdown();
 
           return 0;
         }
-        else if (msg_type == PING) {
-          logging->debug("Healthcheck Responded to");
-          resp = "success";
-          zmqi->send(resp);
-        }
-        else {
-          logging->error("Current Event Type not found");
 
-          resp = "failure";
-          logging->error("Object Event not Emitted, response: ");
-          logging->error(resp);
+        //Healthcheck message
+        else if (msg_type == PING) {
+          main_logging->debug("Healthcheck Responded to");
+          if (cm->get_mfjson()) {
+            zmqi->send(resp->to_json());
+          }
+          else if (cm->get_mfprotobuf()) {
+            zmqi->send(response_to_protobuffer(resp));
+          }
+        }
+
+        //Message type failure
+        else {
+          main_logging->error("Current Event Type not found");
+
+          resp->set_error(BAD_REQUEST_ERROR, "No Message type found");
+          main_logging->error("Object Event not Emitted, response: ");
 
           //  Send reply back to client
-          zmqi->send(resp);
-          logging->debug("Response Sent");
+          if (cm->get_mfjson()) {
+            zmqi->send(resp->to_json());
+          }
+          else if (cm->get_mfprotobuf()) {
+            zmqi->send(response_to_protobuffer(resp));
+          }
+          main_logging->debug("Response Sent");
+        }
+
+        //Clear the response
+        resp->clear();
+
+        //Clear the translated object
+        if (!translated_object) {
+          main_logging->debug("Translated Object not found for deletion");
+        }
+        else {
+          delete translated_object;
+          translated_object = NULL;
         }
       }
 

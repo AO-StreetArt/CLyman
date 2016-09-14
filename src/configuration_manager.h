@@ -16,6 +16,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include "lyman_log.h"
+
 #include "aossl/factory.h"
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/consul_interface.h"
@@ -63,6 +65,8 @@ int SUB_Duration;
 std::vector<RedisConnChain> RedisConnectionList;
 std::string HealthCheckScript;
 int HealthCheckInterval;
+bool StampTransactionId;
+bool SendOutboundFailureMsg;
 
 //String Manipulations
 
@@ -86,7 +90,8 @@ public:
     DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; \
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
-          RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;isConsulActive=false;}
+          RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;\
+            isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;}
   ~ConfigurationManager();
 
   //Populate the configuration variables
@@ -105,6 +110,8 @@ public:
   bool get_rfprotobuf() {return RedisFormatProtoBuf;}
   int get_subduration() {return SUB_Duration;}
   std::vector<RedisConnChain> get_redisconnlist() {return RedisConnectionList;}
+  bool get_transactionidsactive() {return StampTransactionId;}
+  bool get_sendobfailuresactive() {return SendOutboundFailureMsg;}
 };
 
 #endif

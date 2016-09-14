@@ -33,4 +33,7 @@ message Obj3 {
   optional Matrix4 transform = 12;
   optional Matrix4 bounding_box = 13;
   repeated string scenes = 14;
+  optional string transaction_id = 15;
+  optional string mesh_id = 16;
+  optional string error_message = 17;
 }

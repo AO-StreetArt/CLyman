@@ -5,7 +5,7 @@ CC = g++
 SLC = ar rcs
 CFLAGS  = -g -Wall
 STD = -std=c++11
-OBJS = src/Obj3.pb.cc src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main.o
+OBJS = src/Obj3.pb.cc src/Response.pb.cc src/lyman_log.o src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main.o
 TESTS = redis_test obj3_test configuration_test
 BENCHMARKS = obj3_benchmark redis_benchmark main_benchmark
 LIBS = -lpthread -llog4cpp
@@ -13,11 +13,10 @@ FULL_LIBS = -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid
 
 PROTOC = protoc
 PROTO_OPTS = -I=src
-PROTO = src/Obj3.proto
 
 # -------------------------- Central Targets --------------------------------- #
 
-lyman: $(OBJS) scripts/Obj3_pb2.py
+lyman: $(OBJS) scripts/Obj3_pb2.py scripts/Response_pb2.py
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(FULL_LIBS) $(STD)
 
 test: $(TESTS)
@@ -68,14 +67,23 @@ main_benchmark.o: main_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto src/
 
 # ---------------------------- Main Project ---------------------------------- #
 
-scripts/Obj3_pb2.py: $(PROTO)
-	$(PROTOC) $(PROTO_OPTS) --python_out=scripts $(PROTO)
+src/lyman_log.o: src/lyman_log.cpp src/lyman_log.h
+	$(CC) $(CFLAGS) -o $@ -c src/lyman_log.cpp $(STD)
+
+scripts/Obj3_pb2.py: src/Obj3.proto
+	$(PROTOC) $(PROTO_OPTS) --python_out=scripts src/Obj3.proto
+
+scripts/Response_pb2.py: src/Response.proto
+	$(PROTOC) $(PROTO_OPTS) --python_out=scripts src/Response.proto
 
 src/configuration_manager.o: src/configuration_manager.cpp src/configuration_manager.h
 	$(CC) $(CFLAGS) -o $@ -c src/configuration_manager.cpp $(STD)
 
-src/Obj3.pb.cc: $(PROTO)
-	$(PROTOC) $(PROTO_OPTS) --cpp_out=src $(PROTO)
+src/Obj3.pb.cc: src/Obj3.proto
+	$(PROTOC) $(PROTO_OPTS) --cpp_out=src src/Obj3.proto
+
+src/Response.pb.cc: src/Response.proto
+	$(PROTOC) $(PROTO_OPTS) --cpp_out=src src/Response.proto
 
 src/obj3.o: src/obj3.cpp src/obj3.h src/Obj3.pb.cc
 	$(CC) $(CFLAGS) -o $@ -c src/obj3.cpp $(STD)
@@ -92,7 +100,7 @@ main.o: main.cpp src/couchbase_callbacks.h src/lyman_utils.h
 # --------------------------- Clean Project ---------------------------------- #
 
 clean_local:
-	$(RM) lyman *.o src/*.o *~ *.log *.log.*
+	$(RM) lyman *.o src/*.o *~ *.log *.log.* src/*.pb.cc src/*.pb.h scripts/*_pb2.py scripts/*_pb2.pyc
 
 clean_tests:
 	$(RM) *_test
