@@ -94,8 +94,9 @@ std::string DocumentManager::get_object(Obj3 *new_obj, std::string transaction_i
   //Clear the active update buffer for this object prior to executing the get
   if (cm->get_transactionidsactive()) {
     while (xRedis->exists(rkc_str) == true) {
-      cb->load_object( rkc_str );
-      cb->wait();
+      // cb->load_object( rkc_str );
+      // cb->wait();
+      doc_logging->debug("Collision detected in Update Buffer");
     }
 
     put_to_redis(new_obj, OBJ_GET, transaction_id);
