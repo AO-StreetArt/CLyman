@@ -8,11 +8,11 @@ This will require Docker installed on the development computer.
 
 The Development Docker image for CLyman-Dev is ready for active use, and can be run with the command:
 
-`docker run --name clyman -d aostreetart/clyman-dev`
+`docker run --name clyman -d aostreetart/clyman`
 
 Congratulations, you've got a fully functional build & test environment for CLyman!  You can connect to it with:
 
-`sudo docker exec -i -t aossl-devel /bin/bash`
+`sudo docker exec -i -t clyman /bin/bash`
 
 For a more detailed discussion on the deployment of CLyman, please see the [Deployment] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/deploy) section of the documentation.  For now, once you are into the Docker instance, you can run the below command to start CLyman.  You can also execute 'make', 'make test', 'make benchmark', etc.
 
