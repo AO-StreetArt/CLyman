@@ -164,7 +164,7 @@ inline std::string send_outbound_msg(std::string message_string)
   return out_resp;
 }
 
-inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type)
+inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type, std::string transaction_id)
 {
 
   //We have a get message
@@ -228,13 +228,8 @@ inline std::string default_callback (Request *r, int inp_msg_type)
 
   //Cut the Key off of the object string
   std::size_t obj_char_position = obj_string.find("{");
-  std::string cleaned_obj_string = "";
   if (obj_char_position != std::string::npos && obj_char_position != 0) {
-    cleaned_obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
-  }
-  else
-  {
-    cleaned_obj_string = obj_string;
+    obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
   }
 
   //Actions when the storage operation is successful
@@ -244,17 +239,16 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     //When we have a create message, we can take the response string and parse it to find our DB Object
     if (inp_msg_type == OBJ_CRT) {
       callback_logging->debug("Stored:");
-      db_object = set_db_response_object(cleaned_obj_string);
+      db_object = set_db_response_object(obj_string);
     }
     else if (inp_msg_type == OBJ_DEL) {
       callback_logging->debug("Deleted:");
     }
     else if (inp_msg_type == OBJ_GET) {
       callback_logging->debug("Retrieved:");
-      db_object = set_db_response_object(cleaned_obj_string);
+      db_object = set_db_response_object(obj_string);
     }
-    callback_logging->debug(cleaned_obj_string);
-    callback_logging->debug(obj_data_string);
+    callback_logging->debug(obj_string);
 
     //Determine if we have a DB Response Object.  If not, then we either have an error
     //Or we have a delete message
@@ -331,7 +325,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         callback_logging->debug(transaction_id);
         //Build the outbound message
         object_string = create_response(db_object, message_type, transaction_id);
-        object_string = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type);
+        object_string = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
       }
     }
 
