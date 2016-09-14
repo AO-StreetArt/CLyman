@@ -226,10 +226,15 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     obj_string = r->req_addr;
   }
 
-  //Cut the Key off of the object string
+  //Clean the object string from the DB
   std::size_t obj_char_position = obj_string.find("{");
   if (obj_char_position != std::string::npos && obj_char_position != 0) {
     obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
+  }
+
+  std::size_t obj_char_position = obj_string.find("}");
+  if (obj_char_position != std::string::npos && obj_char_position != obj_string.length() {
+    obj_string = obj_string.substr(0, obj_char_position);
   }
 
   //Actions when the storage operation is successful
