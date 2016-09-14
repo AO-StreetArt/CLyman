@@ -179,7 +179,8 @@ inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std
       callback_logging->debug("Smart Update Logic Activated");
       //Now, we can compare the two and apply any updates from the
       //object list to the object returned from the database
-      db_object->transform( new_obj );
+      db_object->transform( redis_object );
+      std::string key_string = db_object->get_key();
 
       //Remove the element from the smart updbate buffer
       if (xRedis->exists(key_string.c_str())) {
@@ -187,10 +188,10 @@ inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std
       }
 
       //Replace the element in the smart update buffer
-      dm->put_to_redis(new_obj, OBJ_UPD, transaction_id);
+      dm->put_to_redis(redis_object, OBJ_UPD, transaction_id);
 
       //Save the resulting object back to the DB
-      cb->save_object (new_obj);
+      cb->save_object (redis_object);
       cb->wait();
       return "";
     }
@@ -212,15 +213,17 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   std::string out_resp = "";
   rapidjson::Document d;
   std::string resp_err_string;
+  std::string obj_string
+  std::string response_key;
 
   callback_logging->debug("Pulling Request Data");
 
   //Get the Object String from the Request Data
   if (inp_msg_type == OBJ_GET) {
-    std::string obj_string = r->req_data;
+    obj_string = r->req_data;
   }
   else {
-    std::string obj_string = r->req_addr;
+    obj_string = r->req_addr;
   }
 
   //Cut the Key off of the object string
