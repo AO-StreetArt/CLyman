@@ -210,6 +210,7 @@ inline std::string clean_db_string (std::string obj_string) {
   if (obj_char_position != std::string::npos && obj_char_position != obj_string.length()) {
     obj_string = obj_string.substr(0, obj_char_position);
   }
+  return obj_string;
 }
 
 inline std::string default_callback (Request *r, int inp_msg_type)
