@@ -213,7 +213,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   std::string out_resp = "";
   rapidjson::Document d;
   std::string resp_err_string;
-  std::string obj_string
+  std::string obj_string;
   std::string response_key;
 
   callback_logging->debug("Pulling Request Data");
