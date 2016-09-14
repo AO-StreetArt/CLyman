@@ -351,6 +351,9 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     else if (inp_msg_type == OBJ_DEL) {
       callback_logging->error("Failed to Delete");
     }
+    else if (inp_msg_type == OBJ_GET) {
+      callback_logging->error("Failed to Retrieve");
+    }
     callback_logging->error(response_key);
     callback_logging->error(resp_err_string);
 
