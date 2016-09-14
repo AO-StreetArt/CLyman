@@ -199,6 +199,19 @@ inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std
   return object_string;
 }
 
+inline std::string clean_db_string (std::string obj_string) {
+  //Clean the object string from the DB
+  std::size_t obj_char_position = obj_string.find("{");
+  if (obj_char_position != std::string::npos && obj_char_position != 0) {
+    obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
+  }
+
+  obj_char_position = obj_string.find("}");
+  if (obj_char_position != std::string::npos && obj_char_position != obj_string.length() {
+    obj_string = obj_string.substr(0, obj_char_position);
+  }
+}
+
 inline std::string default_callback (Request *r, int inp_msg_type)
 {
   callback_logging->info("Default Couchbase Callback Triggered");
@@ -227,15 +240,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   }
 
   //Clean the object string from the DB
-  std::size_t obj_char_position = obj_string.find("{");
-  if (obj_char_position != std::string::npos && obj_char_position != 0) {
-    obj_string = obj_string.substr(obj_string.find("{"), obj_string.length());
-  }
-
-  obj_char_position = obj_string.find("}");
-  if (obj_char_position != std::string::npos && obj_char_position != obj_string.length() {
-    obj_string = obj_string.substr(0, obj_char_position);
-  }
+  obj_string = clean_db_string(obj_string);
 
   //Actions when the storage operation is successful
   if (r->req_err->err_code == NOERROR)
