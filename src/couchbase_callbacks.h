@@ -207,7 +207,7 @@ inline std::string clean_db_string (std::string obj_string) {
   }
 
   obj_char_position = obj_string.find("}");
-  if (obj_char_position != std::string::npos && obj_char_position != obj_string.length() {
+  if (obj_char_position != std::string::npos && obj_char_position != obj_string.length()) {
     obj_string = obj_string.substr(0, obj_char_position);
   }
 }
