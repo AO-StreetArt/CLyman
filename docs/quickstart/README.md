@@ -8,7 +8,7 @@ This will require Docker installed on the development computer.
 
 The Development Docker image for CLyman-Dev is ready for active use, and can be run with the command:
 
-`docker run --name clyman -d aostreetart/clyman`
+`docker run --name clyman -d aostreetart/clyman-automated-build`
 
 Congratulations, you've got a fully functional build & test environment for CLyman!  You can connect to it with:
 
