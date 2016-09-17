@@ -230,11 +230,11 @@ class Obj3: public Writeable
 
 		//Exist methods
 		bool has_location() {return locn_flag;}
-		bool has_rotatione() {return locn_flag;}
-		bool has_rotationq() {return locn_flag;}
-		bool has_scaling() {return locn_flag;}
-		bool has_transforms() {return locn_flag;}
-		bool has_bounds() {return locn_flag;}
+		bool has_rotatione() {return rote_flag;}
+		bool has_rotationq() {return rotq_flag;}
+		bool has_scaling() {return scl_flag;}
+		bool has_transforms() {return trns_flag;}
+		bool has_bounds() {return boun_flag;}
 
 		//Getters
     std::string get_owner() const {return owner;}
