@@ -36,4 +36,5 @@ message Obj3 {
   optional string transaction_id = 15;
   optional string mesh_id = 16;
   optional string error_message = 17;
+  optional string transform_type=false;
 }

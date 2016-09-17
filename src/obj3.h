@@ -33,6 +33,7 @@ class Obj3: public Writeable
 		std::string mesh_id;
 		std::string err_string;
 		int mes_type;
+		bool global_transform_type;
 
 		//Externally Referenceable data
 		//Float Matrix for location
@@ -94,7 +95,7 @@ class Obj3: public Writeable
 		//Constructors & Destructor
 
 		//Basic constructor with no params
-		Obj3() {name = ""; key = ""; type = ""; subtype = ""; initialize_matrices(); owner=""; is_locked=false; lock_owner="";}
+		Obj3() {name = ""; key = ""; type = ""; subtype = ""; initialize_matrices(); owner=""; is_locked=false; lock_owner="";global_transform_type=false;}
 
 		//Constructor accepting Protocol Buffer
 		Obj3(protoObj3::Obj3 buffer);
@@ -103,35 +104,35 @@ class Obj3: public Writeable
 		Obj3(const rapidjson::Document& d);
 
 		//String-Only Constructors
-		Obj3(std::string iname, std::string ikey){name = iname; key = ikey; type = ""; subtype = ""; initialize_matrices();owner="";is_locked=false; lock_owner="";}
-		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype) {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner="";is_locked=false; lock_owner="";}
-		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner) {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";}
+		Obj3(std::string iname, std::string ikey){name = iname; key = ikey; type = ""; subtype = ""; initialize_matrices();owner="";is_locked=false; lock_owner="";global_transform_type=false;}
+		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype) {global_transform_type=false;name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner="";is_locked=false; lock_owner="";}
+		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner) {global_transform_type=false;name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";}
 
 		//Matrix Constructors
 		//Location only
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;locn_flag = true;}
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;locn_flag = true;global_transform_type=false;}
 
 		//Transform  only
 						Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Matrix4d itransform)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";transform_matrix=itransform;trns_flag=true;}
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";transform_matrix=itransform;trns_flag=true;global_transform_type=false;}
 
 
 		//Location & Bounding Box
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;}
+{global_transform_type=false;name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;global_transform_type=false;}
 
 		//Location, Transform, & Bounding Box
                 Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;}
+{global_transform_type=false;name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;}
 
 		//Location, Rotation, Scale, Transform, & Bounding Box
                 Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;rote_flag=true;rotq_flag=true;scl_flag=true;}
+{global_transform_type=false;name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;rote_flag=true;rotq_flag=true;scl_flag=true;}
 
                 //All elements
                 Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, std::vector<std::string> scns, Eigen::Vector3d ilocation, Eigen::Vector3d irotatione, Eigen::Vector4d irotationq, Eigen::Vector3d iscale, Eigen::Matrix4d itransform, Eigen::MatrixXd ibounding_box)
-{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = scns;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;rote_flag=true;rotq_flag=true;scl_flag=true;}
+{global_transform_type=false;name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";scene_list = scns;location=ilocation;rotation_euler=irotatione;rotation_quaternion=irotationq;scaling=iscale;transform_matrix=itransform;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;trns_flag=true;rote_flag=true;rotq_flag=true;scl_flag=true;}
 
 		//Transformation Methods
 
@@ -228,6 +229,11 @@ class Obj3: public Writeable
 		//Set an error
 		void set_error(std::string err_msg) {err_string = err_msg;}
 
+		//message type
+		bool set_global_transform_type(bool new_trans_type) {if (is_locked==false) {global_transform_type=new_trans_type; return true;} else {return false;}}
+		bool set_global_transform_type(bool new_trans_type, std::string device_id){if (is_locked==false || lock_owner==device_id) {global_transform_type=new_trans_type; return true;} else {return false;}}
+
+
 		//Exist methods
 		bool has_location() {return locn_flag;}
 		bool has_rotatione() {return rote_flag;}
@@ -245,6 +251,7 @@ class Obj3: public Writeable
 		std::string get_transaction_id() const {return app_transaction_id;}
 		std::string get_mesh_id() const {return mesh_id;}
 		std::string get_error() const {return err_string;}
+		bool is_global_trans_type() const {return global_transform_type;}
 		int get_message_type() const {return mes_type;}
 		double get_locx() const {return location(0);}
 		double get_locy() const {return location(1);}

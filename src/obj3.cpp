@@ -39,6 +39,7 @@ void Obj3::initialize_matrices()
 
 Obj3::Obj3(protoObj3::Obj3 buffer)
 {
+	global_transform_type=false;
 	obj_logging->debug("Build Proto-Object Called");
   std::string new_name="";
   std::string new_key="";
@@ -86,6 +87,12 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	}
 	if (buffer.has_mesh_id()) {
 		new_mesh_id = buffer.mesh_id();
+	}
+	if (buffer.has_transform_type()) {
+		if (buffer.transform_type() == "global")
+		{
+			global_transform_type = true;
+		}
 	}
   if (buffer.has_location()) {
     protoObj3::Obj3_Vertex3 loc = buffer.location();
@@ -185,6 +192,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 
 Obj3::Obj3(const rapidjson::Document& d)
 {
+	global_transform_type=false;
 	obj_logging->debug("Build Object Called");
 
   //Building replacement variables
@@ -257,6 +265,14 @@ Obj3::Obj3(const rapidjson::Document& d)
       lock_val = &d["lock_device_id"];
       new_lock_id = lock_val->GetString();
     }
+		if (d.HasMember("transform_type")) {
+			const rapidjson::Value *tran_type;
+      tran_type = &d["lock_device_id"];
+      tran_type_str = tran_type->GetString();
+			if (tran_type_str == "global") {
+				global_transform_type = true;
+			}
+		}
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
       const rapidjson::Value& loc = d["location"];
@@ -625,7 +641,7 @@ void Obj3::transform_object(Obj3 *temp_obj)
 //----------------------------------------------------------------------------//
 
 //Convert the object to JSON Message
-std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
+std::string Obj3::to_json_msg(int msg_type, std::string trans_id, bool write_transform_type) const {
 	obj_logging->info("Obj3:To JSON message Called on object");
 	obj_logging->info(key);
 	//Initialize the string buffer and writer
@@ -763,6 +779,12 @@ std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
 		writer.String(err_string.c_str(), (SizeType)err_string.length());
 	}
 
+	if (global_transform_type && write_transform_type) {
+		writer.Key("transform_type");
+		std::string tt_str = "true";
+		writer.String( tt_str.c_str(), (SizeType)tt_str.length() );
+	}
+
 	writer.EndObject();
 
 	//The Stringbuffer now contains a json message
@@ -772,20 +794,27 @@ std::string ret_string (ret_val);
 	return ret_string;
 }
 
+std::string Obj3::to_json_msg(int msg_type, std::string transact_id) const
+{
+	std::string trans_id = "";
+	return to_json_msg(msg_type, transact_id, true);
+}
+
+
 std::string Obj3::to_json_msg(int msg_type) const
 {
 	std::string trans_id = "";
-	return to_json_msg(msg_type, trans_id);
+	return to_json_msg(msg_type, trans_id, true);
 }
 
 std::string Obj3::to_json()
 {
 	std::string trans_id = "";
 	int msg_type = -1;
-	return to_json_msg(msg_type, trans_id);
+	return to_json_msg(msg_type, trans_id, false);
 }
 
-void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const {
+void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto, bool write_transform_type) const {
 	if (!key.empty()) {
 		new_proto->set_key(key);
 		obj_logging->debug("Obj3: Key = ");
@@ -825,6 +854,10 @@ void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const {
 		new_proto->set_mesh_id(mesh_id);
 		obj_logging->debug("Obj3: Lock Owner = ");
 		obj_logging->debug(lock_owner);
+	}
+	if (global_transform_type && write_transform_type) {
+		new_proto->set_transform_type("global");
+		obj_logging->debug("Obj3: Global transform type set on message");
 	}
 	if (locn_flag) {
 		protoObj3::Obj3_Vertex3 *loc = new_proto->mutable_location();
@@ -890,7 +923,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	if (!app_transaction_id.empty()) {
 		new_proto->set_transaction_id(app_transaction_id);
 	}
-	to_base_protobuf_msg(new_proto);
+	to_base_protobuf_msg(new_proto, true);
 	std::string wstr;
   new_proto->SerializeToString(&wstr);
 	obj_logging->debug("Protocol Buffer Serialized to String");
@@ -911,7 +944,7 @@ std::string Obj3::to_protobuf_msg(int msg_type, std::string trans_id) const
 	if (!trans_id.empty()) {
 		new_proto->set_transaction_id(trans_id);
 	}
-	to_base_protobuf_msg(new_proto);
+	to_base_protobuf_msg(new_proto, true);
 	std::string wstr;
   new_proto->SerializeToString(&wstr);
 	obj_logging->debug("Protocol Buffer Serialized to String");
