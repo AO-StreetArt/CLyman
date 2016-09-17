@@ -39,7 +39,7 @@ obj3_test: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_test.o
 src/obj3_test.o: src/test/obj3_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/obj3_test.cpp $(STD)
 
-configuration_test: src.lyman_log.o src/configuration_manager.o src/configuration_test.o
+configuration_test: src/lyman_log.o src/configuration_manager.o src/configuration_test.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
 
 src/configuration_test.o: src/test/configuration_test.cpp src/configuration_manager.cpp src/configuration_manager.h
