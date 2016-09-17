@@ -89,7 +89,7 @@ class Obj3: public Writeable
 		void transform_object(double trans_matrix[]);
 
 		//Base protobuffer message
-		void to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const;
+		void to_base_protobuf_msg(protoObj3::Obj3 *new_proto, bool write_transform_type) const;
 
 	public:
 		//Constructors & Destructor
@@ -294,7 +294,13 @@ class Obj3: public Writeable
 		//Convert the object to JSON Message
     std::string to_json_msg(int msg_type, std::string trans_id) const;
 
+		//Convert the object to JSON Message
+    std::string to_json_msg(int msg_type, std::string trans_id, bool write_transform_type) const;
+
 		//Convert the object to a protocol buffer message
 		std::string to_protobuf_msg(int msg_type, std::string trans_id) const;
+
+		//Convert the object to a protocol buffer message
+		std::string to_protobuf_msg(int msg_type, std::string trans_id, bool write_transform_type) const;
 };
 #endif

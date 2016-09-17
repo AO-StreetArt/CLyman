@@ -268,7 +268,7 @@ Obj3::Obj3(const rapidjson::Document& d)
 		if (d.HasMember("transform_type")) {
 			const rapidjson::Value *tran_type;
       tran_type = &d["lock_device_id"];
-      tran_type_str = tran_type->GetString();
+      std::string tran_type_str = tran_type->GetString();
 			if (tran_type_str == "global") {
 				global_transform_type = true;
 			}
