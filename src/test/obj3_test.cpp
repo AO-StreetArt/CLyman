@@ -384,7 +384,7 @@ assert( is_equal(base_obj_transform(2, 2), 1.0, compare_threshold) );
 //Translation of <1, 1, 1>, scale of <2, 2, 2>
 base_obj2.transform(trans_obj2);
 
-Eigen::Matrix4d base_obj2_transform = base_obj.get_transform();
+Eigen::Matrix4d base_obj2_transform = base_obj2.get_transform();
 
 assert( is_equal(base_obj2_transform(0, 3), 2.0, compare_threshold) );
 assert( is_equal(base_obj2_transform(1, 3), 2.0, compare_threshold) );

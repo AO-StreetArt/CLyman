@@ -579,22 +579,22 @@ void Obj3::transform_object(Obj3 *temp_obj)
 	{
 		if (temp_obj->has_location()) {
 			obj_logging->debug("Location Transformation Detected");
-			translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+			translate_object(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz());
 		}
 
 		if (temp_obj->has_rotatione()) {
 			obj_logging->debug("Euler Rotation Transformation Detected");
-			rotate(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez());
+			rotate_object(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez());
 		}
 
 		if (temp_obj->has_rotationq()) {
 			obj_logging->debug("Quaternion Rotation Transformation Detected");
-			rotate(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz());
+			rotate_object(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz());
 		}
 
 		if (temp_obj->has_scaling()) {
 			obj_logging->debug("Scale Transformation Detected");
-			resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+			scale_object(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
 		}
 	}
 
