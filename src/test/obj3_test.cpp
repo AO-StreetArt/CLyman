@@ -252,11 +252,53 @@ print_obj_attributes(obj5);
 //TO-DO: Asserts to check the transformations
 
 //Check the Smart update
+
+//Set up some base matrices
+Eigen::Vector3d trans_location=Eigen::Vector3d::Zero(3);
+Eigen::Matrix4d trans_transform=Eigen::Matrix4d::Zero(4, 4);
+
+//translation
+trans_location(0) = 1.0;
+trans_location(1) = 1.0;
+trans_location(2) = 1.0;
+
+//Transform (Scale * 2, translation + 1 along each axis)
+trans_transform(0, 0) = 2.0;
+trans_transform(1, 1) = 2.0;
+trans_transform(2, 2) = 2.0;
+trans_transform(0, 3) = 1.0;
+trans_transform(1, 3) = 1.0;
+trans_transform(2, 3) = 1.0;
+trans_transform(3, 3) = 1.0;
+
+//Build our objects for the transforms
 Obj3 base_obj (name, key, type, subtype, owner, scns, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
-Obj3 trans_obj1 (name, key, type, subtype, owner, scns, new_location);
-Obj3 trans_obj2 (name, key, type, subtype, owner, scns, new_rotatione);
-Obj3 trans_obj3 (name, key, type, subtype, owner, scns, new_rotationq);
-Obj3 trans_obj4 (name, key, type, subtype, owner, scns, new_transform);
+Obj3 *trans_obj1 = new Obj3 (name, key, type, subtype, owner, trans_location);
+Obj3 *trans_obj2 = new Obj3 (name, key, type, subtype, owner, trans_transform);
+Obj3 *trans_obj3 = new Obj3 (name, key, type, subtype, owner, trans_location, trans_transform, new_bounding_box);
+
+//Apply our smart updates
+std::cout << "Base Object after smart update translation of 1 on x, y, and z axis:" << std::endl;
+print_obj_attributes(base_obj);
+
+//Translation of <1, 1, 1>
+base_obj.transform(trans_obj1);
+std::cout << "Base Object after smart update translation of 1 on x, y, and z axis:" << std::endl;
+print_obj_attributes(base_obj);
+
+//Translation of <1, 1, 1>, scale of <2, 2, 2>
+base_obj.transform(trans_obj2);
+std::cout << "Base Object after smart update scale of 2 on x, y, and z axis:" << std::endl;
+print_obj_attributes(base_obj);
+
+//Translation of <1, 1, 1>
+base_obj.transform(trans_obj3);
+std::cout << "Base Object after smart update translation of 1 on x, y, and z axis, overriding transform matrix:" << std::endl;
+print_obj_attributes(base_obj);
+
+delete trans_obj1;
+delete trans_obj2;
+delete trans_obj3;
 
 //------------------------JSON & Protocol Buffer Tests------------------------//
 //----------------------------------------------------------------------------//

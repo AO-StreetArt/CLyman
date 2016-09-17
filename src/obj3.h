@@ -112,6 +112,11 @@ class Obj3: public Writeable
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation)
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;locn_flag = true;}
 
+		//Transform  only
+						Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Matrix4d itransform)
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";transform_matrix=itransform;trns_flag=true;}
+
+
 		//Location & Bounding Box
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::MatrixXd ibounding_box)
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;}
