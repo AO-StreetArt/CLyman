@@ -12,6 +12,8 @@
 
 #include "aossl/factory/redis_interface.h"
 
+#include "../lyman_log.h"
+
 #include <assert.h>
 
 //Main Method
