@@ -27,7 +27,7 @@ clean: clean_local clean_tests clean_benchmarks
 
 # ------------------------------- Tests -------------------------------------- #
 
-redis_test: src/lyman_log.h src/redis_test.o
+redis_test: src/lyman_log.o src/redis_test.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
 
 src/redis_test.o: src/test/redis_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
