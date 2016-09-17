@@ -6,6 +6,7 @@
 #include <math.h>
 #include "aossl/factory/logging_interface.h"
 #include "aossl/factory.h"
+#include <cmath>
 
 #include <assert.h>
 
@@ -14,6 +15,12 @@ using namespace Eigen;
 //----------------------------------------------------------------------------//
 //----------------------------Utility Methods---------------------------------//
 //----------------------------------------------------------------------------//
+
+bool is_equal(double num1, double num2, double threshold)
+{
+  if (std::abs(num1 - num2) < threshold) {return true;}
+  return false;
+}
 
 void print_obj_attributes(Obj3& obj)
 {
@@ -53,11 +60,16 @@ ServiceComponentFactory *factory = new ServiceComponentFactory;
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
 
-std::string initFileName = "src/test/log4cpp_test.properties";
+std::string initFileName = "log4cpp.properties";
 logging = factory->get_logging_interface(initFileName);
+
+//Set up the logging submodules for each category
+start_logging_submodules();
 
 //----------------------------Basic Tests-------------------------------------//
 //----------------------------------------------------------------------------//
+
+double compare_threshold = 0.01;
 
 std::string name;
 std::string key;
@@ -230,23 +242,175 @@ obj5.resize(2.0, 2.0, 2.0);
 std::cout << "Object 5 after scale of 2 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
 
+Eigen::Matrix4d obj5_transform = obj5.get_transform();
+
+assert( is_equal(obj5_transform(0, 3), 2.0, compare_threshold) );
+assert( is_equal(obj5_transform(1, 3), 2.0, compare_threshold) );
+assert( is_equal(obj5_transform(2, 3), 2.0, compare_threshold) );
+assert( is_equal(obj5_transform(3, 3), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform(0, 0), 2.0, compare_threshold) );
+assert( is_equal(obj5_transform(1, 1), 2.0, compare_threshold) );
+assert( is_equal(obj5_transform(2, 2), 2.0, compare_threshold) );
+
 obj5.rotate(45.0, 0.0, 0.0);
 std::cout << "Object 5 after rotation of 45 degrees about x axis:" << std::endl;
 print_obj_attributes(obj5);
 
-obj5.rotate(0.0, 0.0, 45.0);
+Eigen::Matrix4d obj5_transform2= obj5.get_transform();
+
+assert( is_equal(obj5_transform2(0, 0), 2.0, compare_threshold) );
+assert( is_equal(obj5_transform2(1, 0), 0.0, compare_threshold) );
+assert( is_equal(obj5_transform2(2, 0), 0.0, compare_threshold) );
+assert( is_equal(obj5_transform2(3, 0), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform2(0, 1), 0.0, compare_threshold) );
+assert( is_equal(obj5_transform2(1, 1), 1.414, compare_threshold) );
+assert( is_equal(obj5_transform2(2, 1), 1.414, compare_threshold) );
+assert( is_equal(obj5_transform2(3, 1), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform2(0, 2), 0.0, compare_threshold) );
+assert( is_equal(obj5_transform2(1, 2), -1.414, compare_threshold) );
+assert( is_equal(obj5_transform2(2, 2), 1.414, compare_threshold) );
+assert( is_equal(obj5_transform2(3, 2), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform2(0, 3), 2.0, compare_threshold) );
+assert( is_equal(obj5_transform2(1, 3), 0.0, compare_threshold) );
+assert( is_equal(obj5_transform2(2, 3), 2.83, compare_threshold) );
+assert( is_equal(obj5_transform2(3, 3), 1.0, compare_threshold) );
+
+obj5.rotate(0.0, 45.0, 0.0);
 std::cout << "Object 5 after rotation of 45 degrees about y axis:" << std::endl;
 print_obj_attributes(obj5);
 
-obj5.rotate(0.0, 45.0, 0.0);
+Eigen::Matrix4d obj5_transform3= obj5.get_transform();
+
+assert( is_equal(obj5_transform3(0, 0), 1.414, compare_threshold) );
+assert( is_equal(obj5_transform3(1, 0), 0.0, compare_threshold) );
+assert( is_equal(obj5_transform3(2, 0), -1.414, compare_threshold) );
+assert( is_equal(obj5_transform3(3, 0), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform3(0, 1), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform3(1, 1), 1.414, compare_threshold) );
+assert( is_equal(obj5_transform3(2, 1), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform3(3, 1), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform3(0, 2), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform3(1, 2), -1.414, compare_threshold) );
+assert( is_equal(obj5_transform3(2, 2), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform3(3, 2), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform3(0, 3), 3.414, compare_threshold) );
+assert( is_equal(obj5_transform3(1, 3), 0.0, compare_threshold) );
+assert( is_equal(obj5_transform3(2, 3), 0.586, compare_threshold) );
+assert( is_equal(obj5_transform3(3, 3), 1.0, compare_threshold) );
+
+obj5.rotate(0.0, 0.0, 45.0);
 std::cout << "Object 5 after rotation of 45 degrees about z axis:" << std::endl;
 print_obj_attributes(obj5);
+
+Eigen::Matrix4d obj5_transform4= obj5.get_transform();
+
+assert( is_equal(obj5_transform4(0, 0), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform4(1, 0), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform4(2, 0), -1.414, compare_threshold) );
+assert( is_equal(obj5_transform4(3, 0), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform4(0, 1), -0.292, compare_threshold) );
+assert( is_equal(obj5_transform4(1, 1), 1.707, compare_threshold) );
+assert( is_equal(obj5_transform4(2, 1), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform4(3, 1), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform4(0, 2), 1.707, compare_threshold) );
+assert( is_equal(obj5_transform4(1, 2), -0.292, compare_threshold) );
+assert( is_equal(obj5_transform4(2, 2), 1.0, compare_threshold) );
+assert( is_equal(obj5_transform4(3, 2), 0.0, compare_threshold) );
+
+assert( is_equal(obj5_transform4(0, 3), 2.414, compare_threshold) );
+assert( is_equal(obj5_transform4(1, 3), 2.414, compare_threshold) );
+assert( is_equal(obj5_transform4(2, 3), 0.586, compare_threshold) );
+assert( is_equal(obj5_transform4(3, 3), 1.0, compare_threshold) );
 
 obj5.rotate( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), 45.0);
 std::cout << "Object 5 after rotation of 45 degrees about unit vector" << std::endl;
 print_obj_attributes(obj5);
 
-//TO-DO: Asserts to check the transformations
+//Check the Smart update
+
+//Set up some base matrices
+Eigen::Vector3d trans_location=Eigen::Vector3d::Zero(3);
+Eigen::Matrix4d trans_transform=Eigen::Matrix4d::Zero(4, 4);
+
+//translation
+trans_location(0) = 1.0;
+trans_location(1) = 1.0;
+trans_location(2) = 1.0;
+
+//Transform (Scale * 2, translation + 1 along each axis)
+trans_transform(0, 0) = 2.0;
+trans_transform(1, 1) = 2.0;
+trans_transform(2, 2) = 2.0;
+trans_transform(0, 3) = 2.0;
+trans_transform(1, 3) = 2.0;
+trans_transform(2, 3) = 2.0;
+trans_transform(3, 3) = 1.0;
+
+//Build our objects for the transforms
+Obj3 base_obj (name, key, type, subtype, owner, scns, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+Obj3 base_obj2 (name, key, type, subtype, owner, scns, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+Obj3 base_obj3 (name, key, type, subtype, owner, scns, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+Obj3 *trans_obj1 = new Obj3 (name, key, type, subtype, owner, trans_location);
+Obj3 *trans_obj2 = new Obj3 (name, key, type, subtype, owner, trans_transform);
+Obj3 *trans_obj3 = new Obj3 (name, key, type, subtype, owner, trans_location, trans_transform, new_bounding_box);
+
+//Apply our smart updates
+std::cout << "Update Object:" << std::endl;
+print_obj_attributes(*trans_obj1);
+
+//Translation of <1, 1, 1>
+base_obj.transform(trans_obj1);
+
+std::cout << "Base Object after smart update translation of 1 on x, y, and z axis:" << std::endl;
+print_obj_attributes(base_obj);
+
+Eigen::Matrix4d base_obj_transform = base_obj.get_transform();
+
+assert( is_equal(base_obj_transform(0, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj_transform(1, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj_transform(2, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj_transform(3, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj_transform(0, 0), 1.0, compare_threshold) );
+assert( is_equal(base_obj_transform(1, 1), 1.0, compare_threshold) );
+assert( is_equal(base_obj_transform(2, 2), 1.0, compare_threshold) );
+
+//Translation of <1, 1, 1>, scale of <2, 2, 2>
+base_obj2.transform(trans_obj2);
+
+Eigen::Matrix4d base_obj2_transform = base_obj2.get_transform();
+
+assert( is_equal(base_obj2_transform(0, 3), 2.0, compare_threshold) );
+assert( is_equal(base_obj2_transform(1, 3), 2.0, compare_threshold) );
+assert( is_equal(base_obj2_transform(2, 3), 2.0, compare_threshold) );
+assert( is_equal(base_obj2_transform(3, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj2_transform(0, 0), 2.0, compare_threshold) );
+assert( is_equal(base_obj2_transform(1, 1), 2.0, compare_threshold) );
+assert( is_equal(base_obj2_transform(2, 2), 2.0, compare_threshold) );
+
+//Translation of <1, 1, 1>
+base_obj3.transform(trans_obj3);
+
+Eigen::Matrix4d base_obj3_transform = base_obj3.get_transform();
+
+assert( is_equal(base_obj3_transform(0, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj3_transform(1, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj3_transform(2, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj3_transform(3, 3), 1.0, compare_threshold) );
+assert( is_equal(base_obj3_transform(0, 0), 1.0, compare_threshold) );
+assert( is_equal(base_obj3_transform(1, 1), 1.0, compare_threshold) );
+assert( is_equal(base_obj3_transform(2, 2), 1.0, compare_threshold) );
+
+delete trans_obj1;
+delete trans_obj2;
+delete trans_obj3;
 
 //------------------------JSON & Protocol Buffer Tests------------------------//
 //----------------------------------------------------------------------------//
@@ -273,23 +437,23 @@ Obj3 obj6 (d);
 Obj3 obj7 (d2);
 Obj3 obj8 (new_proto);
 
-// assert (obj6.get_name() == "Test Object");
-// assert (obj6.get_key() == "abcdef-9876543");
-// assert (obj6.get_type() == "Mesh");
-// assert (obj6.get_subtype() == "Cube");
-// assert (obj6.get_owner() == "zxywvut-1234567");
-//
-// assert (obj7.get_name() == "Test Object");
-// assert (obj7.get_key() == "abcdef-9876543");
-// assert (obj7.get_type() == "Mesh");
-// assert (obj7.get_subtype() == "Cube");
-// assert (obj7.get_owner() == "zxywvut-1234567");
-//
-// assert (obj8.get_name() == "Test Object");
-// assert (obj8.get_key() == "abcdef-9876543");
-// assert (obj8.get_type() == "Mesh");
-// assert (obj8.get_subtype() == "Cube");
-// assert (obj8.get_owner() == "zxywvut-1234567");
+assert (obj6.get_name() == "Test Object");
+assert (obj6.get_key() == "abcdef-9876543");
+assert (obj6.get_type() == "Mesh");
+assert (obj6.get_subtype() == "Cube");
+assert (obj6.get_owner() == "zxywvut-1234567");
+
+assert (obj7.get_name() == "Test Object");
+assert (obj7.get_key() == "abcdef-9876543");
+assert (obj7.get_type() == "Mesh");
+assert (obj7.get_subtype() == "Cube");
+assert (obj7.get_owner() == "zxywvut-1234567");
+
+assert (obj8.get_name() == "Test Object");
+assert (obj8.get_key() == "abcdef-9876543");
+assert (obj8.get_type() == "Mesh");
+assert (obj8.get_subtype() == "Cube");
+assert (obj8.get_owner() == "zxywvut-1234567");
 
 //TO-DO: Asserts to check the matrix attributes
 
@@ -301,6 +465,8 @@ std::cout << "From JSON Document" << std::endl;
 print_obj_attributes(obj7);
 std::cout << "From Protobuffer" << std::endl;
 print_obj_attributes(obj8);
+
+shutdown_logging_submodules();
 
 delete logging;
 delete factory;

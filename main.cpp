@@ -73,7 +73,9 @@ void shutdown()
   delete ua;
   delete cli;
 
-  if(!resp) {
+  if(!resp) {main_logging->debug("No response object active at the time of shutdown");} 
+  else
+  {
     delete resp;
   }
 

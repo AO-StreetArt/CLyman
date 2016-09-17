@@ -501,8 +501,8 @@ obj_logging->info("Obj3:Rotate Object about Y-Axis Called");
 Eigen::Matrix4d tran_matrix = Eigen::Matrix4d::Zero(4, 4);
 
 tran_matrix(0, 0) = cos (y * (PI/180));
-tran_matrix(0, 3) = sin (y * (PI/180));
-tran_matrix(3, 0) = sin (y * (PI/180)) * -1.0;
+tran_matrix(0, 2) = sin (y * (PI/180));
+tran_matrix(2, 0) = sin (y * (PI/180)) * -1.0;
 tran_matrix(2, 2) = cos (y * (PI/180));
 tran_matrix(1, 1) = 1.0;
 tran_matrix(3, 3) = 1.0;
@@ -570,7 +570,7 @@ void Obj3::transform_object(Obj3 *temp_obj)
 {
 	//First, we apply any matrix transforms present
 
-	//Are we doing a transform matrx transform?
+	//Are we doing a matrx transform?
 	if (!(temp_obj->has_location()) && !(temp_obj->has_rotatione()) && !(temp_obj->has_rotationq()) && !(temp_obj->has_scaling())) {
 		obj_logging->debug("Applying Transform Matrix and full transform stack");
 		apply_transforms(temp_obj->get_transform());
@@ -579,22 +579,22 @@ void Obj3::transform_object(Obj3 *temp_obj)
 	{
 		if (temp_obj->has_location()) {
 			obj_logging->debug("Location Transformation Detected");
-			translate(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), "Global");
+			translate_object(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz());
 		}
 
 		if (temp_obj->has_rotatione()) {
 			obj_logging->debug("Euler Rotation Transformation Detected");
-			rotate(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez());
+			rotate_object(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez());
 		}
 
 		if (temp_obj->has_rotationq()) {
 			obj_logging->debug("Quaternion Rotation Transformation Detected");
-			rotate(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz());
+			rotate_object(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz());
 		}
 
 		if (temp_obj->has_scaling()) {
 			obj_logging->debug("Scale Transformation Detected");
-			resize(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+			scale_object(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
 		}
 	}
 

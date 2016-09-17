@@ -112,6 +112,11 @@ class Obj3: public Writeable
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation)
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;locn_flag = true;}
 
+		//Transform  only
+						Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Matrix4d itransform)
+{name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";transform_matrix=itransform;trns_flag=true;}
+
+
 		//Location & Bounding Box
 		Obj3(std::string iname, std::string ikey, std::string itype, std::string isubtype, std::string iowner, Eigen::Vector3d ilocation, Eigen::MatrixXd ibounding_box)
 {name = iname; key = ikey; type = itype; subtype = isubtype; initialize_matrices();owner=iowner;is_locked=false; lock_owner="";location=ilocation;bounding_box=ibounding_box;locn_flag = true;boun_flag=true;}
@@ -225,11 +230,11 @@ class Obj3: public Writeable
 
 		//Exist methods
 		bool has_location() {return locn_flag;}
-		bool has_rotatione() {return locn_flag;}
-		bool has_rotationq() {return locn_flag;}
-		bool has_scaling() {return locn_flag;}
-		bool has_transforms() {return locn_flag;}
-		bool has_bounds() {return locn_flag;}
+		bool has_rotatione() {return rote_flag;}
+		bool has_rotationq() {return rotq_flag;}
+		bool has_scaling() {return scl_flag;}
+		bool has_transforms() {return trns_flag;}
+		bool has_bounds() {return boun_flag;}
 
 		//Getters
     std::string get_owner() const {return owner;}

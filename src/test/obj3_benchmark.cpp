@@ -133,8 +133,11 @@ ServiceComponentFactory *factory = new ServiceComponentFactory;
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
 
-std::string initFileName = "src/test/log4cpp_test.properties";
+std::string initFileName = "src/test/log4cpp.properties";
 logging = factory->get_logging_interface(initFileName);
+
+//Set up the logging submodules for each category
+start_logging_submodules();
 
 //---------------------------Pre-Test Setup-----------------------------------//
 //----------------------------------------------------------------------------//
@@ -205,6 +208,8 @@ hayai::Benchmarker::RunAllTests();
 //----------------------------------------------------------------------------//
 
 delete obj1;
+
+shutdown_logging_submodules();
 delete logging;
 delete factory;
 
