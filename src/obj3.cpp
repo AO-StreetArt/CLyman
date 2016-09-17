@@ -501,8 +501,8 @@ obj_logging->info("Obj3:Rotate Object about Y-Axis Called");
 Eigen::Matrix4d tran_matrix = Eigen::Matrix4d::Zero(4, 4);
 
 tran_matrix(0, 0) = cos (y * (PI/180));
-tran_matrix(0, 3) = sin (y * (PI/180));
-tran_matrix(3, 0) = sin (y * (PI/180)) * -1.0;
+tran_matrix(0, 2) = sin (y * (PI/180));
+tran_matrix(2, 0) = sin (y * (PI/180)) * -1.0;
 tran_matrix(2, 2) = cos (y * (PI/180));
 tran_matrix(1, 1) = 1.0;
 tran_matrix(3, 3) = 1.0;
