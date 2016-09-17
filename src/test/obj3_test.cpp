@@ -69,6 +69,8 @@ start_logging_submodules();
 //----------------------------Basic Tests-------------------------------------//
 //----------------------------------------------------------------------------//
 
+double compare_threshold = 0.01;
+
 std::string name;
 std::string key;
 std::string type;
@@ -359,8 +361,6 @@ Obj3 base_obj3 (name, key, type, subtype, owner, scns, new_location, new_rotatio
 Obj3 *trans_obj1 = new Obj3 (name, key, type, subtype, owner, trans_location);
 Obj3 *trans_obj2 = new Obj3 (name, key, type, subtype, owner, trans_transform);
 Obj3 *trans_obj3 = new Obj3 (name, key, type, subtype, owner, trans_location, trans_transform, new_bounding_box);
-
-double compare_threshold = 0.01;
 
 //Apply our smart updates
 std::cout << "Base Object after smart update translation of 1 on x, y, and z axis:" << std::endl;
