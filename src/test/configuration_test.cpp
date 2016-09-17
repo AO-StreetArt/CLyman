@@ -16,9 +16,11 @@ int main( int argc, char** argv )
   //-------------------------------Logging--------------------------------------//
   //----------------------------------------------------------------------------//
 
-  std::string initFileName = "src/test/log4cpp_test.properties";
+  std::string initFileName = "log4cpp.properties";
   logging = factory->get_logging_interface(initFileName);
 
+  //Set up the logging submodules for each category
+  start_logging_submodules();
 
   logging->debug("PreTest Setup");
 
@@ -70,6 +72,7 @@ int main( int argc, char** argv )
   assert( redis_chain2.timeout == 5);
   assert( redis_chain2.role == 0);
 
+  shutdown_logging_submodules();
   delete cli;
   delete ua;
   delete logging;

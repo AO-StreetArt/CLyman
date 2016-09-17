@@ -102,6 +102,9 @@ ServiceComponentFactory *factory = new ServiceComponentFactory;
 std::string initFileName = "src/test/log4cpp_test.properties";
 logging = factory->get_logging_interface(initFileName);
 
+//Set up the logging submodules for each category
+start_logging_submodules();
+
 //Set up internal variables
 logging->info("Internal Variables Intialized");
 
@@ -133,6 +136,7 @@ logging->debug(strValue);
 xRedis->del("Test");
 
 delete xRedis;
+shutdown_logging_submodules();
 delete logging;
 delete factory;
 
