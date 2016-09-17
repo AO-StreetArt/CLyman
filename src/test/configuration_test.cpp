@@ -51,6 +51,7 @@ int main( int argc, char** argv )
   assert ( cm.get_rfjson() == false );
   assert ( cm.get_rfprotobuf() == true );
   assert ( cm.get_subduration() == 240 );
+  logging->debug("Values checked");
 
   //Redis Connection List Tests
   std::vector<RedisConnChain> RedisConnectionList = cm.get_redisconnlist();
@@ -64,6 +65,7 @@ int main( int argc, char** argv )
     assert( redis_chain.pool_size == 2);
     assert( redis_chain.timeout == 5);
     assert( redis_chain.role == 0);
+    logging->debug("Redis connection list 1 checked");
   }
 
   if (conn_list_size > 1) {
@@ -74,6 +76,7 @@ int main( int argc, char** argv )
     assert( redis_chain2.pool_size == 2);
     assert( redis_chain2.timeout == 5);
     assert( redis_chain2.role == 0);
+    logging->debug("Redis connection list 2 checked");
   }
 
   shutdown_logging_submodules();
