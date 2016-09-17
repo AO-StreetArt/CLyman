@@ -364,7 +364,7 @@ Obj3 *trans_obj3 = new Obj3 (name, key, type, subtype, owner, trans_location, tr
 
 //Apply our smart updates
 std::cout << "Update Object:" << std::endl;
-print_obj_attributes(trans_obj1);
+print_obj_attributes(*trans_obj1);
 std::cout << "Base Object after smart update translation of 1 on x, y, and z axis:" << std::endl;
 print_obj_attributes(base_obj);
 
