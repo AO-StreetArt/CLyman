@@ -48,8 +48,8 @@ int main( int argc, char** argv )
   assert ( cm.get_smartupdatesactive() == true );
   assert ( cm.get_mfjson() == false );
   assert ( cm.get_mfprotobuf() == true );
-  assert ( cm.get_rfjson() == true );
-  assert ( cm.get_rfprotobuf() == false );
+  assert ( cm.get_rfjson() == false );
+  assert ( cm.get_rfprotobuf() == true );
   assert ( cm.get_subduration() == 240 );
 
   //Redis Connection List Tests
