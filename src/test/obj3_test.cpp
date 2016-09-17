@@ -349,9 +349,9 @@ trans_location(2) = 1.0;
 trans_transform(0, 0) = 2.0;
 trans_transform(1, 1) = 2.0;
 trans_transform(2, 2) = 2.0;
-trans_transform(0, 3) = 1.0;
-trans_transform(1, 3) = 1.0;
-trans_transform(2, 3) = 1.0;
+trans_transform(0, 3) = 2.0;
+trans_transform(1, 3) = 2.0;
+trans_transform(2, 3) = 2.0;
 trans_transform(3, 3) = 1.0;
 
 //Build our objects for the transforms
@@ -365,11 +365,12 @@ Obj3 *trans_obj3 = new Obj3 (name, key, type, subtype, owner, trans_location, tr
 //Apply our smart updates
 std::cout << "Update Object:" << std::endl;
 print_obj_attributes(*trans_obj1);
-std::cout << "Base Object after smart update translation of 1 on x, y, and z axis:" << std::endl;
-print_obj_attributes(base_obj);
 
 //Translation of <1, 1, 1>
 base_obj.transform(trans_obj1);
+
+std::cout << "Base Object after smart update translation of 1 on x, y, and z axis:" << std::endl;
+print_obj_attributes(base_obj);
 
 Eigen::Matrix4d base_obj_transform = base_obj.get_transform();
 
