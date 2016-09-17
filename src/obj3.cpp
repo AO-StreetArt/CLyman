@@ -570,7 +570,7 @@ void Obj3::transform_object(Obj3 *temp_obj)
 {
 	//First, we apply any matrix transforms present
 
-	//Are we doing a transform matrx transform?
+	//Are we doing a matrx transform?
 	if (!(temp_obj->has_location()) && !(temp_obj->has_rotatione()) && !(temp_obj->has_rotationq()) && !(temp_obj->has_scaling())) {
 		obj_logging->debug("Applying Transform Matrix and full transform stack");
 		apply_transforms(temp_obj->get_transform());
