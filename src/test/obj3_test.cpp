@@ -237,11 +237,11 @@ obj5.rotate(45.0, 0.0, 0.0);
 std::cout << "Object 5 after rotation of 45 degrees about x axis:" << std::endl;
 print_obj_attributes(obj5);
 
-obj5.rotate(0.0, 0.0, 45.0);
+obj5.rotate(0.0, 45.0, 0.0);
 std::cout << "Object 5 after rotation of 45 degrees about y axis:" << std::endl;
 print_obj_attributes(obj5);
 
-obj5.rotate(0.0, 45.0, 0.0);
+obj5.rotate(0.0, 0.0, 45.0);
 std::cout << "Object 5 after rotation of 45 degrees about z axis:" << std::endl;
 print_obj_attributes(obj5);
 
@@ -250,6 +250,13 @@ std::cout << "Object 5 after rotation of 45 degrees about unit vector" << std::e
 print_obj_attributes(obj5);
 
 //TO-DO: Asserts to check the transformations
+
+//Check the Smart update
+Obj3 base_obj (name, key, type, subtype, owner, scns, new_location, new_rotatione, new_rotationq, new_scale, new_transform, new_bounding_box);
+Obj3 trans_obj1 (name, key, type, subtype, owner, scns, new_location);
+Obj3 trans_obj2 (name, key, type, subtype, owner, scns, new_rotatione);
+Obj3 trans_obj3 (name, key, type, subtype, owner, scns, new_rotationq);
+Obj3 trans_obj4 (name, key, type, subtype, owner, scns, new_transform);
 
 //------------------------JSON & Protocol Buffer Tests------------------------//
 //----------------------------------------------------------------------------//
@@ -276,23 +283,23 @@ Obj3 obj6 (d);
 Obj3 obj7 (d2);
 Obj3 obj8 (new_proto);
 
-// assert (obj6.get_name() == "Test Object");
-// assert (obj6.get_key() == "abcdef-9876543");
-// assert (obj6.get_type() == "Mesh");
-// assert (obj6.get_subtype() == "Cube");
-// assert (obj6.get_owner() == "zxywvut-1234567");
-//
-// assert (obj7.get_name() == "Test Object");
-// assert (obj7.get_key() == "abcdef-9876543");
-// assert (obj7.get_type() == "Mesh");
-// assert (obj7.get_subtype() == "Cube");
-// assert (obj7.get_owner() == "zxywvut-1234567");
-//
-// assert (obj8.get_name() == "Test Object");
-// assert (obj8.get_key() == "abcdef-9876543");
-// assert (obj8.get_type() == "Mesh");
-// assert (obj8.get_subtype() == "Cube");
-// assert (obj8.get_owner() == "zxywvut-1234567");
+assert (obj6.get_name() == "Test Object");
+assert (obj6.get_key() == "abcdef-9876543");
+assert (obj6.get_type() == "Mesh");
+assert (obj6.get_subtype() == "Cube");
+assert (obj6.get_owner() == "zxywvut-1234567");
+
+assert (obj7.get_name() == "Test Object");
+assert (obj7.get_key() == "abcdef-9876543");
+assert (obj7.get_type() == "Mesh");
+assert (obj7.get_subtype() == "Cube");
+assert (obj7.get_owner() == "zxywvut-1234567");
+
+assert (obj8.get_name() == "Test Object");
+assert (obj8.get_key() == "abcdef-9876543");
+assert (obj8.get_type() == "Mesh");
+assert (obj8.get_subtype() == "Cube");
+assert (obj8.get_owner() == "zxywvut-1234567");
 
 //TO-DO: Asserts to check the matrix attributes
 
