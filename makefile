@@ -27,12 +27,6 @@ clean: clean_local clean_tests clean_benchmarks
 
 # ------------------------------- Tests -------------------------------------- #
 
-redis_test: src/lyman_log.o src/redis_test.o
-	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
-
-src/redis_test.o: src/test/redis_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
-	$(CC) $(CFLAGS) -o $@ -c src/test/redis_test.cpp $(STD)
-
 obj3_test: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_test.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
 
@@ -52,18 +46,6 @@ obj3_benchmark: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_benchmark.o
 
 src/obj3_benchmark.o: src/test/obj3_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/obj3_benchmark.cpp $(STD)
-
-redis_benchmark: src/redis_benchmark.o
-	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
-
-src/redis_benchmark.o: src/test/redis_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
-	$(CC) $(CFLAGS) -o $@ -c src/test/redis_benchmark.cpp $(STD)
-
-main_benchmark: src/Obj3.pb.cc src/lyman_log.o src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main_benchmark.o
-	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
-
-main_benchmark.o: main_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto src/configuration_manager.cpp src/configuration_manager.h src/document_manager.cpp src/document_manager.h src/lyman_utils.h src/globals.cpp src/globals.h
-	$(CC) $(CFLAGS) -o $@ -c main_benchmark.cpp $(STD)
 
 # ---------------------------- Main Project ---------------------------------- #
 
