@@ -98,10 +98,10 @@ class Obj3: public Writeable
 		Obj3() {name = ""; key = ""; type = ""; subtype = ""; initialize_matrices(); owner=""; is_locked=false; lock_owner="";global_transform_type=false;}
 
 		//Constructor accepting Protocol Buffer
-		Obj3(protoObj3::Obj3 buffer);
+		Obj3(protoObj3::Obj3 buffer, bool locking_enabled);
 
 		//Constructor accepting Rapidjson Document
-		Obj3(const rapidjson::Document& d);
+		Obj3(const rapidjson::Document& d, bool locking_enabled);
 
 		//String-Only Constructors
 		Obj3(std::string iname, std::string ikey){name = iname; key = ikey; type = ""; subtype = ""; initialize_matrices();owner="";is_locked=false; lock_owner="";global_transform_type=false;}
