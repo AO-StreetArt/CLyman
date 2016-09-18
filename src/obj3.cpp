@@ -404,31 +404,28 @@ Obj3::Obj3(const rapidjson::Document& d)
 //-----------------------Transformation Methods-------------------------------//
 //----------------------------------------------------------------------------//
 
-void Obj3::apply_transforms(Eigen::Matrix4d trans_matrix)
+void Obj3::apply_transforms(Eigen::Matrix4d trans_matrix, bool global_transforms_active)
 {
 	obj_logging->info("Obj3:Apply Transforms Called");
 
 	//Update the transformation matrix
-	transform_matrix = trans_matrix * transform_matrix;
-
-	//Update the location
-	Eigen::Vector4d loc4;
-	loc4 = Eigen::Vector4d::Constant(4, 1.0);
-	loc4(0) = location(0);
-	loc4(1) = location(1);
-	loc4(2) = location(2);
-
-	Eigen::Vector4d res_loc;
-	res_loc = trans_matrix * loc4;
-	location(0) = res_loc(0);
-	location(1) = res_loc(1);
-	location(2) = res_loc(2);
+	if (global_transforms_active) {
+		transform_matrix = trans_matrix * transform_matrix;
+	}
+	else {
+		transform_matrix = transform_matrix * trans_matrix;
+	}
 
 	//Perform the necessary transforms on the bounding box
-	bounding_box = trans_matrix * bounding_box;
+	if (global_transforms_active) {
+		bounding_box = trans_matrix * bounding_box;
+	}
+	else {
+		bounding_box = bounding_box * trans_matrix;
+	}
 }
 
-void Obj3::transform_object(double trans_matrix[])
+void Obj3::transform_object(double trans_matrix[], bool global_transforms_active)
 {
 	obj_logging->info("Obj3:Transform Object called with double[]");
 	Eigen::Matrix4d tran_matrix;
@@ -441,11 +438,11 @@ void Obj3::transform_object(double trans_matrix[])
 		}
 	}
 
-	apply_transforms( tran_matrix );
+	apply_transforms( tran_matrix, global_transforms_active );
 }
 
 //Translate an object by some amounts x, y, and z on the respective axis
-void Obj3::translate_object(double x, double y, double z)
+void Obj3::translate_object(double x, double y, double z, bool global_transforms_active)
 {
 	obj_logging->info("Obj3:Translate Object called");
 	//Variable Declarations
@@ -463,12 +460,12 @@ void Obj3::translate_object(double x, double y, double z)
 	tran_matrix(2, 3) = z;
 
 	//Apply the transformation
-	apply_transforms( tran_matrix );
+	apply_transforms( tran_matrix, global_transforms_active );
 
 }
 
 //Rotate an object by a magnitude theta about the axis x, y, z
-void Obj3::rotate_object(double x, double y, double z, double theta)
+void Obj3::rotate_object(double x, double y, double z, double theta, bool global_transforms_active)
 {
 obj_logging->info("Obj3:RotateQ Object Called");
 Eigen::Matrix4d tran_matrix;
@@ -487,11 +484,11 @@ tran_matrix(2, 1) = y*z*(1-cos (theta*(PI/180)) - x*sin (theta*(PI/180)));
 tran_matrix(1, 0) = x*y*(1-cos (theta*(PI/180)) - z*sin (theta*(PI/180)));
 tran_matrix(2, 0) = x*z*(1-cos (theta*(PI/180)) - y*sin (theta*(PI/180)));
 
-apply_transforms( tran_matrix );
+apply_transforms( tran_matrix, global_transforms_active );
 }
 
 //Rotate an object about the X Axis
-void Obj3::rotate_objectx(double x)
+void Obj3::rotate_objectx(double x, bool global_transforms_active)
 {
 obj_logging->info("Obj3:Rotate Object about X-Axis Called");
 //Variable Declarations
@@ -506,11 +503,11 @@ tran_matrix(0, 0) = 1.0;
 tran_matrix(3, 3) = 1.0;
 
 //Apply the transformation
-apply_transforms( tran_matrix );
+apply_transforms( tran_matrix, global_transforms_active );
 }
 
 //Rotate an object about the Y Axis
-void Obj3::rotate_objecty(double y)
+void Obj3::rotate_objecty(double y, bool global_transforms_active)
 {
 obj_logging->info("Obj3:Rotate Object about Y-Axis Called");
 //Variable Declarations
@@ -524,11 +521,11 @@ tran_matrix(1, 1) = 1.0;
 tran_matrix(3, 3) = 1.0;
 
 //Apply the transformation
-apply_transforms( tran_matrix );
+apply_transforms( tran_matrix, global_transforms_active );
 }
 
 //Rotate an object about the Z Axis
-void Obj3::rotate_objectz(double z)
+void Obj3::rotate_objectz(double z, bool global_transforms_active)
 {
 obj_logging->info("Obj3:Rotate Object about Z-Axis Called");
 //Variable Declarations
@@ -542,29 +539,29 @@ tran_matrix(2, 2) = 1.0;
 tran_matrix(3, 3) = 1.0;
 
 //Apply the transformation
-apply_transforms( tran_matrix );
+apply_transforms( tran_matrix, global_transforms_active );
 
 }
 
-void Obj3::rotate_object(double x, double y, double z)
+void Obj3::rotate_object(double x, double y, double z, bool global_transforms_active)
 {
 obj_logging->info("Obj3:RotateE Object Called");
 if (std::abs(x) > 0.001)
 {
-	rotate_objectx(x);
+	rotate_objectx(x, global_transforms_active);
 }
 if (std::abs(y) > 0.001)
 {
-	rotate_objecty(y);
+	rotate_objecty(y, global_transforms_active);
 }
 if (std::abs(z) > 0.001)
 {
-	rotate_objectz(z);
+	rotate_objectz(z, global_transforms_active);
 }
 
 }
 
-void Obj3::scale_object(double x, double y, double z)
+void Obj3::scale_object(double x, double y, double z, bool global_transforms_active)
 {
 	obj_logging->info("Obj3:Scale Object Called");
 	//Variable Declarations
@@ -578,7 +575,7 @@ void Obj3::scale_object(double x, double y, double z)
   tran_matrix(3, 3) = 1.0;
 
 	//Apply the transformation
-	apply_transforms( tran_matrix );
+	apply_transforms( tran_matrix, global_transforms_active );
 
 }
 
@@ -589,7 +586,7 @@ void Obj3::transform_object(Obj3 *temp_obj)
 	//Are we doing a matrx transform?
 	if (!(temp_obj->has_location()) && !(temp_obj->has_rotatione()) && !(temp_obj->has_rotationq()) && !(temp_obj->has_scaling())) {
 		obj_logging->debug("Applying Transform Matrix and full transform stack");
-		apply_transforms(temp_obj->get_transform());
+		apply_transforms(temp_obj->get_transform(), temp_obj->is_global_trans_type());
 	}
 	else
 	{

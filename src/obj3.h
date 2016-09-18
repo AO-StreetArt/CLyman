@@ -71,22 +71,22 @@ class Obj3: public Writeable
 		std::string lock_owner;
 
 		//Internal Transformation methods
-		void translate_object(double x, double y, double z);
-		void rotate_objectx(double x);
-		void rotate_objecty(double y);
-		void rotate_objectz(double z);
-		void rotate_object(double x, double y, double z);
-		void rotate_object(double x, double y, double z, double theta);
-		void scale_object(double x, double y, double z);
+		void translate_object(double x, double y, double z, bool global_transforms_active);
+		void rotate_objectx(double x, bool global_transforms_active);
+		void rotate_objecty(double y, bool global_transforms_active);
+		void rotate_objectz(double z, bool global_transforms_active);
+		void rotate_object(double x, double y, double z, bool global_transforms_active);
+		void rotate_object(double x, double y, double z, double theta, bool global_transforms_active);
+		void scale_object(double x, double y, double z, bool global_transforms_active);
 
 		//Apply Transforms
-		void apply_transforms(Eigen::Matrix4d trans_matrix);
+		void apply_transforms(Eigen::Matrix4d trans_matrix, bool global_transforms_active);
 
 		//Smart Update
 		void transform_object(Obj3 *obj);
 
 		//Transform
-		void transform_object(double trans_matrix[]);
+		void transform_object(double trans_matrix[], bool global_transforms_active);
 
 		//Base protobuffer message
 		void to_base_protobuf_msg(protoObj3::Obj3 *new_proto, bool write_transform_type) const;
@@ -142,29 +142,54 @@ class Obj3: public Writeable
 		bool transform(Obj3 *obj, std::string device_id) {if (is_locked==false || lock_owner==device_id) {transform_object(obj); return true;} else {return false;}}
 
 		//Transform
-		bool transform(double trans_matrix[]) {if (is_locked==false) {transform_object(trans_matrix); return true;} else {return false;}}
+		bool transform(double trans_matrix[]) {if (is_locked==false) {transform_object(trans_matrix, false); return true;} else {return false;}}
 
-		bool transform(double trans_matrix[], std::string device_id) {if (is_locked==false || lock_owner==device_id) {transform_object(trans_matrix); return true;} else {return false;}}
+		bool transform(double trans_matrix[], std::string device_id) {if (is_locked==false || lock_owner==device_id) {transform_object(trans_matrix, false); return true;} else {return false;}}
+
+		//Transform
+		bool transform(double trans_matrix[], bool global_transforms_active) {if (is_locked==false) {transform_object(trans_matrix, global_transforms_active); return true;} else {return false;}}
+
+		bool transform(double trans_matrix[], std::string device_id, bool global_transforms_active) {if (is_locked==false || lock_owner==device_id) {transform_object(trans_matrix, global_transforms_active); return true;} else {return false;}}
 
 		//Translation
-		bool translate(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {translate_object(x, y, z); return true;} else {return false;}}
+		bool translate(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {translate_object(x, y, z, false); return true;} else {return false;}}
 
-		bool translate(double x, double y, double z) {if (is_locked==false) {translate_object(x, y, z); return true;} else {return false;}}
+		bool translate(double x, double y, double z) {if (is_locked==false) {translate_object(x, y, z, false); return true;} else {return false;}}
+
+		//Translation
+		bool translate(double x, double y, double z, std::string device_id, bool global_transforms_active) {if (is_locked==false || lock_owner==device_id) {translate_object(x, y, z, global_transforms_active); return true;} else {return false;}}
+
+		bool translate(double x, double y, double z, bool global_transforms_active) {if (is_locked==false) {translate_object(x, y, z, global_transforms_active); return true;} else {return false;}}
 
 		//Rotation Quaternion
-		bool rotate(double x, double y, double z, float theta, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotate_object(x, y, z, theta);return true;} else {return false;}}
+		bool rotate(double x, double y, double z, float theta, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotate_object(x, y, z, theta, false);return true;} else {return false;}}
 
-		bool rotate(double x, double y, double z, float theta) {if (is_locked==false) {rotate_object(x, y, z, theta);return true;} else {return false;}}
+		bool rotate(double x, double y, double z, float theta) {if (is_locked==false) {rotate_object(x, y, z, theta, false);return true;} else {return false;}}
+
+		//Rotation Quaternion
+		bool rotate(double x, double y, double z, float theta, std::string device_id, bool global_transforms_active) {if (is_locked==false || lock_owner==device_id) {rotate_object(x, y, z, theta, global_transforms_active);return true;} else {return false;}}
+
+		bool rotate(double x, double y, double z, float theta, bool global_transforms_active) {if (is_locked==false) {rotate_object(x, y, z, theta, global_transforms_active);return true;} else {return false;}}
 
 		//Rotation Euler
 		bool rotate(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotate_object(x, y, z); return true;} else {return false;}}
 
 		bool rotate(double x, double y, double z) {if (is_locked==false) {rotate_object(x, y, z); return true;} else {return false;}}
 
+		//Rotation Euler
+		bool rotate(double x, double y, double z, std::string device_id, bool global_transforms_active) {if (is_locked==false || lock_owner==device_id) {rotate_object(x, y, z, global_transforms_active); return true;} else {return false;}}
+
+		bool rotate(double x, double y, double z, bool global_transforms_active) {if (is_locked==false) {rotate_object(x, y, z, global_transforms_active); return true;} else {return false;}}
+
 		//Scale
 		bool resize(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {scale_object(x, y, z); return true;} else {return false;}}
 
 		bool resize(double x, double y, double z) {if (is_locked==false) {scale_object(x, y, z); return true;} else {return false;}}
+
+		//Scale
+		bool resize(double x, double y, double z, std::string device_id, bool global_transforms_active) {if (is_locked==false || lock_owner==device_id) {scale_object(x, y, z, global_transforms_active); return true;} else {return false;}}
+
+		bool resize(double x, double y, double z, global_transforms_active) {if (is_locked==false) {scale_object(x, y, z, global_transforms_active); return true;} else {return false;}}
 
 		//Methods for controlling scene list
 		//Not included in locks as the scene list
