@@ -137,9 +137,9 @@ class Obj3: public Writeable
 		//Transformation Methods
 
 		//Smart Update
-		bool transform(Obj3 *obj) {if (is_locked==false) {transform_object(obj); return true;} else {return false;}}
+		bool transform(Obj3 *obj) {if (is_locked==false) {transform_object(obj, false); return true;} else {return false;}}
 
-		bool transform(Obj3 *obj, std::string device_id) {if (is_locked==false || lock_owner==device_id) {transform_object(obj); return true;} else {return false;}}
+		bool transform(Obj3 *obj, std::string device_id) {if (is_locked==false || lock_owner==device_id) {transform_object(obj, false); return true;} else {return false;}}
 
 		//Transform
 		bool transform(double trans_matrix[]) {if (is_locked==false) {transform_object(trans_matrix, false); return true;} else {return false;}}
