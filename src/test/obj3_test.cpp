@@ -330,7 +330,9 @@ assert( is_equal(obj5_transform4(1, 3), 2.414, compare_threshold) );
 assert( is_equal(obj5_transform4(2, 3), 0.586, compare_threshold) );
 assert( is_equal(obj5_transform4(3, 3), 1.0, compare_threshold) );
 
-obj5.rotate( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), 45.0);
+float angle = 45.0;
+
+obj5.rotate( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), angle);
 std::cout << "Object 5 after rotation of 45 degrees about unit vector" << std::endl;
 print_obj_attributes(obj5);
 
