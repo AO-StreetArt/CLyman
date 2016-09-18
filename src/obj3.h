@@ -172,9 +172,9 @@ class Obj3: public Writeable
 		bool rotate(double x, double y, double z, float theta, bool global_transforms_active) {if (is_locked==false) {rotate_object(x, y, z, theta, global_transforms_active);return true;} else {return false;}}
 
 		//Rotation Euler
-		bool rotate(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotate_object(x, y, z); return true;} else {return false;}}
+		bool rotate(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {rotate_object(x, y, z, false); return true;} else {return false;}}
 
-		bool rotate(double x, double y, double z) {if (is_locked==false) {rotate_object(x, y, z); return true;} else {return false;}}
+		bool rotate(double x, double y, double z) {if (is_locked==false) {rotate_object(x, y, z, false); return true;} else {return false;}}
 
 		//Rotation Euler
 		bool rotate(double x, double y, double z, std::string device_id, bool global_transforms_active) {if (is_locked==false || lock_owner==device_id) {rotate_object(x, y, z, global_transforms_active); return true;} else {return false;}}
@@ -182,14 +182,14 @@ class Obj3: public Writeable
 		bool rotate(double x, double y, double z, bool global_transforms_active) {if (is_locked==false) {rotate_object(x, y, z, global_transforms_active); return true;} else {return false;}}
 
 		//Scale
-		bool resize(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {scale_object(x, y, z); return true;} else {return false;}}
+		bool resize(double x, double y, double z, std::string device_id) {if (is_locked==false || lock_owner==device_id) {scale_object(x, y, z, false); return true;} else {return false;}}
 
-		bool resize(double x, double y, double z) {if (is_locked==false) {scale_object(x, y, z); return true;} else {return false;}}
+		bool resize(double x, double y, double z) {if (is_locked==false) {scale_object(x, y, z, false); return true;} else {return false;}}
 
 		//Scale
 		bool resize(double x, double y, double z, std::string device_id, bool global_transforms_active) {if (is_locked==false || lock_owner==device_id) {scale_object(x, y, z, global_transforms_active); return true;} else {return false;}}
 
-		bool resize(double x, double y, double z, global_transforms_active) {if (is_locked==false) {scale_object(x, y, z, global_transforms_active); return true;} else {return false;}}
+		bool resize(double x, double y, double z, bool global_transforms_active) {if (is_locked==false) {scale_object(x, y, z, global_transforms_active); return true;} else {return false;}}
 
 		//Methods for controlling scene list
 		//Not included in locks as the scene list
