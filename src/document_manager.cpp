@@ -33,7 +33,7 @@ std::string DocumentManager::create_object(Obj3 *new_obj, std::string transactio
 }
 
 //Global Update Object
-std::string DocumentManager::update_object(Obj3 *temp_obj, std::string transaction_id) {
+std::string DocumentManager::update_object(Obj3 *temp_obj, std::string transaction_id, int m_type) {
   std::string object_key = temp_obj->get_key();
   if (cm->get_smartupdatesactive()) {
     //We start by writing the object into the smart update buffer
@@ -48,7 +48,7 @@ std::string DocumentManager::update_object(Obj3 *temp_obj, std::string transacti
     //Check if the object already exists in the smart update buffer.
     const char * temp_key = object_key.c_str();
     if (xRedis->exists(temp_key) == false) {
-      put_to_redis(temp_obj, OBJ_UPD, transaction_id);
+      put_to_redis(temp_obj, m_type, transaction_id);
     }
     else {
       doc_logging->error("Collision in Active Update Buffer Detected");

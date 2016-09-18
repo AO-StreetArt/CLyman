@@ -73,7 +73,7 @@ void shutdown()
   delete ua;
   delete cli;
 
-  if(!resp) {main_logging->debug("No response object active at the time of shutdown");} 
+  if(!resp) {main_logging->debug("No response object active at the time of shutdown");}
   else
   {
     delete resp;
@@ -219,7 +219,7 @@ void my_signal_handler(int s){
           //Process the message header and set current_event_type
           try {
             d.Parse(req_ptr);
-            translated_object = new Obj3 (d);
+            translated_object = new Obj3 (d, cm->get_objectlockingenabled());
             go_ahead=true;
           }
           //Catch a possible error and write to logs
@@ -240,7 +240,7 @@ void my_signal_handler(int s){
           try {
             new_proto.Clear();
             new_proto.ParseFromString(req_string);
-            translated_object = new Obj3 (new_proto);
+            translated_object = new Obj3 (new_proto, cm->get_objectlockingenabled());
             go_ahead=true;
           }
           //Catch a possible error and write to logs
@@ -271,14 +271,14 @@ void my_signal_handler(int s){
         //Set up the object key to be passed back on the response
         std::string object_key;
 
-        if (msg_type == OBJ_UPD) {
+        if (msg_type == OBJ_UPD || msg_type == OBJ_LOCK || msg_type == OBJ_UNLOCK) {
           main_logging->debug("Current Event Type set to Object Update");
 
           //Call the appropriate method from the document manager to kick off the rest of the flow
           if (cm->get_mfjson()) {
 
             //Make the update
-            object_key = dm->update_object( translated_object, tran_id_str );
+            object_key = dm->update_object( translated_object, tran_id_str, msg_type );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);
@@ -290,7 +290,7 @@ void my_signal_handler(int s){
           else if (cm->get_mfprotobuf()) {
 
             //Make the update
-            object_key = dm->update_object( translated_object, tran_id_str );
+            object_key = dm->update_object( translated_object, tran_id_str, msg_type );
 
             //Add the Object Key to the Response
             resp->set_object_id(object_key);

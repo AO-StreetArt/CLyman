@@ -83,7 +83,7 @@ class Obj3: public Writeable
 		void apply_transforms(Eigen::Matrix4d trans_matrix, bool global_transforms_active);
 
 		//Smart Update
-		void transform_object(Obj3 *obj);
+		bool transform_object(Obj3 *obj);
 
 		//Transform
 		void transform_object(double trans_matrix[], bool global_transforms_active);
@@ -220,7 +220,7 @@ class Obj3: public Writeable
 		bool set_name(std::string new_name){if (is_locked==false) {name=new_name; return true;} else {return false;}}
 
 		//Set the key
-		bool set_key(std::string new_key){if (is_locked==false) {key=new_key; return true;} else {return false;}}
+		bool set_key(std::string new_key){key=new_key;return true;}
 
 		bool set_key(std::string new_key, std::string device_id){if (is_locked==false || lock_owner==device_id) {key=new_key; return true;} else {return false;}}
 

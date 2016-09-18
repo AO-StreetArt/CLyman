@@ -56,7 +56,7 @@ inline Obj3* set_redis_response_object(Request *r, std::string response_key)
         callback_logging->debug("Parsing a JSON Object from Redis");
         try {
           temp_d2.Parse(strValue.c_str());
-          redis_object = new Obj3 (temp_d2);
+          redis_object = new Obj3 (temp_d2, cm->get_objectlockingenabled());
         }
         catch (std::exception& e) {
           callback_logging->error("Exception Occurred parsing message from Couchbase");
@@ -70,7 +70,7 @@ inline Obj3* set_redis_response_object(Request *r, std::string response_key)
         protoObj3::Obj3 pobj;
         try {
           pobj.ParseFromString(strValue);
-          redis_object = new Obj3 (pobj);
+          redis_object = new Obj3 (pobj, cm->get_objectlockingenabled());
         }
         catch (std::exception& e) {
           callback_logging->error("Exception Occurred parsing message from Couchbase");
@@ -91,7 +91,7 @@ inline Obj3* set_db_response_object(std::string object_string)
     //Process the DB Object
     try {
       temp_d.Parse(object_string.c_str());
-      return new Obj3 (temp_d);
+      return new Obj3 (temp_d, cm->get_objectlockingenabled());
     }
     catch (std::exception& e) {
       callback_logging->error("Exception Occurred parsing message from DB");
@@ -164,10 +164,55 @@ inline std::string send_outbound_msg(std::string message_string)
   return out_resp;
 }
 
+inline bool perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type, std::string transaction_id) {
+
+  std::string key_string = db_object->get_key();
+
+  if ( !(db_object->locked()) && !(key_string.empty()) ) {
+
+    //We have a lock message
+    if (msg_type == OBJ_LOCK && callback_type == OBJ_GET) {
+
+        //Lock the DB object with the lock owner
+        db_object->lock( redis_object->get_lock_id() );
+
+        //Remove the element from the smart updbate buffer
+        if (xRedis->exists(key_string.c_str())) {
+          xRedis->del(key_string.c_str());
+        }
+
+        //Replace the element in the smart update buffer
+        dm->put_to_redis(redis_object, OBJ_LOCK, transaction_id);
+    }
+
+    //We have an unlock message
+    else if (msg_type == OBJ_UNLOCK && callback_type == OBJ_GET) {
+
+        //Lock the DB object with the lock owner
+        db_object->unlock( redis_object->get_lock_id() );
+
+        //Remove the element from the smart updbate buffer
+        if (xRedis->exists(key_string.c_str())) {
+          xRedis->del(key_string.c_str());
+        }
+
+        //Replace the element in the smart update buffer
+        dm->put_to_redis(redis_object, OBJ_UNLOCK, transaction_id);
+    }
+
+    //Save the resulting object back to the DB
+    cb->save_object (db_object);
+    cb->wait();
+
+    return true;
+
+  }
+  return false;
+}
+
 inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type, std::string transaction_id)
 {
 
-  //We have a get message
   if (cm->get_smartupdatesactive())
   {
     //Smart Updates are active, and we have an update message type on a get callback (which triggers the smart update logic)
@@ -179,20 +224,26 @@ inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std
       callback_logging->debug("Smart Update Logic Activated");
       //Now, we can compare the two and apply any updates from the
       //object list to the object returned from the database
-      db_object->transform( redis_object );
-      std::string key_string = db_object->get_key();
+      bool update_success = db_object->transform( redis_object, redis_object->get_lock_id() );
+      if (update_success) {
+        std::string key_string = db_object->get_key();
 
-      //Remove the element from the smart updbate buffer
-      if (xRedis->exists(key_string.c_str())) {
-        xRedis->del(key_string.c_str());
+        //Remove the element from the smart updbate buffer
+        if (xRedis->exists(key_string.c_str())) {
+          xRedis->del(key_string.c_str());
+        }
+
+        //Replace the element in the smart update buffer
+        dm->put_to_redis(redis_object, OBJ_UPD, transaction_id);
+
+        //Save the resulting object back to the DB
+        cb->save_object (db_object);
+        cb->wait();
       }
-
-      //Replace the element in the smart update buffer
-      dm->put_to_redis(redis_object, OBJ_UPD, transaction_id);
-
-      //Save the resulting object back to the DB
-      cb->save_object (redis_object);
-      cb->wait();
+      else {
+        callback_logging->info("Lock Encountered in DB");
+        return "-1";
+      }
       return "";
     }
   }
@@ -333,6 +384,19 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         //Build the outbound message
         object_string = create_response(db_object, message_type, transaction_id);
         object_string = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
+        if (object_string = "-1") {
+          //Our Update failed due to locking
+          callback_logging->error("Smart Update failed due to lock");
+          message_type = ERR;
+          resp_err_string = "Smart Update failed due to lock";
+        }
+        bool lock_success = perform_locking_updates(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
+        if (!lock_success) {
+          //Our Update failed due to locking
+          callback_logging->error("Lock Denied, previously existing lock found");
+          message_type = ERR;
+          resp_err_string = "Lock Denied, previously existing lock found";
+        }
       }
     }
 

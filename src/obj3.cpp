@@ -37,7 +37,7 @@ void Obj3::initialize_matrices()
 	initialize_buffers();
 }
 
-Obj3::Obj3(protoObj3::Obj3 buffer)
+Obj3::Obj3(protoObj3::Obj3 buffer, bool locking_enabled)
 {
 	global_transform_type=false;
 	obj_logging->debug("Build Proto-Object Called");
@@ -174,7 +174,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	app_transaction_id = new_tran_id;
 
 	//Lock Attributes
-	if (new_lock_id == "" || new_lock_id == "-1") {
+	if ((new_lock_id == "" || new_lock_id == "-1") && locking_enabled) {
 		is_locked=false;
 		lock_owner="";
 	}
@@ -190,7 +190,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
   obj_logging->debug("Obj3 Built");
 }
 
-Obj3::Obj3(const rapidjson::Document& d)
+Obj3::Obj3(const rapidjson::Document& d, bool locking_enabled)
 {
 	global_transform_type=false;
 	obj_logging->debug("Build Object Called");
@@ -384,7 +384,7 @@ Obj3::Obj3(const rapidjson::Document& d)
   obj_logging->debug("Variables Filled");
 
 	//Lock Attributes
-	if (new_lock_id == "") {
+	if ((new_lock_id == "" || new_lock_id == "-1") && locking_enabled) {
 		is_locked=false;
 		lock_owner="";
 	}

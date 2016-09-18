@@ -434,9 +434,9 @@ protoObj3::Obj3 new_proto;
 new_proto.ParseFromString(proto_string);
 
 //Build new objects from the converted data
-Obj3 obj6 (d);
-Obj3 obj7 (d2);
-Obj3 obj8 (new_proto);
+Obj3 obj6 (d, false);
+Obj3 obj7 (d2, false);
+Obj3 obj8 (new_proto, false);
 
 assert (obj6.get_name() == "Test Object");
 assert (obj6.get_key() == "abcdef-9876543");

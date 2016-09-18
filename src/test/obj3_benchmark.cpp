@@ -107,7 +107,7 @@ BENCHMARK(FromMessage, JSONMessage, 5, 50)
 rapidjson::Document d2;
 d2.Parse(json_string.c_str());
 
-Obj3 obj7 (d2);
+Obj3 obj7 (d2, false);
 
 }
 
@@ -117,7 +117,7 @@ BENCHMARK(FromMessage, ProtoBufferMessage, 5, 50)
 protoObj3::Obj3 new_proto;
 new_proto.ParseFromString(pb_string);
 
-Obj3 obj8 (new_proto);
+Obj3 obj8 (new_proto, false);
 
 }
 

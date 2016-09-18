@@ -120,6 +120,17 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       config_logging->info("Sending Outbound Failure Messages Disabled");
     }
   }
+  if (props->opt_exist("EnableObjectLocking")) {
+    if (props->get_opt("EnableObjectLocking") == "True") {
+      EnableObjectLocking = true;
+      config_logging->info("Object Locking Enabled");
+    }
+    else {
+      EnableObjectLocking = false;
+      config_logging->info("Object Locking Disabled");
+    }
+  }
+
   if (props->list_exist("RedisConnectionString")) {
     std::vector<std::string> conn_list = props->get_list("RedisConnectionString");
     for (std::size_t i = 0; i < conn_list.size(); i++)
@@ -416,6 +427,16 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   }
   else {
     SendOutboundFailureMsg = false;
+  }
+
+  std::string enable_locking_message = get_consul_config_value("EnableObjectLocking");
+  config_logging->debug("Sending Outbound Failure Messages Enabled:");
+  config_logging->debug(enable_locking_message);
+  if (enable_locking_message == "True") {
+    EnableObjectLocking = true;
+  }
+  else {
+    EnableObjectLocking = false;
   }
 
   //Read from a set of global config values in consul
