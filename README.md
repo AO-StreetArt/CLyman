@@ -14,12 +14,13 @@ Features:
 * Storage of 3-D Objects Location, Rotation, Scaling
 * Enable real-time change feeds on the objects which are stored
 * Connect to other services over Zero MQ using JSON or Google Protocol Buffers.
-* Configurable Update logic & message formatting
+* Configurable Logic
 * Scalable microservice design
 
 ## Table of Contents
 * [Quickstart] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/quickstart)
 * [Configuration] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/config)
+* [API] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/api)
 * [Architecture] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/arch)
 * [Deployment] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/deploy)
 * [Tests] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/tests)
