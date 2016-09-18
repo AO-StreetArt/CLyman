@@ -39,6 +39,7 @@ void Obj3::initialize_matrices()
 
 Obj3::Obj3(protoObj3::Obj3 buffer)
 {
+	global_transform_type=false;
 	obj_logging->debug("Build Proto-Object Called");
   std::string new_name="";
   std::string new_key="";
@@ -86,6 +87,12 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 	}
 	if (buffer.has_mesh_id()) {
 		new_mesh_id = buffer.mesh_id();
+	}
+	if (buffer.has_transform_type()) {
+		if (buffer.transform_type() == "global")
+		{
+			global_transform_type = true;
+		}
 	}
   if (buffer.has_location()) {
     protoObj3::Obj3_Vertex3 loc = buffer.location();
@@ -185,6 +192,7 @@ Obj3::Obj3(protoObj3::Obj3 buffer)
 
 Obj3::Obj3(const rapidjson::Document& d)
 {
+	global_transform_type=false;
 	obj_logging->debug("Build Object Called");
 
   //Building replacement variables
@@ -257,6 +265,14 @@ Obj3::Obj3(const rapidjson::Document& d)
       lock_val = &d["lock_device_id"];
       new_lock_id = lock_val->GetString();
     }
+		if (d.HasMember("transform_type")) {
+			const rapidjson::Value *tran_type;
+      tran_type = &d["lock_device_id"];
+      std::string tran_type_str = tran_type->GetString();
+			if (tran_type_str == "global") {
+				global_transform_type = true;
+			}
+		}
     if (d.HasMember("location")) {
       //Read the array values and stuff them into new_location
       const rapidjson::Value& loc = d["location"];
@@ -388,31 +404,20 @@ Obj3::Obj3(const rapidjson::Document& d)
 //-----------------------Transformation Methods-------------------------------//
 //----------------------------------------------------------------------------//
 
-void Obj3::apply_transforms(Eigen::Matrix4d trans_matrix)
+void Obj3::apply_transforms(Eigen::Matrix4d trans_matrix, bool global_transforms_active)
 {
 	obj_logging->info("Obj3:Apply Transforms Called");
 
 	//Update the transformation matrix
-	transform_matrix = trans_matrix * transform_matrix;
-
-	//Update the location
-	Eigen::Vector4d loc4;
-	loc4 = Eigen::Vector4d::Constant(4, 1.0);
-	loc4(0) = location(0);
-	loc4(1) = location(1);
-	loc4(2) = location(2);
-
-	Eigen::Vector4d res_loc;
-	res_loc = trans_matrix * loc4;
-	location(0) = res_loc(0);
-	location(1) = res_loc(1);
-	location(2) = res_loc(2);
-
-	//Perform the necessary transforms on the bounding box
-	bounding_box = trans_matrix * bounding_box;
+	if (global_transforms_active) {
+		transform_matrix = trans_matrix * transform_matrix;
+	}
+	else {
+		transform_matrix = transform_matrix * trans_matrix;
+	}
 }
 
-void Obj3::transform_object(double trans_matrix[])
+void Obj3::transform_object(double trans_matrix[], bool global_transforms_active)
 {
 	obj_logging->info("Obj3:Transform Object called with double[]");
 	Eigen::Matrix4d tran_matrix;
@@ -425,11 +430,11 @@ void Obj3::transform_object(double trans_matrix[])
 		}
 	}
 
-	apply_transforms( tran_matrix );
+	apply_transforms( tran_matrix, global_transforms_active );
 }
 
 //Translate an object by some amounts x, y, and z on the respective axis
-void Obj3::translate_object(double x, double y, double z)
+void Obj3::translate_object(double x, double y, double z, bool global_transforms_active)
 {
 	obj_logging->info("Obj3:Translate Object called");
 	//Variable Declarations
@@ -447,12 +452,12 @@ void Obj3::translate_object(double x, double y, double z)
 	tran_matrix(2, 3) = z;
 
 	//Apply the transformation
-	apply_transforms( tran_matrix );
+	apply_transforms( tran_matrix, global_transforms_active );
 
 }
 
 //Rotate an object by a magnitude theta about the axis x, y, z
-void Obj3::rotate_object(double x, double y, double z, double theta)
+void Obj3::rotate_object(double x, double y, double z, double theta, bool global_transforms_active)
 {
 obj_logging->info("Obj3:RotateQ Object Called");
 Eigen::Matrix4d tran_matrix;
@@ -471,11 +476,11 @@ tran_matrix(2, 1) = y*z*(1-cos (theta*(PI/180)) - x*sin (theta*(PI/180)));
 tran_matrix(1, 0) = x*y*(1-cos (theta*(PI/180)) - z*sin (theta*(PI/180)));
 tran_matrix(2, 0) = x*z*(1-cos (theta*(PI/180)) - y*sin (theta*(PI/180)));
 
-apply_transforms( tran_matrix );
+apply_transforms( tran_matrix, global_transforms_active );
 }
 
 //Rotate an object about the X Axis
-void Obj3::rotate_objectx(double x)
+void Obj3::rotate_objectx(double x, bool global_transforms_active)
 {
 obj_logging->info("Obj3:Rotate Object about X-Axis Called");
 //Variable Declarations
@@ -490,11 +495,11 @@ tran_matrix(0, 0) = 1.0;
 tran_matrix(3, 3) = 1.0;
 
 //Apply the transformation
-apply_transforms( tran_matrix );
+apply_transforms( tran_matrix, global_transforms_active );
 }
 
 //Rotate an object about the Y Axis
-void Obj3::rotate_objecty(double y)
+void Obj3::rotate_objecty(double y, bool global_transforms_active)
 {
 obj_logging->info("Obj3:Rotate Object about Y-Axis Called");
 //Variable Declarations
@@ -508,11 +513,11 @@ tran_matrix(1, 1) = 1.0;
 tran_matrix(3, 3) = 1.0;
 
 //Apply the transformation
-apply_transforms( tran_matrix );
+apply_transforms( tran_matrix, global_transforms_active );
 }
 
 //Rotate an object about the Z Axis
-void Obj3::rotate_objectz(double z)
+void Obj3::rotate_objectz(double z, bool global_transforms_active)
 {
 obj_logging->info("Obj3:Rotate Object about Z-Axis Called");
 //Variable Declarations
@@ -526,29 +531,29 @@ tran_matrix(2, 2) = 1.0;
 tran_matrix(3, 3) = 1.0;
 
 //Apply the transformation
-apply_transforms( tran_matrix );
+apply_transforms( tran_matrix, global_transforms_active );
 
 }
 
-void Obj3::rotate_object(double x, double y, double z)
+void Obj3::rotate_object(double x, double y, double z, bool global_transforms_active)
 {
 obj_logging->info("Obj3:RotateE Object Called");
 if (std::abs(x) > 0.001)
 {
-	rotate_objectx(x);
+	rotate_objectx(x, global_transforms_active);
 }
 if (std::abs(y) > 0.001)
 {
-	rotate_objecty(y);
+	rotate_objecty(y, global_transforms_active);
 }
 if (std::abs(z) > 0.001)
 {
-	rotate_objectz(z);
+	rotate_objectz(z, global_transforms_active);
 }
 
 }
 
-void Obj3::scale_object(double x, double y, double z)
+void Obj3::scale_object(double x, double y, double z, bool global_transforms_active)
 {
 	obj_logging->info("Obj3:Scale Object Called");
 	//Variable Declarations
@@ -562,7 +567,7 @@ void Obj3::scale_object(double x, double y, double z)
   tran_matrix(3, 3) = 1.0;
 
 	//Apply the transformation
-	apply_transforms( tran_matrix );
+	apply_transforms( tran_matrix, global_transforms_active );
 
 }
 
@@ -573,28 +578,28 @@ void Obj3::transform_object(Obj3 *temp_obj)
 	//Are we doing a matrx transform?
 	if (!(temp_obj->has_location()) && !(temp_obj->has_rotatione()) && !(temp_obj->has_rotationq()) && !(temp_obj->has_scaling())) {
 		obj_logging->debug("Applying Transform Matrix and full transform stack");
-		apply_transforms(temp_obj->get_transform());
+		apply_transforms(temp_obj->get_transform(), temp_obj->is_global_trans_type());
 	}
 	else
 	{
 		if (temp_obj->has_location()) {
 			obj_logging->debug("Location Transformation Detected");
-			translate_object(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz());
+			translate_object(temp_obj->get_locx(), temp_obj->get_locy(), temp_obj->get_locz(), temp_obj->is_global_trans_type());
 		}
 
 		if (temp_obj->has_rotatione()) {
 			obj_logging->debug("Euler Rotation Transformation Detected");
-			rotate_object(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez());
+			rotate_object(temp_obj->get_rotex(), temp_obj->get_rotey(), temp_obj->get_rotez(), temp_obj->is_global_trans_type());
 		}
 
 		if (temp_obj->has_rotationq()) {
 			obj_logging->debug("Quaternion Rotation Transformation Detected");
-			rotate_object(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz());
+			rotate_object(temp_obj->get_rotqw(), temp_obj->get_rotqx(), temp_obj->get_rotqy(), temp_obj->get_rotqz(), temp_obj->is_global_trans_type());
 		}
 
 		if (temp_obj->has_scaling()) {
 			obj_logging->debug("Scale Transformation Detected");
-			scale_object(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz());
+			scale_object(temp_obj->get_sclx(), temp_obj->get_scly(), temp_obj->get_sclz(), temp_obj->is_global_trans_type());
 		}
 	}
 
@@ -625,7 +630,7 @@ void Obj3::transform_object(Obj3 *temp_obj)
 //----------------------------------------------------------------------------//
 
 //Convert the object to JSON Message
-std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
+std::string Obj3::to_json_msg(int msg_type, std::string trans_id, bool write_transform_type) const {
 	obj_logging->info("Obj3:To JSON message Called on object");
 	obj_logging->info(key);
 	//Initialize the string buffer and writer
@@ -763,6 +768,12 @@ std::string Obj3::to_json_msg(int msg_type, std::string trans_id) const {
 		writer.String(err_string.c_str(), (SizeType)err_string.length());
 	}
 
+	if (global_transform_type && write_transform_type) {
+		writer.Key("transform_type");
+		std::string tt_str = "true";
+		writer.String( tt_str.c_str(), (SizeType)tt_str.length() );
+	}
+
 	writer.EndObject();
 
 	//The Stringbuffer now contains a json message
@@ -772,20 +783,27 @@ std::string ret_string (ret_val);
 	return ret_string;
 }
 
+std::string Obj3::to_json_msg(int msg_type, std::string transact_id) const
+{
+	std::string trans_id = "";
+	return to_json_msg(msg_type, transact_id, true);
+}
+
+
 std::string Obj3::to_json_msg(int msg_type) const
 {
 	std::string trans_id = "";
-	return to_json_msg(msg_type, trans_id);
+	return to_json_msg(msg_type, trans_id, true);
 }
 
 std::string Obj3::to_json()
 {
 	std::string trans_id = "";
 	int msg_type = -1;
-	return to_json_msg(msg_type, trans_id);
+	return to_json_msg(msg_type, trans_id, false);
 }
 
-void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const {
+void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto, bool write_transform_type) const {
 	if (!key.empty()) {
 		new_proto->set_key(key);
 		obj_logging->debug("Obj3: Key = ");
@@ -825,6 +843,10 @@ void Obj3::to_base_protobuf_msg(protoObj3::Obj3 *new_proto) const {
 		new_proto->set_mesh_id(mesh_id);
 		obj_logging->debug("Obj3: Lock Owner = ");
 		obj_logging->debug(lock_owner);
+	}
+	if (global_transform_type && write_transform_type) {
+		new_proto->set_transform_type("global");
+		obj_logging->debug("Obj3: Global transform type set on message");
 	}
 	if (locn_flag) {
 		protoObj3::Obj3_Vertex3 *loc = new_proto->mutable_location();
@@ -890,7 +912,7 @@ std::string Obj3::to_protobuf_msg(int msg_type) const {
 	if (!app_transaction_id.empty()) {
 		new_proto->set_transaction_id(app_transaction_id);
 	}
-	to_base_protobuf_msg(new_proto);
+	to_base_protobuf_msg(new_proto, true);
 	std::string wstr;
   new_proto->SerializeToString(&wstr);
 	obj_logging->debug("Protocol Buffer Serialized to String");
@@ -911,7 +933,7 @@ std::string Obj3::to_protobuf_msg(int msg_type, std::string trans_id) const
 	if (!trans_id.empty()) {
 		new_proto->set_transaction_id(trans_id);
 	}
-	to_base_protobuf_msg(new_proto);
+	to_base_protobuf_msg(new_proto, true);
 	std::string wstr;
   new_proto->SerializeToString(&wstr);
 	obj_logging->debug("Protocol Buffer Serialized to String");

@@ -219,13 +219,9 @@ std::cout << "Object 5" << std::endl;
 print_obj_attributes(obj5);
 
 //Apply some transforms to the objects
-obj5.translate(1.0, 1.0, 1.0);
+obj5.translate(1.0, 1.0, 1.0, true);
 std::cout << "Object 5 after transform of 1 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
-
-assert (obj5.get_locx() == 1.0);
-assert (obj5.get_locy() == 1.0);
-assert (obj5.get_locz() == 1.0);
 
 Eigen::Matrix4d tr2 = obj5.get_transform();
 assert( tr2(0, 0) == 1.0 );
@@ -238,7 +234,7 @@ assert( tr2(1, 3) == 1.0 );
 assert( tr2(2, 3) == 1.0 );
 assert( tr2(3, 3) == 1.0 );
 
-obj5.resize(2.0, 2.0, 2.0);
+obj5.resize(2.0, 2.0, 2.0, true);
 std::cout << "Object 5 after scale of 2 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
 
@@ -252,7 +248,7 @@ assert( is_equal(obj5_transform(0, 0), 2.0, compare_threshold) );
 assert( is_equal(obj5_transform(1, 1), 2.0, compare_threshold) );
 assert( is_equal(obj5_transform(2, 2), 2.0, compare_threshold) );
 
-obj5.rotate(45.0, 0.0, 0.0);
+obj5.rotate(45.0, 0.0, 0.0, true);
 std::cout << "Object 5 after rotation of 45 degrees about x axis:" << std::endl;
 print_obj_attributes(obj5);
 
@@ -278,7 +274,7 @@ assert( is_equal(obj5_transform2(1, 3), 0.0, compare_threshold) );
 assert( is_equal(obj5_transform2(2, 3), 2.83, compare_threshold) );
 assert( is_equal(obj5_transform2(3, 3), 1.0, compare_threshold) );
 
-obj5.rotate(0.0, 45.0, 0.0);
+obj5.rotate(0.0, 45.0, 0.0, true);
 std::cout << "Object 5 after rotation of 45 degrees about y axis:" << std::endl;
 print_obj_attributes(obj5);
 
@@ -304,7 +300,7 @@ assert( is_equal(obj5_transform3(1, 3), 0.0, compare_threshold) );
 assert( is_equal(obj5_transform3(2, 3), 0.586, compare_threshold) );
 assert( is_equal(obj5_transform3(3, 3), 1.0, compare_threshold) );
 
-obj5.rotate(0.0, 0.0, 45.0);
+obj5.rotate(0.0, 0.0, 45.0, true);
 std::cout << "Object 5 after rotation of 45 degrees about z axis:" << std::endl;
 print_obj_attributes(obj5);
 
@@ -330,7 +326,9 @@ assert( is_equal(obj5_transform4(1, 3), 2.414, compare_threshold) );
 assert( is_equal(obj5_transform4(2, 3), 0.586, compare_threshold) );
 assert( is_equal(obj5_transform4(3, 3), 1.0, compare_threshold) );
 
-obj5.rotate( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), 45.0);
+float angle = 45.0;
+
+obj5.rotate( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), angle);
 std::cout << "Object 5 after rotation of 45 degrees about unit vector" << std::endl;
 print_obj_attributes(obj5);
 
@@ -361,6 +359,9 @@ Obj3 base_obj3 (name, key, type, subtype, owner, scns, new_location, new_rotatio
 Obj3 *trans_obj1 = new Obj3 (name, key, type, subtype, owner, trans_location);
 Obj3 *trans_obj2 = new Obj3 (name, key, type, subtype, owner, trans_transform);
 Obj3 *trans_obj3 = new Obj3 (name, key, type, subtype, owner, trans_location, trans_transform, new_bounding_box);
+trans_obj1->set_global_transform_type(true);
+trans_obj2->set_global_transform_type(true);
+trans_obj3->set_global_transform_type(true);
 
 //Apply our smart updates
 std::cout << "Update Object:" << std::endl;
