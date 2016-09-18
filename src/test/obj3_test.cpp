@@ -223,10 +223,6 @@ obj5.translate(1.0, 1.0, 1.0);
 std::cout << "Object 5 after transform of 1 on x, y, and z axis:" << std::endl;
 print_obj_attributes(obj5);
 
-assert (obj5.get_locx() == 1.0);
-assert (obj5.get_locy() == 1.0);
-assert (obj5.get_locz() == 1.0);
-
 Eigen::Matrix4d tr2 = obj5.get_transform();
 assert( tr2(0, 0) == 1.0 );
 assert( tr2(1, 1) == 1.0 );
