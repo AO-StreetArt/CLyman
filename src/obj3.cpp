@@ -571,7 +571,7 @@ void Obj3::scale_object(double x, double y, double z, bool global_transforms_act
 
 }
 
-bool Obj3::transform_object(Obj3 *temp_obj)
+void Obj3::transform_object(Obj3 *temp_obj)
 {
 	//First, we apply any matrix transforms present
 

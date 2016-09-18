@@ -68,7 +68,7 @@ std::string DocumentManager::update_object(Obj3 *temp_obj, std::string transacti
 
       std::string su_key = temp_obj->get_key();
 
-      put_to_redis(temp_obj, OBJ_UPD, transaction_id);
+      put_to_redis(temp_obj, m_type, transaction_id);
 
     }
   }
