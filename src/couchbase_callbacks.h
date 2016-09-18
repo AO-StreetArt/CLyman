@@ -384,7 +384,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         //Build the outbound message
         object_string = create_response(db_object, message_type, transaction_id);
         object_string = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
-        if (object_string = "-1") {
+        if (object_string == "-1") {
           //Our Update failed due to locking
           callback_logging->error("Smart Update failed due to lock");
           message_type = ERR;
