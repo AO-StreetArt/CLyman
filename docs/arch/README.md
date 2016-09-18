@@ -10,5 +10,11 @@ Please note that running CLyman requires an instance of both [Couchbase DB Serve
 
 CLyman can also be deployed with [Consul] (https://www.consul.io/) as a Service Discovery and Distributed Configuration architecture.  This requires the [Consul Agent] (https://www.consul.io/downloads.html) to be deployed that CLyman can connect to.
 
+# Design
+
+In order to allow for real-time, distributed visualization, one of the key problems that needs to be solved is allowing for real-time communication between devices regarding an object's position, orientation, and scaling.  This aims to solve that problem by providing a messaging API that is used to update objects, and a corresponding feed outbound which tells all devices about the update.
+
+This means that, by design, a client application should not expect to update an object, than send an update message.  Rather, clients should send an update message to the server, and then update the object based on the messages received from the server.
+
 # Next
 Now you can move on to the [Deployment] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/deploy) section.

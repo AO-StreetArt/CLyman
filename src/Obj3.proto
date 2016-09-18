@@ -37,4 +37,5 @@ message Obj3 {
   optional string mesh_id = 16;
   optional string error_message = 17;
   optional string transform_type = 18;
+  optional int32 is_locked = 19;
 }

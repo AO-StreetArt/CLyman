@@ -52,7 +52,7 @@ public:
 
   //CRUD Exposures for Obj3
   std::string create_object(Obj3 *new_obj, std::string transaction_id);
-  std::string update_object(Obj3 *temp_obj, std::string transaction_id);
+  std::string update_object(Obj3 *temp_obj, std::string transaction_id, int m_type);
   std::string get_object(Obj3 *temp_obj, std::string transaction_id);
   std::string delete_object(Obj3 *temp_obj, std::string transaction_id);
 

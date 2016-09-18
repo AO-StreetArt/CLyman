@@ -27,3 +27,5 @@ curl -X PUT -d '20' http://localhost:8500/v1/kv/HealthCheckInterval
 curl -X PUT -d 'True' http://localhost:8500/v1/kv/StampTransactionId
 
 curl -X PUT -d 'True' http://localhost:8500/v1/kv/SendOutboundFailureMsg
+
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/EnableObjectLocking

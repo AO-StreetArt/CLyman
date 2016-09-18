@@ -55,28 +55,28 @@ std::string owner = obj1->get_owner();
 BENCHMARK(Transform, Translate, 5, 50)
 {
 
-obj1->translate(1.0, 1.0, 1.0);
+obj1->translate(1.0, 1.0, 1.0, true);
 
 }
 
 BENCHMARK(Transform, RotateEuler, 5, 50)
 {
 
-obj1->rotate(45.0, 45.0, 45.0);
+obj1->rotate(45.0, 45.0, 45.0, true);
 
 }
 
 BENCHMARK(Transform, RotateQuaternion, 5, 50)
 {
 
-obj1->rotate( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), 45.0);
+obj1->rotate( (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), (sqrt (3.0) / 3.0), 45.0, true);
 
 }
 
 BENCHMARK(Transform, Scale, 5, 50)
 {
 
-obj1->resize(2.0, 2.0, 2.0);
+obj1->resize(2.0, 2.0, 2.0, true);
 
 }
 
@@ -107,7 +107,7 @@ BENCHMARK(FromMessage, JSONMessage, 5, 50)
 rapidjson::Document d2;
 d2.Parse(json_string.c_str());
 
-Obj3 obj7 (d2);
+Obj3 obj7 (d2, false);
 
 }
 
@@ -117,7 +117,7 @@ BENCHMARK(FromMessage, ProtoBufferMessage, 5, 50)
 protoObj3::Obj3 new_proto;
 new_proto.ParseFromString(pb_string);
 
-Obj3 obj8 (new_proto);
+Obj3 obj8 (new_proto, false);
 
 }
 

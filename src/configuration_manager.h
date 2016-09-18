@@ -67,6 +67,7 @@ std::string HealthCheckScript;
 int HealthCheckInterval;
 bool StampTransactionId;
 bool SendOutboundFailureMsg;
+bool EnableObjectLocking;
 
 //String Manipulations
 
@@ -91,7 +92,7 @@ public:
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
           RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;\
-            isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;}
+            isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;EnableObjectLocking=false;}
   ~ConfigurationManager();
 
   //Populate the configuration variables
@@ -112,6 +113,7 @@ public:
   std::vector<RedisConnChain> get_redisconnlist() {return RedisConnectionList;}
   bool get_transactionidsactive() {return StampTransactionId;}
   bool get_sendobfailuresactive() {return SendOutboundFailureMsg;}
+  bool get_objectlockingenabled() {return EnableObjectLocking;}
 };
 
 #endif
