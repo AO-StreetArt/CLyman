@@ -83,7 +83,7 @@ class Obj3: public Writeable
 		void apply_transforms(Eigen::Matrix4d trans_matrix, bool global_transforms_active);
 
 		//Smart Update
-		bool transform_object(Obj3 *obj);
+		bool transform_object(Obj3 *obj, bool global_transforms_active);
 
 		//Transform
 		void transform_object(double trans_matrix[], bool global_transforms_active);
