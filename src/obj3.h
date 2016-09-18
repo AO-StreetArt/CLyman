@@ -83,7 +83,7 @@ class Obj3: public Writeable
 		void apply_transforms(Eigen::Matrix4d trans_matrix, bool global_transforms_active);
 
 		//Smart Update
-		bool transform_object(Obj3 *obj, bool global_transforms_active);
+		bool transform_object(Obj3 *obj);
 
 		//Transform
 		void transform_object(double trans_matrix[], bool global_transforms_active);
@@ -137,9 +137,9 @@ class Obj3: public Writeable
 		//Transformation Methods
 
 		//Smart Update
-		bool transform(Obj3 *obj) {if (is_locked==false) {transform_object(obj, false); return true;} else {return false;}}
+		bool transform(Obj3 *obj) {if (is_locked==false) {transform_object(obj); return true;} else {return false;}}
 
-		bool transform(Obj3 *obj, std::string device_id) {if (is_locked==false || lock_owner==device_id) {transform_object(obj, false); return true;} else {return false;}}
+		bool transform(Obj3 *obj, std::string device_id) {if (is_locked==false || lock_owner==device_id) {transform_object(obj); return true;} else {return false;}}
 
 		//Transform
 		bool transform(double trans_matrix[]) {if (is_locked==false) {transform_object(trans_matrix, false); return true;} else {return false;}}
