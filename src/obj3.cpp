@@ -415,14 +415,6 @@ void Obj3::apply_transforms(Eigen::Matrix4d trans_matrix, bool global_transforms
 	else {
 		transform_matrix = transform_matrix * trans_matrix;
 	}
-
-	//Perform the necessary transforms on the bounding box
-	if (global_transforms_active) {
-		bounding_box = trans_matrix * bounding_box;
-	}
-	else {
-		bounding_box = bounding_box * trans_matrix;
-	}
 }
 
 void Obj3::transform_object(double trans_matrix[], bool global_transforms_active)
