@@ -369,7 +369,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         object_string = create_response(db_object, message_type, transaction_id);
         object_string = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
         bool lock_success = perform_locking_updates(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
-        if ((!lock_success) || (object_string == -1)) {
+        if ( !(lock_success || (object_string != "-1")) ) {
           //Our Update failed due to locking
           callback_logging->error("Update failed due to lock");
           message_type = ERR;
@@ -377,7 +377,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         }
         else {
           //Replace the element in the smart update buffer
-          dm->put_to_redis(redis_object, OBJ_UPD, transaction_id);
+          dm->put_to_redis(new_obj, OBJ_UPD, transaction_id);
 
           //Save the resulting object back to the DB
           cb->save_object (db_object);
@@ -429,12 +429,12 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   //Remove the element from the smart updbate buffer
   bool need_to_remove_smart_update = !(inp_msg_type == OBJ_GET && message_type == OBJ_UPD) && cm->get_smartupdatesactive();
   if ( ( ( cm->get_transactionidsactive() && !( need_to_remove_smart_update ) ) ||
-    ( !(cm->get_transactionidsactive()) && need_to_remove_smart_update ) ) && 
+    ( !(cm->get_transactionidsactive()) && need_to_remove_smart_update ) ) &&
       !(response_key.empty()) )
   {
-    rkey_cstr = response_key.c_str();
-    key_string = response_key + cm->get_nodeid();
-    key_cstr = key_string.c_str();
+    const char * rkey_cstr = response_key.c_str();
+    std::string key_string = response_key + cm->get_nodeid();
+    const char * key_cstr = key_string.c_str();
 
     //Remove the object itself
     if (xRedis->exists(key_cstr)) {
