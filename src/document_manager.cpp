@@ -18,6 +18,8 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
 
   while (!lock_established) {
 
+    doc_logging->error("Redis Mutex Lock Routine Started");
+
     if ( xRedis->exists(temp_key) ) {
       current_mutex_key = xRedis->load(temp_key);
     }
@@ -25,10 +27,12 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
     if ((current_mutex_key != "") && (current_mutex_key != cm->get_nodeid())) {
       //Another instance of Clyman has a lock on the redis mutex
       //Block until the lock is cleared
+      doc_logging->error("Existing Redis Mutex Lock Detected, waiting for lock to be released");
       while (xRedis->exists(temp_key)) {}
     }
 
     //Try to establish a lock on the Redis Mutex
+    doc_logging->error("Attempting to obtain Redis Mutex Lock");
     if ( !(xRedis->exists(temp_key)) ) {
       lock_established = xRedis->save(temp_key, node_id);
     }

@@ -432,6 +432,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     ( !(cm->get_transactionidsactive()) && need_to_remove_smart_update ) ) &&
       !(response_key.empty()) )
   {
+    callback_logging->debug("Redis Deletion Routine Triggered");
     const char * rkey_cstr = response_key.c_str();
     std::string key_string = response_key + cm->get_nodeid();
     const char * key_cstr = key_string.c_str();
