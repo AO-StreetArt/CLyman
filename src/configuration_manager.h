@@ -69,6 +69,9 @@ bool StampTransactionId;
 bool SendOutboundFailureMsg;
 bool EnableObjectLocking;
 
+//The Current Node ID
+std::string node_id;
+
 //String Manipulations
 
 //Split a string, based on python's split method
@@ -92,7 +95,7 @@ public:
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
           RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;\
-            isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;EnableObjectLocking=false;}
+            isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;EnableObjectLocking=false;node_id=ua->generate();}
   ~ConfigurationManager();
 
   //Populate the configuration variables
@@ -114,6 +117,9 @@ public:
   bool get_transactionidsactive() {return StampTransactionId;}
   bool get_sendobfailuresactive() {return SendOutboundFailureMsg;}
   bool get_objectlockingenabled() {return EnableObjectLocking;}
+
+  //Get the Current Node ID
+  std::string get_nodeid() {return node_id;}
 };
 
 #endif

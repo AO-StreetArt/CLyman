@@ -180,9 +180,6 @@ inline bool perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::st
         if (xRedis->exists(key_string.c_str())) {
           xRedis->del(key_string.c_str());
         }
-
-        //Replace the element in the smart update buffer
-        dm->put_to_redis(redis_object, OBJ_LOCK, transaction_id);
     }
 
     //We have an unlock message
@@ -195,14 +192,7 @@ inline bool perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::st
         if (xRedis->exists(key_string.c_str())) {
           xRedis->del(key_string.c_str());
         }
-
-        //Replace the element in the smart update buffer
-        dm->put_to_redis(redis_object, OBJ_UNLOCK, transaction_id);
     }
-
-    //Save the resulting object back to the DB
-    cb->save_object (db_object);
-    cb->wait();
 
     return true;
 
@@ -233,12 +223,6 @@ inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std
           xRedis->del(key_string.c_str());
         }
 
-        //Replace the element in the smart update buffer
-        dm->put_to_redis(redis_object, OBJ_UPD, transaction_id);
-
-        //Save the resulting object back to the DB
-        cb->save_object (db_object);
-        cb->wait();
       }
       else {
         callback_logging->info("Lock Encountered in DB");
@@ -384,18 +368,20 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         //Build the outbound message
         object_string = create_response(db_object, message_type, transaction_id);
         object_string = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
-        if (object_string == "-1") {
-          //Our Update failed due to locking
-          callback_logging->error("Smart Update failed due to lock");
-          message_type = ERR;
-          resp_err_string = "Smart Update failed due to lock";
-        }
         bool lock_success = perform_locking_updates(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
-        if (!lock_success) {
+        if ((!lock_success) || (object_string == -1)) {
           //Our Update failed due to locking
-          callback_logging->error("Lock Denied, previously existing lock found");
+          callback_logging->error("Update failed due to lock");
           message_type = ERR;
-          resp_err_string = "Lock Denied, previously existing lock found";
+          resp_err_string = "Update failed due to lock";
+        }
+        else {
+          //Replace the element in the smart update buffer
+          dm->put_to_redis(redis_object, OBJ_UPD, transaction_id);
+
+          //Save the resulting object back to the DB
+          cb->save_object (db_object);
+          cb->wait();
         }
       }
     }
@@ -441,9 +427,23 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   }
 
   //Remove the element from the smart updbate buffer
-  if (cm->get_transactionidsactive() && !(response_key.empty())) {
-    if (xRedis->exists(response_key.c_str())) {
-      xRedis->del(response_key.c_str());
+  bool need_to_remove_smart_update = !(inp_msg_type == OBJ_GET && message_type == OBJ_UPD) && cm->get_smartupdatesactive();
+  if ( ( ( cm->get_transactionidsactive() && !( need_to_remove_smart_update ) ) ||
+    ( !(cm->get_transactionidsactive()) && need_to_remove_smart_update ) ) && 
+      !(response_key.empty()) )
+  {
+    rkey_cstr = response_key.c_str();
+    key_string = response_key + cm->get_nodeid();
+    key_cstr = key_string.c_str();
+
+    //Remove the object itself
+    if (xRedis->exists(key_cstr)) {
+      xRedis->del(key_cstr);
+    }
+
+    //Remove the Redis Mutex Lock
+    if (xRedis->exists(rkey_cstr)) {
+      xRedis->del(rkey_cstr);
     }
   }
 

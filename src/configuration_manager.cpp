@@ -269,11 +269,9 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   //Go get the heartbeat script from Consul
   HealthCheckScript = get_consul_config_value("HealthCheckScript");
 
-  std::string id = ua->generate();
-
   //Build a new service definition for this currently running instance of clyman
   std::string name = "CLyman";
-  s = factory->get_service_interface(id, name, internal_address, port);
+  s = factory->get_service_interface(node_id, name, internal_address, port);
   s->add_tag("ZMQ");
 
   //Add the check

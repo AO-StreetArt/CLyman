@@ -2,20 +2,54 @@
 
 //Write an object to Redis
 void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string transaction_id) {
+
+  //Generate the object key
+  std::string key_str = temp_obj->get_key() + cm->get_nodeid();
+  const char * key_cstr = key_str.c_str();
+
+  //Generate the mutex key
   const char * temp_key = temp_obj->get_key().c_str();
+
+  //Determine if another instance of CLyman has a lock on the Redis Mutex
+  std::string current_mutex_key;
+  bool lock_established = false;
+
+  while (!lock_established) {
+
+    if ( xRedis->exists(temp_key) ) {
+      current_mutex_key = xRedis->load(temp_key);
+    }
+
+    if ((current_mutex_key != "") && (current_mutex_key != cm->get_nodeid())) {
+      //Another instance of Clyman has a lock on the redis mutex
+      //Block until the lock is cleared
+      while (xRedis->exists(temp_key)) {}
+    }
+
+    //Try to establish a lock on the Redis Mutex
+    if ( !(xRedis->exists(temp_key)) ) {
+      lock_established = xRedis->save(temp_key, node_id);
+    }
+
+  }
+
+  //Write the Object to Redis
   bool bRet;
   if (cm->get_rfjson()) {
-    bRet = xRedis->save(temp_key, temp_obj->to_json_msg(msg_type));
+    bRet = xRedis->save(key_cstr, temp_obj->to_json_msg(msg_type));
   }
   else if (cm->get_rfprotobuf()) {
-    bRet = xRedis->save(temp_key, temp_obj->to_protobuf_msg(msg_type));
+    bRet = xRedis->save(key_cstr, temp_obj->to_protobuf_msg(msg_type));
   }
+
   if (!bRet) {
     doc_logging->error("Error putting object to Redis Smart Update Buffer");
   }
-  bool bRet2 = xRedis->expire(temp_key, cm->get_subduration());
-  if (!bRet2) {
-    doc_logging->error("Error expiring object in Redis Smart Update Buffer");
+  else {
+    bool bRet2 = xRedis->expire(temp_key, cm->get_subduration());
+    if (!bRet2) {
+      doc_logging->error("Error expiring object in Redis Smart Update Buffer");
+    }
   }
 }
 
