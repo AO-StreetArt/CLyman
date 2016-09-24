@@ -3,8 +3,10 @@
 //Write an object to Redis
 void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string transaction_id) {
 
+  std::string node_id = cm->get_nodeid();
+
   //Generate the object key
-  std::string key_str = temp_obj->get_key() + cm->get_nodeid();
+  std::string key_str = temp_obj->get_key() + node_id;
   const char * key_cstr = key_str.c_str();
 
   //Generate the mutex key
