@@ -18,9 +18,9 @@
 
 #include "lyman_log.h"
 
-#include "include/factory_consul.h"
-#include "include/factory_http_client.h"
-#include "include/factory_props.h"
+#include "aossl/factory_consul.h"
+#include "aossl/factory_http_client.h"
+#include "aossl/factory_props.h"
 
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/consul_interface.h"

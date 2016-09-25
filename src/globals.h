@@ -8,6 +8,13 @@
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/zmq_interface.h"
 
+#include "aossl/factory_cli.h"
+#include "aossl/factory_couchbase.h"
+#include "aossl/factory_logging.h"
+#include "aossl/factory_redis.h"
+#include "aossl/factory_uuid.h"
+#include "aossl/factory_zmq.h"
+
 #include "document_manager.h"
 #include "configuration_manager.h"
 #include "Obj3.pb.h"
