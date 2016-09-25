@@ -3,6 +3,7 @@
 
 #include "aossl/factory/logging_interface.h"
 
+extern LoggingCategoryInterface *uuid_logging;
 extern LoggingCategoryInterface *config_logging;
 extern LoggingCategoryInterface *obj_logging;
 extern LoggingCategoryInterface *doc_logging;

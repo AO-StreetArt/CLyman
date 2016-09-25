@@ -7,6 +7,8 @@ ConfigurationManager::~ConfigurationManager() {
     delete s;
     delete ca;
   }
+  delete consul_factory;
+  delete props_factory;
 }
 
 //----------------------Internal Configuration Methods------------------------//
@@ -29,7 +31,7 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   config_logging->info(file_path);
 
   //Get a properties file manager, which will give us access to the file in a hashmap
-  PropertiesReaderInterface *props = factory->get_properties_reader_interface(file_path);
+  PropertiesReaderInterface *props = props_factory->get_properties_reader_interface(file_path);
 
   if (props->opt_exist("DB_ConnectionString")) {
     DB_ConnStr=props->get_opt("DB_ConnectionString");
@@ -202,7 +204,14 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 {
   std::string resp_str;
   //Get a JSON List of the responses
-  std::string config_json = ca->get_config_value(key);
+  try {
+    std::string config_json = ca->get_config_value(key);
+  }
+  catch (std::exception& e) {
+    main_logging->error("Exception encountered during Consul Configuration Retrieval");
+    main_logging->error(e.what());
+    shutdown();
+  }
   const char * config_cstr = config_json.c_str();
 
   //Parse the JSON Response
@@ -243,10 +252,10 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 }
 
 //Configure based on the Services List and Key/Value store from Consul
-bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidInterface *ua)
+bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port)
 {
 
-  ca = factory->get_consul_interface( consul_path );
+  ca = consul_factory->get_consul_interface( consul_path );
   config_logging->info ("Connecting to Consul");
   config_logging->info (consul_path);
 
@@ -271,7 +280,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Build a new service definition for this currently running instance of clyman
   std::string name = "CLyman";
-  s = factory->get_service_interface(node_id, name, internal_address, port);
+  s = consul_factory->get_service_interface(node_id, name, internal_address, port);
   s->add_tag("ZMQ");
 
   //Add the check
@@ -288,8 +297,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     }
 
     //Set up the instance heartbeat folder location
-    std::string id = "CLyman-" + ua->generate();
-    std::string my_hb_loc = "heartbeat_scripts/" + id;
+    std::string my_hb_loc = "heartbeat_scripts/" + node_id;
     int my_hb_loc_exist = mkdir ( my_hb_loc.c_str(), S_IRWXU | S_IRWXG );
     if (my_hb_loc_exist == 0) {
 
@@ -341,7 +349,14 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   }
 
   //Register the service
-  bool register_success = ca->register_service(*s);
+  try {
+    bool register_success = ca->register_service(*s);
+  }
+  catch (std::exception& e) {
+    main_logging->error("Exception encountered during Service Registration");
+    main_logging->error(e.what());
+    shutdown();
+  }
 
   if (!register_success) {
     config_logging->error("Failed to register with Consul");
@@ -516,7 +531,7 @@ bool ConfigurationManager::configure ()
 
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr") && cli->opt_exist("couchbase-pswd"))
     {
-      bool suc = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      bool suc = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
       if (suc) {
         DB_ConnStr = cli->get_opt("-couchbase-addr");
         DB_AuthActive = true;
@@ -530,7 +545,7 @@ bool ConfigurationManager::configure ()
 
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr"))
     {
-      bool succ = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      bool succ = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
       if (succ) {
         DB_ConnStr = cli->get_opt("-couchbase-addr");
         DB_AuthActive = false;
@@ -543,7 +558,7 @@ bool ConfigurationManager::configure ()
 
     else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port"))
     {
-      bool ret_val =  configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port"), ua );
+      bool ret_val =  configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
       if (ret_val) {
         isConsulActive = true;
       }
