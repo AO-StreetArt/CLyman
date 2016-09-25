@@ -1,6 +1,6 @@
 # Project CLyman
 
-.. image:: https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg?maxAge=2592000   :target: https://hub.docker.com/r/aostreetart/clyman-automated-build/
+[![Docker Automated build](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg?maxAge=2592000)](https://hub.docker.com/r/aostreetart/clyman-automated-build/builds/)
 
 ## Overview
 
