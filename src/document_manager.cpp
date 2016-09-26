@@ -76,8 +76,9 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
     doc_logging->error("Error putting object to Redis Smart Update Buffer");
   }
   else {
+    bool bRet2;
     try {
-      bool bRet2 = xRedis->expire(temp_key, cm->get_subduration());
+      bRet2 = xRedis->expire(temp_key, cm->get_subduration());
     }
     catch (std::exception& e) {
       main_logging->error("Exception encountered during Redis Request");
