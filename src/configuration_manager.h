@@ -91,14 +91,14 @@ bool configure_from_consul (std::string consul_path, std::string ip, std::string
 public:
   //Constructor
   //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
-  ConfigurationManager(CommandLineInterface *c, std::string instance_id) {cli = c;ua = u;\
+  ConfigurationManager(CommandLineInterface *c, std::string instance_id) {cli = c;\
     DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; \
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
           RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;\
             isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;\
               EnableObjectLocking=false;node_id=instance_id;consul_factory=new ConsulComponentFactory;\
-                http_client_factory=new HttpClientFactory;props_factory = PropertyReaderFactory;}
+                props_factory = PropertyReaderFactory;}
   ~ConfigurationManager();
 
   //Populate the configuration variables

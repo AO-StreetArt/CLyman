@@ -135,7 +135,13 @@ void my_signal_handler(int s){
       //configuration files, and Consul connections to try and determine the correct
       //configuration for the service
 
-      bool config_success = cm->configure();
+      try {
+        bool config_success = cm->configure();
+      }
+      catch (std::exception& e) {
+        main_logging->error("Exception encountered during Configuration");
+        shutdown();
+      }
       if (!config_success)
       {
         main_logging->error("Configuration Failed, defaults kept");
