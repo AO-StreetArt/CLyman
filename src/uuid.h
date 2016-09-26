@@ -7,8 +7,9 @@
 
 inline std::string generate_uuid()
 {
+  std::string id_str
   try {
-    std::string tran_id_str = ua->generate();
+    id_str = ua->generate();
   }
   catch (UuidSecurityException& ue) {
     //Continue and print the security error
@@ -18,4 +19,5 @@ inline std::string generate_uuid()
   catch (std::exception& e) {
     throw e;
   }
+  return id_str;
 }
