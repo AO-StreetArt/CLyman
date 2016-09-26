@@ -7,7 +7,7 @@
 
 inline std::string generate_uuid()
 {
-  std::string id_str
+  std::string id_str;
   try {
     id_str = ua->generate();
   }
