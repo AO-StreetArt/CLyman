@@ -98,7 +98,7 @@ public:
           RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;\
             isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;\
               EnableObjectLocking=false;node_id=instance_id;consul_factory=new ConsulComponentFactory;\
-                props_factory = PropertyReaderFactory;}
+                props_factory = new PropertyReaderFactory;}
   ~ConfigurationManager();
 
   //Populate the configuration variables
