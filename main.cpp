@@ -126,6 +126,7 @@ void my_signal_handler(int s){
       catch (std::exception& e) {
         main_logging->error("Exception encountered during UUID Generation");
         shutdown();
+        exit(1);
       }
 
       //Set up our configuration manager with the CLI
@@ -142,6 +143,7 @@ void my_signal_handler(int s){
       catch (std::exception& e) {
         main_logging->error("Exception encountered during Configuration");
         shutdown();
+        exit(1);
       }
       if (!config_success)
       {
@@ -166,6 +168,7 @@ void my_signal_handler(int s){
         main_logging->error("Exception encountered during Redis Initialization");
         main_logging->error(e.what());
         shutdown();
+        exit(1);
       }
       main_logging->info("Connected to Redis");
 
@@ -182,6 +185,7 @@ void my_signal_handler(int s){
           main_logging->error("Exception encountered during Couchbase Initialization");
           main_logging->error(e.what());
           shutdown();
+          exit(1);
         }
       }
       else {
@@ -192,6 +196,7 @@ void my_signal_handler(int s){
           main_logging->error("Exception encountered during Couchbase Initialization");
           main_logging->error(e.what());
           shutdown();
+          exit(1);
         }
       }
 
@@ -281,6 +286,7 @@ void my_signal_handler(int s){
         catch (std::exception& e) {
           main_logging->error("Exception encountered during UUID Generation");
           shutdown();
+          exit(1);
         }
         main_logging->debug(tran_id_str);
         resp->set_transaction_id(tran_id_str);
@@ -363,6 +369,7 @@ void my_signal_handler(int s){
           catch (std::exception& e) {
             main_logging->error("Exception encountered during UUID Generation");
             shutdown();
+            exit(1);
           }
           bool key_is_set = translated_object->set_key( object_key );
 
@@ -534,6 +541,7 @@ void my_signal_handler(int s){
           }
 
           shutdown();
+          exit(1);
 
           return 0;
         }
