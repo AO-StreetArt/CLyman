@@ -162,7 +162,7 @@ void my_signal_handler(int s){
       std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
       //Set up Redis Connection
       try {
-        xRedis = redis_factory->get_redis_cluster_interface(RedisConnectionList);
+        xRedis = redis_factory->get_redis_interface(RedisConnectionList[0].ip, RedisConnectionList[0].port);
       }
       catch (std::exception& e) {
         main_logging->error("Exception encountered during Redis Initialization");
