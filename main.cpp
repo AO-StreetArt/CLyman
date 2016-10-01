@@ -38,12 +38,6 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include <aossl/couchbase_admin.h>
-#include <aossl/xredis_admin.h>
-#include <aossl/logging.h>
-#include <aossl/uuid_admin.h>
-#include <aossl/cli.h>
-
 #include "aossl/factory_cli.h"
 #include "aossl/factory_couchbase.h"
 #include "aossl/factory_logging.h"

@@ -148,7 +148,6 @@ std::string DocumentManager::update_object(Obj3 *temp_obj, std::string transacti
 //Get Object Global
 std::string DocumentManager::get_object(Obj3 *new_obj, std::string transaction_id) {
   std::string object_key = new_obj->get_key();
-  const char * rkc_str = object_key.c_str();
 
   //Transaction ID's are active
   //Clear the active update buffer for this object prior to executing the get
