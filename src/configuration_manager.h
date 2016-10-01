@@ -18,11 +18,13 @@
 
 #include "lyman_log.h"
 
-#include "aossl/factory.h"
+#include "aossl/factory_consul.h"
+#include "aossl/factory_http_client.h"
+#include "aossl/factory_props.h"
+
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/consul_interface.h"
 #include "aossl/factory/logging_interface.h"
-#include "aossl/factory/uuid_interface.h"
 #include "aossl/factory/redis_interface.h"
 #include "aossl/factory/properties_reader_interface.h"
 
@@ -35,7 +37,9 @@
 
 class ConfigurationManager
 {
-ServiceComponentFactory *factory = NULL;
+
+ConsulComponentFactory *consul_factory = NULL;
+PropertyReaderFactory *props_factory = NULL;
 
 //Internal Consul Administrator
 ConsulInterface *ca = NULL;
@@ -43,9 +47,6 @@ bool isConsulActive;
 
 //Command Line Interpreter holding config arguments
 CommandLineInterface *cli = NULL;
-
-//UUID Generator
-uuidInterface *ua = NULL;
 
 //Consul Service Definition
 ServiceInterface *s = NULL;
@@ -69,6 +70,9 @@ bool StampTransactionId;
 bool SendOutboundFailureMsg;
 bool EnableObjectLocking;
 
+//The Current Node ID
+std::string node_id;
+
 //String Manipulations
 
 //Split a string, based on python's split method
@@ -82,17 +86,19 @@ bool configure_from_file (std::string file_path);
 
 //Consul Config
 std::string get_consul_config_value(std::string key);
-bool configure_from_consul (std::string consul_path, std::string ip, std::string port, uuidInterface *ua);
+bool configure_from_consul (std::string consul_path, std::string ip, std::string port);
 
 public:
   //Constructor
   //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
-  ConfigurationManager(CommandLineInterface *c, uuidInterface *u, ServiceComponentFactory *fact) {cli = c;ua = u;factory=fact;\
+  ConfigurationManager(CommandLineInterface *c, std::string instance_id) {cli = c;\
     DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; \
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
           RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;\
-            isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;EnableObjectLocking=false;}
+            isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;\
+              EnableObjectLocking=false;node_id=instance_id;consul_factory=new ConsulComponentFactory;\
+                props_factory = new PropertyReaderFactory;}
   ~ConfigurationManager();
 
   //Populate the configuration variables
@@ -114,6 +120,9 @@ public:
   bool get_transactionidsactive() {return StampTransactionId;}
   bool get_sendobfailuresactive() {return SendOutboundFailureMsg;}
   bool get_objectlockingenabled() {return EnableObjectLocking;}
+
+  //Get the Current Node ID
+  std::string get_nodeid() {return node_id;}
 };
 
 #endif

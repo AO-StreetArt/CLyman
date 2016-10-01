@@ -32,18 +32,19 @@
 #include "src/couchbase_callbacks.h"
 #include "src/globals.h"
 #include "src/clyman_response.h"
+#include "src/uuid.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include <aossl/couchbase_admin.h>
-#include <aossl/xredis_admin.h>
-#include <aossl/logging.h>
-#include <aossl/uuid_admin.h>
-#include <aossl/cli.h>
+#include "aossl/factory_cli.h"
+#include "aossl/factory_couchbase.h"
+#include "aossl/factory_logging.h"
+#include "aossl/factory_redis.h"
+#include "aossl/factory_uuid.h"
+#include "aossl/factory_zmq.h"
 
-#include "aossl/factory.h"
 #include "aossl/factory/couchbase_interface.h"
 #include "aossl/factory/redis_interface.h"
 #include "aossl/factory/logging_interface.h"
@@ -51,43 +52,11 @@
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/response_interface.h"
 
-//Set up an Obj3 pointer to hold the currently translated document information
-Obj3 *translated_object = NULL;
-
 enum {
   CACHE_TYPE_1,
   CACHE_TYPE_2,
   CACHE_TYPE_MAX,
 };
-
-//Shutdown the application
-void shutdown()
-{
-  //Delete objects off the heap
-  delete dm;
-  delete xRedis;
-  delete cb;
-  delete zmqo;
-  delete zmqi;
-  delete cm;
-  delete ua;
-  delete cli;
-
-  if(!resp) {main_logging->debug("No response object active at the time of shutdown");}
-  else
-  {
-    delete resp;
-  }
-
-  if (!translated_object) {main_logging->debug("No translated object active at time of shutdown");}
-  else {delete translated_object;}
-
-  shutdown_logging_submodules();
-  delete logging;
-
-  //Shut down protocol buffer library
-  google::protobuf::ShutdownProtobufLibrary();
-}
 
 //Catch a Signal (for example, keyboard interrupt)
 void my_signal_handler(int s){
@@ -113,10 +82,15 @@ void my_signal_handler(int s){
 
       sigaction(SIGINT, &sigIntHandler, NULL);
 
-      ServiceComponentFactory *factory = new ServiceComponentFactory;
+      CommandLineInterpreterFactory *cli_factory = new CommandLineInterpreterFactory;
+      CouchbaseComponentFactory *couchbase_factory = new CouchbaseComponentFactory;
+      RedisComponentFactory *redis_factory = new RedisComponentFactory;
+      uuidComponentFactory *uuid_factory = new uuidComponentFactory;
+      ZmqComponentFactory *zmq_factory = new ZmqComponentFactory;
+      LoggingComponentFactory *logging_factory = new LoggingComponentFactory;
 
       //Set up our command line interpreter
-      cli = factory->get_command_line_interface( argc, argv );
+      cli = cli_factory->get_command_line_interface( argc, argv );
 
       //Set up logging
 	    std::string initFileName;
@@ -131,22 +105,40 @@ void my_signal_handler(int s){
       }
 
       //This reads the logging configuration file
-      logging = factory->get_logging_interface(initFileName);
+      logging = logging_factory->get_logging_interface(initFileName);
 
       //Set up the logging submodules for each category
       start_logging_submodules();
 
       //Set up the UUID Generator
-      ua = factory->get_uuid_interface();
+      ua = uuid_factory->get_uuid_interface();
 
-      //Set up our configuration manager with the CLI and UUID Generator
-      cm = new ConfigurationManager(cli, ua, factory);
+      std::string service_instance_id = "CLyman-";
+      try {
+        service_instance_id = service_instance_id + generate_uuid();
+      }
+      catch (std::exception& e) {
+        main_logging->error("Exception encountered during UUID Generation");
+        shutdown();
+        exit(1);
+      }
+
+      //Set up our configuration manager with the CLI
+      cm = new ConfigurationManager(cli, service_instance_id);
 
       //The configuration manager will  look at any command line arguments,
       //configuration files, and Consul connections to try and determine the correct
       //configuration for the service
 
-      bool config_success = cm->configure();
+      bool config_success;
+      try {
+        config_success = cm->configure();
+      }
+      catch (std::exception& e) {
+        main_logging->error("Exception encountered during Configuration");
+        shutdown();
+        exit(1);
+      }
       if (!config_success)
       {
         main_logging->error("Configuration Failed, defaults kept");
@@ -163,7 +155,15 @@ void my_signal_handler(int s){
       //The additional logic is needed to allow for connecting to clusters or single instance
       std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
       //Set up Redis Connection
-      xRedis = factory->get_redis_cluster_interface(RedisConnectionList);
+      try {
+        xRedis = redis_factory->get_redis_interface(RedisConnectionList[0].ip, RedisConnectionList[0].port);
+      }
+      catch (std::exception& e) {
+        main_logging->error("Exception encountered during Redis Initialization");
+        main_logging->error(e.what());
+        shutdown();
+        exit(1);
+      }
       main_logging->info("Connected to Redis");
 
       //Set up the Couchbase Connection
@@ -172,10 +172,26 @@ void my_signal_handler(int s){
       bool DBAuthActive = cm->get_dbauthactive();
       if (DBAuthActive) {
         std::string DBPswd = cm->get_dbpswd();
-        cb = factory->get_couchbase_interface( DBConnStr.c_str(), DBPswd.c_str() );
+        try {
+          cb = couchbase_factory->get_couchbase_interface( DBConnStr.c_str(), DBPswd.c_str() );
+        }
+        catch (std::exception& e) {
+          main_logging->error("Exception encountered during Couchbase Initialization");
+          main_logging->error(e.what());
+          shutdown();
+          exit(1);
+        }
       }
       else {
-        cb = factory->get_couchbase_interface( DBConnStr.c_str() );
+        try {
+          cb = couchbase_factory->get_couchbase_interface( DBConnStr.c_str() );
+        }
+        catch (std::exception& e) {
+          main_logging->error("Exception encountered during Couchbase Initialization");
+          main_logging->error(e.what());
+          shutdown();
+          exit(1);
+        }
       }
 
       //Bind Couchbase Callbacks
@@ -184,20 +200,20 @@ void my_signal_handler(int s){
       cb->bind_delete_callback(my_delete_callback);
 
       //Set up the outbound ZMQ Admin
-      zmqo = factory->get_zmq_outbound_interface(cm->get_obconnstr());
+      zmqo = zmq_factory->get_zmq_outbound_interface(cm->get_obconnstr());
       main_logging->info("Connected to Outbound OMQ Socket");
 
       //Connect to the inbound ZMQ Admin
-      zmqi = factory->get_zmq_inbound_interface(cm->get_ibconnstr());
+      zmqi = zmq_factory->get_zmq_inbound_interface(cm->get_ibconnstr());
       main_logging->info("ZMQ Socket Open, opening request loop");
 
       //Set up the Document Manager
       //This relies on pointers to all the other objects we set up,
       //and drives the central functionality, along with the couchbase callbacks
-      dm = new DocumentManager (cb, xRedis, ua, cm, zmqo);
+      dm = new DocumentManager (cb, xRedis, cm, zmqo);
 
       //Set up a response object to be sent back to the client
-      resp = factory->get_application_response_interface();
+      resp = zmq_factory->get_application_response_interface();
 
       //Main Request Loop
 
@@ -257,7 +273,15 @@ void my_signal_handler(int s){
 
         //Generate a Transaction ID
         main_logging->debug("Generating Transaction ID");
-        std::string tran_id_str = ua->generate();
+        std::string tran_id_str;
+        try {
+          tran_id_str = generate_uuid();
+        }
+        catch (std::exception& e) {
+          main_logging->error("Exception encountered during UUID Generation");
+          shutdown();
+          exit(1);
+        }
         main_logging->debug(tran_id_str);
         resp->set_transaction_id(tran_id_str);
         if (!translated_object)
@@ -332,7 +356,15 @@ void my_signal_handler(int s){
           main_logging->debug("Current Event Type set to Object Create");
 
           //Set the new key on the new object
-          std::string object_key = ua->generate();
+          std::string object_key;
+          try {
+            object_key = generate_uuid();
+          }
+          catch (std::exception& e) {
+            main_logging->error("Exception encountered during UUID Generation");
+            shutdown();
+            exit(1);
+          }
           bool key_is_set = translated_object->set_key( object_key );
 
           if (key_is_set) {
@@ -503,6 +535,7 @@ void my_signal_handler(int s){
           }
 
           shutdown();
+          exit(1);
 
           return 0;
         }

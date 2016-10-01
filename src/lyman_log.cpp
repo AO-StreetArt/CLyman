@@ -5,9 +5,11 @@ LoggingCategoryInterface *obj_logging = NULL;
 LoggingCategoryInterface *doc_logging = NULL;
 LoggingCategoryInterface *callback_logging = NULL;
 LoggingCategoryInterface *main_logging = NULL;
+LoggingCategoryInterface *uuid_logging = NULL;
 
 void start_logging_submodules()
 {
+  if (!uuid_logging) {uuid_logging = logging->get_category("uuid");}
   if (!config_logging) {config_logging = logging->get_category("configuration");}
   if (!obj_logging) {obj_logging = logging->get_category("obj3");}
   if (!doc_logging) {doc_logging = logging->get_category("document");}
@@ -17,6 +19,15 @@ void start_logging_submodules()
 
 void shutdown_logging_submodules()
 {
+  if (!uuid_logging)
+  {
+    logging->debug("UUID Logging Module delete called without initialized object");
+  }
+  else
+  {
+    logging->debug("UUID Logging Module delete called");
+    delete uuid_logging;
+  }
   if (!config_logging)
   {
     logging->debug("Configuration Logging Module delete called without initialized object");
@@ -62,5 +73,4 @@ void shutdown_logging_submodules()
     logging->debug("Main Logging Module delete called");
     delete main_logging;
   }
-  shutdown_framework_logging();
 }

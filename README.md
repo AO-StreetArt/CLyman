@@ -1,8 +1,6 @@
 # Project CLyman
 
-## Build Status
-* Project - Successful
-* Tests - Successful
+[Docker Automated build] (https://hub.docker.com/r/aostreetart/clyman-automated-build/builds/)
 
 ## Overview
 

@@ -9,7 +9,7 @@ OBJS = src/Obj3.pb.cc src/Response.pb.cc src/lyman_log.o src/configuration_manag
 TESTS = obj3_test configuration_test
 BENCHMARKS = obj3_benchmark
 LIBS = -lpthread -llog4cpp
-FULL_LIBS = -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid -levent `pkg-config --cflags --libs protobuf hiredis`
+FULL_LIBS = -laossl -lcurl -lpthread -lxredis -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis`
 
 PROTOC = protoc
 PROTO_OPTS = -I=src

@@ -35,10 +35,10 @@ RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
 RUN wget http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
 RUN dpkg -i couchbase-release-1.0-2-amd64.deb
 
-#Get the XRedis Dependencies
-RUN git clone https://github.com/AO-StreetArt/xredis.git ./xredis
+#Get the Redis Dependencies
+RUN git clone https://github.com/redis/hiredis.git ./hiredis
 
-RUN cd ./xredis && make && make install
+RUN cd ./hiredis && make && make install
 
 #Get the ZMQ Dependencies
 RUN wget https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz

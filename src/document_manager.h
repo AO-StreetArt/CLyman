@@ -37,12 +37,11 @@ class DocumentManager
 CouchbaseInterface *cb;
 RedisInterface *xRedis;
 ConfigurationManager *cm;
-uuidInterface *ua;
 Zmqio *zmqo;
 public:
   //Initializer
-  DocumentManager(CouchbaseInterface *cb_admin, RedisInterface *xr_admin, uuidInterface *uadmin, ConfigurationManager *cm_admin, Zmqio *zmq_out) {cb = cb_admin; xRedis = xr_admin; cm = cm_admin;ua = uadmin; zmqo = zmq_out;}
-  DocumentManager(CouchbaseInterface *cb_admin, RedisInterface *xr_admin, uuidInterface *uadmin, Zmqio *zmq_out) {cb = cb_admin; xRedis = xr_admin;ua = uadmin;zmqo = zmq_out;}
+  DocumentManager(CouchbaseInterface *cb_admin, RedisInterface *xr_admin, ConfigurationManager *cm_admin, Zmqio *zmq_out) {cb = cb_admin; xRedis = xr_admin; cm = cm_admin; zmqo = zmq_out;}
+  DocumentManager(CouchbaseInterface *cb_admin, RedisInterface *xr_admin, Zmqio *zmq_out) {cb = cb_admin; xRedis = xr_admin;zmqo = zmq_out;}
 
   //configure
   void configure(ConfigurationManager *cm_admin) {cm = cm_admin;}
