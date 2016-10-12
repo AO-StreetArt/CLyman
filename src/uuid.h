@@ -7,17 +7,10 @@
 
 inline std::string generate_uuid()
 {
-  std::string id_str;
-  try {
-    id_str = ua->generate();
+  UuidContainer id_container;
+  id_container = ua->generate();
+  if (!id_container.err.empty()) {
+    uuid_logging->error(id_container.err);
   }
-  catch (UuidSecurityException& ue) {
-    //Continue and print the security error
-    uuid_logging->error("UUID Security Exception");
-    uuid_logging->error(ue.what());
-  }
-  catch (std::exception& e) {
-    throw e;
-  }
-  return id_str;
+  return id_container.id;
 }
