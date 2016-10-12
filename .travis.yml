@@ -18,6 +18,7 @@ before_install:
   - mkdir ../clyman_deps
   - sudo cp scripts/linux/deb/build_deps.sh ../clyman_deps
   - cd ../clyman_deps && sudo ./build_deps.sh
+  - cat build_deps.log
   - cd $TRAVIS_BUILD_DIR
 install:
   - cd scripts && sudo ./install_couchbase.sh
