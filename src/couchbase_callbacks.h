@@ -177,6 +177,8 @@ inline bool perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::st
         db_object->lock( redis_object->get_lock_id() );
 
         //Remove the element from the smart updbate buffer
+        //I'm not sure this needs to be here
+        //but the logic behind deleting from redis is kind of scary
         if (xRedis->exists(key_string.c_str())) {
           xRedis->del(key_string.c_str());
         }

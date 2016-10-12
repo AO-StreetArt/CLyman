@@ -37,7 +37,7 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
     doc_logging->error("Attempting to obtain Redis Mutex Lock");
     if ( !(xRedis->exists( temp_obj->get_key() )) ) {
       try {
-        lock_established = xRedis->save( temp_obj->get_key() , node_id);
+        lock_established = xRedis->setnx( temp_obj->get_key() , node_id);
       }
       catch (std::exception& e) {
         main_logging->error("Exception encountered during Redis Request");
@@ -51,7 +51,7 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
   bool bRet;
   if (cm->get_rfjson()) {
     try {
-      bRet = xRedis->save(key_str, temp_obj->to_json_msg(msg_type));
+      bRet = xRedis->setex(key_str, temp_obj->to_json_msg(msg_type), cm->get_subduration());
     }
     catch (std::exception& e) {
       main_logging->error("Exception encountered during Redis Request");
@@ -60,30 +60,11 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
   }
   else if (cm->get_rfprotobuf()) {
     try {
-      bRet = xRedis->save(key_str, temp_obj->to_protobuf_msg(msg_type));
+      bRet = xRedis->setex(key_str, temp_obj->to_protobuf_msg(msg_type), cm->get_subduration());
     }
     catch (std::exception& e) {
       main_logging->error("Exception encountered during Redis Request");
       main_logging->error(e.what());
-    }
-  }
-
-  if (!bRet) {
-    doc_logging->error("Error putting object to Redis Smart Update Buffer");
-  }
-  else {
-    bool bRet2;
-    bool bRet3;
-    try {
-      bRet2 = xRedis->expire(key_str, cm->get_subduration());
-      bRet3 = xRedis->expire( temp_obj->get_key(), cm->get_subduration() );
-    }
-    catch (std::exception& e) {
-      main_logging->error("Exception encountered during Redis Request");
-      main_logging->error(e.what());
-    }
-    if ( !(bRet2 && bRet3) ) {
-      doc_logging->error("Error expiring object in Redis Smart Update Buffer");
     }
   }
 }
