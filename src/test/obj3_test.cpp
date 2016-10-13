@@ -5,7 +5,7 @@
 #include <string>
 #include <math.h>
 #include "aossl/factory/logging_interface.h"
-#include "aossl/factory.h"
+#include "aossl/factory_logging.h"
 #include <cmath>
 
 #include <assert.h>

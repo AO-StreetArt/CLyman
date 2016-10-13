@@ -33,5 +33,5 @@ script:
   - make rhel
   - make rhel-test
   - make rhel-benchmarks
-  - ./obj3_test &
+  - ./obj3_test
   - ./configuration_test
