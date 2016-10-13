@@ -72,7 +72,7 @@ if [ ! -d /usr/local/include/aossl ]; then
   cd $PRE/aossl_deps && sudo ./build_deps.sh
 
   #Build the shared service library
-  cd ./$PRE/aossl && make && sudo make install
+  cd $PRE/aossl && make && sudo make install
   sudo ldconfig
 
 fi
