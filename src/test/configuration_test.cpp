@@ -23,6 +23,8 @@ int main( int argc, char** argv )
   std::string initFileName = "log4cpp.properties";
   logging = logging_factory->get_logging_interface(initFileName);
 
+  start_logging_submodules();
+
   logging->debug("PreTest Setup");
 
   //Set up the UUID Generator
@@ -31,7 +33,7 @@ int main( int argc, char** argv )
   //Set up our command line interpreter
   CommandLineInterface *cli = cli_factory->get_command_line_interface( argc, argv );
 
-  ConfigurationManager cm( cli, ua, factory );
+  ConfigurationManager cm( cli, ua );
 
   logging->debug("Configure the app");
 
@@ -79,6 +81,8 @@ int main( int argc, char** argv )
     assert( redis_chain2.role == 0);
     logging->debug("Redis connection list 2 checked");
   }
+
+  shutdown_logging_submodules();
 
   delete cli;
   delete ua;

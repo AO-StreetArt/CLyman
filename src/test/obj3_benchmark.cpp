@@ -136,6 +136,8 @@ LoggingComponentFactory *factory = new LoggingComponentFactory;
 std::string initFileName = "src/test/log4cpp.properties";
 logging = factory->get_logging_interface(initFileName);
 
+start_logging_submodules();
+
 //---------------------------Pre-Test Setup-----------------------------------//
 //----------------------------------------------------------------------------//
 
@@ -203,6 +205,8 @@ hayai::Benchmarker::RunAllTests();
 
 //-------------------------Post-Test Teardown---------------------------------//
 //----------------------------------------------------------------------------//
+
+shutdown_logging_submodules();
 
 delete obj1;
 delete logging;

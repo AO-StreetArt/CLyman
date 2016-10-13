@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "../obj3.h"
+#include "../lyman_log.h"
 #include <string>
 #include <math.h>
 #include "aossl/factory/logging_interface.h"
@@ -62,6 +63,8 @@ LoggingComponentFactory *factory = new LoggingComponentFactory;
 
 std::string initFileName = "log4cpp.properties";
 logging = factory->get_logging_interface(initFileName);
+
+start_logging_submodules();
 
 //----------------------------Basic Tests-------------------------------------//
 //----------------------------------------------------------------------------//
@@ -463,6 +466,8 @@ std::cout << "From JSON Document" << std::endl;
 print_obj_attributes(obj7);
 std::cout << "From Protobuffer" << std::endl;
 print_obj_attributes(obj8);
+
+shutdown_logging_submodules();
 
 delete logging;
 delete factory;
