@@ -17,9 +17,6 @@ before_install:
   - sudo apt-get install libssl-dev
   - mkdir ../clyman_deps
   - sudo cp scripts/linux/deb/build_deps.sh ../clyman_deps
-  - cd ../clyman_deps && sudo ./build_deps.sh
-  - cat build_deps.log
-  - cd $TRAVIS_BUILD_DIR
 install:
   - cd scripts && sudo ./install_couchbase.sh
   - cd $TRAVIS_BUILD_DIR
@@ -30,6 +27,9 @@ script:
   - sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-5 /usr/bin/gcc
   - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++
   - gcc --version
+  - cd ../clyman_deps && sudo ./build_deps.sh
+  - cat build_deps.log
+  - cd $TRAVIS_BUILD_DIR
   - make rhel
   - make rhel-test
   - make rhel-benchmarks
