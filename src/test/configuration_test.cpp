@@ -33,7 +33,12 @@ int main( int argc, char** argv )
   //Set up our command line interpreter
   CommandLineInterface *cli = cli_factory->get_command_line_interface( argc, argv );
 
-  ConfigurationManager cm( cli, ua );
+  UuidContainer id_container = ua->generate();
+  if (!id_container.err.empty()) {
+    uuid_logging->error(id_container.err);
+  }
+
+  ConfigurationManager cm( cli, id_container.id );
 
   logging->debug("Configure the app");
 
