@@ -37,3 +37,4 @@ RedisComponentFactory *redis_factory = NULL;
 uuidComponentFactory *uuid_factory = NULL;
 ZmqComponentFactory *zmq_factory = NULL;
 LoggingComponentFactory *logging_factory = NULL;
+ResponseFactory *response_factory = NULL;

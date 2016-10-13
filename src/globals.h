@@ -9,7 +9,7 @@
 #include "aossl/factory/zmq_interface.h"
 #include "include/factory/response_interface.h"
 
-#include "include/factory_response.h"
+#include "aossl/factory_response.h"
 #include "aossl/factory_cli.h"
 #include "aossl/factory_couchbase.h"
 #include "aossl/factory_logging.h"
@@ -50,6 +50,7 @@ extern RedisComponentFactory *redis_factory;
 extern uuidComponentFactory *uuid_factory;
 extern ZmqComponentFactory *zmq_factory;
 extern LoggingComponentFactory *logging_factory;
+extern ResponseFactory *response_factory;
 
 //Shutdown the application
 inline void shutdown()
@@ -85,6 +86,7 @@ inline void shutdown()
   delete uuid_factory;
   delete zmq_factory;
   delete logging_factory;
+  delete response_factory;
 }
 
 #endif

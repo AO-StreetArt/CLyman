@@ -44,6 +44,7 @@
 #include "aossl/factory_redis.h"
 #include "aossl/factory_uuid.h"
 #include "aossl/factory_zmq.h"
+#include "aossl/factory_response.h"
 
 #include "aossl/factory/couchbase_interface.h"
 #include "aossl/factory/redis_interface.h"
@@ -213,7 +214,7 @@ void my_signal_handler(int s){
       dm = new DocumentManager (cb, xRedis, cm, zmqo);
 
       //Set up a response object to be sent back to the client
-      resp = zmq_factory->get_application_response_interface();
+      resp = response_factory->get_application_response_interface();
 
       //Main Request Loop
 
