@@ -55,16 +55,13 @@ std::cout << obj.to_json_msg(0) << std::endl;
 int main()
 {
 
-ServiceComponentFactory *factory = new ServiceComponentFactory;
+LoggingComponentFactory *factory = new LoggingComponentFactory;
 
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
 
 std::string initFileName = "log4cpp.properties";
 logging = factory->get_logging_interface(initFileName);
-
-//Set up the logging submodules for each category
-start_logging_submodules();
 
 //----------------------------Basic Tests-------------------------------------//
 //----------------------------------------------------------------------------//
@@ -466,8 +463,6 @@ std::cout << "From JSON Document" << std::endl;
 print_obj_attributes(obj7);
 std::cout << "From Protobuffer" << std::endl;
 print_obj_attributes(obj8);
-
-shutdown_logging_submodules();
 
 delete logging;
 delete factory;

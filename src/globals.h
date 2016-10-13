@@ -7,7 +7,8 @@
 #include "aossl/factory/uuid_interface.h"
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/zmq_interface.h"
-#include "include/factory/response_interface.h"
+#include "aossl/factory/response_interface.h"
+#include "aossl/factory/logging_interface.h"
 
 #include "aossl/factory_response.h"
 #include "aossl/factory_cli.h"

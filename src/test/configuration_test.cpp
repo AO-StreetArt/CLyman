@@ -6,29 +6,30 @@
 #include "aossl/factory/logging_interface.h"
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/uuid_interface.h"
-#include "aossl/factory.h"
+#include "aossl/factory_cli.h"
+#include "aossl/factory_logging.h"
+#include "aossl/factory_uuid.h"
 
 int main( int argc, char** argv )
 {
 
-  ServiceComponentFactory *factory = new ServiceComponentFactory;
+  LoggingComponentFactory *logging_factory = new LoggingComponentFactory;
+  CommandLineInterpreterFactory *cli_factory = new CommandLineInterpreterFactory;
+  uuidComponentFactory *id_factory = new uuidComponentFactory;
 
   //-------------------------------Logging--------------------------------------//
   //----------------------------------------------------------------------------//
 
   std::string initFileName = "log4cpp.properties";
-  logging = factory->get_logging_interface(initFileName);
-
-  //Set up the logging submodules for each category
-  start_logging_submodules();
+  logging = logging_factory->get_logging_interface(initFileName);
 
   logging->debug("PreTest Setup");
 
   //Set up the UUID Generator
-  uuidInterface *ua = factory->get_uuid_interface();
+  uuidInterface *ua = id_factory->get_uuid_interface();
 
   //Set up our command line interpreter
-  CommandLineInterface *cli = factory->get_command_line_interface( argc, argv );
+  CommandLineInterface *cli = cli_factory->get_command_line_interface( argc, argv );
 
   ConfigurationManager cm( cli, ua, factory );
 
@@ -79,7 +80,6 @@ int main( int argc, char** argv )
     logging->debug("Redis connection list 2 checked");
   }
 
-  shutdown_logging_submodules();
   delete cli;
   delete ua;
   delete logging;
