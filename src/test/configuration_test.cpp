@@ -76,17 +76,6 @@ int main( int argc, char** argv )
     logging->debug("Redis connection list 1 checked");
   }
 
-  if (conn_list_size > 1) {
-    RedisConnChain redis_chain2 = RedisConnectionList[1];
-    assert( redis_chain2.ip == "127.0.0.1" );
-    assert( redis_chain2.port == 6380 );
-    assert( redis_chain2.password == "test2" );
-    assert( redis_chain2.pool_size == 2);
-    assert( redis_chain2.timeout == 5);
-    assert( redis_chain2.role == 0);
-    logging->debug("Redis connection list 2 checked");
-  }
-
   shutdown_logging_submodules();
 
   delete cli;
