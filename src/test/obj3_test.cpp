@@ -2,10 +2,11 @@
 
 #include <iostream>
 #include "../obj3.h"
+#include "../lyman_log.h"
 #include <string>
 #include <math.h>
 #include "aossl/factory/logging_interface.h"
-#include "aossl/factory.h"
+#include "aossl/factory_logging.h"
 #include <cmath>
 
 #include <assert.h>
@@ -55,7 +56,7 @@ std::cout << obj.to_json_msg(0) << std::endl;
 int main()
 {
 
-ServiceComponentFactory *factory = new ServiceComponentFactory;
+LoggingComponentFactory *factory = new LoggingComponentFactory;
 
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
@@ -63,7 +64,6 @@ ServiceComponentFactory *factory = new ServiceComponentFactory;
 std::string initFileName = "log4cpp.properties";
 logging = factory->get_logging_interface(initFileName);
 
-//Set up the logging submodules for each category
 start_logging_submodules();
 
 //----------------------------Basic Tests-------------------------------------//

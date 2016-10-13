@@ -10,6 +10,7 @@ exec 1>build_deps.log 2>&1
 
 printf "Creating Dependency Folder"
 PRE=./downloads
+RETURN=..
 mkdir $PRE
 
 printf "Calling apt-get update"
@@ -68,11 +69,12 @@ if [ ! -d /usr/local/include/aossl ]; then
 
   #Build the dependencies for the shared service library
   mkdir $PRE/aossl_deps
-  cp $PRE/aossl/build_deps.sh $PRE/aossl_deps/
+  cp $PRE/aossl/scripts/deb/build_deps.sh $PRE/aossl_deps/
   cd $PRE/aossl_deps && sudo ./build_deps.sh
+  cd ../$RETURN
 
   #Build the shared service library
-  cd ./$PRE/aossl && make && sudo make install
+  cd $PRE/aossl && make && sudo make install
   sudo ldconfig
 
 fi

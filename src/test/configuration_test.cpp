@@ -6,31 +6,39 @@
 #include "aossl/factory/logging_interface.h"
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/uuid_interface.h"
-#include "aossl/factory.h"
+#include "aossl/factory_cli.h"
+#include "aossl/factory_logging.h"
+#include "aossl/factory_uuid.h"
 
 int main( int argc, char** argv )
 {
 
-  ServiceComponentFactory *factory = new ServiceComponentFactory;
+  LoggingComponentFactory *logging_factory = new LoggingComponentFactory;
+  CommandLineInterpreterFactory *cli_factory = new CommandLineInterpreterFactory;
+  uuidComponentFactory *id_factory = new uuidComponentFactory;
 
   //-------------------------------Logging--------------------------------------//
   //----------------------------------------------------------------------------//
 
   std::string initFileName = "log4cpp.properties";
-  logging = factory->get_logging_interface(initFileName);
+  logging = logging_factory->get_logging_interface(initFileName);
 
-  //Set up the logging submodules for each category
   start_logging_submodules();
 
   logging->debug("PreTest Setup");
 
   //Set up the UUID Generator
-  uuidInterface *ua = factory->get_uuid_interface();
+  uuidInterface *ua = id_factory->get_uuid_interface();
 
   //Set up our command line interpreter
-  CommandLineInterface *cli = factory->get_command_line_interface( argc, argv );
+  CommandLineInterface *cli = cli_factory->get_command_line_interface( argc, argv );
 
-  ConfigurationManager cm( cli, ua, factory );
+  UuidContainer id_container = ua->generate();
+  if (!id_container.err.empty()) {
+    uuid_logging->error(id_container.err);
+  }
+
+  ConfigurationManager cm( cli, id_container.id );
 
   logging->debug("Configure the app");
 
@@ -61,7 +69,7 @@ int main( int argc, char** argv )
     RedisConnChain redis_chain = RedisConnectionList[0];
     assert( redis_chain.ip == "127.0.0.1" );
     assert( redis_chain.port == 6379 );
-    assert( redis_chain.password == "test" );
+    assert( redis_chain.password == "" );
     assert( redis_chain.pool_size == 2);
     assert( redis_chain.timeout == 5);
     assert( redis_chain.role == 0);
@@ -80,6 +88,7 @@ int main( int argc, char** argv )
   }
 
   shutdown_logging_submodules();
+
   delete cli;
   delete ua;
   delete logging;

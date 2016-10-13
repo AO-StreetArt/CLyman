@@ -6,7 +6,7 @@
 #include <string>
 #include <math.h>
 #include "aossl/factory/logging_interface.h"
-#include "aossl/factory.h"
+#include "aossl/factory_logging.h"
 
 Obj3 *obj1;
 
@@ -128,7 +128,7 @@ Obj3 obj8 (new_proto, false);
 int main()
 {
 
-ServiceComponentFactory *factory = new ServiceComponentFactory;
+LoggingComponentFactory *factory = new LoggingComponentFactory;
 
 //-------------------------------Logging--------------------------------------//
 //----------------------------------------------------------------------------//
@@ -136,7 +136,6 @@ ServiceComponentFactory *factory = new ServiceComponentFactory;
 std::string initFileName = "src/test/log4cpp.properties";
 logging = factory->get_logging_interface(initFileName);
 
-//Set up the logging submodules for each category
 start_logging_submodules();
 
 //---------------------------Pre-Test Setup-----------------------------------//
@@ -207,9 +206,9 @@ hayai::Benchmarker::RunAllTests();
 //-------------------------Post-Test Teardown---------------------------------//
 //----------------------------------------------------------------------------//
 
-delete obj1;
-
 shutdown_logging_submodules();
+
+delete obj1;
 delete logging;
 delete factory;
 

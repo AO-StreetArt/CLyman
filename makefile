@@ -6,22 +6,32 @@ SLC = ar rcs
 CFLAGS  = -g -Wall
 STD = -std=c++11
 OBJS = src/Obj3.pb.cc src/Response.pb.cc src/lyman_log.o src/configuration_manager.o src/globals.o src/obj3.o src/document_manager.o main.o
+RHEL_TESTS = obj3_test_rhel configuration_test_rhel
 TESTS = obj3_test configuration_test
 BENCHMARKS = obj3_benchmark
+RHEL_BENCHMARKS = obj3_benchmark_rhel
 LIBS = -lpthread -llog4cpp
 FULL_LIBS = -laossl -lcurl -lpthread -lzmq -lcouchbase -llog4cpp -luuid `pkg-config --cflags --libs protobuf hiredis`
+RHEL_LIBS = -laossl -lcurl -lpthread -lzmq -lcouchbase -llog4cpp -luuid -lhiredis `pkg-config --cflags --libs protobuf`
 
 PROTOC = protoc
 PROTO_OPTS = -I=src
 
 # -------------------------- Central Targets --------------------------------- #
 
-lyman: $(OBJS) scripts/Obj3_pb2.py scripts/Response_pb2.py
+clyman: $(OBJS) scripts/Obj3_pb2.py scripts/Response_pb2.py
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(FULL_LIBS) $(STD)
+
+rhel: $(OBJS) scripts/Obj3_pb2.py scripts/Response_pb2.py
+	$(CC) $(CFLAGS) -o clyman $(OBJS) $(RHEL_LIBS) $(STD)
 
 test: $(TESTS)
 
+rhel-test: $(RHEL_TESTS)
+
 benchmarks: $(BENCHMARKS)
+
+rhel-benchmarks: $(RHEL_BENCHMARKS)
 
 clean: clean_local clean_tests clean_benchmarks
 
@@ -30,11 +40,17 @@ clean: clean_local clean_tests clean_benchmarks
 obj3_test: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_test.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
 
+obj3_test_rhel: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_test.o
+	$(CC) $(CFLAGS) -o obj3_test $^ $(RHEL_LIBS) $(STD)
+
 src/obj3_test.o: src/test/obj3_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/obj3_test.cpp $(STD)
 
 configuration_test: src/lyman_log.o src/configuration_manager.o src/configuration_test.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
+
+configuration_test_rhel: src/lyman_log.o src/configuration_manager.o src/configuration_test.o
+	$(CC) $(CFLAGS) -o configuration_test $^ $(RHEL_LIBS) $(STD)
 
 src/configuration_test.o: src/test/configuration_test.cpp src/configuration_manager.cpp src/configuration_manager.h
 	$(CC) $(CFLAGS) -o $@ -c src/test/configuration_test.cpp $(STD)
@@ -43,6 +59,9 @@ src/configuration_test.o: src/test/configuration_test.cpp src/configuration_mana
 
 obj3_benchmark: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_benchmark.o
 	$(CC) $(CFLAGS) -o $@ $^ $(FULL_LIBS) $(STD)
+
+obj3_benchmark_rhel: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_benchmark.o
+	$(CC) $(CFLAGS) -o obj3_benchmark $^ $(RHEL_LIBS) $(STD)
 
 src/obj3_benchmark.o: src/test/obj3_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/obj3_benchmark.cpp $(STD)
