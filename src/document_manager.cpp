@@ -67,6 +67,12 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
       main_logging->error(e.what());
     }
   }
+
+  //Writing the object failed
+  if (!bRet) {
+    main_logging->error("Error putting object to Redis Smart Update Buffer, Removing Redis Mutex Lock");
+    xRedis->del( temp_obj->get_key() );
+  }
 }
 
 //Global Object Creation
