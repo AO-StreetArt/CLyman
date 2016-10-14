@@ -1,6 +1,6 @@
 # Project CLyman
 
-[Docker Automated build] (https://hub.docker.com/r/aostreetart/clyman-automated-build/builds/)
+![](https://travis-ci.org/AO-StreetArt/CLyman.svg?branch=master)
 
 ## Overview
 

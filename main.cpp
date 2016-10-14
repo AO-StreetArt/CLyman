@@ -175,6 +175,7 @@ void my_signal_handler(int s){
         std::string DBPswd = cm->get_dbpswd();
         try {
           cb = couchbase_factory->get_couchbase_interface( DBConnStr.c_str(), DBPswd.c_str() );
+          main_logging->debug("Connected to Couchbase");
         }
         catch (std::exception& e) {
           main_logging->error("Exception encountered during Couchbase Initialization");
@@ -186,6 +187,7 @@ void my_signal_handler(int s){
       else {
         try {
           cb = couchbase_factory->get_couchbase_interface( DBConnStr.c_str() );
+          main_logging->debug("Connected to Couchbase");
         }
         catch (std::exception& e) {
           main_logging->error("Exception encountered during Couchbase Initialization");
