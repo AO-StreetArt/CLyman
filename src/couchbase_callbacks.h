@@ -175,13 +175,6 @@ inline bool perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::st
 
         //Lock the DB object with the lock owner
         db_object->lock( redis_object->get_lock_id() );
-
-        //Remove the element from the smart updbate buffer
-        //I'm not sure this needs to be here
-        //but the logic behind deleting from redis is kind of scary
-        if (xRedis->exists(key_string.c_str())) {
-          xRedis->del(key_string.c_str());
-        }
     }
 
     //We have an unlock message
@@ -189,11 +182,6 @@ inline bool perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::st
 
         //Lock the DB object with the lock owner
         db_object->unlock( redis_object->get_lock_id() );
-
-        //Remove the element from the smart updbate buffer
-        if (xRedis->exists(key_string.c_str())) {
-          xRedis->del(key_string.c_str());
-        }
     }
 
     return true;
@@ -202,7 +190,7 @@ inline bool perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::st
   return false;
 }
 
-inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type, std::string transaction_id)
+inline int perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type, std::string transaction_id)
 {
 
   if (cm->get_smartupdatesactive())
@@ -228,12 +216,12 @@ inline std::string perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std
       }
       else {
         callback_logging->info("Lock Encountered in DB");
-        return "-1";
+        return -1;
       }
-      return "";
+      return 0;
     }
   }
-  return object_string;
+  return 1;
 }
 
 inline std::string clean_db_string (std::string obj_string) {
@@ -308,7 +296,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     {
       response_key = db_object->get_key();
       //Transaction ID's are inactive
-      if (cm->get_transactionidsactive())
+      if (!(cm->get_transactionidsactive()))
       {
         int message_type = inp_msg_type;
         object_string = create_notran_response(db_object, message_type);
@@ -367,17 +355,29 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         transaction_id = new_obj->get_transaction_id();
         callback_logging->debug("Transaction ID pulled");
         callback_logging->debug(transaction_id);
+
+        //If we have an error in a smart update, we get a -1
+        //If we have a successful smart update, we get 0
+        //If smart updates didn't occur, we get 1
+        int smart_update_success_code = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
+
+        //Apply any locking updates
+        bool lock_success = perform_locking_updates(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
+
         //Build the outbound message
         object_string = create_response(db_object, message_type, transaction_id);
-        object_string = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
-        bool lock_success = perform_locking_updates(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
-        if ( !(lock_success || (object_string != "-1")) ) {
+
+        //Determine if we had any errors in smart update and locking logic
+        if ( !(lock_success) || smart_update_success_code != -1 ) {
           //Our Update failed due to locking
           callback_logging->error("Update failed due to lock");
           message_type = ERR;
           resp_err_string = "Update failed due to lock";
         }
-        else {
+        else if (smart_update_success_code == 0 || message_type == OBJ_LOCK || message_type == OBJ_UNLOCK) {
+          //Remove the element from the smart update buffer
+          xRedis->del( new_obj->get_key() );
+
           //Replace the element in the smart update buffer
           dm->put_to_redis(new_obj, OBJ_UPD, transaction_id);
 
@@ -385,6 +385,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
           cb->save_object (db_object);
           cb->wait();
         }
+
       }
     }
 
