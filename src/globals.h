@@ -59,6 +59,7 @@ inline void shutdown()
   //Delete objects off the heap
   delete dm;
   delete xRedis;
+  cb->shutdown_session();
   delete cb;
   delete zmqo;
   delete zmqi;
