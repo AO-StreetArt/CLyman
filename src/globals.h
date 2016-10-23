@@ -57,15 +57,31 @@ extern ResponseFactory *response_factory;
 inline void shutdown()
 {
   //Delete objects off the heap
-  delete dm;
-  delete xRedis;
-  cb->shutdown_session();
-  delete cb;
-  delete zmqo;
-  delete zmqi;
-  delete cm;
-  delete ua;
-  delete cli;
+  if (dm) {
+    delete dm;
+  }
+  if (xRedis) {
+    delete xRedis;
+  }
+  if (cb) {
+    cb->shutdown_session();
+    delete cb;
+  }
+  if (zmqo) {
+    delete zmqo;
+  }
+  if (zmqi) {
+    delete zmqi;
+  }
+  if (cm) {
+    delete cm;
+  }
+  if (ua) {
+    delete ua;
+  }
+  if (cli) {
+    delete cli;
+  }
 
   if(!resp) {main_logging->debug("No response object active at the time of shutdown");}
   else
@@ -77,18 +93,34 @@ inline void shutdown()
   else {delete translated_object;}
 
   shutdown_logging_submodules();
-  delete logging;
+  if (logging) {
+    delete logging;
+  }
 
   //Shut down protocol buffer library
   google::protobuf::ShutdownProtobufLibrary();
 
-  delete cli_factory;
-  delete couchbase_factory;
-  delete redis_factory;
-  delete uuid_factory;
-  delete zmq_factory;
-  delete logging_factory;
-  delete response_factory;
+  if (cli_factory) {
+    delete cli_factory;
+  }
+  if (couchbase_factory) {
+    delete couchbase_factory;
+  }
+  if (redis_factory) {
+    delete redis_factory;
+  }
+  if (uuid_factory) {
+    delete uuid_factory;
+  }
+  if (zmq_factory) {
+    delete zmq_factory;
+  }
+  if (logging_factory) {
+    delete logging_factory;
+  }
+  if (response_factory) {
+    delete response_factory;
+  }
 }
 
 #endif

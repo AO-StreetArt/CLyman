@@ -209,8 +209,8 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
     config_json = ca->get_config_value(key);
   }
   catch (std::exception& e) {
-    main_logging->error("Exception encountered during Consul Configuration Retrieval");
-    main_logging->error(e.what());
+    config_logging->error("Exception encountered during Consul Configuration Retrieval");
+    config_logging->error(e.what());
     throw e;
   }
   const char * config_cstr = config_json.c_str();
@@ -355,8 +355,8 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     register_success = ca->register_service(*s);
   }
   catch (std::exception& e) {
-    main_logging->error("Exception encountered during Service Registration");
-    main_logging->error(e.what());
+    config_logging->error("Exception encountered during Service Registration");
+    config_logging->error(e.what());
     throw e;
   }
 
