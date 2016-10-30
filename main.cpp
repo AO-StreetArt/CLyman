@@ -156,45 +156,57 @@ void my_signal_handler(int s){
       //The additional logic is needed to allow for connecting to clusters or single instance
       std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
       //Set up Redis Connection
-      try {
-        xRedis = redis_factory->get_redis_interface(RedisConnectionList[0].ip, RedisConnectionList[0].port);
+      if (RedisConnectionList.size() > 0) {
+        try {
+          xRedis = redis_factory->get_redis_interface(RedisConnectionList[0].ip, RedisConnectionList[0].port);
+        }
+        catch (std::exception& e) {
+          main_logging->error("Exception encountered during Redis Initialization");
+          main_logging->error(e.what());
+          shutdown();
+          exit(1);
+        }
+        main_logging->info("Connected to Redis");
       }
-      catch (std::exception& e) {
-        main_logging->error("Exception encountered during Redis Initialization");
-        main_logging->error(e.what());
-        shutdown();
-        exit(1);
+      else {
+        main_logging->error("No Redis Connections found in configuration");
       }
-      main_logging->info("Connected to Redis");
 
       //Set up the Couchbase Connection
       std::string DBConnStr = cm->get_dbconnstr();
       DBConnStr = trim(DBConnStr);
       bool DBAuthActive = cm->get_dbauthactive();
-      if (DBAuthActive) {
-        std::string DBPswd = cm->get_dbpswd();
-        try {
-          cb = couchbase_factory->get_couchbase_interface( DBConnStr.c_str(), DBPswd.c_str() );
-          main_logging->debug("Connected to Couchbase");
+      if ( !(DBConnStr.empty()) ) {
+        if (DBAuthActive) {
+          std::string DBPswd = cm->get_dbpswd();
+          try {
+            cb = couchbase_factory->get_couchbase_interface( DBConnStr.c_str(), DBPswd.c_str() );
+            main_logging->debug("Connected to Couchbase");
+          }
+          catch (std::exception& e) {
+            main_logging->error("Exception encountered during Couchbase Initialization");
+            main_logging->error(e.what());
+            shutdown();
+            exit(1);
+          }
         }
-        catch (std::exception& e) {
-          main_logging->error("Exception encountered during Couchbase Initialization");
-          main_logging->error(e.what());
-          shutdown();
-          exit(1);
+        else {
+          try {
+            cb = couchbase_factory->get_couchbase_interface( DBConnStr.c_str() );
+            main_logging->debug("Connected to Couchbase");
+          }
+          catch (std::exception& e) {
+            main_logging->error("Exception encountered during Couchbase Initialization");
+            main_logging->error(e.what());
+            shutdown();
+            exit(1);
+          }
         }
       }
       else {
-        try {
-          cb = couchbase_factory->get_couchbase_interface( DBConnStr.c_str() );
-          main_logging->debug("Connected to Couchbase");
-        }
-        catch (std::exception& e) {
-          main_logging->error("Exception encountered during Couchbase Initialization");
-          main_logging->error(e.what());
-          shutdown();
-          exit(1);
-        }
+        main_logging->error("No Couchbase Connection String Supplied");
+        shutdown();
+        exit(1);
       }
 
       //Bind Couchbase Callbacks
@@ -203,12 +215,28 @@ void my_signal_handler(int s){
       cb->bind_delete_callback(my_delete_callback);
 
       //Set up the outbound ZMQ Admin
-      zmqo = zmq_factory->get_zmq_outbound_interface(cm->get_obconnstr());
-      main_logging->info("Connected to Outbound OMQ Socket");
+      std::string ob_zmq_connstr = cm->get_obconnstr();
+      if (! (ob_zmq_connstr.empty()) ) {
+        zmqo = zmq_factory->get_zmq_outbound_interface(ob_zmq_connstr);
+        main_logging->info("Connected to Outbound OMQ Socket");
+      }
+      else {
+        main_logging->error("No OB ZMQ Connection String Supplied");
+        shutdown();
+        exit(1);
+      }
 
       //Connect to the inbound ZMQ Admin
-      zmqi = zmq_factory->get_zmq_inbound_interface(cm->get_ibconnstr());
-      main_logging->info("ZMQ Socket Open, opening request loop");
+      std::string ib_zmq_connstr = cm->get_ibconnstr();
+      if ( !(ib_zmq_connstr.empty()) ) {
+        zmqi = zmq_factory->get_zmq_inbound_interface(ib_zmq_connstr);
+        main_logging->info("ZMQ Socket Open, opening request loop");
+      }
+      else {
+        main_logging->error("No IB ZMQ Connection String Supplied");
+        shutdown();
+        exit(1);
+      }
 
       //Set up the Document Manager
       //This relies on pointers to all the other objects we set up,
