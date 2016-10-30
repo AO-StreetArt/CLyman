@@ -205,8 +205,9 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
   std::string resp_str;
   //Get a JSON List of the responses
   std::string config_json = "";
+  std::string query_key = "clyman/" + key;
   try {
-    config_json = ca->get_config_value(key);
+    config_json = ca->get_config_value(query_key);
     config_logging->debug("Configuration JSON Retrieved:");
     config_logging->debug(config_json);
   }
