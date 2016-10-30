@@ -207,13 +207,14 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
   std::string config_json = "";
   try {
     config_json = ca->get_config_value(key);
+    config_logging->debug("Configuration JSON Retrieved:");
+    config_logging->debug(config_json);
   }
   catch (std::exception& e) {
     config_logging->error("Exception encountered during Consul Configuration Retrieval");
     config_logging->error(e.what());
     throw e;
   }
-  const char * config_cstr = config_json.c_str();
 
   //Parse the JSON Response
   rapidjson::Document d;
@@ -223,6 +224,7 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
       config_logging->debug("Config Value retrieved from Consul:");
       config_logging->debug(key);
       config_logging->debug(config_json);
+      const char * config_cstr = config_json.c_str();
       d.Parse(config_cstr);
     }
     //Catch a possible error and write to logs
@@ -240,15 +242,15 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
   //Get the object out of the array
   const rapidjson::Value& v = d[0];
 
-  if (v.IsObject())
-  {
+  // if (v.IsObject())
+  // {
     const rapidjson::Value& resp = v["Value"];
     if (resp.IsString()){
       resp_str = resp.GetString();
       //Transform the object from base64
       return ca->base64_decode(resp_str);
     }
-  }
+  // }
   return "";
 }
 
@@ -276,78 +278,10 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Step 1b: Register the Service with Consul
 
-  //Go get the heartbeat script from Consul
-  HealthCheckScript = get_consul_config_value("HealthCheckScript");
-
   //Build a new service definition for this currently running instance of clyman
   std::string name = "CLyman";
   s = consul_factory->get_service_interface(node_id, name, internal_address, port);
   s->add_tag("ZMQ");
-
-  //Add the check
-  if (!HealthCheckScript.empty()) {
-
-    //Set up the overall heartbeat folder location
-    int hb_loc_exist = mkdir ( "heartbeat_scripts", S_IRWXU | S_IRWXG );
-    if (hb_loc_exist < 0) {
-      config_logging->error("Overall Heartbeat location not created");
-      config_logging->error(strerror(errno));
-    }
-    else {
-      config_logging->info("Overall Heartbeat location created");
-    }
-
-    //Set up the instance heartbeat folder location
-    std::string my_hb_loc = "heartbeat_scripts/" + node_id;
-    int my_hb_loc_exist = mkdir ( my_hb_loc.c_str(), S_IRWXU | S_IRWXG );
-    if (my_hb_loc_exist == 0) {
-
-      config_logging->info("Instance Heartbeat location created");
-
-      //Copy the heartbeat script into the instance folder
-      try {
-        std::ifstream inp_file1 ("scripts/CLyman_Heartbeat_Protobuf.py", std::fstream::binary);
-        std::ifstream inp_file2 ("scripts/CLyman_Heartbeat_Json.py", std::fstream::binary);
-        std::ifstream inp_file3 ("scripts/ConfigManager.py", std::fstream::binary);
-
-        std::string dest_name1 = my_hb_loc + "/CLyman_Heartbeat_Protobuf.py";
-        std::string dest_name2 = my_hb_loc + "/CLyman_Heartbeat_Json.py";
-        std::string dest_name3 = my_hb_loc + "/ConfigManager.py";
-
-        std::ofstream out_file1 (dest_name1, std::fstream::trunc|std::fstream::binary);
-        std::ofstream out_file2 (dest_name2, std::fstream::trunc|std::fstream::binary);
-        std::ofstream out_file3 (dest_name3, std::fstream::trunc|std::fstream::binary);
-
-        out_file1 << inp_file1.rdbuf();
-        out_file2 << inp_file2.rdbuf();
-        out_file3 << inp_file3.rdbuf();
-      }
-      //Catch a possible error and write to logs
-      catch (std::exception& e) {
-        config_logging->error("Exception occurred while copying heartbeat script to instance folder:");
-        config_logging->error(e.what());
-      }
-
-      //Generate the configuration file for the heartbeat
-      std::string hbc_name = my_hb_loc + "/heartbeat_config.txt";
-      std::string hbc_text = "Destination_Address=" + OMQ_IBConnStr;
-      std::ofstream hb_config;
-
-      hb_config.open(hbc_name);
-      hb_config << hbc_text;
-      hb_config.close();
-
-    }
-    else {
-      config_logging->error("Instance Heartbeat location not created");
-      config_logging->error(strerror(errno));
-    }
-
-    //Set the health check on the service object
-    std::string hcs_path = my_hb_loc + HealthCheckScript;
-    s->set_check(hcs_path, HealthCheckInterval);
-    HealthCheckInterval = std::stoi(get_consul_config_value("HealthCheckInterval"));
-  }
 
   //Register the service
   bool register_success = false;
@@ -445,7 +379,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   }
 
   std::string enable_locking_message = get_consul_config_value("EnableObjectLocking");
-  config_logging->debug("Sending Outbound Failure Messages Enabled:");
+  config_logging->debug("Object Locking Enabled:");
   config_logging->debug(enable_locking_message);
   if (enable_locking_message == "True") {
     EnableObjectLocking = true;
