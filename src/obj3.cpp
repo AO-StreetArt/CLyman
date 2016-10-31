@@ -930,7 +930,7 @@ std::string Obj3::to_protobuf_msg(int msg_type, std::string trans_id) const
 	if (msg_type != -1) {
 		new_proto->set_message_type(msg_type);
 	}
-	if (!trans_id.empty()) {
+	if ( !(trans_id.empty()) ) {
 		new_proto->set_transaction_id(trans_id);
 	}
 	to_base_protobuf_msg(new_proto, true);

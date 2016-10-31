@@ -42,7 +42,7 @@ You will be asked once for your sudo password.
 
 This will result in creation of the lyman executable, which we can run with the below command:
 
-`./lyman -dev`
+`./clyman -dev`
 
 You may also build the test modules with:
 
@@ -63,7 +63,7 @@ In order to run CLyman from a properties file, you will need:
 
 * Finally, you should have a Consul Agent installed, please find instructions [here] (https://www.consul.io/docs/index.html)
 
-`./lyman`
+`./clyman`
 
 Will run the program and look for the default file, lyman.properties.  See the configuration section for more details.
 
