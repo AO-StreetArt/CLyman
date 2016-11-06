@@ -303,10 +303,10 @@ void my_signal_handler(int s){
         }
 
         //Generate a Transaction ID
-        main_logging->debug("Generating Transaction ID");
         std::string tran_id_str;
         try {
           tran_id_str = generate_uuid();
+          main_logging->debug("Generated Transaction ID: " + tran_id_str);
         }
         catch (std::exception& e) {
           main_logging->error("Exception encountered during UUID Generation");

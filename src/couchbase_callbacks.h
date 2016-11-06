@@ -45,54 +45,47 @@ inline Obj3* set_redis_response_object(Request *r, std::string response_key)
   {
     callback_logging->debug("Object found in Smart Update Buffer");
     //Let's get the object out of the active update list
-    std::string keyValue = xRedis->load(response_key.c_str());
-    if (keyValue.empty()) {
-      callback_logging->error("Unable to load object key from Redis");
+    std::string keyValue = response_key + cm->get_nodeid();
+    callback_logging->debug("Object Key: " + keyValue);
+    //Retrieve the actual object string from redis
+    std::string strValue;
+    if (xRedis->exists(keyValue)) {
+      strValue = xRedis->load(keyValue);
+      callback_logging->debug("Object loaded from Redis: " + strValue);
     }
-    else
-    {
-      keyValue = response_key + keyValue;
-      callback_logging->debug("Object Key loaded from Redis: " + keyValue);
-      //Retrieve the actual object string from redis
-      std::string strValue;
-      if (xRedis->exists(keyValue)) {
-        strValue = xRedis->load(keyValue);
-        callback_logging->debug("Object loaded from Redis: " + strValue);
-      }
-      else {
-        strValue = "";
-      }
+    else {
+      strValue = "";
+    }
 
-      if (strValue.empty()) {
-        callback_logging->error("Unable to load object from Redis");
-      }
-      else {
+    if (strValue.empty()) {
+      callback_logging->error("Unable to load object from Redis");
+    }
+    else {
 
-        //Are we writing to redis with json?
-        if (cm->get_rfjson()) {
-          callback_logging->debug("Parsing a JSON Object from Redis");
-          try {
-            temp_d2.Parse(strValue.c_str());
-            redis_object = new Obj3 (temp_d2, cm->get_objectlockingenabled());
-          }
-          catch (std::exception& e) {
-            callback_logging->error("Exception Occurred parsing message from Couchbase");
-            callback_logging->error(e.what());
-          }
+      //Are we writing to redis with json?
+      if (cm->get_rfjson()) {
+        callback_logging->debug("Parsing a JSON Object from Redis");
+        try {
+          temp_d2.Parse(strValue.c_str());
+          redis_object = new Obj3 (temp_d2, cm->get_objectlockingenabled());
         }
+        catch (std::exception& e) {
+          callback_logging->error("Exception Occurred parsing message from Couchbase");
+          callback_logging->error(e.what());
+        }
+      }
 
-        //Or are we writing to redis with Protocol buffers?
-        else if (cm->get_rfprotobuf()) {
-          callback_logging->debug("Parsing a Protocol Buffer Object from Redis");
-          protoObj3::Obj3 pobj;
-          try {
-            pobj.ParseFromString(strValue);
-            redis_object = new Obj3 (pobj, cm->get_objectlockingenabled());
-          }
-          catch (std::exception& e) {
-            callback_logging->error("Exception Occurred parsing message from Couchbase");
-            callback_logging->error(e.what());
-          }
+      //Or are we writing to redis with Protocol buffers?
+      else if (cm->get_rfprotobuf()) {
+        callback_logging->debug("Parsing a Protocol Buffer Object from Redis");
+        protoObj3::Obj3 pobj;
+        try {
+          pobj.ParseFromString(strValue);
+          redis_object = new Obj3 (pobj, cm->get_objectlockingenabled());
+        }
+        catch (std::exception& e) {
+          callback_logging->error("Exception Occurred parsing message from Couchbase");
+          callback_logging->error(e.what());
         }
       }
     }
@@ -346,19 +339,18 @@ inline std::string default_callback (Request *r, int inp_msg_type)
 
     //Check Redis for transaction information
     if (!response_key.empty()) {
-      if (cm->get_transactionidsactive()) {
-        new_obj = set_redis_response_object(r, response_key);
+      new_obj = set_redis_response_object(r, response_key);
 
-        if (!new_obj) {
-          callback_logging->debug("No Redis Response Object found");
+      if (!new_obj) {
+        callback_logging->debug("No Redis Response Object found");
+      }
+      else {
+        if (new_obj->get_message_type() == -1) {
+          callback_logging->debug("No Message Type found");
         }
         else {
-          if (new_obj->get_message_type() == -1) {
-            callback_logging->debug("No Message Type found");
-          }
-          else {
-            message_type = new_obj->get_message_type();
-          }
+          message_type = new_obj->get_message_type();
+          callback_logging->debug("Message Type found: " + std::to_string(message_type));
         }
       }
     }
@@ -390,7 +382,7 @@ inline std::string default_callback (Request *r, int inp_msg_type)
       else
       {
         //Use the Couchbase message to populate transaction ID
-        transaction_id = db_object->get_transaction_id();
+        transaction_id = new_obj->get_transaction_id();
         callback_logging->debug("Transaction ID pulled");
         callback_logging->debug(transaction_id);
 
