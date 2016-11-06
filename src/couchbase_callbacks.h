@@ -45,12 +45,23 @@ inline Obj3* set_redis_response_object(Request *r, std::string response_key)
   {
     callback_logging->debug("Object found in Smart Update Buffer");
     //Let's get the object out of the active update list
-    std::string strValue = xRedis->load(response_key.c_str());
+    std::string keyValue = response_key + cm->get_nodeid();
+    callback_logging->debug("Object Key: " + keyValue);
+    //Retrieve the actual object string from redis
+    std::string strValue;
+    if (xRedis->exists(keyValue)) {
+      strValue = xRedis->load(keyValue);
+      callback_logging->debug("Object loaded from Redis: " + strValue);
+    }
+    else {
+      strValue = "";
+    }
+
     if (strValue.empty()) {
       callback_logging->error("Unable to load object from Redis");
     }
-    else
-    {
+    else {
+
       //Are we writing to redis with json?
       if (cm->get_rfjson()) {
         callback_logging->debug("Parsing a JSON Object from Redis");
@@ -86,19 +97,20 @@ inline Obj3* set_redis_response_object(Request *r, std::string response_key)
 inline Obj3* set_db_response_object(std::string object_string)
 {
   callback_logging->debug("Parsing DB Object");
+  Obj3 *temp_obj = NULL;
   rapidjson::Document temp_d;
-  if (!object_string.empty()) {
+  if ( !(object_string.empty()) ) {
     //Process the DB Object
     try {
       temp_d.Parse(object_string.c_str());
-      return new Obj3 (temp_d, cm->get_objectlockingenabled());
+      temp_obj = new Obj3 (temp_d, cm->get_objectlockingenabled());
     }
     catch (std::exception& e) {
       callback_logging->error("Exception Occurred parsing message from DB");
       callback_logging->error(e.what());
     }
   }
-  return NULL;
+  return temp_obj;
 }
 
 //create an error response and return the string
@@ -164,30 +176,45 @@ inline std::string send_outbound_msg(std::string message_string)
   return out_resp;
 }
 
-inline bool perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type, std::string transaction_id) {
+inline int perform_locking_updates(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type, std::string transaction_id) {
 
   std::string key_string = db_object->get_key();
 
-  if ( !(db_object->locked()) && !(key_string.empty()) ) {
+  if ( !(key_string.empty()) ) {
 
     //We have a lock message
     if (msg_type == OBJ_LOCK && callback_type == OBJ_GET) {
 
         //Lock the DB object with the lock owner
-        db_object->lock( redis_object->get_lock_id() );
+        bool lock_success = db_object->lock( redis_object->get_lock_id() );
+        if (lock_success) {
+          //Success Code
+          return 0;
+        }
+        else {
+          //Error Code
+          return -1;
+        }
     }
 
     //We have an unlock message
     else if (msg_type == OBJ_UNLOCK && callback_type == OBJ_GET) {
 
         //Lock the DB object with the lock owner
-        db_object->unlock( redis_object->get_lock_id() );
+        bool unlock_success = db_object->unlock( redis_object->get_lock_id() );
+        if (unlock_success) {
+          //Success Code
+          return 0;
+        }
+        else {
+          //Error Code
+          return -1;
+        }
     }
 
-    return true;
-
   }
-  return false;
+  //No-Op Code
+  return 1;
 }
 
 inline int perform_smart_update(Obj3 *redis_object, Obj3 *db_object, std::string object_string, int msg_type, int callback_type, std::string transaction_id)
@@ -246,7 +273,6 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   Obj3 *new_obj = NULL;
   Obj3 *db_object = NULL;
   std::string object_string;
-  int *msg_type = NULL;
   int message_type = -1;
   std::string transaction_id = "";
   std::string out_resp = "";
@@ -272,13 +298,14 @@ inline std::string default_callback (Request *r, int inp_msg_type)
   if (r->req_err->err_code == NOERROR)
   {
 
-    //When we have a create message, we can take the response string and parse it to find our DB Object
+    //We can take the response string and parse it to find our DB Object
     if (inp_msg_type == OBJ_CRT) {
       callback_logging->debug("Stored:");
       db_object = set_db_response_object(obj_string);
     }
     else if (inp_msg_type == OBJ_DEL) {
       callback_logging->debug("Deleted:");
+      db_object = set_db_response_object(obj_string);
     }
     else if (inp_msg_type == OBJ_GET) {
       callback_logging->debug("Retrieved:");
@@ -290,7 +317,11 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     //Or we have a delete message
     if (!db_object)
     {
-      callback_logging->error("Null DB Response Detected");
+      callback_logging->debug("Null DB Response Detected");
+      if ( !(obj_string.empty()) ) {
+        callback_logging->debug("Non-object key detected from couchbase");
+        response_key = obj_string;
+      }
     }
     else
     {
@@ -308,19 +339,18 @@ inline std::string default_callback (Request *r, int inp_msg_type)
 
     //Check Redis for transaction information
     if (!response_key.empty()) {
-      if (cm->get_transactionidsactive()) {
-        new_obj = set_redis_response_object(r, response_key);
+      new_obj = set_redis_response_object(r, response_key);
 
-        if (!new_obj) {
-          callback_logging->debug("No Redis Response Object found");
+      if (!new_obj) {
+        callback_logging->debug("No Redis Response Object found");
+      }
+      else {
+        if (new_obj->get_message_type() == -1) {
+          callback_logging->debug("No Message Type found");
         }
         else {
-          if (new_obj->get_message_type() == -1) {
-            callback_logging->debug("No Message Type found");
-          }
-          else {
-            message_type = new_obj->get_message_type();
-          }
+          message_type = new_obj->get_message_type();
+          callback_logging->debug("Message Type found: " + std::to_string(message_type));
         }
       }
     }
@@ -362,17 +392,17 @@ inline std::string default_callback (Request *r, int inp_msg_type)
         int smart_update_success_code = perform_smart_update(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
 
         //Apply any locking updates
-        bool lock_success = perform_locking_updates(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
+        int lock_success = perform_locking_updates(db_object, new_obj, object_string, message_type, inp_msg_type, transaction_id);
 
         //Build the outbound message
         object_string = create_response(db_object, message_type, transaction_id);
 
         //Determine if we had any errors in smart update and locking logic
-        if ( !(lock_success) || smart_update_success_code != -1 ) {
+        if ( (lock_success == -1) || (smart_update_success_code == -1) ) {
           //Our Update failed due to locking
-          callback_logging->error("Update failed due to lock");
           message_type = ERR;
-          resp_err_string = "Update failed due to lock";
+          resp_err_string = "Update failed, Lock Success: " + std::to_string(lock_success) + ", Smart Update Success: " + std::to_string(smart_update_success_code);
+          callback_logging->error(resp_err_string);
         }
         else if (smart_update_success_code == 0 || message_type == OBJ_LOCK || message_type == OBJ_UNLOCK) {
           //Remove the element from the smart update buffer
@@ -449,14 +479,6 @@ inline std::string default_callback (Request *r, int inp_msg_type)
     if (xRedis->exists(rkey_cstr)) {
       xRedis->del(rkey_cstr);
     }
-  }
-
-  if (!msg_type)
-  {
-    callback_logging->debug("No Message Type found for deletion");
-  }
-  else {
-    delete msg_type;
   }
 
   if (!db_object)

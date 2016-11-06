@@ -101,7 +101,7 @@ main.o: main.cpp src/couchbase_callbacks.h src/lyman_utils.h
 # --------------------------- Clean Project ---------------------------------- #
 
 clean_local:
-	$(RM) lyman *.o src/*.o *~ *.log *.log.* src/*.pb.cc src/*.pb.h scripts/*_pb2.py scripts/*_pb2.pyc
+	$(RM) clyman *.o src/*.o *~ *.log *.log.* src/*.pb.cc src/*.pb.h scripts/*_pb2.py scripts/*_pb2.pyc
 
 clean_tests:
 	$(RM) *_test

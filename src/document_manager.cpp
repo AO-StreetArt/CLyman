@@ -51,7 +51,7 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
   bool bRet;
   if (cm->get_rfjson()) {
     try {
-      bRet = xRedis->setex(key_str, temp_obj->to_json_msg(msg_type), cm->get_subduration());
+      bRet = xRedis->setex(key_str, temp_obj->to_json_msg(msg_type, transaction_id), cm->get_subduration());
     }
     catch (std::exception& e) {
       main_logging->error("Exception encountered during Redis Request");
@@ -60,7 +60,7 @@ void DocumentManager::put_to_redis(Obj3 *temp_obj, int msg_type, std::string tra
   }
   else if (cm->get_rfprotobuf()) {
     try {
-      bRet = xRedis->setex(key_str, temp_obj->to_protobuf_msg(msg_type), cm->get_subduration());
+      bRet = xRedis->setex(key_str, temp_obj->to_protobuf_msg(msg_type, transaction_id), cm->get_subduration());
     }
     catch (std::exception& e) {
       main_logging->error("Exception encountered during Redis Request");

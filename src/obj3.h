@@ -303,7 +303,7 @@ class Obj3: public Writeable
 		Eigen::MatrixXd get_bounding_box() const {return bounding_box;}
 
 		//Lock Methods
-		bool lock(std::string device_id) {is_locked=true;lock_owner=device_id;return true;}
+		bool lock(std::string device_id) {if (!is_locked) {is_locked=true;lock_owner=device_id;return true;} else {return false;}}
 		bool unlock(std::string device_id) {if (lock_owner==device_id) {is_locked=false;lock_owner="";return true;} else {return false;}}
 		bool locked() const {if (is_locked==false) {return false;} else {return true;}}
 		std::string get_lock_id() const {return lock_owner;}
