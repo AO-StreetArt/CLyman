@@ -43,20 +43,15 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     config_logging->info("Smart Update Buffer Duration:");
     config_logging->info(props->get_opt("Smart_Update_Buffer_Duration"));
   }
-  if (props->opt_exist("DB_AuthenticationActive")) {
-    if (props->get_opt("DB_AuthenticationActive")=="True") {
-      DB_AuthActive=true;
-      config_logging->info("DB Authentication Active");
-    }
-    else {
-      DB_AuthActive=false;
-      config_logging->info("DB Authentication Inactive");
-    }
+  if (props->opt_exist("DB_CollectionName")) {
+    DB_CollectionName=props->get_opt("DB_CollectionName");
+    config_logging->info("DB Collection:");
+    config_logging->info(DB_CollectionName);
   }
-  if (props->opt_exist("DB_Password")) {
-    DB_Pswd=props->get_opt("DB_Password");
-    config_logging->info("DB Password:");
-    config_logging->info(DB_Pswd);
+  if (props->opt_exist("DB_Name")) {
+    DB_Name=props->get_opt("DB_Name");
+    config_logging->info("DB Name:");
+    config_logging->info(DB_Name);
   }
   if (props->opt_exist("0MQ_OutboundConnectionString")) {
     OMQ_OBConnStr = props->get_opt("0MQ_OutboundConnectionString");
@@ -313,13 +308,12 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   else {
     config_logging->error("No Smart Update Buffer duration found");
   }
-  DB_Pswd = get_consul_config_value("DB_Password");
-  config_logging->debug("Database Password:");
-  config_logging->debug(DB_Pswd);
-  DB_AuthActive=false;
-  if (!DB_Pswd.empty()) {
-    DB_AuthActive=true;
-  }
+  DB_Name = get_consul_config_value("DB_Name");
+  config_logging->debug("Database Name:");
+  config_logging->debug(DB_Name);
+  DB_CollectionName = get_consul_config_value("DB_CollectionName");
+  config_logging->debug("Database Collection:");
+  config_logging->debug(DB_CollectionName);
   OMQ_OBConnStr = get_consul_config_value("0MQ_OutboundConnectionString");
   config_logging->debug("Outbound 0MQ Connection String:");
   config_logging->debug(OMQ_OBConnStr);
@@ -466,30 +460,17 @@ bool ConfigurationManager::configure ()
 
     //Check if we have a consul address specified
 
-    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr") && cli->opt_exist("couchbase-pswd"))
+    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("-db-addr") && cli->opt_exist("-db-name") && cli->opt_exist("-db-collection"))
     {
       bool suc = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
       if (suc) {
-        DB_ConnStr = cli->get_opt("-couchbase-addr");
-        DB_AuthActive = true;
-        DB_Pswd = cli->get_opt("-couchbase-pswd");
+        DB_ConnStr = cli->get_opt("-db-addr");
+        DB_CollectionName = cli->get_opt("-db-collection");
+        DB_Name = cli->get_opt("-db-name");
         isConsulActive = true;
       }
       else {
         config_logging->error("Configuration from Consul failed, keeping defaults");
-      }
-    }
-
-    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr"))
-    {
-      bool succ = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
-      if (succ) {
-        DB_ConnStr = cli->get_opt("-couchbase-addr");
-        DB_AuthActive = false;
-        isConsulActive = true;
-      }
-      else {
-      config_logging->error("Configuration from Consul failed, keeping defaults");
       }
     }
 

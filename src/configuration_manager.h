@@ -53,8 +53,8 @@ ServiceInterface *s = NULL;
 
 //Configuration Variables
 std::string DB_ConnStr;
-bool DB_AuthActive;
-std::string DB_Pswd;
+std::string DB_Name;
+std::string DB_CollectionName;
 std::string OMQ_OBConnStr;
 std::string OMQ_IBConnStr;
 bool SmartUpdatesActive;
@@ -92,7 +92,7 @@ public:
   //Constructor
   //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
   ConfigurationManager(CommandLineInterface *c, std::string instance_id) {cli = c;\
-    DB_ConnStr="couchbase://localhost/default"; DB_AuthActive=false; DB_Pswd=""; \
+    DB_ConnStr="mongodb://localhost:27017/"; DB_CollectionName="test"; DB_Name="test"; \
       OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
         MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
           RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;\
@@ -106,8 +106,8 @@ public:
 
   //Get configuration values
   std::string get_dbconnstr() {return DB_ConnStr;}
-  bool get_dbauthactive() {return DB_AuthActive;}
-  std::string get_dbpswd() {return DB_Pswd;}
+  bool get_dbcollection() {return DB_CollectionName;}
+  std::string get_dbname() {return DB_Name;}
   std::string get_obconnstr() {return OMQ_OBConnStr;}
   std::string get_ibconnstr() {return OMQ_IBConnStr;}
   bool get_smartupdatesactive() {return SmartUpdatesActive;};

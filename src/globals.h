@@ -2,7 +2,7 @@
 //Across different files.  These are either numeric constants or
 //singletons which form the backbone of the service.
 
-#include "aossl/factory/couchbase_interface.h"
+#include "aossl/factory/mongo_interface.h"
 #include "aossl/factory/redis_interface.h"
 #include "aossl/factory/uuid_interface.h"
 #include "aossl/factory/commandline_interface.h"
@@ -12,13 +12,13 @@
 
 #include "aossl/factory_response.h"
 #include "aossl/factory_cli.h"
-#include "aossl/factory_couchbase.h"
+#include "aossl/factory_mongo.h"
 #include "aossl/factory_logging.h"
 #include "aossl/factory_redis.h"
 #include "aossl/factory_uuid.h"
 #include "aossl/factory_zmq.h"
 
-#include "document_manager.h"
+#include "message_processor.h"
 #include "configuration_manager.h"
 #include "Obj3.pb.h"
 #include "lyman_log.h"
@@ -33,10 +33,10 @@ extern Obj3 *translated_object;
 
 //Globals defined within this service
 extern ConfigurationManager *cm;
-extern DocumentManager *dm;
+extern MessageProcessor *processor;
 
 //Globals from the AO Shared Service Library
-extern CouchbaseInterface *cb;
+extern MongoInterface *mongo;
 extern RedisInterface *xRedis;
 extern uuidInterface *ua;
 extern Zmqio *zmqo;
@@ -46,7 +46,7 @@ extern ApplicationResponseInterface *resp;
 
 //Global Factory Objects
 extern CommandLineInterpreterFactory *cli_factory;
-extern CouchbaseComponentFactory *couchbase_factory;
+extern MongoComponentFactory *mongo_factory;
 extern RedisComponentFactory *redis_factory;
 extern uuidComponentFactory *uuid_factory;
 extern ZmqComponentFactory *zmq_factory;
@@ -57,15 +57,14 @@ extern ResponseFactory *response_factory;
 inline void shutdown()
 {
   //Delete objects off the heap
-  if (dm) {
-    delete dm;
+  if (processor) {
+    delete processor;
   }
   if (xRedis) {
     delete xRedis;
   }
-  if (cb) {
-    cb->shutdown_session();
-    delete cb;
+  if (mongo) {
+    delete mongo;
   }
   if (zmqo) {
     delete zmqo;
@@ -103,8 +102,8 @@ inline void shutdown()
   if (cli_factory) {
     delete cli_factory;
   }
-  if (couchbase_factory) {
-    delete couchbase_factory;
+  if (mongo_factory) {
+    delete mongo_factory;
   }
   if (redis_factory) {
     delete redis_factory;

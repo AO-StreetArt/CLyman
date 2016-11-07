@@ -649,7 +649,7 @@ std::string Obj3::to_json_msg(int msg_type, std::string trans_id, bool write_tra
 	}
 
 	if (!key.empty()) {
-		writer.Key("key");
+		writer.Key("_id");
 		writer.String( key.c_str(), (SizeType)key.length() );
 	}
 
