@@ -5,6 +5,9 @@
 
 #include "aossl/factory/uuid_interface.h"
 
+#ifndef CLYMAN_UUID
+#define CLYMAN_UUID
+
 inline std::string generate_uuid()
 {
   UuidContainer id_container;
@@ -14,3 +17,5 @@ inline std::string generate_uuid()
   }
   return id_container.id;
 }
+
+#endif

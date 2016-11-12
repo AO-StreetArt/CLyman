@@ -1,8 +1,0 @@
-package pResponse;
-
-message ProtoResponse {
-  required int32 error_code = 1;
-  optional string error_message = 2;
-  optional string transaction_id = 3;
-  optional string object_id = 4;
-}

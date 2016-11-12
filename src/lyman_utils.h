@@ -11,8 +11,7 @@
 #ifndef LYMAN_UTILS
 #define LYMAN_UTILS
 
-//This defines a set of universal event types
-
+//Universal Event Types
 const int OBJ_UPD = 0;
 const int OBJ_CRT = 1;
 const int OBJ_GET = 2;
@@ -20,9 +19,15 @@ const int OBJ_DEL = 3;
 const int OBJ_PUSH = 4;
 const int OBJ_LOCK = 5;
 const int OBJ_UNLOCK = 6;
-const int ERR = 100;
 const int KILL = 999;
 const int PING = 555;
+
+//Error Response Codes
+const int NO_ERROR = 100;
+const int ERROR = 101;
+const int TRANSLATION_ERROR = 110;
+const int PROCESSING_ERROR = 120;
+const int DEVICE_LOCK = 130;
 
 //Internal Message Types
 const int OBJ_UPD_GLOBAL = 7;
