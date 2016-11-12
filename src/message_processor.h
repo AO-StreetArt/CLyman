@@ -1,8 +1,6 @@
 #include "lyman_log.h"
-#include "globals.h"
 #include "obj3.h"
 #include "redis_locking.h"
-#include "uuid.h"
 #include "configuration_manager.h"
 
 #include "rapidjson/document.h"
@@ -22,9 +20,10 @@
 class MessageProcessor {
 
 MongoInterface *m = NULL;
-Zmqo *z = NULL;
+Zmqio *z = NULL;
 RedisInterface *r = NULL;
 ConfigurationManager *config = NULL;
+RedisLocker *redis_locks = NULL;
 
   //Send a message on the Outbound ZMQ Port
   //Send an outbound message and return the response
@@ -80,37 +79,54 @@ ConfigurationManager *config = NULL;
   //Establish a redis mutex lock on an object
   //This is used to ensure atomic updates
   inline bool get_objmutex_lock(std::string obj_key, std::string node_id) {
-    std::string key = "MUT-" + obj_key;
-    try {
-      get_lock(key, node_id);
+    if ( config->get_atomictransactions() ) {
+      std::string key = "MUT-" + obj_key;
+      try {
+        redis_locks->get_lock(key, node_id);
+        return true;
+      }
+      catch (std::exception& e) {
+        processor_logging->error("Exception occurred while establishing Object Mutex Lock");
+        processor_logging->error(e.what());
+      }
+      return false;
+    }
+    //If locking is not enabled, then we just pretend like the lock is established
+    else {
       return true;
     }
-    catch (std::exception& e) {
-      processor_logging->error("Exception occurred while establishing Object Mutex Lock");
-      processor_logging->error(e.what());
-    }
-    return false;
   }
 
   //Establish a user device lock on an object
   //This is used in user-level locking
   inline bool get_ud_lock(std::string obj_key, std::string ud_key) {
-    std::string key = "UD-" + obj_key;
-    try {
-      return r->setnx( key, ud_key);
+    if ( config->get_objectlockingenabled() ) {
+      std::string key = "UD-" + obj_key;
+      try {
+        return r->setnx( key, ud_key);
+      }
+      catch (std::exception& e) {
+        processor_logging->error("Exception occurred while establishing User Device Lock");
+        processor_logging->error(e.what());
+      }
+      return false;
     }
-    catch (std::exception& e) {
-      processor_logging->error("Exception occurred while establishing User Device Lock");
-      processor_logging->error(e.what());
+    //If object locking is disabled, just pretend like the lock was established
+    else {
+      return true;
     }
-    return false;
   }
 
   //Release a redis mutex lock on an object
   //This is used to ensure atomic updates, and is called at end of individual message cycle
   inline bool release_objmutex_lock(std::string obj_key) {
-    std::string key = "MUT-" + obj_key;
-    return release_lock(key, "");
+    if ( config->get_atomictransactions() ) {
+      std::string key = "MUT-" + obj_key;
+      return redis_locks->release_lock(key, "");
+    }
+    else {
+      return true;
+    }
   }
 
   inline bool check_objmutex_lock(std::string obj_key) {
@@ -121,14 +137,19 @@ ConfigurationManager *config = NULL;
   //Release a user device lock on an object
   //This is used in user-level locking, called upon recieving an unlock message
   inline bool release_ud_lock(std::string obj_key, std::string ud_key) {
-    std::string key = "UD-" + obj_key;
-    if (r->exists(key)) {
-      std::string current_mutex_key = r->load(key);
-      if (current_mutex_key == ud_key) {
-        return r->del( key );
+    if ( config->get_objectlockingenabled() ) {
+      std::string key = "UD-" + obj_key;
+      if (r->exists(key)) {
+        std::string current_mutex_key = r->load(key);
+        if (current_mutex_key == ud_key) {
+          return r->del( key );
+        }
       }
+      return false;
     }
-    return false;
+    else {
+      return true;
+    }
   }
 
   inline bool check_ud_lock(std::string obj_key, std::string ud_key) {
@@ -148,6 +169,7 @@ ConfigurationManager *config = NULL;
     //Just generate a document and insert it
     std::string json_doc = obj_msg->to_json();
     std::string key = m->create_document(json_doc);
+    processor_logging->debug("Created new document with key: " + key);
 
     //Send OB Message
     obj_msg->set_key(key);
@@ -160,14 +182,17 @@ ConfigurationManager *config = NULL;
   inline std::string process_update_message(Obj3 *obj_msg) {
     //Deal with locks
     std::string key = obj_msg->get_key();
+    processor_logging->debug("Processing Update Message on key: " + key);
 
     //-User Device Lock
     if (check_ud_lock(key, obj_msg->get_lock_id())) {
+      processor_logging->debug("User Device Lock Encountered");
       return "locked";
     }
 
     //-Object Mutex Lock
     if ( !(get_objmutex_lock(key, config->get_nodeid())) ) {
+      processor_logging->error("Failed to establish object mutex lock");
       return "-1";
     }
 
@@ -176,6 +201,10 @@ ConfigurationManager *config = NULL;
     bool update_success = false;
     Obj3 *db_object = NULL;
     db_object = load_db_object(key);
+    processor_logging->debug("DB Object Loaded:");
+    processor_logging->debug(db_object->get_key());
+
+    obj_msg->set_global_transform_type( config->get_globaltransforms() );
 
     //-Run Transformations
     if (db_object) {
@@ -183,14 +212,22 @@ ConfigurationManager *config = NULL;
     }
 
     std::string obj_json = db_object->to_json();
+    processor_logging->debug("Update Performed, resulting Obj3:");
+    processor_logging->debug(obj_json);
 
     //-Save Object to DB
     if (update_success) {
       update_success = m->save_document(obj_json, key);
     }
 
+    //Release Mutex Lock
+    bool release_lock_success = release_objmutex_lock(key);
+    if (!release_lock_success) {
+      processor_logging->error("Error releasing Object Mutex Lock");
+    }
     //Send OB Message
     if (update_success) {
+      processor_logging->debug("Update Persistence Confirmed");
       send_outbound_msg(obj_json);
       return "";
     }
@@ -199,10 +236,15 @@ ConfigurationManager *config = NULL;
 
   inline std::string process_retrieve_message(Obj3 *obj_msg) {
     //Load the DB Object
-    std::string object_string = m->load_document(obj_msg->get_key());
+    std::string key = obj_msg->get_key();
+    processor_logging->debug("Processing Retrieve Message on key: " + key);
+    std::string object_string = m->load_document(key);
     if (object_string.empty()) {
+      processor_logging->debug("No Object Found");
       return "-1";
     }
+    processor_logging->debug("Document Retrieved:");
+    processor_logging->debug(object_string);
     return object_string;
 
   }
@@ -210,20 +252,32 @@ ConfigurationManager *config = NULL;
   inline std::string process_delete_message(Obj3 *obj_msg) {
     //Deal with locks
     std::string key = obj_msg->get_key();
+    processor_logging->debug("Processing Delete message on key: " + key);
 
     //-User Device Lock
     if (check_ud_lock(key, obj_msg->get_lock_id())) {
+      processor_logging->debug("User Device Lock Encountered");
       return "locked";
     }
 
     //-Object Mutex Lock
     if ( !(get_objmutex_lock(key, config->get_nodeid())) ) {
+      processor_logging->error("Failed to establish object mutex lock");
       return "-1";
     }
 
     //Delete
-    if (m->delete_document(key)) {
-      //Send OB Message
+    bool delete_success = m->delete_document(key);
+
+    //Release Mutex Lock
+    bool release_lock_success = release_objmutex_lock(key);
+    if (!release_lock_success) {
+      processor_logging->error("Error releasing Object Mutex Lock");
+    }
+
+    //Send OB Message
+    if (delete_success) {
+      processor_logging->debug("Deletion Confirmed");
       send_outbound_msg(obj_msg->to_json());
       return "";
     }
@@ -233,6 +287,7 @@ ConfigurationManager *config = NULL;
   inline std::string process_lock_message(Obj3 *obj_msg) {
     //Establish User Device Lock
     if ( get_ud_lock(obj_msg->get_key(), obj_msg->get_lock_id()) ) {
+      processor_logging->debug("User Device Lock Established");
       return "";
     }
     return "-1";
@@ -241,12 +296,14 @@ ConfigurationManager *config = NULL;
   inline std::string process_unlock_message(Obj3 *obj_msg) {
     //Release User Device Lock
     if ( release_ud_lock(obj_msg->get_key(), obj_msg->get_lock_id()) ) {
+      processor_logging->debug("User Device Lock Released");
       return "";
     }
     return "-1";
   }
 
   inline std::string process_ping_message(Obj3 *obj_msg) {
+    processor_logging->debug("Ping Pong");
     return "";
   }
 
@@ -256,8 +313,8 @@ ConfigurationManager *config = NULL;
 public:
 
   //Constructor & Destructor
-  MessageProcessor(MongoInterface *mo, Zmqo *zq, RedisInterface *rd, ConfigurationManager *con) {m = mo; z = zq; r = rd;config = con;}
-  ~MessageProcessor() {}
+  MessageProcessor(MongoInterface *mo, Zmqio *zq, RedisInterface *rd, ConfigurationManager *con) {m = mo; z = zq; r = rd;config = con;redis_locks = new RedisLocker(rd);}
+  ~MessageProcessor() {delete redis_locks;}
 
   //Process a message in the form of an Obj3
   //In the case of a get message, return the retrieved document back to the main method
@@ -267,6 +324,7 @@ public:
 
     //Determine what type of message we have, and act accordingly
     int msg_type = obj_msg->get_message_type();
+    processor_logging->debug("Message Type: " + std::to_string(msg_type));
     std::string process_return;
 
     if (msg_type == OBJ_CRT) {
@@ -276,7 +334,7 @@ public:
       process_return = process_update_message(obj_msg);
     }
     else if (msg_type == OBJ_GET) {
-      process_return = process_get_message(obj_msg);
+      process_return = process_retrieve_message(obj_msg);
     }
     else if (msg_type == OBJ_DEL) {
       process_return = process_delete_message(obj_msg);

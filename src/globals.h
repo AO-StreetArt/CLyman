@@ -7,10 +7,8 @@
 #include "aossl/factory/uuid_interface.h"
 #include "aossl/factory/commandline_interface.h"
 #include "aossl/factory/zmq_interface.h"
-#include "aossl/factory/response_interface.h"
 #include "aossl/factory/logging_interface.h"
 
-#include "aossl/factory_response.h"
 #include "aossl/factory_cli.h"
 #include "aossl/factory_mongo.h"
 #include "aossl/factory_logging.h"
@@ -42,7 +40,7 @@ extern uuidInterface *ua;
 extern Zmqio *zmqo;
 extern Zmqio *zmqi;
 extern CommandLineInterface *cli;
-extern ApplicationResponseInterface *resp;
+extern Obj3 *resp;
 
 //Global Factory Objects
 extern CommandLineInterpreterFactory *cli_factory;
@@ -51,7 +49,6 @@ extern RedisComponentFactory *redis_factory;
 extern uuidComponentFactory *uuid_factory;
 extern ZmqComponentFactory *zmq_factory;
 extern LoggingComponentFactory *logging_factory;
-extern ResponseFactory *response_factory;
 
 //Shutdown the application
 inline void shutdown()
@@ -116,9 +113,6 @@ inline void shutdown()
   }
   if (logging_factory) {
     delete logging_factory;
-  }
-  if (response_factory) {
-    delete response_factory;
   }
 }
 

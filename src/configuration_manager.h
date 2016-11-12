@@ -57,18 +57,13 @@ std::string DB_Name;
 std::string DB_CollectionName;
 std::string OMQ_OBConnStr;
 std::string OMQ_IBConnStr;
-bool SmartUpdatesActive;
 bool MessageFormatJSON;
 bool MessageFormatProtoBuf;
-bool RedisFormatJSON;
-bool RedisFormatProtoBuf;
-int SUB_Duration;
 std::vector<RedisConnChain> RedisConnectionList;
-std::string HealthCheckScript;
-int HealthCheckInterval;
 bool StampTransactionId;
-bool SendOutboundFailureMsg;
+bool AtomicTransactions;
 bool EnableObjectLocking;
+bool GlobalTransforms;
 
 //The Current Node ID
 std::string node_id;
@@ -93,11 +88,10 @@ public:
   //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
   ConfigurationManager(CommandLineInterface *c, std::string instance_id) {cli = c;\
     DB_ConnStr="mongodb://localhost:27017/"; DB_CollectionName="test"; DB_Name="test"; \
-      OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555"; SmartUpdatesActive=false;\
-        MessageFormatJSON=true; MessageFormatProtoBuf=false; RedisFormatJSON=false;\
-          RedisFormatProtoBuf=false; SUB_Duration=1; HealthCheckScript=""; HealthCheckInterval=0;\
-            isConsulActive=false;StampTransactionId=false;SendOutboundFailureMsg=false;\
-              EnableObjectLocking=false;node_id=instance_id;consul_factory=new ConsulComponentFactory;\
+      OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555";\
+        MessageFormatJSON=true; MessageFormatProtoBuf=false;\
+            isConsulActive=false;StampTransactionId=false;AtomicTransactions=false;\
+              EnableObjectLocking=false;GlobalTransforms=true;node_id=instance_id;consul_factory=new ConsulComponentFactory;\
                 props_factory = new PropertyReaderFactory;}
   ~ConfigurationManager();
 
@@ -106,20 +100,17 @@ public:
 
   //Get configuration values
   std::string get_dbconnstr() {return DB_ConnStr;}
-  bool get_dbcollection() {return DB_CollectionName;}
+  std::string get_dbcollection() {return DB_CollectionName;}
   std::string get_dbname() {return DB_Name;}
   std::string get_obconnstr() {return OMQ_OBConnStr;}
   std::string get_ibconnstr() {return OMQ_IBConnStr;}
-  bool get_smartupdatesactive() {return SmartUpdatesActive;};
   bool get_mfjson() {return MessageFormatJSON;}
   bool get_mfprotobuf() {return MessageFormatProtoBuf;}
-  bool get_rfjson() {return RedisFormatJSON;}
-  bool get_rfprotobuf() {return RedisFormatProtoBuf;}
-  int get_subduration() {return SUB_Duration;}
   std::vector<RedisConnChain> get_redisconnlist() {return RedisConnectionList;}
   bool get_transactionidsactive() {return StampTransactionId;}
-  bool get_sendobfailuresactive() {return SendOutboundFailureMsg;}
+  bool get_atomictransactions() {return AtomicTransactions;}
   bool get_objectlockingenabled() {return EnableObjectLocking;}
+  bool get_globaltransforms() {return GlobalTransforms;}
 
   //Get the Current Node ID
   std::string get_nodeid() {return node_id;}

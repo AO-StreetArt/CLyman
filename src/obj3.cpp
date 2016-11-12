@@ -230,9 +230,9 @@ Obj3::Obj3(const rapidjson::Document& d, bool locking_enabled)
       name_val = &d["name"];
       new_name = name_val->GetString();
     }
-    if (d.HasMember("key")) {
+    if (d.HasMember("_id")) {
       const rapidjson::Value *key_val;
-      key_val = &d["key"];
+      key_val = &d["_id"];
       new_key = key_val->GetString();
     }
 		if (d.HasMember("transaction_id")) {

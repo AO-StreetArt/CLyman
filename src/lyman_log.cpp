@@ -12,7 +12,7 @@ void start_logging_submodules()
   if (!uuid_logging) {uuid_logging = logging->get_category("uuid");}
   if (!config_logging) {config_logging = logging->get_category("configuration");}
   if (!obj_logging) {obj_logging = logging->get_category("obj3");}
-  if (!redis_logging) {redis_logging = logging->get_category("document");}
+  if (!redis_logging) {redis_logging = logging->get_category("redis");}
   if (!main_logging) {main_logging = logging->get_category("main");}
   if (!processor_logging) {processor_logging = logging->get_category("processor");}
 }

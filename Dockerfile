@@ -31,9 +31,9 @@ RUN git clone https://github.com/miloyip/rapidjson.git
 #Move the RapidJSON header files to the include path
 RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
 
-#Get the Couchbase dependecies
-RUN wget http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-2-amd64.deb
-RUN dpkg -i couchbase-release-1.0-2-amd64.deb
+#Get the Mongo Dependencies
+RUN git clone https://github.com/mongodb/mongo-c-driver.git
+cd mongo-c-driver && ./autogen.sh --with-libbson=bundled && make && sudo make install
 
 #Get the Redis Dependencies
 RUN git clone https://github.com/redis/hiredis.git ./hiredis

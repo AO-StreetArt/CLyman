@@ -12,7 +12,7 @@ uuidInterface *ua = NULL;
 ConfigurationManager *cm = NULL;
 
 //Global Couchbase Admin Object
-CouchbaseInterface *cb = NULL;
+MongoInterface *mongo = NULL;
 
 //Smart Update Buffer
 RedisInterface *xRedis = NULL;
@@ -28,7 +28,7 @@ Zmqio *zmqo = NULL;
 Zmqio *zmqi = NULL;
 
 //Response Object
-ApplicationResponseInterface *resp = NULL;
+Obj3 *resp = NULL;
 
 //Factories
 CommandLineInterpreterFactory *cli_factory = NULL;
@@ -37,4 +37,3 @@ RedisComponentFactory *redis_factory = NULL;
 uuidComponentFactory *uuid_factory = NULL;
 ZmqComponentFactory *zmq_factory = NULL;
 LoggingComponentFactory *logging_factory = NULL;
-ResponseFactory *response_factory = NULL;

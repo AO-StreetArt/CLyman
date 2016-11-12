@@ -13,12 +13,12 @@ addons:
     - g++-5
 services:
   - redis-server
+  - mongodb
 before_install:
   - sudo apt-get install libssl-dev
   - mkdir ../clyman_deps
   - sudo cp scripts/linux/deb/build_deps.sh ../clyman_deps
 install:
-  - cd scripts && sudo ./install_couchbase.sh
   - cd $TRAVIS_BUILD_DIR
   - wget https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip
   - unzip consul_0.6.4_linux_amd64.zip
@@ -34,4 +34,4 @@ script:
   - make rhel-test
   - make rhel-benchmarks
   - ./obj3_test
-  - ./configuration_test
+  - ./configuration_test -config-file=src/test/test.properties

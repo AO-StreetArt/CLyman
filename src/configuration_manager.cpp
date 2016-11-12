@@ -38,11 +38,6 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     config_logging->info("DB Connection String:");
     config_logging->info(DB_ConnStr);
   }
-  if (props->opt_exist("Smart_Update_Buffer_Duration")) {
-    SUB_Duration=std::stoi(props->get_opt("Smart_Update_Buffer_Duration"));
-    config_logging->info("Smart Update Buffer Duration:");
-    config_logging->info(props->get_opt("Smart_Update_Buffer_Duration"));
-  }
   if (props->opt_exist("DB_CollectionName")) {
     DB_CollectionName=props->get_opt("DB_CollectionName");
     config_logging->info("DB Collection:");
@@ -63,16 +58,6 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     config_logging->info("Inbound 0MQ Connection:");
     config_logging->info(OMQ_IBConnStr);
   }
-  if (props->opt_exist("SmartUpdatesActive")) {
-    if (props->get_opt("SmartUpdatesActive")=="True") {
-      SmartUpdatesActive=true;
-      config_logging->info("Smart Updates Active");
-    }
-    else {
-      SmartUpdatesActive=false;
-      config_logging->info("Smart Updates Inactive");
-    }
-  }
   if (props->opt_exist("MessageFormat")) {
     if (props->get_opt("MessageFormat")=="json") {
       MessageFormatJSON=true;
@@ -85,18 +70,6 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       config_logging->info("Message Format set to Protocol Buffers");
     }
   }
-  if (props->opt_exist("RedisBufferFormat")) {
-    if (props->get_opt("RedisBufferFormat")=="json") {
-      RedisFormatJSON=true;
-      RedisFormatProtoBuf=false;
-      config_logging->info("Redis Buffer Format set to JSON");
-    }
-    else if (props->get_opt("RedisBufferFormat") == "protocol-buffer") {
-      RedisFormatJSON=false;
-      RedisFormatProtoBuf=true;
-      config_logging->info("Redis Buffer Format set to Protocol Buffers");
-    }
-  }
   if (props->opt_exist("StampTransactionId")) {
     if (props->get_opt("StampTransactionId") == "True") {
       StampTransactionId = true;
@@ -107,13 +80,13 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       config_logging->info("Transaction ID's Disabled");
     }
   }
-  if (props->opt_exist("SendOutboundFailureMsg")) {
-    if (props->get_opt("SendOutboundFailureMsg") == "True") {
-      SendOutboundFailureMsg = true;
+  if (props->opt_exist("AtomicTransactions")) {
+    if (props->get_opt("AtomicTransactions") == "True") {
+      AtomicTransactions = true;
       config_logging->info("Sending Outbound Failure Messages Enabled");
     }
     else {
-      SendOutboundFailureMsg = false;
+      AtomicTransactions = false;
       config_logging->info("Sending Outbound Failure Messages Disabled");
     }
   }
@@ -125,6 +98,16 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     else {
       EnableObjectLocking = false;
       config_logging->info("Object Locking Disabled");
+    }
+  }
+  if (props->opt_exist("GlobalTransforms")) {
+    if (props->get_opt("GlobalTransforms") == "True") {
+      GlobalTransforms = true;
+      config_logging->info("Global Transforms Enabled");
+    }
+    else {
+      GlobalTransforms = false;
+      config_logging->info("Global Transforms Disabled");
     }
   }
 
@@ -299,15 +282,6 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   DB_ConnStr=get_consul_config_value("DB_ConnectionString");
   config_logging->debug("Database Connection String:");
   config_logging->debug(DB_ConnStr);
-  std::string sub_dur_str = get_consul_config_value("Smart_Update_Buffer_Duration");
-  if (!sub_dur_str.empty()) {
-    SUB_Duration=std::stoi(sub_dur_str);
-    config_logging->debug("Smart Update Buffer Duration:");
-    config_logging->debug(sub_dur_str);
-  }
-  else {
-    config_logging->error("No Smart Update Buffer duration found");
-  }
   DB_Name = get_consul_config_value("DB_Name");
   config_logging->debug("Database Name:");
   config_logging->debug(DB_Name);
@@ -317,15 +291,6 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   OMQ_OBConnStr = get_consul_config_value("0MQ_OutboundConnectionString");
   config_logging->debug("Outbound 0MQ Connection String:");
   config_logging->debug(OMQ_OBConnStr);
-  std::string sua = get_consul_config_value("Smart_Updates_Active");
-  config_logging->debug("Smart Updates Active:");
-  config_logging->debug(sua);
-  if (sua == "True") {
-    SmartUpdatesActive=true;
-  }
-  else {
-    SmartUpdatesActive=false;
-  }
   std::string msg_format_str = get_consul_config_value("MessageFormat");
   config_logging->debug("Message Format:");
   config_logging->debug(msg_format_str);
@@ -339,19 +304,6 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     MessageFormatJSON=false;
     MessageFormatProtoBuf=true;
   }
-  std::string redis_format_str = get_consul_config_value("RedisBufferFormat");
-  config_logging->debug("Redis Buffer Format:");
-  config_logging->debug(redis_format_str);
-  if (redis_format_str == "json")
-  {
-    RedisFormatJSON=true;
-    RedisFormatProtoBuf=false;
-  }
-  else
-  {
-    RedisFormatJSON=false;
-    RedisFormatProtoBuf=true;
-  }
 
   std::string tran_ids_active = get_consul_config_value("StampTransactionId");
   config_logging->debug("Transaction ID & Atomic Transactions Enabled:");
@@ -363,14 +315,14 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     StampTransactionId = false;
   }
 
-  std::string ob_failure_msg = get_consul_config_value("SendOutboundFailureMsg");
-  config_logging->debug("Sending Outbound Failure Messages Enabled:");
-  config_logging->debug(ob_failure_msg);
-  if (ob_failure_msg == "True") {
-    SendOutboundFailureMsg = true;
+  std::string atomic = get_consul_config_value("AtomicTransactions");
+  config_logging->debug("Atomic Transactions Enabled:");
+  config_logging->debug(atomic);
+  if (atomic == "True") {
+    AtomicTransactions = true;
   }
   else {
-    SendOutboundFailureMsg = false;
+    AtomicTransactions = false;
   }
 
   std::string enable_locking_message = get_consul_config_value("EnableObjectLocking");
@@ -381,6 +333,16 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   }
   else {
     EnableObjectLocking = false;
+  }
+
+  std::string enable_global_transforms = get_consul_config_value("GlobalTransforms");
+  config_logging->debug("Global Transforms Enabled:");
+  config_logging->debug(enable_global_transforms);
+  if (enable_global_transforms == "True") {
+    GlobalTransforms = true;
+  }
+  else {
+    GlobalTransforms = false;
   }
 
   //Read from a set of global config values in consul

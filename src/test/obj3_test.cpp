@@ -438,6 +438,10 @@ Obj3 obj6 (d, false);
 Obj3 obj7 (d2, false);
 Obj3 obj8 (new_proto, false);
 
+std::cout << obj6.to_json() << std::endl;
+std::cout << obj7.to_json() << std::endl;
+std::cout << obj8.to_json() << std::endl;
+
 assert (obj6.get_name() == "Test Object");
 assert (obj6.get_key() == "abcdef-9876543");
 assert (obj6.get_type() == "Mesh");
