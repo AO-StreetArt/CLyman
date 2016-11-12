@@ -2,9 +2,9 @@
 
 LoggingCategoryInterface *config_logging = NULL;
 LoggingCategoryInterface *obj_logging = NULL;
-LoggingCategoryInterface *doc_logging = NULL;
-LoggingCategoryInterface *callback_logging = NULL;
+LoggingCategoryInterface *redis_logging = NULL;
 LoggingCategoryInterface *main_logging = NULL;
+LoggingCategoryInterface *processor_logging = NULL;
 LoggingCategoryInterface *uuid_logging = NULL;
 
 void start_logging_submodules()
@@ -12,9 +12,9 @@ void start_logging_submodules()
   if (!uuid_logging) {uuid_logging = logging->get_category("uuid");}
   if (!config_logging) {config_logging = logging->get_category("configuration");}
   if (!obj_logging) {obj_logging = logging->get_category("obj3");}
-  if (!doc_logging) {doc_logging = logging->get_category("document");}
-  if (!callback_logging) {callback_logging = logging->get_category("callbacks");}
+  if (!redis_logging) {redis_logging = logging->get_category("redis");}
   if (!main_logging) {main_logging = logging->get_category("main");}
+  if (!processor_logging) {processor_logging = logging->get_category("processor");}
 }
 
 void shutdown_logging_submodules()
@@ -46,23 +46,14 @@ void shutdown_logging_submodules()
     logging->debug("Object3 Logging Module delete called");
     delete obj_logging;
   }
-  if (!doc_logging)
+  if (!redis_logging)
   {
     logging->debug("Document Manager Logging Module delete called without initialized object");
   }
   else
   {
     logging->debug("Document Manager Logging Module delete called");
-    delete doc_logging;
-  }
-  if (!callback_logging)
-  {
-    logging->debug("Couchbase Couchbase Logging Module delete called without initialized object");
-  }
-  else
-  {
-    logging->debug("Couchbase Couchbase Logging Module delete called");
-    delete callback_logging;
+    delete redis_logging;
   }
   if (!main_logging)
   {
@@ -72,5 +63,14 @@ void shutdown_logging_submodules()
   {
     logging->debug("Main Logging Module delete called");
     delete main_logging;
+  }
+  if (!processor_logging)
+  {
+    logging->debug("Processor Logging Module delete called without initialized object");
+  }
+  else
+  {
+    logging->debug("Processor Logging Module delete called");
+    delete processor_logging;
   }
 }

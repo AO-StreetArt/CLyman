@@ -230,10 +230,9 @@ Obj3::Obj3(const rapidjson::Document& d, bool locking_enabled)
       name_val = &d["name"];
       new_name = name_val->GetString();
     }
-    if (d.HasMember("key")) {
-      const rapidjson::Value *key_val;
-      key_val = &d["key"];
-      new_key = key_val->GetString();
+    if (d.HasMember("_id")) {
+      //We access the $oid element of the _id object to get our key
+      new_key = d["_id"]["$oid"].GetString();
     }
 		if (d.HasMember("transaction_id")) {
 			const rapidjson::Value *tran_id_val;
@@ -649,7 +648,7 @@ std::string Obj3::to_json_msg(int msg_type, std::string trans_id, bool write_tra
 	}
 
 	if (!key.empty()) {
-		writer.Key("key");
+		writer.Key("_id");
 		writer.String( key.c_str(), (SizeType)key.length() );
 	}
 

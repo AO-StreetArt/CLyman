@@ -38,25 +38,15 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     config_logging->info("DB Connection String:");
     config_logging->info(DB_ConnStr);
   }
-  if (props->opt_exist("Smart_Update_Buffer_Duration")) {
-    SUB_Duration=std::stoi(props->get_opt("Smart_Update_Buffer_Duration"));
-    config_logging->info("Smart Update Buffer Duration:");
-    config_logging->info(props->get_opt("Smart_Update_Buffer_Duration"));
+  if (props->opt_exist("DB_CollectionName")) {
+    DB_CollectionName=props->get_opt("DB_CollectionName");
+    config_logging->info("DB Collection:");
+    config_logging->info(DB_CollectionName);
   }
-  if (props->opt_exist("DB_AuthenticationActive")) {
-    if (props->get_opt("DB_AuthenticationActive")=="True") {
-      DB_AuthActive=true;
-      config_logging->info("DB Authentication Active");
-    }
-    else {
-      DB_AuthActive=false;
-      config_logging->info("DB Authentication Inactive");
-    }
-  }
-  if (props->opt_exist("DB_Password")) {
-    DB_Pswd=props->get_opt("DB_Password");
-    config_logging->info("DB Password:");
-    config_logging->info(DB_Pswd);
+  if (props->opt_exist("DB_Name")) {
+    DB_Name=props->get_opt("DB_Name");
+    config_logging->info("DB Name:");
+    config_logging->info(DB_Name);
   }
   if (props->opt_exist("0MQ_OutboundConnectionString")) {
     OMQ_OBConnStr = props->get_opt("0MQ_OutboundConnectionString");
@@ -67,16 +57,6 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
     config_logging->info("Inbound 0MQ Connection:");
     config_logging->info(OMQ_IBConnStr);
-  }
-  if (props->opt_exist("SmartUpdatesActive")) {
-    if (props->get_opt("SmartUpdatesActive")=="True") {
-      SmartUpdatesActive=true;
-      config_logging->info("Smart Updates Active");
-    }
-    else {
-      SmartUpdatesActive=false;
-      config_logging->info("Smart Updates Inactive");
-    }
   }
   if (props->opt_exist("MessageFormat")) {
     if (props->get_opt("MessageFormat")=="json") {
@@ -90,18 +70,6 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       config_logging->info("Message Format set to Protocol Buffers");
     }
   }
-  if (props->opt_exist("RedisBufferFormat")) {
-    if (props->get_opt("RedisBufferFormat")=="json") {
-      RedisFormatJSON=true;
-      RedisFormatProtoBuf=false;
-      config_logging->info("Redis Buffer Format set to JSON");
-    }
-    else if (props->get_opt("RedisBufferFormat") == "protocol-buffer") {
-      RedisFormatJSON=false;
-      RedisFormatProtoBuf=true;
-      config_logging->info("Redis Buffer Format set to Protocol Buffers");
-    }
-  }
   if (props->opt_exist("StampTransactionId")) {
     if (props->get_opt("StampTransactionId") == "True") {
       StampTransactionId = true;
@@ -112,13 +80,13 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
       config_logging->info("Transaction ID's Disabled");
     }
   }
-  if (props->opt_exist("SendOutboundFailureMsg")) {
-    if (props->get_opt("SendOutboundFailureMsg") == "True") {
-      SendOutboundFailureMsg = true;
+  if (props->opt_exist("AtomicTransactions")) {
+    if (props->get_opt("AtomicTransactions") == "True") {
+      AtomicTransactions = true;
       config_logging->info("Sending Outbound Failure Messages Enabled");
     }
     else {
-      SendOutboundFailureMsg = false;
+      AtomicTransactions = false;
       config_logging->info("Sending Outbound Failure Messages Disabled");
     }
   }
@@ -130,6 +98,16 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     else {
       EnableObjectLocking = false;
       config_logging->info("Object Locking Disabled");
+    }
+  }
+  if (props->opt_exist("GlobalTransforms")) {
+    if (props->get_opt("GlobalTransforms") == "True") {
+      GlobalTransforms = true;
+      config_logging->info("Global Transforms Enabled");
+    }
+    else {
+      GlobalTransforms = false;
+      config_logging->info("Global Transforms Disabled");
     }
   }
 
@@ -304,34 +282,15 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   DB_ConnStr=get_consul_config_value("DB_ConnectionString");
   config_logging->debug("Database Connection String:");
   config_logging->debug(DB_ConnStr);
-  std::string sub_dur_str = get_consul_config_value("Smart_Update_Buffer_Duration");
-  if (!sub_dur_str.empty()) {
-    SUB_Duration=std::stoi(sub_dur_str);
-    config_logging->debug("Smart Update Buffer Duration:");
-    config_logging->debug(sub_dur_str);
-  }
-  else {
-    config_logging->error("No Smart Update Buffer duration found");
-  }
-  DB_Pswd = get_consul_config_value("DB_Password");
-  config_logging->debug("Database Password:");
-  config_logging->debug(DB_Pswd);
-  DB_AuthActive=false;
-  if (!DB_Pswd.empty()) {
-    DB_AuthActive=true;
-  }
+  DB_Name = get_consul_config_value("DB_Name");
+  config_logging->debug("Database Name:");
+  config_logging->debug(DB_Name);
+  DB_CollectionName = get_consul_config_value("DB_CollectionName");
+  config_logging->debug("Database Collection:");
+  config_logging->debug(DB_CollectionName);
   OMQ_OBConnStr = get_consul_config_value("0MQ_OutboundConnectionString");
   config_logging->debug("Outbound 0MQ Connection String:");
   config_logging->debug(OMQ_OBConnStr);
-  std::string sua = get_consul_config_value("Smart_Updates_Active");
-  config_logging->debug("Smart Updates Active:");
-  config_logging->debug(sua);
-  if (sua == "True") {
-    SmartUpdatesActive=true;
-  }
-  else {
-    SmartUpdatesActive=false;
-  }
   std::string msg_format_str = get_consul_config_value("MessageFormat");
   config_logging->debug("Message Format:");
   config_logging->debug(msg_format_str);
@@ -345,19 +304,6 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     MessageFormatJSON=false;
     MessageFormatProtoBuf=true;
   }
-  std::string redis_format_str = get_consul_config_value("RedisBufferFormat");
-  config_logging->debug("Redis Buffer Format:");
-  config_logging->debug(redis_format_str);
-  if (redis_format_str == "json")
-  {
-    RedisFormatJSON=true;
-    RedisFormatProtoBuf=false;
-  }
-  else
-  {
-    RedisFormatJSON=false;
-    RedisFormatProtoBuf=true;
-  }
 
   std::string tran_ids_active = get_consul_config_value("StampTransactionId");
   config_logging->debug("Transaction ID & Atomic Transactions Enabled:");
@@ -369,14 +315,14 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     StampTransactionId = false;
   }
 
-  std::string ob_failure_msg = get_consul_config_value("SendOutboundFailureMsg");
-  config_logging->debug("Sending Outbound Failure Messages Enabled:");
-  config_logging->debug(ob_failure_msg);
-  if (ob_failure_msg == "True") {
-    SendOutboundFailureMsg = true;
+  std::string atomic = get_consul_config_value("AtomicTransactions");
+  config_logging->debug("Atomic Transactions Enabled:");
+  config_logging->debug(atomic);
+  if (atomic == "True") {
+    AtomicTransactions = true;
   }
   else {
-    SendOutboundFailureMsg = false;
+    AtomicTransactions = false;
   }
 
   std::string enable_locking_message = get_consul_config_value("EnableObjectLocking");
@@ -387,6 +333,16 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   }
   else {
     EnableObjectLocking = false;
+  }
+
+  std::string enable_global_transforms = get_consul_config_value("GlobalTransforms");
+  config_logging->debug("Global Transforms Enabled:");
+  config_logging->debug(enable_global_transforms);
+  if (enable_global_transforms == "True") {
+    GlobalTransforms = true;
+  }
+  else {
+    GlobalTransforms = false;
   }
 
   //Read from a set of global config values in consul
@@ -466,30 +422,17 @@ bool ConfigurationManager::configure ()
 
     //Check if we have a consul address specified
 
-    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr") && cli->opt_exist("couchbase-pswd"))
+    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("-db-addr") && cli->opt_exist("-db-name") && cli->opt_exist("-db-collection"))
     {
       bool suc = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
       if (suc) {
-        DB_ConnStr = cli->get_opt("-couchbase-addr");
-        DB_AuthActive = true;
-        DB_Pswd = cli->get_opt("-couchbase-pswd");
+        DB_ConnStr = cli->get_opt("-db-addr");
+        DB_CollectionName = cli->get_opt("-db-collection");
+        DB_Name = cli->get_opt("-db-name");
         isConsulActive = true;
       }
       else {
         config_logging->error("Configuration from Consul failed, keeping defaults");
-      }
-    }
-
-    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("couchbase-addr"))
-    {
-      bool succ = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
-      if (succ) {
-        DB_ConnStr = cli->get_opt("-couchbase-addr");
-        DB_AuthActive = false;
-        isConsulActive = true;
-      }
-      else {
-      config_logging->error("Configuration from Consul failed, keeping defaults");
       }
     }
 
