@@ -6,7 +6,7 @@ A .proto file is included to allow generating the bindings for any language (the
 
 In addition, [0-Meter] (https://github.com/AO-StreetArt/0-Meter) has been developed to allow easy testing of the module with JSON message formats.
 
-Please note that running CLyman requires an instance of both [Couchbase DB Server 4.1] (http://www.couchbase.com/) and [Redis 3.2.0] (http://redis.io/) to connect to in order to run.  Clustering of both Couchbase & Redis are supported.
+Please note that running CLyman requires an instance of both [MongoDB] (http://www.mongodb.com/) and [Redis 3.2.0] (http://redis.io/) to connect to in order to run.  Clustering of both Couchbase & Redis are supported.
 
 CLyman can also be deployed with [Consul] (https://www.consul.io/) as a Service Discovery and Distributed Configuration architecture.  This requires the [Consul Agent] (https://www.consul.io/downloads.html) to be deployed that CLyman can connect to.
 

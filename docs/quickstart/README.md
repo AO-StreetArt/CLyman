@@ -53,7 +53,7 @@ You will need to have an instance of Couchbase Server & Redis Server up and runn
 Please find instructions to install and configure a Couchbase Server locally [here] (http://www.couchbase.com/get-started-developing-nosql#)
 
 Starting CLyman with the dev flag binds on the below connections:
-* Couchbase - couchbase://localhost/default (no password)
+* Mongo - mongodb://localhost:27017/
 * Outbund 0MQ Connection - tcp://localhost:5556
 * Inbound 0MQ Connection - tcp://*:5555
 
