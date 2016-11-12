@@ -40,7 +40,14 @@ RedisLocker *redis_locks = NULL;
   //Retrieve an object from the DB and load it into an Obj3
   inline Obj3* load_db_object(std::string key) {
     processor_logging->debug("Loading DB Object");
-    std::string object_string = m->load_document(key);
+    std::string object_string;
+    try {
+      object_string = m->load_document(key);
+    }
+    catch (std::exception& e) {
+      processor_logging->error( e.what() );
+      object_string = "";
+    }
     Obj3 *temp_obj = NULL;
     rapidjson::Document temp_d;
     if ( !(object_string.empty()) ) {
@@ -63,21 +70,21 @@ RedisLocker *redis_locks = NULL;
 
   //Insert the Obj3 into to the DB, return the key
   inline std::string insert_db_object(Obj3* obj_msg) {
-    std::string ret_str =  m->create_document( obj_msg->to_json() );
+    std::string ret_str;
+    //Erase any existing keys, as the key is returned back by the DB
+    //Without this, we can get multiple _id fields in a doc, and Mongo request will error
+    obj_msg->set_key("");
+    try {
+      ret_str =  m->create_document( obj_msg->to_json() );
+    }
+    catch (std::exception& e) {
+      processor_logging->error( e.what() );
+      ret_str = "";
+    }
     if (ret_str.empty()) {
       return "";
     }
     return ret_str;
-  }
-
-  //Save the Obj3 back to the DB
-  inline bool save_db_object(Obj3* obj_msg) {
-    return m->save_document( obj_msg->to_json(), obj_msg->get_key() );
-  }
-
-  //Delete the Obj3 from to the DB
-  inline bool delete_db_object(std::string obj_key) {
-    return m->delete_document( obj_key );
   }
 
   //Establish a redis mutex lock on an object
@@ -228,7 +235,13 @@ RedisLocker *redis_locks = NULL;
 
     //-Save Object to DB
     if (update_success) {
-      update_success = m->save_document(obj_json, key);
+      try {
+        update_success = m->save_document(obj_json, key);
+      }
+      catch (std::exception& e) {
+        processor_logging->error( e.what() );
+        update_success = false;
+      }
     }
 
     //Release Mutex Lock
@@ -249,7 +262,14 @@ RedisLocker *redis_locks = NULL;
     //Load the DB Object
     std::string key = obj_msg->get_key();
     processor_logging->debug("Processing Retrieve Message on key: " + key);
-    std::string object_string = m->load_document(key);
+    std::string object_string;
+    try {
+      object_string = m->load_document(key);
+    }
+    catch (std::exception& e) {
+      processor_logging->error( e.what() );
+      object_string = "";
+    }
     if (object_string.empty()) {
       processor_logging->debug("No Object Found");
       return "-1";
@@ -278,7 +298,14 @@ RedisLocker *redis_locks = NULL;
     }
 
     //Delete
-    bool delete_success = m->delete_document(key);
+    bool delete_success;
+    try {
+      delete_success = m->delete_document(key);
+    }
+    catch (std::exception& e) {
+      processor_logging->error( e.what() );
+      delete_success = false;
+    }
 
     //Release Mutex Lock
     bool release_lock_success = release_objmutex_lock(key);
