@@ -232,7 +232,7 @@ void my_signal_handler(int s){
         main_logging->debug("Conversion to C String performed with result: ");
         main_logging->debug(req_ptr);
         bool go_ahead=false;
-        int current_error_code = 0;
+        int current_error_code = 100;
         std::string current_error_message = "";
 
         //If we are expecting JSON Messages, then parse in this fashion
@@ -314,6 +314,8 @@ void my_signal_handler(int s){
         //"-1", we have a processing error result
         if (process_result == "-1") {
           current_error_code = PROCESSING_ERROR;
+          current_error_message = "Error encountered in document processing";
+          resp = new Obj3();
         }
 
         //"locked", we have encountered a User Device Lock, and the update
@@ -321,6 +323,7 @@ void my_signal_handler(int s){
         else if (process_result == "locked") {
           current_error_code = DEVICE_LOCK;
           current_error_message = "Device Lock Encountered, Update Rejected";
+          resp = new Obj3();
         }
 
         //If we don't have errors or locks:
@@ -347,7 +350,9 @@ void my_signal_handler(int s){
             }
 
         }
-        resp->set_error(current_error_message);
+        if ( !(current_error_message.empty()) ) {
+          resp->set_error(current_error_message);
+        }
 
         //  Send reply back to client
         //Ping message, send back "success"

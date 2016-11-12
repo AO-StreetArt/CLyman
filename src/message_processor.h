@@ -63,7 +63,11 @@ RedisLocker *redis_locks = NULL;
 
   //Insert the Obj3 into to the DB, return the key
   inline std::string insert_db_object(Obj3* obj_msg) {
-    return m->create_document( obj_msg->to_json() );
+    std::string ret_str =  m->create_document( obj_msg->to_json() );
+    if (ret_str.empty()) {
+      return "";
+    }
+    return ret_str;
   }
 
   //Save the Obj3 back to the DB
@@ -167,13 +171,20 @@ RedisLocker *redis_locks = NULL;
   inline std::string process_create_message(Obj3 *obj_msg) {
     //No Lock Needed
     //Just generate a document and insert it
-    std::string json_doc = obj_msg->to_json();
-    std::string key = m->create_document(json_doc);
-    processor_logging->debug("Created new document with key: " + key);
+    std::string key = insert_db_object(obj_msg);
+    processor_logging->debug("Created new document with key: ");
+    processor_logging->debug(key);
 
+    if ( !(key.empty()) ) {
     //Send OB Message
-    obj_msg->set_key(key);
-    send_outbound_msg(obj_msg->to_json());
+      processor_logging->debug("Return Key not empty, sending OB message");
+      obj_msg->set_key(key);
+      send_outbound_msg(obj_msg->to_json());
+    }
+    else {
+      processor_logging->error("Error writing to Mongo");
+      key = "-1";
+    }
 
     //Return document key
     return key;
