@@ -12,7 +12,7 @@
 //The class containing core logic for CLyman
 //Accepts an Obj3 (assuming it is an inbound message)
 //And performs any and all processing on it,
-//Includes Redis Locks, DB Interactions, and OB ZMQ messaging
+//Includes Redis Locks, DB Interactions, Object Transformations, and OB ZMQ messaging
 
 #ifndef MSG_PROCESSOR
 #define MSG_PROCESSOR
