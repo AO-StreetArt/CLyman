@@ -200,6 +200,7 @@ RedisLocker *redis_locks = NULL;
   inline std::string process_update_message(Obj3 *obj_msg) {
     //Deal with locks
     std::string key = obj_msg->get_key();
+
     processor_logging->debug("Processing Update Message on key: " + key);
 
     //-User Device Lock
@@ -229,6 +230,9 @@ RedisLocker *redis_locks = NULL;
       update_success = db_object->transform( obj_msg, obj_msg->get_lock_id() );
     }
 
+    //Remove the key from the db object, to prevent collisions in Mongo
+    db_object->set_key("");
+
     std::string obj_json = db_object->to_json();
     processor_logging->debug("Update Performed, resulting Obj3:");
     processor_logging->debug(obj_json);
@@ -252,6 +256,7 @@ RedisLocker *redis_locks = NULL;
     //Send OB Message
     if (update_success) {
       processor_logging->debug("Update Persistence Confirmed");
+      db_object->set_key(key);
       send_outbound_msg(obj_json);
       return "";
     }
