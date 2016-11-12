@@ -231,8 +231,15 @@ Obj3::Obj3(const rapidjson::Document& d, bool locking_enabled)
       new_name = name_val->GetString();
     }
     if (d.HasMember("_id")) {
-      //We access the $oid element of the _id object to get our key
-      new_key = d["_id"]["$oid"].GetString();
+			if (d["_id"].IsObject()) {
+      	//We access the $oid element of the _id object to get our key
+      	new_key = d["_id"]["$oid"].GetString();
+			}
+			else {
+				const rapidjson::Value *tran_id_val;
+	      tran_id_val = &d["_id"];
+	      new_app_transaction_id = tran_id_val->GetString();
+			}
     }
 		if (d.HasMember("transaction_id")) {
 			const rapidjson::Value *tran_id_val;
