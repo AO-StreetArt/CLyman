@@ -58,8 +58,9 @@ fi
 
 #Ensure we have access to the Protocol Buffer Interfaces
 mkdir $PRE/interfaces/
+sudo mkdir /usr/local/include/dvs_interface
 git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
-cp $PRE/interfaces/proto/Obj3.proto ../CLyman/src/Obj3.proto
+sudo cp $PRE/interfaces/proto/* /usr/local/include/dvs_interface/
 
 #Build & Install the Shared Service Library
 

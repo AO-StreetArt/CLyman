@@ -17,7 +17,7 @@ INCL_DIRS = -I/usr/include/libbson-1.0 -I/usr/local/include/libmongoc-1.0 -I/usr
 LINK_DIRS = -L/usr/local/lib
 
 PROTOC = protoc
-PROTO_OPTS = -I=src
+PROTO_OPTS = -I=/usr/local/include/dvs_interface
 
 # -------------------------- Central Targets --------------------------------- #
 
@@ -74,13 +74,13 @@ src/lyman_log.o: src/lyman_log.cpp src/lyman_log.h
 	$(CC) $(CFLAGS) -o $@ -c src/lyman_log.cpp $(STD)
 
 scripts/Obj3_pb2.py: src/Obj3.proto
-	$(PROTOC) $(PROTO_OPTS) --python_out=scripts src/Obj3.proto
+	$(PROTOC) $(PROTO_OPTS) --python_out=scripts /usr/local/include/dvs_interface/Obj3.proto
 
 src/configuration_manager.o: src/configuration_manager.cpp src/configuration_manager.h
 	$(CC) $(CFLAGS) -o $@ -c src/configuration_manager.cpp $(STD)
 
 src/Obj3.pb.cc: src/Obj3.proto
-	$(PROTOC) $(PROTO_OPTS) --cpp_out=src src/Obj3.proto
+	$(PROTOC) $(PROTO_OPTS) --cpp_out=src /usr/local/include/dvs_interface/Obj3.proto
 
 src/obj3.o: src/obj3.cpp src/obj3.h src/Obj3.pb.cc
 	$(CC) $(CFLAGS) -o $@ -c src/obj3.cpp $(STD)
