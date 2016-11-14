@@ -15,6 +15,8 @@ Features:
 * Configurable Logic
 * Scalable microservice design
 
+Ex38 is a part of the AO Distributed Visualization Server, along with [Ex38] (https://github.com/AO-StreetArt/Ex38).  It therefor utilizes the [DVS Interface library] (https://github.com/AO-StreetArt/DvsInterface), also available on github.  It utilizes the DataObject.proto file for inbound communications.
+
 ## Table of Contents
 * [Quickstart] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/quickstart)
 * [Configuration] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/config)

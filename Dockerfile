@@ -25,20 +25,13 @@ RUN apt-get update
 #Ensure that specific build requirements are satisfied
 RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git software-properties-common
 
-#Get the RapidJSON Dependency
-RUN git clone https://github.com/miloyip/rapidjson.git
-
-#Move the RapidJSON header files to the include path
-RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
+#Get the Redis Dependencies
+RUN git clone https://github.com/redis/hiredis.git ./hiredis
+RUN cd ./hiredis && make && make install
 
 #Get the Mongo Dependencies
 RUN git clone https://github.com/mongodb/mongo-c-driver.git
 RUN cd mongo-c-driver && ./autogen.sh --with-libbson=bundled && make && sudo make install
-
-#Get the Redis Dependencies
-RUN git clone https://github.com/redis/hiredis.git ./hiredis
-
-RUN cd ./hiredis && make && make install
 
 #Get the ZMQ Dependencies
 RUN wget https://github.com/zeromq/zeromq4-1/releases/download/v4.1.4/zeromq-4.1.4.tar.gz
@@ -68,7 +61,24 @@ RUN apt-add-repository -y ppa:bruun/hayai
 RUN apt-get update
 
 #Install the dependencies
-RUN apt-get install -y libcouchbase-dev libcouchbase2-bin build-essential libprotobuf-dev protobuf-compiler liblog4cpp5-dev libhayai-dev
+RUN apt-get install -y build-essential libprotobuf-dev protobuf-compiler liblog4cpp5-dev libhayai-dev
+
+#Get the RapidJSON Dependency
+RUN git clone https://github.com/miloyip/rapidjson.git
+
+#Move the RapidJSON header files to the include path
+RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
+
+#Get the Eigen Dependency
+RUN wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
+
+#Unzip the Eigen directories
+RUN tar -vxjf 3.2.8.tar.bz2
+RUN mkdir $PRE/eigen
+RUN mv ./eigen-eigen* $PRE/eigen
+
+#Move the Eigen files
+RUN sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
 
 #Ensure we have access to the Protocol Buffer Interfaces
 RUN mkdir $PRE/interfaces/
@@ -79,19 +89,7 @@ RUN cd $PRE/interfaces && sudo make install
 RUN git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git
 
 #Install the shared service library
-RUN cd AOSharedServiceLibrary && make && make install
-
-#Get the Eigen Dependencies
-RUN wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
-
-#Move the Eigen Header files to the include path
-
-#Unzip the Eigen directories
-RUN tar -vxjf 3.2.8.tar.bz2
-RUN mv eigen-eigen* eigen
-
-#Move the files
-RUN cp -r eigen/Eigen /usr/local/include
+RUN cd AOSharedServiceLibrary && make no-couchbase && make install-no-couchbase
 
 #Pull the project source from github
 RUN git clone https://github.com/AO-StreetArt/CLyman.git
