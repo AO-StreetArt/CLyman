@@ -56,6 +56,11 @@ if [ ! -d /usr/local/include/rapidjson ]; then
 
 fi
 
+#Ensure we have access to the Protocol Buffer Interfaces
+mkdir $PRE/interfaces/
+git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
+cd $PRE/interfaces && sudo make install
+
 #Build & Install the Shared Service Library
 
 if [ ! -d /usr/local/include/aossl ]; then

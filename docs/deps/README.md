@@ -11,3 +11,6 @@ You will need the Google Protocol Buffer C++ API, which can be found [here](http
 This service also depends on Eigen, a C++ Linear Algebra library.  This can be downloaded from the [Eigen] (http://eigen.tuxfamily.org/index.php?title=Main_Page) site.
 
 You will need RapidJSON which can be found [here] (https://github.com/miloyip/rapidjson).
+
+Finally, we also depend on the DVS Interface Library, which houses a collection of proto files for this project.
+If you are building dependencies manually, you'll need to clone the repository and copy the Obj3.proto file into the src/ folder of this project.

@@ -33,7 +33,7 @@ RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
 
 #Get the Mongo Dependencies
 RUN git clone https://github.com/mongodb/mongo-c-driver.git
-cd mongo-c-driver && ./autogen.sh --with-libbson=bundled && make && sudo make install
+RUN cd mongo-c-driver && ./autogen.sh --with-libbson=bundled && make && sudo make install
 
 #Get the Redis Dependencies
 RUN git clone https://github.com/redis/hiredis.git ./hiredis
@@ -69,6 +69,11 @@ RUN apt-get update
 
 #Install the dependencies
 RUN apt-get install -y libcouchbase-dev libcouchbase2-bin build-essential libprotobuf-dev protobuf-compiler liblog4cpp5-dev libhayai-dev
+
+#Ensure we have access to the Protocol Buffer Interfaces
+RUN mkdir $PRE/interfaces/
+RUN git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
+RUN cd $PRE/interfaces && sudo make install
 
 #Pull the project source from github
 RUN git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git

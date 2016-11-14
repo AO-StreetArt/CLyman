@@ -186,7 +186,12 @@ RedisLocker *redis_locks = NULL;
     //Send OB Message
       processor_logging->debug("Return Key not empty, sending OB message");
       obj_msg->set_key(key);
-      send_outbound_msg(obj_msg->to_json());
+      if ( config->get_mfjson() ) {
+        send_outbound_msg(obj_msg->to_json_msg(OBJ_CRT));
+      }
+      else if ( config->get_mfprotobuf() ) {
+        send_outbound_msg(obj_msg->to_protobuf_msg(OBJ_CRT));
+      }
     }
     else {
       processor_logging->error("Error writing to Mongo");
@@ -257,7 +262,12 @@ RedisLocker *redis_locks = NULL;
     if (update_success) {
       processor_logging->debug("Update Persistence Confirmed");
       db_object->set_key(key);
-      send_outbound_msg(obj_json);
+      if ( config->get_mfjson() ) {
+        send_outbound_msg(db_object->to_json_msg(OBJ_UPD));
+      }
+      else if ( config->get_mfprotobuf() ) {
+        send_outbound_msg(db_object->to_protobuf_msg(OBJ_UPD));
+      }
       return "";
     }
     return "-1";
@@ -321,7 +331,12 @@ RedisLocker *redis_locks = NULL;
     //Send OB Message
     if (delete_success) {
       processor_logging->debug("Deletion Confirmed");
-      send_outbound_msg(obj_msg->to_json());
+      if ( config->get_mfjson() ) {
+        send_outbound_msg(obj_msg->to_json_msg(OBJ_DEL));
+      }
+      else if ( config->get_mfprotobuf() ) {
+        send_outbound_msg(obj_msg->to_protobuf_msg(OBJ_DEL));
+      }
       return "";
     }
     return "-1";
