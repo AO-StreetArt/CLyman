@@ -69,6 +69,17 @@ RUN git clone https://github.com/miloyip/rapidjson.git
 #Move the RapidJSON header files to the include path
 RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
 
+#Get the Eigen Dependency
+RUN wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
+
+#Unzip the Eigen directories
+RUN tar -vxjf 3.2.8.tar.bz2
+RUN mkdir $PRE/eigen
+RUN mv ./eigen-eigen* $PRE/eigen
+
+#Move the Eigen files
+RUN sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
+
 #Ensure we have access to the Protocol Buffer Interfaces
 RUN mkdir $PRE/interfaces/
 RUN git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
