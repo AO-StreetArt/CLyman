@@ -79,7 +79,7 @@ RUN cd $PRE/interfaces && sudo make install
 RUN git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git
 
 #Install the shared service library
-RUN cd AOSharedServiceLibrary && make no-couchbase && make install
+RUN cd AOSharedServiceLibrary && make no-couchbase && make install-no-couchbase
 
 #Get the Eigen Dependencies
 RUN wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
