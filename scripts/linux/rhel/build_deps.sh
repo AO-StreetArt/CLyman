@@ -58,9 +58,8 @@ fi
 
 #Ensure we have access to the Protocol Buffer Interfaces
 mkdir $PRE/interfaces/
-sudo mkdir /usr/local/include/dvs_interface
 git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
-sudo cp $PRE/interfaces/proto/* /usr/local/include/dvs_interface/
+cd $PRE/interfaces && sudo make install
 
 #Build & Install the Shared Service Library
 
