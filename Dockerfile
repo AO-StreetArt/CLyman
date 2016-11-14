@@ -68,7 +68,7 @@ RUN apt-add-repository -y ppa:bruun/hayai
 RUN apt-get update
 
 #Install the dependencies
-RUN apt-get install -y libcouchbase-dev libcouchbase2-bin build-essential libprotobuf-dev protobuf-compiler liblog4cpp5-dev libhayai-dev
+RUN apt-get install -y build-essential libprotobuf-dev protobuf-compiler liblog4cpp5-dev libhayai-dev
 
 #Ensure we have access to the Protocol Buffer Interfaces
 RUN mkdir $PRE/interfaces/
