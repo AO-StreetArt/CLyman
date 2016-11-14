@@ -33,7 +33,7 @@ RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
 
 #Get the Mongo Dependencies
 RUN git clone https://github.com/mongodb/mongo-c-driver.git
-cd mongo-c-driver && ./autogen.sh --with-libbson=bundled && make && sudo make install
+RUN cd mongo-c-driver && ./autogen.sh --with-libbson=bundled && make && sudo make install
 
 #Get the Redis Dependencies
 RUN git clone https://github.com/redis/hiredis.git ./hiredis
