@@ -72,8 +72,9 @@ RUN apt-get install -y libcouchbase-dev libcouchbase2-bin build-essential libpro
 
 #Ensure we have access to the Protocol Buffer Interfaces
 RUN mkdir $PRE/interfaces/
+RUN sudo mkdir /usr/local/include/dvs_interface
 RUN git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
-RUN cp $PRE/interfaces/proto/Obj3.proto ../CLyman/src/Obj3.proto
+RUN sudo cp $PRE/interfaces/proto/* /usr/local/include/dvs_interface/
 
 #Pull the project source from github
 RUN git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git

@@ -45,7 +45,7 @@ obj3_test: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_test.o
 obj3_test_rhel: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_test.o
 	$(CC) $(CFLAGS) -o obj3_test $^ $(RHEL_LIBS) $(STD) $(INCL_DIRS) $(LINK_DIRS)
 
-src/obj3_test.o: src/test/obj3_test.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
+src/obj3_test.o: src/test/obj3_test.cpp src/obj3.cpp src/obj3.h /usr/local/include/dvs_interface/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/obj3_test.cpp $(STD) $(INCL_DIRS) $(LINK_DIRS)
 
 configuration_test: src/lyman_log.o src/configuration_manager.o src/configuration_test.o
@@ -65,7 +65,7 @@ obj3_benchmark: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_benchmark.o
 obj3_benchmark_rhel: src/Obj3.pb.cc src/lyman_log.o src/obj3.o src/obj3_benchmark.o
 	$(CC) $(CFLAGS) -o obj3_benchmark $^ $(RHEL_LIBS) $(STD)
 
-src/obj3_benchmark.o: src/test/obj3_benchmark.cpp src/obj3.cpp src/obj3.h src/Obj3.proto
+src/obj3_benchmark.o: src/test/obj3_benchmark.cpp src/obj3.cpp src/obj3.h /usr/local/include/dvs_interface/Obj3.proto
 	$(CC) $(CFLAGS) -o $@ -c src/test/obj3_benchmark.cpp $(STD)
 
 # ---------------------------- Main Project ---------------------------------- #
@@ -73,13 +73,13 @@ src/obj3_benchmark.o: src/test/obj3_benchmark.cpp src/obj3.cpp src/obj3.h src/Ob
 src/lyman_log.o: src/lyman_log.cpp src/lyman_log.h
 	$(CC) $(CFLAGS) -o $@ -c src/lyman_log.cpp $(STD)
 
-scripts/Obj3_pb2.py: src/Obj3.proto
+scripts/Obj3_pb2.py: /usr/local/include/dvs_interface/Obj3.proto
 	$(PROTOC) $(PROTO_OPTS) --python_out=scripts /usr/local/include/dvs_interface/Obj3.proto
 
 src/configuration_manager.o: src/configuration_manager.cpp src/configuration_manager.h
 	$(CC) $(CFLAGS) -o $@ -c src/configuration_manager.cpp $(STD)
 
-src/Obj3.pb.cc: src/Obj3.proto
+src/Obj3.pb.cc: /usr/local/include/dvs_interface/Obj3.proto
 	$(PROTOC) $(PROTO_OPTS) --cpp_out=src /usr/local/include/dvs_interface/Obj3.proto
 
 src/obj3.o: src/obj3.cpp src/obj3.h src/Obj3.pb.cc
