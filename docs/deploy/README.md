@@ -21,4 +21,4 @@ Should you so desire, the docker image can be rebuilt using the below commands
 `docker run --name clyman -it -d -P clyman_dev_2`
 
 # Next
-Now that you have deployed CLyman, and want to contribute back by developing, you can move on to the [Atchitecture] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/arch) section.
+Now that you have deployed CLyman, and want to contribute back by developing, you can move on to the [Dependencies] (https://github.com/AO-StreetArt/CLyman/tree/master/docs/deps) section and start looking at the code.  Bon voyage!
