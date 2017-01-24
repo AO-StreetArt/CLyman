@@ -18,9 +18,7 @@
 #include "Obj3.pb.h"
 #include "lyman_log.h"
 
-#include "aossl/factory/writeable.h"
-
-class Obj3: public Writeable
+class Obj3
 {
 	private:
 		//String Attributes
