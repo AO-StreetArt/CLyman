@@ -89,7 +89,7 @@ RUN cd $PRE/interfaces && sudo make install
 RUN git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git
 
 #Install the shared service library
-RUN cd AOSharedServiceLibrary && make no-couchbase && make install-no-couchbase
+RUN cd AOSharedServiceLibrary && make && make install
 
 #Pull the project source from github
 RUN git clone https://github.com/AO-StreetArt/CLyman.git
