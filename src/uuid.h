@@ -3,7 +3,7 @@
 
 #include <exception>
 
-#include "aossl/factory/uuid_interface.h"
+#include "aossl/uuid/include/uuid_interface.h"
 
 #ifndef CLYMAN_UUID
 #define CLYMAN_UUID

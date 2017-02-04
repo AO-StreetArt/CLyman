@@ -5,9 +5,9 @@
 
 #include "rapidjson/document.h"
 
-#include "aossl/factory/redis_interface.h"
-#include "aossl/factory/mongo_interface.h"
-#include "aossl/factory/zmq_interface.h"
+#include "aossl/redis/include/redis_interface.h"
+#include "aossl/mongo/include/mongo_interface.h"
+#include "aossl/zmq/include/zmq_interface.h"
 
 //The class containing core logic for CLyman
 //Accepts an Obj3 (assuming it is an inbound message)

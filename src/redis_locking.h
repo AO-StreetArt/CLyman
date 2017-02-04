@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <exception>
 
-#include "aossl/factory/redis_interface.h"
+#include "aossl/redis/include/redis_interface.h"
 
 #include "obj3.h"
 #include "configuration_manager.h"

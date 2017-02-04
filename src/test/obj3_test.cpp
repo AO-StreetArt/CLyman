@@ -5,8 +5,8 @@
 #include "../lyman_log.h"
 #include <string>
 #include <math.h>
-#include "aossl/factory/logging_interface.h"
-#include "aossl/factory_logging.h"
+#include "aossl/logging/include/logging_interface.h"
+#include "aossl/logging/include/factory_logging.h"
 #include <cmath>
 
 #include <assert.h>
