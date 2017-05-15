@@ -1,37 +1,76 @@
 # Use new trusty images, should yield newer compilers and packages
 sudo: required
-dist: precise
+dist: trusty
 language: cpp
 
-sudo: required
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
     packages:
+    # Install GCC
     - gcc-5
     - g++-5
+    # Install Python
+    - python
+    - python-dev
+    - python-pip
+    # Install LibSSL
+    - libssl-dev
+    # Install Protocol Buffer Compiler
+    - protobuf-compiler
+    - libprotobuf-dev
 services:
-  - redis-server
-  - mongodb
+  # Start up Docker
+  - docker
 before_install:
-  - sudo apt-get install libssl-dev
-  - mkdir ../clyman_deps
-  - sudo cp scripts/linux/deb/build_deps.sh ../clyman_deps
-install:
-  - cd $TRAVIS_BUILD_DIR
-  - wget https://releases.hashicorp.com/consul/0.6.4/consul_0.6.4_linux_amd64.zip
-  - unzip consul_0.6.4_linux_amd64.zip
-  - ./consul agent -dev -syslog &
-script:
   - sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-5 /usr/bin/gcc
   - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++
+  # Print the version of gcc
   - gcc --version
-  - cd ../clyman_deps && sudo ./build_deps.sh
-  - cat build_deps.log
+  # Print the python & pip version
+  - python -V
+  - pip -V
+  # Install python protocol buffer & zmq modules
+  - sudo pip install protobuf pyzmq
+  - pip install protobuf pyzmq
+  - sudo pip install --user protobuf pyzmq
+  # Get DVS Interfaces
+  - git clone https://github.com/AO-StreetArt/DvsInterface.git
+  - cd DvsInterface && sudo make install
+  - sudo docker network create dvs
+  # Clone the repository for the python tests
   - cd $TRAVIS_BUILD_DIR
-  - make rhel
-  - make rhel-test
-  - make rhel-benchmarks
-  - ./obj3_test
-  - ./configuration_test -config-file=src/test/test.properties
+  - git clone https://github.com/AO-StreetArt/0-Meter.git
+install:
+  - cd $TRAVIS_BUILD_DIR
+  # Setup Consul
+  - sudo docker pull consul
+  - sudo docker run -d --name=registry --network=dvs consul
+  # Set up Neo4j
+  - sudo docker pull mongo
+  - sudo docker run -d --network=dvs --name=database mongo
+  # Set up Redis
+  - sudo docker pull redis
+  - sudo docker run --network=dvs --name=cache -d redis
+  # Populate Consul Configuration variables
+  - sudo docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/ivan/RedisConnectionString
+  - sudo docker exec -t registry curl -X PUT -d 'mongodb://localhost:27017/' http://localhost:8500/v1/kv/ivan/Mongo_ConnectionString
+  - sudo docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/ivan/Mongo_DbName
+  - sudo docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/ivan/Mongo_DbCollection
+  - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/StampTransactionId
+  - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/AtomicTransactions
+  - sudo docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/ivan/Data_Format_Type
+script:
+  # Wait for some time to allow the docker instance to finish building
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
+  # Start Crazy Ivan
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500 localhost 5555
+  # Show the logs from the crazy ivan docker container
+  - sudo docker logs --tail 75 crazyivan
+  # Execute the Python Tests
+  # - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/scene_crt.xml
+  # - cat $TRAVIS_BUILD_DIR/scene_crt.log
+  # - sudo docker logs --tail 75 crazyivan
+  # Push the built image to docker hub
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_image.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
