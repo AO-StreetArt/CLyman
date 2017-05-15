@@ -15,15 +15,10 @@ MAINTAINER Alex Barry
 ENV DEBIAN_FRONTEND noninteractive
 
 #Ensure that base level build requirements are satisfied
+RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN apt-get update
-RUN	apt-get install -y apt-utils debconf-utils iputils-ping wget curl mc htop ssh
+RUN	apt-get install -y apt-utils debconf-utils iputils-ping wget curl mc htop ssh g++-5 build-essential libprotobuf-dev protobuf-compiler libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git liblog4cpp5-dev libkrb5-dev
 RUN	apt-get clean
-
-#Build the dependencies and place them in the correct places
-RUN apt-get update
-
-#Ensure that specific build requirements are satisfied
-RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git software-properties-common
 
 #Get the Neo4j Dependencies
 RUN mkdir $PRE/neo
