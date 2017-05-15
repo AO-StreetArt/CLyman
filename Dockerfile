@@ -101,7 +101,7 @@ RUN git clone https://github.com/AO-StreetArt/CLyman.git
 RUN cd CLyman && make && make test
 
 #Run the unit tests
-RUN cd CLyman && ./configuration_test && ./utils_test && ./log_test && ./transform_test && ./obj3_test && ./obj3_list_test
+RUN cd CLyman && ./configuration_test -config-file=tests/test.properties && ./utils_test && ./log_test && ./transform_test && ./obj3_test && ./obj3_list_test
 
 #Expose some of the default ports
 EXPOSE 22
