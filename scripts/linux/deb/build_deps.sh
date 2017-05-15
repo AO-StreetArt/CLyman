@@ -8,59 +8,12 @@ exec 1>build_deps.log 2>&1
 #Based on Ubuntu 14.04 LTS
 #Not intended for use with other OS (should function correctly with Debian 7, untested)
 
-printf "Creating Dependency Folder"
 PRE=./downloads
 RETURN=..
 mkdir $PRE
 
-printf "Calling apt-get update"
-
 #Update the Ubuntu Server
 sudo apt-get -y update
-
-#Build the dependencies and place them in the correct places
-
-
-#Determine if we Need Eigen
-if [ ! -d /usr/local/include/Eigen ]; then
-
-  printf "Downloading Eigen"
-
-  mkdir $PRE/eigen
-
-  #Get the Eigen Dependencies
-  wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
-
-  #Move the Eigen Header files to the include path
-
-  #Unzip the Eigen directories
-  tar -vxjf 3.2.8.tar.bz2
-  mv ./eigen-eigen* $PRE/eigen
-
-  #Move the files
-  sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
-
-fi
-
-#Determine if we Need RapidJSON
-if [ ! -d /usr/local/include/rapidjson ]; then
-
-  printf "Cloning RapidJSON"
-
-  mkdir $PRE/rapidjson
-
-  #Get the RapidJSON Dependency
-  git clone https://github.com/miloyip/rapidjson.git $PRE/rapidjson
-
-  #Move the RapidJSON header files to the include path
-  sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
-
-fi
-
-#Ensure we have access to the Protocol Buffer Interfaces
-mkdir $PRE/interfaces/
-git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
-cd $PRE/interfaces && sudo make install
 
 #Build & Install the Shared Service Library
 
@@ -84,8 +37,26 @@ if [ ! -d /usr/local/include/aossl ]; then
 
 fi
 
+# Here we look to install RapidJSON
+
+# This is a recommended library for JSON Processing.
+# Libprotobuf and protoc are also installed by default, for using Google Protocol Buffers.
+# If you wish to use other parsing methods or message formats, simply remove these
+if [ ! -d /usr/local/include/rapidjson ]; then
+
+  printf "Cloning RapidJSON"
+
+  mkdir $PRE/rapidjson
+
+  #Get the RapidJSON Dependency
+  git clone https://github.com/miloyip/rapidjson.git $PRE/rapidjson
+
+  #Move the RapidJSON header files to the include path
+  sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
+
+fi
+
 #Install python, pyzmq, protobuf, and the protobuf compiler
-sudo apt-get install -y python-pip python-dev libprotobuf-dev protobuf-compiler
-sudo pip install pyzmq
+sudo apt-get install -y libprotobuf-dev protobuf-compiler
 
 printf "Finished installing dependencies"

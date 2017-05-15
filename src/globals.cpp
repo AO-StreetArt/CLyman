@@ -1,34 +1,12 @@
-#include "globals.h"
+#include "include/globals.h"
 
-//Declare our global variables
-
-//Set up an Obj3 pointer to hold the currently translated document information
-Obj3 *translated_object = NULL;
-
-//UUID Generator
-uuidInterface *ua = NULL;
-
-//Configuration Manager
-ConfigurationManager *cm = NULL;
-
-//Global Couchbase Admin Object
+//Core objects
+uuidInterface *uid = NULL;
+ConfigurationManager *config = NULL;
 MongoInterface *mongo = NULL;
-
-//Smart Update Buffer
-RedisInterface *xRedis = NULL;
-
-//Document Manager, highest level object
-MessageProcessor *processor = NULL;
-
-//Command Line interpreter
+RedisInterface *red = NULL;
 CommandLineInterface *cli = NULL;
-
-//ZMQ Admins
-Zmqio *zmqo = NULL;
 Zmqio *zmqi = NULL;
-
-//Response Object
-Obj3 *resp = NULL;
 
 //Factories
 CommandLineInterpreterFactory *cli_factory = NULL;
@@ -37,3 +15,6 @@ RedisComponentFactory *redis_factory = NULL;
 uuidComponentFactory *uuid_factory = NULL;
 ZmqComponentFactory *zmq_factory = NULL;
 LoggingComponentFactory *logging_factory = NULL;
+
+Obj3List *inbound_message = NULL;
+Obj3List *response_message = NULL;

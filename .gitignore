@@ -1,6 +1,6 @@
 *.o
 *.a
-clyman
+app
 *.log
 *.log.*
 *.cc

@@ -1,6 +1,6 @@
 ################################################################
 
-# Dockerfile to build CLyman Container Images
+# Dockerfile to build AOSSL Container Images
 # Based on Ubuntu-ssh
 
 ################################################################
@@ -25,13 +25,15 @@ RUN apt-get update
 #Ensure that specific build requirements are satisfied
 RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git software-properties-common
 
+#Get the Neo4j dependencies
+
+RUN add-apt-repository -y ppa:cleishm/neo4j
+RUN apt-get update
+RUN apt-get install -y neo4j-client
+
 #Get the Redis Dependencies
 RUN git clone https://github.com/redis/hiredis.git ./hiredis
 RUN cd ./hiredis && make && make install
-
-#Get the Neo4j Dependencies
-RUN git clone https://github.com/cleishm/libneo4j-client.git ./$PRE/neo
-RUN cd $PRE/neo && ./autogen.sh && ./configure --disable-tools && make clean check && sudo make install
 
 #Get the Mongo Dependencies
 RUN git clone https://github.com/mongodb/mongo-c-driver.git
@@ -58,21 +60,6 @@ RUN git clone https://github.com/zeromq/cppzmq.git
 RUN cp cppzmq/zmq.hpp /usr/local/include
 RUN cp cppzmq/zmq_addon.hpp /usr/local/include
 
-#hayai, for compiling benchmarks
-RUN apt-add-repository -y ppa:bruun/hayai
-
-#Update the apt-get cache
-RUN apt-get update
-
-#Install the dependencies
-RUN apt-get install -y build-essential libprotobuf-dev protobuf-compiler liblog4cpp5-dev libhayai-dev
-
-#Get the RapidJSON Dependency
-RUN git clone https://github.com/miloyip/rapidjson.git
-
-#Move the RapidJSON header files to the include path
-RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
-
 #Get the Eigen Dependency
 RUN wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
 
@@ -81,24 +68,43 @@ RUN tar -vxjf 3.2.8.tar.bz2
 RUN mkdir $PRE/eigen
 RUN mv ./eigen-eigen* $PRE/eigen
 
+#Get the RapidJSON Dependency
+RUN git clone https://github.com/miloyip/rapidjson.git
+
+#Move the RapidJSON header files to the include path
+RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
+
 #Move the Eigen files
 RUN sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
+
+#hayai, for compiling benchmarks
+RUN apt-add-repository -y ppa:bruun/hayai
+
+#Update the apt-get cache
+RUN apt-get update
+
+#Install the dependencies
+RUN apt-get install -y build-essential liblog4cpp5-dev libhayai-dev
 
 #Ensure we have access to the Protocol Buffer Interfaces
 RUN mkdir $PRE/interfaces/
 RUN git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
 RUN cd $PRE/interfaces && sudo make install
 
-#Pull the project source from github
+#Pull the AOSSL source from github
 RUN git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git
 
 #Install the shared service library
 RUN cd AOSharedServiceLibrary && make && make install
 
-#Pull the project source from github
+#Pull the project source
 RUN git clone https://github.com/AO-StreetArt/CLyman.git
 
-RUN cd CLyman && make
+#Build the project and tests
+RUN cd CLyman && make && make test
+
+#Run the unit tests
+RUN cd CLyman && ./configuration_test && ./utils_test && ./log_test && ./transform_test && ./obj3_test && ./obj3_list_test
 
 #Expose some of the default ports
 EXPOSE 22
@@ -110,5 +116,8 @@ EXPOSE 8093
 EXPOSE 11210
 EXPOSE 12345
 
+#Expose the 5000 port range for DVS Services
+EXPOSE 5000-5999
+
 #Start up the SSH terminal so that we can connect & start the app
-CMD tail -f /dev/null
+ENTRYPOINT ["CLyman/app"]

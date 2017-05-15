@@ -4,6 +4,12 @@
 //decides how the application needs to be configured.  It may configure either
 //from a configuration file, or from a Consul agent
 
+#ifndef CONFIG_MANAGER
+#define CONFIG_MANAGER
+
+const int PROTO_FORMAT = 0;
+const int JSON_FORMAT = 1;
+
 #include <string>
 #include <fstream>
 #include <cstdlib>
@@ -16,23 +22,20 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "lyman_log.h"
-
-#include "aossl/consul/include/factory_consul.h"
-#include "aossl/properties/include/factory_props.h"
+#include "app_log.h"
 
 #include "aossl/commandline/include/commandline_interface.h"
 #include "aossl/consul/include/consul_interface.h"
-#include "aossl/properties/include/properties_reader_interface.h"
 #include "aossl/logging/include/logging_interface.h"
 #include "aossl/redis/include/redis_interface.h"
+
+#include "aossl/consul/include/factory_consul.h"
+#include "aossl/properties/include/properties_reader_interface.h"
+#include "aossl/properties/include/factory_props.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
-
-#ifndef CONFIG_MANAGER
-#define CONFIG_MANAGER
 
 class ConfigurationManager
 {
@@ -52,17 +55,14 @@ ServiceInterface *s = NULL;
 
 //Configuration Variables
 std::string DB_ConnStr;
-std::string DB_Name;
-std::string DB_CollectionName;
-std::string OMQ_OBConnStr;
+std::string Mongo_ConnStr;
+std::string Mongo_DbName;
+std::string Mongo_DbCollection;
 std::string OMQ_IBConnStr;
-bool MessageFormatJSON;
-bool MessageFormatProtoBuf;
 std::vector<RedisConnChain> RedisConnectionList;
+int format_type;
 bool StampTransactionId;
 bool AtomicTransactions;
-bool EnableObjectLocking;
-bool GlobalTransforms;
 
 //The Current Node ID
 std::string node_id;
@@ -84,32 +84,26 @@ bool configure_from_consul (std::string consul_path, std::string ip, std::string
 
 public:
   //Constructor
-  //Provides a set of default values that allow CLyman to run locally in a 'dev' mode
+  //Provides a set of default values
   ConfigurationManager(CommandLineInterface *c, std::string instance_id) {cli = c;\
-    DB_ConnStr="mongodb://localhost:27017/"; DB_CollectionName="test"; DB_Name="test"; \
-      OMQ_OBConnStr="tcp://localhost:5556";OMQ_IBConnStr="tcp://*:5555";\
-        MessageFormatJSON=true; MessageFormatProtoBuf=false;\
-            isConsulActive=false;StampTransactionId=false;AtomicTransactions=false;\
-              EnableObjectLocking=false;GlobalTransforms=true;node_id=instance_id;consul_factory=new ConsulComponentFactory;\
-                props_factory = new PropertyReaderFactory;}
+    OMQ_IBConnStr="tcp://*:5555";Mongo_ConnStr="";Mongo_DbCollection="test";\
+      isConsulActive=false;StampTransactionId=false;AtomicTransactions=false;\
+        node_id=instance_id;consul_factory=new ConsulComponentFactory;\
+          props_factory = new PropertyReaderFactory;format_type=-1;Mongo_DbName="test";}
   ~ConfigurationManager();
 
   //Populate the configuration variables
   bool configure();
 
   //Get configuration values
-  std::string get_dbconnstr() {return DB_ConnStr;}
-  std::string get_dbcollection() {return DB_CollectionName;}
-  std::string get_dbname() {return DB_Name;}
-  std::string get_obconnstr() {return OMQ_OBConnStr;}
+  std::string get_mongoconnstr() {return Mongo_ConnStr;}
+  std::string get_dbname() {return Mongo_DbName;}
+  std::string get_dbheadercollection() {return Mongo_DbCollection;}
   std::string get_ibconnstr() {return OMQ_IBConnStr;}
-  bool get_mfjson() {return MessageFormatJSON;}
-  bool get_mfprotobuf() {return MessageFormatProtoBuf;}
   std::vector<RedisConnChain> get_redisconnlist() {return RedisConnectionList;}
   bool get_transactionidsactive() {return StampTransactionId;}
   bool get_atomictransactions() {return AtomicTransactions;}
-  bool get_objectlockingenabled() {return EnableObjectLocking;}
-  bool get_globaltransforms() {return GlobalTransforms;}
+  int get_formattype() {return format_type;}
 
   //Get the Current Node ID
   std::string get_nodeid() {return node_id;}

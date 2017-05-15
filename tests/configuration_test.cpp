@@ -1,8 +1,9 @@
 //tests for the configuration manager
 //src/test/test.properties
 
-#include "../configuration_manager.h"
+#include "configuration_manager.h"
 #include <assert.h>
+
 #include "aossl/commandline/include/commandline_interface.h"
 #include "aossl/commandline/include/factory_cli.h"
 
@@ -22,7 +23,7 @@ int main( int argc, char** argv )
   //-------------------------------Logging--------------------------------------//
   //----------------------------------------------------------------------------//
 
-  std::string initFileName = "log4cpp.properties";
+  std::string initFileName = "tests/log4cpp.properties";
   logging = logging_factory->get_logging_interface(initFileName);
 
   start_logging_submodules();
@@ -37,7 +38,7 @@ int main( int argc, char** argv )
 
   UuidContainer id_container = ua->generate();
   if (!id_container.err.empty()) {
-    uuid_logging->error(id_container.err);
+    main_logging->error(id_container.err);
   }
 
   ConfigurationManager cm( cli, id_container.id );
@@ -50,11 +51,7 @@ int main( int argc, char** argv )
 
   //Basic Tests
 
-  assert ( cm.get_dbconnstr() == "couchbase://localhost/default" );
-  assert ( cm.get_obconnstr() == "tcp://localhost:5556" );
   assert ( cm.get_ibconnstr() == "tcp://*:5555" );
-  assert ( cm.get_mfjson() == false );
-  assert ( cm.get_mfprotobuf() == true );
   logging->debug("Values checked");
 
   //Redis Connection List Tests
@@ -88,5 +85,8 @@ int main( int argc, char** argv )
   delete cli;
   delete ua;
   delete logging;
+  delete id_factory;
+  delete cli_factory;
+  delete logging_factory;
   return 0;
 }

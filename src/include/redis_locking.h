@@ -1,4 +1,3 @@
-#include <zmq.hpp>
 #include <sstream>
 #include <string>
 #include <cstdlib>
@@ -6,10 +5,7 @@
 #include <exception>
 
 #include "aossl/redis/include/redis_interface.h"
-
-#include "obj3.h"
-#include "configuration_manager.h"
-#include "lyman_log.h"
+#include "app_log.h"
 
 #ifndef REDIS_LOCKING
 #define REDIS_LOCKING
@@ -77,6 +73,8 @@ bool release_lock(std::string key, std::string val) {
   }
   return false;
 }
+
+bool release_lock(std::string key) {return release_lock(key, "");}
 
 };
 
