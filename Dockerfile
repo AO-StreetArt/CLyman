@@ -22,6 +22,12 @@ RUN apt-get update
 RUN	apt-get install -y apt-utils debconf-utils iputils-ping wget curl mc htop ssh g++-5 build-essential libprotobuf-dev protobuf-compiler libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git liblog4cpp5-dev libkrb5-dev
 RUN	apt-get clean
 
+#Set up g++ 5 as the default c++ compiler
+RUN unlink /usr/bin/gcc && ln -s /usr/bin/gcc-5 /usr/bin/gcc
+RUN unlink /usr/bin/g++ && ln -s /usr/bin/g++-5 /usr/bin/g++
+
+RUN gcc --version
+
 #Get the Neo4j Dependencies
 RUN mkdir $PRE/neo
 RUN wget https://github.com/cleishm/libneo4j-client/releases/download/v1.2.1/libneo4j-client-1.2.1.tar.gz -P ./$PRE
