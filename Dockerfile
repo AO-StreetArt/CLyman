@@ -25,11 +25,11 @@ RUN apt-get update
 #Ensure that specific build requirements are satisfied
 RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git software-properties-common
 
-#Get the Neo4j dependencies
-
-RUN add-apt-repository -y ppa:cleishm/neo4j
-RUN apt-get update
-RUN apt-get install -y neo4j-client
+#Get the Neo4j Dependencies
+RUN mkdir $PRE/neo
+RUN wget https://github.com/cleishm/libneo4j-client/releases/download/v1.2.1/libneo4j-client-1.2.1.tar.gz -P ./$PRE
+RUN tar -zxvf ./$PRE/libneo4j-client-1.2.1.tar.gz -C $PRE/neo
+RUN cd $PRE/neo/libneo4j-client-1.2.1 && sudo ./configure --disable-tools && sudo make clean check && sudo make install
 
 #Get the Redis Dependencies
 RUN git clone https://github.com/redis/hiredis.git ./hiredis
