@@ -69,8 +69,23 @@ script:
   # Show the logs from the crazy ivan docker container
   - sudo docker logs --tail 75 clyman
   # Execute the Python Tests
-  # - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/scene_crt.xml
-  # - cat $TRAVIS_BUILD_DIR/scene_crt.log
-  # - sudo docker logs --tail 75 crazyivan
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
+  - cat $TRAVIS_BUILD_DIR/obj_crt.log
+  - sudo docker logs --tail 75 clyman
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
+  - cat $TRAVIS_BUILD_DIR/obj_get.log
+  - sudo docker logs --tail 75 clyman
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
+  - cat $TRAVIS_BUILD_DIR/obj_upd.log
+  - sudo docker logs --tail 75 clyman
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query.xml
+  - cat $TRAVIS_BUILD_DIR/obj_name_query.log
+  - sudo docker logs --tail 75 clyman
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query.xml
+  - cat $TRAVIS_BUILD_DIR/obj_type_query.log
+  - sudo docker logs --tail 75 clyman
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
+  - cat $TRAVIS_BUILD_DIR/obj_del.log
+  - sudo docker logs --tail 75 clyman
   # Push the built image to docker hub
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR

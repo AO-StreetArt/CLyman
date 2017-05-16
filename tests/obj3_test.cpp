@@ -145,6 +145,8 @@ int main( int argc, char** argv )
   trans2->add(1.0, 2.0, 3.0);
   obj_update->transform(trans2);
 
+  delete trans2;
+
   std::string upd_asset = "another_asset";
   obj_update->add_asset(upd_asset);
 
