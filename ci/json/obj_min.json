@@ -1,0 +1,10 @@
+{
+  "message_type": $MSG_TYPE@,
+  "transaction_id": "$TRANSACTION_ID@",
+  "num_records": $NUM_RECORDS@,
+  "objects": [
+    {
+      "key": "$KEY@"
+    }
+  ]
+}

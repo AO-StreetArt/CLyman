@@ -82,6 +82,7 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
               i++;
             }
             new_obj->transform(trans);
+            delete trans;
           }
 
           rapidjson::Value::ConstMemberIterator erot_iter = itr.FindMember("euler_rotation");
@@ -96,6 +97,7 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
               i++;
             }
             new_obj->transform(erot);
+            delete erot;
           }
 
           rapidjson::Value::ConstMemberIterator qrot_iter = itr.FindMember("quaternion_rotation");
@@ -111,6 +113,7 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
               i++;
             }
             new_obj->transform(qrot);
+            delete qrot;
           }
 
           rapidjson::Value::ConstMemberIterator scale_iter = itr.FindMember("scale");
@@ -125,6 +128,7 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
               i++;
             }
             new_obj->transform(scl);
+            delete scl;
           }
 
           objects.push_back(new_obj);
