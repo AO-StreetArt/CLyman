@@ -31,22 +31,27 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
     obj_logging->debug("Object-Format Message Detected");
 
     //Parse the base elements
+    if ( !(d.HasMember("msg_type")) ) throw Obj3Exception("No Message Type Found");
     const rapidjson::Value *mtype_val = &d["msg_type"];
     msg_type = mtype_val->GetInt();
     if (d.HasMember("transaction_id")) {
       const rapidjson::Value *tid_val = &d["transaction_id"];
       transaction_id = tid_val->GetString();
+      obj_logging->debug("Transaction ID Pulled");
     }
     if (d.HasMember("num_records")) {
       const rapidjson::Value *nr_val = &d["num_records"];
       num_records = nr_val->GetInt();
+      obj_logging->debug("Num Records Pulled");
     }
 
     //Parse the object list
     if (d.HasMember("objects")) {
       const rapidjson::Value *objs_val = &d["objects"];
+      obj_logging->debug("Objects Array pulled");
       if (objs_val->IsArray()) {
         for (auto& itr : objs_val->GetArray()) {
+          obj_logging->debug("Object Returned from objects array");
           //Create a new object
           Obj3 *new_obj = new Obj3;
 
@@ -69,9 +74,12 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
           rapidjson::Value::ConstMemberIterator subtype_iter = itr.FindMember("subtype");
           if (subtype_iter != itr.MemberEnd()) new_obj->set_subtype( subtype_iter->value.GetString() );
 
+          obj_logging->debug("Basic string values pulled");
+
           //Parse the transform elements
           rapidjson::Value::ConstMemberIterator translation_iter = itr.FindMember("translation");
           if (translation_iter != itr.MemberEnd()) {
+            obj_logging->debug("Translation pulled");
             const rapidjson::Value& translation_val = translation_iter->value;
             Translation *trans = new Translation;
             int i = 0;
@@ -87,6 +95,7 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
 
           rapidjson::Value::ConstMemberIterator erot_iter = itr.FindMember("euler_rotation");
           if (erot_iter != itr.MemberEnd()) {
+            obj_logging->debug("Euler Rotation pulled");
             const rapidjson::Value& erot_val = erot_iter->value;
             EulerRotation *erot = new EulerRotation;
             int i = 0;
@@ -102,6 +111,7 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
 
           rapidjson::Value::ConstMemberIterator qrot_iter = itr.FindMember("quaternion_rotation");
           if (qrot_iter != itr.MemberEnd()) {
+            obj_logging->debug("Quaternion Rotation pulled");
             const rapidjson::Value& qrot_val = qrot_iter->value;
             QuaternionRotation *qrot = new QuaternionRotation;
             int i = 0;
@@ -118,6 +128,7 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
 
           rapidjson::Value::ConstMemberIterator scale_iter = itr.FindMember("scale");
           if (scale_iter != itr.MemberEnd()) {
+            obj_logging->debug("Scale pulled");
             const rapidjson::Value& scale_val = scale_iter->value;
             Scale *scl = new Scale;
             int i = 0;
@@ -146,13 +157,19 @@ Obj3List::Obj3List(const rapidjson::Document& d) {
 //Constructor from a protocol buffer object
 Obj3List::Obj3List(protoObj3::Obj3List proto_list) {
 
+  obj_logging->debug("Building OBj3List from Protocol Buffer String");
+
   //Basic Message attributes
-  if (proto_list.has_message_type()) msg_type = proto_list.message_type();
+  if ( !(proto_list.has_message_type()) ) throw Obj3Exception("No Message Type Found"); 
+  msg_type = proto_list.message_type();
   if (proto_list.has_transaction_id()) transaction_id = proto_list.transaction_id();
   if (proto_list.has_num_records()) num_records = proto_list.num_records();
 
   //Object List
   for (int i = 0; i < proto_list.objects_size();i++) {
+
+    obj_logging->debug("Building object in Objects List");
+
     Obj3 *o = new Obj3;
 
     //Retrieve the object from the list
@@ -166,8 +183,11 @@ Obj3List::Obj3List(protoObj3::Obj3List proto_list) {
     if ( obj->has_subtype() ) o->set_subtype( obj->subtype() );
     if ( obj->has_owner() ) o->set_owner( obj->owner() );
 
+    obj_logging->debug("Basic Attributes Pulled");
+
     //Transforms
     if ( obj->has_translation() ) {
+      obj_logging->debug("Pulling Translation");
       protoObj3::Obj3List_Vertex3 *msg_trans = obj->mutable_translation();
       Translation *int_translation = new Translation;
       int_translation->set_x( msg_trans->x() );
@@ -178,6 +198,7 @@ Obj3List::Obj3List(protoObj3::Obj3List proto_list) {
     }
 
     if ( obj->has_rotation_euler() ) {
+      obj_logging->debug("Pulling Euler Rotation");
       protoObj3::Obj3List_Vertex3 *msg_rote = obj->mutable_rotation_euler();
       EulerRotation *int_erotation = new EulerRotation;
       int_erotation->set_x( msg_rote->x() );
@@ -188,6 +209,7 @@ Obj3List::Obj3List(protoObj3::Obj3List proto_list) {
     }
 
     if ( obj->has_rotation_quaternion() ) {
+      obj_logging->debug("Pulling Quaternion Rotation");
       protoObj3::Obj3List_Vertex4 *msg_rotq = obj->mutable_rotation_quaternion();
       QuaternionRotation *int_qrotation = new QuaternionRotation;
       int_qrotation->set_w( msg_rotq->w() );
@@ -199,6 +221,7 @@ Obj3List::Obj3List(protoObj3::Obj3List proto_list) {
     }
 
     if ( obj->has_scale() ) {
+      obj_logging->debug("Pulling Scale");
       protoObj3::Obj3List_Vertex3 *msg_scale = obj->mutable_scale();
       Scale *int_scale = new Scale;
       int_scale->set_x( msg_scale->x() );
@@ -219,6 +242,7 @@ Obj3List::Obj3List(protoObj3::Obj3List proto_list) {
 
 //Copy Constructor
 Obj3List::Obj3List(const Obj3List &olist) {
+  obj_logging->debug("Copy Constructor Called");
   msg_type=olist.get_msg_type();
   err_code=olist.get_error_code();
   err_msg=olist.get_error_message();
@@ -233,6 +257,9 @@ Obj3List::Obj3List(const Obj3List &olist) {
 
 //write a JSON string from the object list
 std::string Obj3List::to_json() {
+
+  obj_logging->debug("Writing Object to JSON");
+
   //Initialize the string buffer and writer
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
@@ -261,11 +288,16 @@ std::string Obj3List::to_json() {
 		writer.String( transaction_id.c_str(), (rapidjson::SizeType)transaction_id.length() );
 	}
 
+  obj_logging->debug("Basic attributes written");
+
   //Write the object array
   writer.Key("objects");
   writer.StartArray();
 
   for (unsigned int a=0;a<objects.size();a++) {
+
+    obj_logging->debug("Writing Object into Objects Array");
+
     writer.StartObject();
 
     //Write string attributes
@@ -299,9 +331,12 @@ std::string Obj3List::to_json() {
     	writer.String( objects[a]->get_owner().c_str(), (rapidjson::SizeType)objects[a]->get_owner().length() );
     }
 
+    obj_logging->debug("Basic Object Attributes written");
+
     //Write transforms
     //Write Transforms
     if (objects[a]->has_translation()) {
+      obj_logging->debug("Writing Translation");
       writer.Key("translation");
       writer.StartArray();
       writer.Double( objects[a]->get_translation()->get_x() );
@@ -311,6 +346,7 @@ std::string Obj3List::to_json() {
     }
 
     if (objects[a]->has_erotation()) {
+      obj_logging->debug("Writing Euler Rotation");
       writer.Key("euler_rotation");
       writer.StartArray();
       writer.Double( objects[a]->get_erotation()->get_x() );
@@ -320,6 +356,7 @@ std::string Obj3List::to_json() {
     }
 
     if (objects[a]->has_qrotation()) {
+      obj_logging->debug("Writing Quaternion Rotation");
       writer.Key("quaternion_rotation");
       writer.StartArray();
       writer.Double( objects[a]->get_qrotation()->get_w() );
@@ -330,6 +367,7 @@ std::string Obj3List::to_json() {
     }
 
     if (objects[a]->has_scale()) {
+      obj_logging->debug("Writing Scale");
       writer.Key("scale");
       writer.StartArray();
       writer.Double( objects[a]->get_scale()->get_x() );
@@ -355,6 +393,8 @@ std::string Obj3List::to_json() {
 //Write a protocol buffer string from the object list
 std::string Obj3List::to_protobuf() {
 
+  obj_logging->debug("Writing to Protocol Buffer");
+
   //Create a new protocol buffer object
   protoObj3::Obj3List *new_proto = new protoObj3::Obj3List;
 
@@ -365,8 +405,13 @@ std::string Obj3List::to_protobuf() {
   if ( !(transaction_id.empty()) ) new_proto->set_transaction_id(transaction_id);
   if ( !(err_msg.empty()) ) new_proto->set_err_msg(err_msg);
 
+  obj_logging->debug("Basic Attributes Written");
+
   //Set object list
   for (unsigned int i = 0; i < objects.size(); i++) {
+
+    obj_logging->debug("Writing Object in Objects Array");
+
     //Add a new object to the list
     protoObj3::Obj3List_Obj3 *new_obj = new_proto->add_objects();
 
@@ -378,8 +423,11 @@ std::string Obj3List::to_protobuf() {
     if ( !(objects[i]->get_subtype().empty()) ) new_obj->set_subtype(objects[i]->get_subtype());
     if ( !(objects[i]->get_owner().empty()) ) new_obj->set_owner(objects[i]->get_owner());
 
+    obj_logging->debug("Basic attributes written");
+
     //Set transform attributes
     if (objects[i]->has_translation()) {
+      obj_logging->debug("Writing Translation");
       protoObj3::Obj3List_Vertex3 *new_trans = new_obj->mutable_translation();
       new_trans->set_x(objects[i]->get_translation()->get_x());
       new_trans->set_y(objects[i]->get_translation()->get_y());
@@ -387,6 +435,7 @@ std::string Obj3List::to_protobuf() {
     }
 
     if (objects[i]->has_erotation()) {
+      obj_logging->debug("Writing Euler Rotation");
       protoObj3::Obj3List_Vertex3 *new_erot = new_obj->mutable_rotation_euler();
       new_erot->set_x(objects[i]->get_erotation()->get_x());
       new_erot->set_y(objects[i]->get_erotation()->get_y());
@@ -394,6 +443,7 @@ std::string Obj3List::to_protobuf() {
     }
 
     if (objects[i]->has_qrotation()) {
+      obj_logging->debug("Writing Quaternion Rotation");
       protoObj3::Obj3List_Vertex4 *new_qrot = new_obj->mutable_rotation_quaternion();
       new_qrot->set_w(objects[i]->get_qrotation()->get_w());
       new_qrot->set_x(objects[i]->get_qrotation()->get_x());
@@ -402,6 +452,7 @@ std::string Obj3List::to_protobuf() {
     }
 
     if (objects[i]->has_scale()) {
+      obj_logging->debug("Writing Scale");
       protoObj3::Obj3List_Vertex3 *new_scl = new_obj->mutable_scale();
       new_scl->set_x(objects[i]->get_scale()->get_x());
       new_scl->set_y(objects[i]->get_scale()->get_y());
