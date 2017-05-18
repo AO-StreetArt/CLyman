@@ -55,7 +55,7 @@ install:
   - sudo docker run --network=dvs --name=cache -d redis
   # Populate Consul Configuration variables
   - sudo docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/ivan/RedisConnectionString
-  - sudo docker exec -t registry curl -X PUT -d 'mongodb://localhost:27017/' http://localhost:8500/v1/kv/ivan/Mongo_ConnectionString
+  - sudo docker exec -t registry curl -X PUT -d 'mongodb://localhost:27017/' http://database:8500/v1/kv/ivan/Mongo_ConnectionString
   - sudo docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/ivan/Mongo_DbName
   - sudo docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/ivan/Mongo_DbCollection
   - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/StampTransactionId
