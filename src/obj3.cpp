@@ -208,10 +208,6 @@ std::string Obj3::to_json() {
   writer.StartObject();
 
   //Write string attributes
-  if ( !(key.empty()) ) {
-  	writer.Key("_id");
-  	writer.String( key.c_str(), (rapidjson::SizeType)key.length() );
-  }
 
   if ( !(name.empty()) ) {
   	writer.Key("name");
