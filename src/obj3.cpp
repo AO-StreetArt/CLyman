@@ -26,8 +26,10 @@ Obj3::Obj3(const rapidjson::Document &d) {
 
     obj_logging->debug("Object-Format Message Detected");
 
-    const rapidjson::Value *key_val = &d["_id"];
-    key = key_val->GetString();
+    if (d.HasMember("key")) {
+      const rapidjson::Value *key_val = &d["_id"];
+      key = key_val->GetString();
+    }
     if (d.HasMember("name")) {
       const rapidjson::Value *name_val = &d["name"];
       name = name_val->GetString();
