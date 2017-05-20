@@ -215,7 +215,8 @@ void my_signal_handler(int s){
 
         if (config->get_formattype() == JSON_FORMAT) {
 
-          clean_string = recvd_msg.substr(0, recvd_msg.find_last_of("}")+1);
+          clean_string = clean_string.substr(0, clean_string.find_last_of("\n")+1);
+          //clean_string = clean_string.substr(0, clean_string.find_last_of("}")+1);
 
           try {
             d.Parse<rapidjson::kParseStopWhenDoneFlag>(clean_string.c_str());
