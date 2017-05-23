@@ -66,6 +66,7 @@ before_script:
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
   # Start Crazy Ivan
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500 localhost 5555
+  - sleep 10
   # Show the logs from the crazy ivan docker container
   - sudo docker logs --tail 75 clyman
 script:

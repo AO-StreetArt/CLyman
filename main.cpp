@@ -358,6 +358,8 @@ void my_signal_handler(int s){
           main_logging->info( application_response );
           zmqi->send( application_response );
 
+          delete response_message;
+
           if (shutdown_needed) {shutdown();exit(1);}
 
       }
