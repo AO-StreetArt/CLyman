@@ -157,7 +157,7 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
   std::string resp_str;
   //Get a JSON List of the responses
   std::string config_json = "";
-  std::string query_key = "ivan/" + key;
+  std::string query_key = "clyman/" + key;
   try {
     config_json = ca->get_config_value(query_key);
     config_logging->debug("Configuration JSON Retrieved:");
@@ -231,8 +231,8 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   //Step 1b: Register the Service with Consul
 
-  //Build a new service definition for this currently running instance of ivan
-  std::string name = "Ivan";
+  //Build a new service definition for this currently running instance of clyman
+  std::string name = "clyman";
   s = consul_factory->get_service_interface(node_id, name, internal_address, port);
   s->add_tag("ZMQ");
 
