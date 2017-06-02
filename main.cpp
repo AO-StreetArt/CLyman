@@ -283,6 +283,7 @@ void my_signal_handler(int s){
           if (inbound_message) {
             //Set the response message type
             try {
+
               //Object Creation
               if (inbound_message->get_msg_type() == OBJ_CRT) {
                 main_logging->info("Processing Object Creation Message");
@@ -293,6 +294,7 @@ void my_signal_handler(int s){
                   response_message->add_object( resp_element );
                   delete resp;
                 }
+
               //Object Update
               } else if (inbound_message->get_msg_type() == OBJ_UPD) {
                 main_logging->info("Processing Object Update Message");
@@ -323,6 +325,7 @@ void my_signal_handler(int s){
                   //Enforce atomic updates -- release redis lock
                   if (config->get_atomictransactions()) lock.release_lock( inbound_message->get_object(i)->get_key() );
                 }
+
               //Object Retrieve
               } else if (inbound_message->get_msg_type() == OBJ_GET) {
                 main_logging->info("Processing Object Get Message");
@@ -344,10 +347,12 @@ void my_signal_handler(int s){
                     response_message->set_error_message(new_error_message);
                   }
                 }
+
               //Object Query
               } else if (inbound_message->get_msg_type() == OBJ_QUERY) {
                 main_logging->info("Processing Object Batch Query Message");
                 response_message = batch_query(inbound_message, mongo);
+
               //Object Delete
               } else if (inbound_message->get_msg_type() == OBJ_DEL) {
                 main_logging->info("Processing Object Deletion Message");
@@ -357,13 +362,16 @@ void my_signal_handler(int s){
                   mongo->delete_document( inbound_message->get_object(i)->get_key() );
                   response_message->add_object( resp_element );
                 }
+
               //Ping
               } else if (inbound_message->get_msg_type() == PING) {
                 main_logging->info("Ping Message Recieved");
+
               //Kill
               } else if (inbound_message->get_msg_type() == KILL) {
                 main_logging->info("Shutting Down");
                 shutdown_needed = true;
+                
               //Invalid Message Type
               } else {
                 response_message->set_error_code(BAD_MSG_TYPE_ERROR);

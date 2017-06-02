@@ -19,15 +19,18 @@ Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
     MongoIteratorInterface *iter = m->query(query_string);
 
     //Add the results to the return list until we reach our limit or find no more
-    MongoResponseInterface *resp = iter->next();
-    while (resp && num_results < max_results) {
-      rapidjson::Document resp_doc;
-      resp_doc.Parse(resp->get_value().c_str());
-      Obj3 *resp_obj = new Obj3(resp_doc);
-      return_list->add_object(resp_obj);
-      num_results++;
-      delete resp;
-      resp = iter->next();
+    if (iter) {
+      MongoResponseInterface *resp = iter->next();
+      while (resp && num_results < max_results) {
+        rapidjson::Document resp_doc;
+        resp_doc.Parse(resp->get_value().c_str());
+        Obj3 *resp_obj = new Obj3(resp_doc);
+        return_list->add_object(resp_obj);
+        num_results++;
+        delete resp;
+        resp = iter->next();
+      }
+
     }
 
   }
