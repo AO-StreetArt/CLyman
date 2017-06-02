@@ -86,7 +86,7 @@ public:
   //Constructor
   //Provides a set of default values
   ConfigurationManager(CommandLineInterface *c, std::string instance_id) {cli = c;\
-    OMQ_IBConnStr="tcp://*:5555";Mongo_ConnStr="";Mongo_DbCollection="test";\
+    OMQ_IBConnStr="tcp://*:5556";Mongo_ConnStr="";Mongo_DbCollection="test";\
       isConsulActive=false;StampTransactionId=false;AtomicTransactions=false;\
         node_id=instance_id;consul_factory=new ConsulComponentFactory;\
           props_factory = new PropertyReaderFactory;format_type=-1;Mongo_DbName="test";}

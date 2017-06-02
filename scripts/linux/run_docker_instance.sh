@@ -3,7 +3,7 @@
 BRANCH_NAME=${1:-master}
 CONSUL_ADDR=${2:-"localhost:8500"}
 IP=${3:-localhost}
-PORT=${4:-5555}
+PORT=${4:-5556}
 
 TAG_NAME="latest"
 

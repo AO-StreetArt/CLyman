@@ -65,7 +65,7 @@ before_script:
   # Wait for some time to allow the docker instance to finish building
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
   # Start Crazy clyman
-  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500 localhost 5555
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500 localhost 5556
   - sleep 5
   # Show the logs from the crazy ivan docker container
   - sudo docker logs --tail 75 clyman
