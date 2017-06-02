@@ -208,14 +208,16 @@ void my_signal_handler(int s){
 
         //Trim the string recieved
         std::string recvd_msg (req_ptr);
-        std::string clean_string = trim(recvd_msg);
-
-        main_logging->debug("Input String Cleaned");
-        main_logging->debug(clean_string);
+        std::string clean_string;
 
         if (config->get_formattype() == JSON_FORMAT) {
 
-          clean_string = recvd_msg.substr(0, recvd_msg.find_last_of("}")+1);
+          int final_closing_char = recvd_msg.find_last_of("}");
+          int first_opening_char = recvd_msg.find_first_of("{");
+          clean_string = recvd_msg.substr(first_opening_char, final_closing_char+1);
+
+          main_logging->debug("Input String Cleaned");
+          main_logging->debug(clean_string);
 
           try {
             d.Parse<rapidjson::kParseStopWhenDoneFlag>(clean_string.c_str());
@@ -231,6 +233,12 @@ void my_signal_handler(int s){
           }
 
         } else if (config->get_formattype() == PROTO_FORMAT) {
+
+          clean_string = trim(recvd_msg);
+
+          main_logging->debug("Input String Cleaned");
+          main_logging->debug(clean_string);
+
           try {
             new_proto.ParseFromString(clean_string);
             inbound_message = new Obj3List (new_proto);
@@ -292,7 +300,10 @@ void my_signal_handler(int s){
                   //Load the current doc from the database
                   rapidjson::Document resp_doc;
                   MongoResponseInterface *resp = mongo->load_document( inbound_message->get_object(i)->get_key() );
-                  resp_doc.Parse(resp->get_value().c_str());
+                  std::string mongo_resp_str = resp->get_value();
+                  main_logging->debug("Document loaded from Mongo");
+                  main_logging->debug(mongo_resp_str);
+                  resp_doc.Parse(mongo_resp_str.c_str());
                   Obj3 *resp_obj = new Obj3(resp_doc);
                   //Apply the object message as changes to the DB Object
                   resp_obj->merge(inbound_message->get_object(i));
@@ -308,7 +319,10 @@ void my_signal_handler(int s){
                 for (int i = 0;i < inbound_message->num_objects(); i++) {
                   rapidjson::Document resp_doc;
                   MongoResponseInterface *resp = mongo->load_document( inbound_message->get_object(i)->get_key() );
-                  resp_doc.Parse(resp->get_value().c_str());
+                  std::string mongo_resp_str = resp->get_value();
+                  main_logging->debug("Document loaded from Mongo");
+                  main_logging->debug(mongo_resp_str);
+                  resp_doc.Parse(mongo_resp_str.c_str());
                   Obj3 *resp_obj = new Obj3(resp_doc);
                   response_message->add_object( resp_obj );
                   delete resp;
@@ -356,6 +370,8 @@ void my_signal_handler(int s){
           main_logging->info("Sending Response");
           main_logging->info( application_response );
           zmqi->send( application_response );
+
+          delete response_message;
 
           if (shutdown_needed) {shutdown();exit(1);}
 

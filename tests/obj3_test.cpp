@@ -103,7 +103,7 @@ int main( int argc, char** argv )
   d.Parse<rapidjson::kParseStopWhenDoneFlag>(obj_json.c_str());
   Obj3 *translated_object = new Obj3 (d);
 
-  assert( translated_object->get_key() == "abcdefg" );
+  assert( translated_object->get_key() == "" );
   assert( translated_object->get_name() == "abcdefgh" );
   assert( translated_object->get_scene() == "abcdefghi" );
   assert( translated_object->get_type() == "abcdefghij" );
