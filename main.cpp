@@ -285,6 +285,7 @@ void my_signal_handler(int s){
             try {
               //Object Creation
               if (inbound_message->get_msg_type() == OBJ_CRT) {
+                main_logging->info("Processing Object Creation Message");
                 for (int i = 0;i < inbound_message->num_objects(); i++) {
                   Obj3 *resp_element = new Obj3;
                   MongoResponseInterface *resp = mongo->create_document( inbound_message->get_object(i)->to_json() );
@@ -294,44 +295,62 @@ void my_signal_handler(int s){
                 }
               //Object Update
               } else if (inbound_message->get_msg_type() == OBJ_UPD) {
+                main_logging->info("Processing Object Update Message");
                 for (int i = 0;i < inbound_message->num_objects(); i++) {
                   //Enforce atomic updates -- establish redis lock
                   if (config->get_atomictransactions()) lock.get_lock( inbound_message->get_object(i)->get_key() );
                   //Load the current doc from the database
                   rapidjson::Document resp_doc;
                   MongoResponseInterface *resp = mongo->load_document( inbound_message->get_object(i)->get_key() );
-                  std::string mongo_resp_str = resp->get_value();
-                  main_logging->debug("Document loaded from Mongo");
-                  main_logging->debug(mongo_resp_str);
-                  resp_doc.Parse(mongo_resp_str.c_str());
-                  Obj3 *resp_obj = new Obj3(resp_doc);
-                  //Apply the object message as changes to the DB Object
-                  resp_obj->merge(inbound_message->get_object(i));
-                  //Save the resulting object
-                  mongo->save_document( resp_obj->to_json(), resp_obj->get_key() );
-                  response_message->add_object( resp_obj );
-                  delete resp;
+                  if (resp) {
+                    std::string mongo_resp_str = resp->get_value();
+                    main_logging->debug("Document loaded from Mongo");
+                    main_logging->debug(mongo_resp_str);
+                    resp_doc.Parse(mongo_resp_str.c_str());
+                    Obj3 *resp_obj = new Obj3(resp_doc);
+                    //Apply the object message as changes to the DB Object
+                    resp_obj->merge(inbound_message->get_object(i));
+                    //Save the resulting object
+                    mongo->save_document( resp_obj->to_json(), resp_obj->get_key() );
+                    response_message->add_object( resp_obj );
+                    delete resp;
+                  } else {
+                    main_logging->error("Document not found in Mongo");
+                    response_message->set_error_code(NOT_FOUND);
+                    new_error_message = "Object not Found";
+                    response_message->set_error_message(new_error_message);
+                  }
                   //Enforce atomic updates -- release redis lock
                   if (config->get_atomictransactions()) lock.release_lock( inbound_message->get_object(i)->get_key() );
                 }
               //Object Retrieve
               } else if (inbound_message->get_msg_type() == OBJ_GET) {
+                main_logging->info("Processing Object Get Message");
                 for (int i = 0;i < inbound_message->num_objects(); i++) {
                   rapidjson::Document resp_doc;
                   MongoResponseInterface *resp = mongo->load_document( inbound_message->get_object(i)->get_key() );
-                  std::string mongo_resp_str = resp->get_value();
-                  main_logging->debug("Document loaded from Mongo");
-                  main_logging->debug(mongo_resp_str);
-                  resp_doc.Parse(mongo_resp_str.c_str());
-                  Obj3 *resp_obj = new Obj3(resp_doc);
-                  response_message->add_object( resp_obj );
-                  delete resp;
+                  if (resp) {
+                    std::string mongo_resp_str = resp->get_value();
+                    main_logging->debug("Document loaded from Mongo");
+                    main_logging->debug(mongo_resp_str);
+                    resp_doc.Parse(mongo_resp_str.c_str());
+                    Obj3 *resp_obj = new Obj3(resp_doc);
+                    response_message->add_object( resp_obj );
+                    delete resp;
+                  } else {
+                    main_logging->error("Document not found in Mongo");
+                    response_message->set_error_code(NOT_FOUND);
+                    new_error_message = "Object not Found";
+                    response_message->set_error_message(new_error_message);
+                  }
                 }
               //Object Query
               } else if (inbound_message->get_msg_type() == OBJ_QUERY) {
+                main_logging->info("Processing Object Batch Query Message");
                 response_message = batch_query(inbound_message, mongo);
               //Object Delete
               } else if (inbound_message->get_msg_type() == OBJ_DEL) {
+                main_logging->info("Processing Object Deletion Message");
                 for (int i = 0;i < inbound_message->num_objects(); i++) {
                   Obj3 *resp_element = new Obj3;
                   resp_element->set_key( inbound_message->get_object(i)->get_key() );
@@ -371,7 +390,14 @@ void my_signal_handler(int s){
           main_logging->info( application_response );
           zmqi->send( application_response );
 
-          delete response_message;
+          if (response_message) {
+            delete response_message;
+            response_message = NULL;
+          }
+          if (inbound_message) {
+            delete inbound_message;
+            inbound_message = NULL;
+          }
 
           if (shutdown_needed) {shutdown();exit(1);}
 
