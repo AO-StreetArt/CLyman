@@ -22,14 +22,12 @@ addons:
 services:
   # Start up Docker
   - docker
-jobs:
-  include:
-    - stage: preinstall
-    script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./ci_preinstall $TRAVIS_BUILD_DIR
-    - stage: install
-    script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./ci_install $TRAVIS_BUILD_DIR $TRAVIS_BRANCH
-    - stage: test
-    script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_success_tests $TRAVIS_BUILD_DIR
-    - script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_failure_tests $TRAVIS_BUILD_DIR
-    - stage: deploy
-    script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
+before_install:
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./ci_preinstall $TRAVIS_BUILD_DIR
+install:
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./ci_install $TRAVIS_BUILD_DIR $TRAVIS_BRANCH
+script:
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_success_tests $TRAVIS_BUILD_DIR
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_failure_tests $TRAVIS_BUILD_DIR
+after_success:
+  - script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
