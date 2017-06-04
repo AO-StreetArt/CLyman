@@ -22,52 +22,14 @@ addons:
 services:
   # Start up Docker
   - docker
-before_install:
-  - sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-5 /usr/bin/gcc
-  - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++
-  # Print the version of gcc
-  - gcc --version
-  # Print the python & pip version
-  - python -V
-  - pip -V
-  # Install python protocol buffer & zmq modules
-  - sudo pip install protobuf pyzmq
-  - pip install protobuf pyzmq
-  - sudo pip install --user protobuf pyzmq
-  # Get DVS Interfaces
-  - git clone https://github.com/AO-StreetArt/DvsInterface.git
-  - cd DvsInterface && sudo make install
-  - sudo docker network create dvs
-  # Clone the repository for the python tests
-  - cd $TRAVIS_BUILD_DIR
-  - git clone https://github.com/AO-StreetArt/0-Meter.git
-install:
-  - cd $TRAVIS_BUILD_DIR
-  # Setup Consul
-  - sudo docker pull consul
-  - sudo docker run -d --name=registry --network=dvs consul
-  # Set up Neo4j
-  - sudo docker pull mongo
-  - sudo docker run -d --network=dvs --name=document-db mongo
-  # Set up Redis
-  - sudo docker pull redis
-  - sudo docker run --network=dvs --name=cache -d redis
-  # Populate Consul Configuration variables
-  - sudo docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
-  - sudo docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString
-  - sudo docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
-  - sudo docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
-  - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
-  - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions
-  - sudo docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/Data_Format_Type
-  # Start CLyman
-  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
-  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500 localhost 5556
-  - sleep 5
-  - sudo docker logs --tail 75 clyman
 jobs:
   include:
-    - script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_success_tests $TRAVIS_BUILD_DIR
+    - stage: preinstall
+    script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./ci_preinstall $TRAVIS_BUILD_DIR
+    - stage: install
+    script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./ci_install $TRAVIS_BUILD_DIR $TRAVIS_BRANCH
+    - stage: test
+    script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_success_tests $TRAVIS_BUILD_DIR
     - script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_failure_tests $TRAVIS_BUILD_DIR
     - stage: deploy
     script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
