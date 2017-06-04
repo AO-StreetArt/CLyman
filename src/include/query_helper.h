@@ -12,7 +12,10 @@ Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
   //Iterate over the input list
   for (int i = 0; i < inp_list->num_objects(); i++) {
 
-    if (num_results > max_results) break;
+    if (num_results > max_results) {
+      main_logging->debug("Max Query Results Reached");
+      break;
+    }
 
     //Generate a Query from each object in the list
     std::string query_string = inp_list->get_object(i)->to_json();
@@ -24,7 +27,15 @@ Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
     if (iter) {
       MongoResponseInterface *resp = iter->next();
       while (resp) {
-        if (num_results > max_results) break;
+        if (num_results > max_results) {
+          main_logging->debug("Max Query Results Reached");
+          break;
+        }
+        if ( !(resp->get_err_msg().empty()) ) {
+          main_logging->error("Error detected in cursor:");
+          main_logging->error(resp->get_err_msg());
+          break;
+        }
         rapidjson::Document resp_doc;
         resp_doc.Parse(resp->get_value().c_str());
         Obj3 *resp_obj = new Obj3(resp_doc);
@@ -35,6 +46,8 @@ Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
       }
 
     }
+
+    delete iter;
 
   }
 
