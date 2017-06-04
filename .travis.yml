@@ -2,9 +2,6 @@
 sudo: required
 dist: trusty
 language: cpp
-env:
-  - TEST_SUITE=failure
-  - TEST_SUITE=success
 addons:
   apt:
     sources:
@@ -63,17 +60,14 @@ install:
   - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
   - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions
   - sudo docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/Data_Format_Type
-before_script:
-  # Wait for some time to allow the docker instance to finish building
+  # Start CLyman
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
-  # Start Crazy clyman
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500 localhost 5556
   - sleep 5
-  # Show the logs from the clyman docker container
   - sudo docker logs --tail 75 clyman
-script:
-  # Execute the Python Tests
-  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_tests $TEST_SUITE $TRAVIS_BUILD_DIR
-after_success:
-  # Push the built image to docker hub
-  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
+jobs:
+  include:
+    - script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_success_tests $TRAVIS_BUILD_DIR
+    - script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_failure_tests $TRAVIS_BUILD_DIR
+    - stage: deploy
+    script: cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
