@@ -73,7 +73,7 @@ before_script:
   - sudo docker logs --tail 75 clyman
 script:
   # Execute the Python Tests
-  - cd $TRAVIS_BUILD_DIR && ./scripts/linux/run_tests $TEST_SUITE $TRAVIS_BUILD_DIR
+  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_tests $TEST_SUITE $TRAVIS_BUILD_DIR
 after_success:
   # Push the built image to docker hub
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
