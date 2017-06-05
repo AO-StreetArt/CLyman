@@ -72,22 +72,25 @@ before_script:
 script:
   # Execute the Python Tests
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
-  - cat $TRAVIS_BUILD_DIR/obj_crt.log
+  - tail $TRAVIS_BUILD_DIR/obj_crt.log
   - sudo docker logs --tail 75 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
-  - cat $TRAVIS_BUILD_DIR/obj_get.log
+  - tail $TRAVIS_BUILD_DIR/obj_get.log
   - sudo docker logs --tail 75 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
-  - cat $TRAVIS_BUILD_DIR/obj_upd.log
+  - tail $TRAVIS_BUILD_DIR/obj_upd.log
   - sudo docker logs --tail 75 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query.xml
-  - cat $TRAVIS_BUILD_DIR/obj_name_query.log
+  - tail $TRAVIS_BUILD_DIR/obj_name_query.log
   - sudo docker logs --tail 75 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query.xml
-  - cat $TRAVIS_BUILD_DIR/obj_type_query.log
+  - tail $TRAVIS_BUILD_DIR/obj_type_query.log
   - sudo docker logs --tail 75 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
-  - cat $TRAVIS_BUILD_DIR/obj_del.log
+  - tail $TRAVIS_BUILD_DIR/obj_del.log
+  - sudo docker logs --tail 75 clyman
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt_bad.xml
+  - tail $TRAVIS_BUILD_DIR/obj_crt.log
   - sudo docker logs --tail 75 clyman
 after_success:
   # Push the built image to docker hub
