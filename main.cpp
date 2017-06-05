@@ -250,6 +250,8 @@ void my_signal_handler(int s){
           } catch (std::exception& e) {
             main_logging->error("Exception occurred while parsing inbound bytes:");
             main_logging->error(e.what());
+            response_message->set_error_code(TRANSLATION_ERROR);
+            new_error_message.assign(e.what());
           }
         }
 
