@@ -210,6 +210,9 @@ void my_signal_handler(int s){
         std::string recvd_msg (req_ptr);
         std::string clean_string;
 
+        std::string new_error_message = "";
+        response_message = new Obj3List;
+
         if (config->get_formattype() == JSON_FORMAT) {
 
           int final_closing_char = recvd_msg.find_last_of("}");
@@ -224,6 +227,8 @@ void my_signal_handler(int s){
             if (d.HasParseError()) {
               main_logging->error("Parsing Error: ");
               main_logging->error(GetParseError_En(d.GetParseError()));
+              response_message->set_error_code(TRANSLATION_ERROR);
+              new_error_message.assign(GetParseError_En(d.GetParseError()));
             } else {inbound_message = new Obj3List (d);}
           }
           //Catch a possible error and write to logs
@@ -273,9 +278,6 @@ void my_signal_handler(int s){
             main_logging->debug("Transaction ID: ");
             main_logging->debug( inbound_message->get_transaction_id() );
           }
-
-          std::string new_error_message = "";
-          response_message = new Obj3List;
 
           bool shutdown_needed = false;
 
@@ -371,7 +373,7 @@ void my_signal_handler(int s){
               } else if (inbound_message->get_msg_type() == KILL) {
                 main_logging->info("Shutting Down");
                 shutdown_needed = true;
-                
+
               //Invalid Message Type
               } else {
                 response_message->set_error_code(BAD_MSG_TYPE_ERROR);
