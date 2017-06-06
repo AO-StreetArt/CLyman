@@ -1,15 +1,14 @@
 <Configuration>
   <Behavior>
-    <Single_Message>False</Single_Message>
     <Multi_Message>True</Multi_Message>
     <Include_CSV>True</Include_CSV>
-    <Span_Over_Interval>False</Span_Over_Interval>
+    <Parse_Responses>True</Parse_Responses>
+    <Print_Response_Keys>True</Print_Response_Keys>
+    <Fail_On_Response>True</Fail_On_Response>
   </Behavior>
   <Message>
     <Message_Location>ci/json/obj_full.json</Message_Location>
-    <Message_Folder_Location>obj_msg</Message_Folder_Location>
     <Message_Extension>json</Message_Extension>
-    <Interval>60.0</Interval>
     <CSV_Location>ci/csv/obj_crt.csv</CSV_Location>
     <Variable_Start_Character>$</Variable_Start_Character>
     <Variable_End_Character>@</Variable_End_Character>
@@ -23,4 +22,10 @@
     <Log_File>obj_crt.log</Log_File>
     <Log_Level>Info</Log_Level>
   </Logging>
+  <Response>
+    <Field_Path>err_code</Field_Path>
+    <Key_Path>objects[0.key</Key_Path>
+    <Success_Value>100</Success_Value>
+    <Output_Csv>obj_crt_out.csv</Output_Csv>
+  </Response>
 </Configuration>
