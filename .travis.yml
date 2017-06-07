@@ -74,19 +74,19 @@ script:
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
   - tail $TRAVIS_BUILD_DIR/obj_crt.log
   - sudo docker logs --tail 75 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_get.log
   - sudo docker logs --tail 75 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_upd.log
   - sudo docker logs --tail 75 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query.xml
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_name_query.log
   - sudo docker logs --tail 75 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query.xml
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_type_query.log
   - sudo docker logs --tail 75 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_del.log
   - sudo docker logs --tail 75 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt_bad.xml
