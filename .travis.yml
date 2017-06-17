@@ -80,32 +80,43 @@ script:
 
   # Copy the keys returned from the creation test to create the other success CSV's
   - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_get.csv 0 3
-  - cat $TRAVIS_BUILD_DIR/ci/csv/obj_get-new.csv
+  - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_upd.csv 0 3
+  - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_delete.csv 0 3
 
   # Get Test
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
   - tail $TRAVIS_BUILD_DIR/obj_get.log
   - sudo docker logs --tail 75 clyman
 
+  # Update Test
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
+  - tail $TRAVIS_BUILD_DIR/obj_get.log
+  - sudo docker logs --tail 75 clyman
+
+  # Delete Test
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
+  - tail $TRAVIS_BUILD_DIR/obj_get.log
+  - sudo docker logs --tail 75 clyman
+
   # Failure Tests
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_get.log
-  - sudo docker logs --tail 75 clyman
+  - sudo docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_upd.log
-  - sudo docker logs --tail 75 clyman
+  - sudo docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_name_query.log
-  - sudo docker logs --tail 75 clyman
+  - sudo docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_type_query.log
-  - sudo docker logs --tail 75 clyman
+  - sudo docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_del.log
-  - sudo docker logs --tail 75 clyman
+  - sudo docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_crt.log
-  - sudo docker logs --tail 75 clyman
+  - sudo docker logs --tail 60 clyman
 after_success:
   # Push the built image to docker hub
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
