@@ -42,6 +42,7 @@ before_install:
   # Clone the repository for the python tests
   - cd $TRAVIS_BUILD_DIR
   - git clone https://github.com/AO-StreetArt/0-Meter.git
+  - git clone https://github.com/AO-StreetArt/PythonCsvHelper.git
 install:
   - cd $TRAVIS_BUILD_DIR
   # Setup Consul
@@ -71,9 +72,22 @@ before_script:
   - sudo docker logs --tail 75 clyman
 script:
   # Execute the Python Tests
+
+  # Create Test
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
   - tail $TRAVIS_BUILD_DIR/obj_crt.log
   - sudo docker logs --tail 75 clyman
+
+  # Copy the keys returned from the creation test to create the other success CSV's
+  - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_get.csv 0 3
+  - cat $TRAVIS_BUILD_DIR/ci/csv/obj_get-new.csv
+
+  # Get Test
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
+  - tail $TRAVIS_BUILD_DIR/obj_get.log
+  - sudo docker logs --tail 75 clyman
+
+  # Failure Tests
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_get.log
   - sudo docker logs --tail 75 clyman
