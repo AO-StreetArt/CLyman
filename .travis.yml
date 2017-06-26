@@ -1,20 +1,13 @@
-# Use new trusty images, should yield newer compilers and packages
 sudo: required
-dist: trusty
-language: cpp
+language: python
+python:
+  - "2.7"
 
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
     packages:
-    # Install GCC
-    - gcc-5
-    - g++-5
-    # Install Python
-    - python
-    - python-dev
-    - python-pip
     # Install LibSSL
     - libssl-dev
     # Install Protocol Buffer Compiler
@@ -24,59 +17,59 @@ services:
   # Start up Docker
   - docker
 before_install:
-  - sudo unlink /usr/bin/gcc && sudo ln -s /usr/bin/gcc-5 /usr/bin/gcc
-  - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++
-  # Print the version of gcc
-  - gcc --version
   # Print the python & pip version
   - python -V
   - pip -V
   # Install python protocol buffer & zmq modules
-  - sudo pip install protobuf pyzmq
-  - pip install protobuf pyzmq
-  - sudo pip install --user protobuf pyzmq
+  - "pip install protobuf pyzmq"
   # Get DVS Interfaces
   - git clone https://github.com/AO-StreetArt/DvsInterface.git
   - cd DvsInterface && sudo make install
-  - sudo docker network create dvs
   # Clone the repository for the python tests
   - cd $TRAVIS_BUILD_DIR
   - git clone https://github.com/AO-StreetArt/0-Meter.git
   - git clone https://github.com/AO-StreetArt/PythonCsvHelper.git
+  # Start the docker network
+  - docker network create dvs
 install:
   - cd $TRAVIS_BUILD_DIR
   # Setup Consul
-  - sudo docker pull consul
-  - sudo docker run -d --name=registry --network=dvs consul
+  - docker pull consul
+  - docker run -d --name=registry --network=dvs consul
   # Set up Neo4j
-  - sudo docker pull mongo
-  - sudo docker run -d --network=dvs --name=document-db mongo
+  - docker pull mongo
+  - docker run -d --network=dvs --name=document-db mongo
   # Set up Redis
-  - sudo docker pull redis
-  - sudo docker run --network=dvs --name=cache -d redis
+  - docker pull redis
+  - docker run --network=dvs --name=cache -d redis
   # Populate Consul Configuration variables
-  - sudo docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
-  - sudo docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString
-  - sudo docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
-  - sudo docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
-  - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
-  - sudo docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions
-  - sudo docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/Data_Format_Type
-before_script:
-  # Wait for some time to allow the docker instance to finish building
+  - docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
+  - docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString
+  - docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
+  - docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
+  - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
+  - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions
+  - docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/Data_Format_Type
+  # Build the Docker Image
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
-  # Start Crazy clyman
+  # Start clyman
   - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500 localhost 5556
+before_script:
+  # Sleep for a few seconds to ensure everything is started up
   - sleep 5
-  # Show the logs from the clyman docker container
-  - sudo docker logs --tail 75 clyman
+  # Display which containers are active and the startup logs for each
+  - docker ps -a
+  - docker logs clyman
+  - docker logs cache
+  - docker logs database
+  - docker logs registry
 script:
   # Execute the Python Tests
 
   # Create Test
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
   - tail $TRAVIS_BUILD_DIR/obj_crt.log
-  - sudo docker logs --tail 75 clyman
+  - docker logs --tail 75 clyman
 
   # Copy the keys returned from the creation test to create the other success CSV's
   - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_get.csv 0 3
@@ -86,37 +79,37 @@ script:
   # Get Test
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
   - tail $TRAVIS_BUILD_DIR/obj_get.log
-  - sudo docker logs --tail 75 clyman
+  - docker logs --tail 75 clyman
 
   # Update Test
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
   - tail $TRAVIS_BUILD_DIR/obj_get.log
-  - sudo docker logs --tail 75 clyman
+  - docker logs --tail 75 clyman
 
   # Delete Test
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
   - tail $TRAVIS_BUILD_DIR/obj_get.log
-  - sudo docker logs --tail 75 clyman
+  - docker logs --tail 75 clyman
 
   # Failure Tests
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_get.log
-  - sudo docker logs --tail 60 clyman
+  - docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_upd.log
-  - sudo docker logs --tail 60 clyman
+  - docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_name_query.log
-  - sudo docker logs --tail 60 clyman
+  - docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_type_query.log
-  - sudo docker logs --tail 60 clyman
+  - docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_del.log
-  - sudo docker logs --tail 60 clyman
+  - docker logs --tail 60 clyman
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt_bad.xml
   - tail $TRAVIS_BUILD_DIR/obj_crt.log
-  - sudo docker logs --tail 60 clyman
+  - docker logs --tail 60 clyman
 after_success:
   # Push the built image to docker hub
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
