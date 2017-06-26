@@ -11,25 +11,47 @@ a CLyman development environment.
 Docker
 ------
 
-This will require Docker installed on the development computer.
+The easiest way to get started with CLyman is with `Docker <https://docs.docker.com/get-started/>`__
 
-The Development Docker image for CLyman-Dev is ready for active use, and
-can be run with the command:
+If you do not have Docker installed, please visit the link above to get setup before continuing.
 
-``docker run --name clyman -d aostreetart/clyman-automated-build``
+The first thing we need to do is setup the Docker Network that will allow us to communicate between our containers:
 
-Congratulations, you've got a fully functional build & test environment
-for CLyman! You can connect to it with:
+``docker network create dvs``
+
+Before we can start CLyman, we need to have a few other programs running first.
+Luckily, these can all be setup with Docker as well:
+
+``docker run -d --name=registry --network=dvs consul``
+``docker run -d --network=dvs --name=document-db mongo``
+``docker run --network=dvs --name=cache -d redis``
+
+This will start up a single instance each of Mongo, Redis, and Consul.  Consul stores our configuration values, so we'll need to set those up.
+You can either view the `Consul Documentation <https://www.consul.io/intro/getting-started/ui.html>`__ for information on starting the container with a Web UI, or you can use the commands below for a quick-and-dirty setup:
+
+``docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString``
+``docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString``
+``docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName``
+``docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection``
+``docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId``
+``docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions``
+``docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/Data_Format_Type``
+
+Then, we can start up CLyman:
+
+``docker run --name clyman --network=dvs -p 5555:5555 -d aostreetart/clyman -consul-addr=registry:8500 -ip=localhost -port=5555 -log-conf=CLyman/log4cpp.properties``
+
+This will start an instance of CLyman with the following properties:
+
+- Connected to network 'dvs', which lets us refer to the other containers in the network by name when connecting.
+- Listening on localhost port 5555
+- Connected to Consul Container
 
 ``docker exec -i -t clyman /bin/bash``
 
 For a more detailed discussion on the deployment of CLyman, please see
 the :ref:`Deployment Section <deployment>`
-of the documentation. For now, once you are into the Docker instance,
-you can run the below command to start CLyman. You can also execute
-'make', 'make test', 'make benchmark', etc.
-
-``./lyman``
+of the documentation.
 
 Building from Source
 --------------------
@@ -37,10 +59,8 @@ Building from Source
 While using Docker is a much faster solution, it is sometimes necessary
 to build from source.
 
-The recommended deployment for development of CLyman is a VM with either
-Ubuntu 14.04 or Debian 7 installed. Running the below commands in a
-terminal on a fresh Virtual Machine will result in a fully functional
-build environment that will produce the lyman executable.
+The recommended deployment for development of CLyman is either
+Ubuntu 16.04 or Redhat7.
 
 ``git clone https://github.com/AO-StreetArt/CLyman.git``
 
@@ -58,19 +78,16 @@ You will be asked once for your sudo password.
 
 ``make``
 
-This will result in creation of the lyman executable, which we can run
+This will result in creation of the clyman executable, which we can run
 with the below command:
 
-``./clyman -dev``
+``./clyman``
+
+When not supplied with any command line parameters, CLyman will look for an app.properties file and log4cpp.properties file to start from.
 
 You may also build the test modules with:
 
 ``make tests``
-
-
-Starting CLyman with the dev flag binds on the below connections: \*
-Mongo - mongodb://localhost:27017/ \* Outbund 0MQ Connection -
-tcp://localhost:5556 \* Inbound 0MQ Connection - tcp://\*:5555
 
 In order to run CLyman from a properties file, you will need:
 
@@ -79,9 +96,6 @@ In order to run CLyman from a properties file, you will need:
 
 -  You will also need to have a Mongo Server installed locally.  Instructions
    can be found at https://docs.mongodb.com/getting-started/
-
--  Finally, you should have a Consul Agent installed, please find
-   instructions at https://www.consul.io/docs/index.html
 
 Continue on to the :ref:`Configuration Section <configuration>` for more details
 on the configuration options available when starting CLyman.

@@ -3,11 +3,8 @@
 Deployment
 ==========
 
-Currently, deployment can be done either manually or with Docker.
+Note: At this time, CLyman has no built-in security or encryption mechanisms.  Until such time, it is not recommended to deploy CLyman in Production.
 
-The Production Docker Image can be run with
-the command:
+The easiest methodology of deployment for CLyman is using Docker.  At this time, it has not been tested with either Docker Compose or Docker Swarm.
 
-``docker run --name clyman -d aostreetart/clyman``
-
-``sudo docker exec -i -t clyman /bin/bash``
+:ref:`Go Home <index>`

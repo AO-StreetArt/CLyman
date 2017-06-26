@@ -10,6 +10,5 @@
    pages/api.rst
    pages/arch.rst
    pages/deps.rst
-   pages/tests.rst
 
 .. include:: ../README.rst
