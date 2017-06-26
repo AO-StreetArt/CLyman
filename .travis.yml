@@ -61,7 +61,7 @@ before_script:
   - docker ps -a
   - docker logs clyman
   - docker logs cache
-  - docker logs database
+  - docker logs document-db
   - docker logs registry
 script:
   # Execute the Python Tests
