@@ -16,7 +16,7 @@ This service is intended to fill a small role within a larger architecture desig
     Configurable Logic
     Scalable microservice design
 
-CLyman is a part of the AO Distributed Visualization Server, along with [Crazy Ivan] (https://github.com/AO-StreetArt/CrazyIvan). It therefore utilizes the [DVS Interface library](https://github.com/AO-StreetArt/DvsInterface), also available on github. It utilizes the Obj3.proto file for inbound communications.
+CLyman is a part of the AO Distributed Visualization Server, along with [Crazy Ivan](https://github.com/AO-StreetArt/CrazyIvan). It therefore utilizes the [DVS Interface library](https://github.com/AO-StreetArt/DvsInterface), also available on github. It utilizes the Obj3.proto file for inbound communications.
 
 ## Table of Contents
 
