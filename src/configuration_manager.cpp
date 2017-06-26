@@ -53,8 +53,8 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     config_logging->info("Inbound 0MQ Connection:");
     config_logging->info(OMQ_IBConnStr);
   }
-  if (props->opt_exist("Data_Format_Type")) {
-    std::string param_value = props->get_opt("Data_Format_Type");
+  if (props->opt_exist("DataFormatType")) {
+    std::string param_value = props->get_opt("DataFormatType");
     if (param_value == "1" || param_value == "JSON" || param_value == "json") {
       format_type = JSON_FORMAT;
     }
@@ -285,7 +285,7 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     AtomicTransactions = false;
   }
 
-  std::string format_type_str = get_consul_config_value("Data_Format_Type");
+  std::string format_type_str = get_consul_config_value("DataFormatType");
   config_logging->debug("Data Format:");
   config_logging->debug(format_type_str);
   if (format_type_str == "JSON" || format_type_str == "Json" || format_type_str == "json" || format_type_str == "1") {
