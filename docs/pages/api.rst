@@ -1,460 +1,173 @@
 .. _api:
 
-API Documentation
-=================
+API Overview
+============
 
-Object Transformation API Design Document
+The Clyman API utilizes either JSON or Protocol Buffers, based on what
+the server is configured to process. In either case, the field names and
+message structure remains the same. This document will focus on the JSON
+API, but with this knowledge and the DVS Interface Protocol Buffer
+files, the use of the Protocol Buffer API should be equally clear.
 
-Author – Alex Barry
+Response Messages follow the same format as inbound messages, with a few
+additional fields.
 
-:ref:`Go Home <index>`
+To start with, here is an example JSON message which will create a
+single object:
 
-Section 1: Abstract
--------------------
+{
 
-This document outlines the design for the Object Transformation Service
-API. This service tracks objects location, rotation, and scaling in 3
-space via a 4x4 transformation matrix. The design proposed in this
-document follows a series of principles:
+ "msg\_type": 0,
 
--  Messages should require only the fields necessary.
--  Where intelligent updates incur performance penalties, they should be
-   configurable and scalable. Therefor, message behavior may depend on
-   server side configurations. The accepted/expected fields in messages,
-   however, will not change.
+ "transaction\_id": "12352",
 
-Section 2: Objectives
----------------------
+ "num\_records": 1,
 
--  The primary purpose of this document is to detail the API for the
-   Object Transformation Service, Clyman.
--  This document will provide specifications for inbound and outbound
-   messages from the service
--  Messaging will be via either JSON or Protocol Buffer format
-   (depending on configuration) with 0MQ as the message transport layer.
+ "objects": [
 
-Section 3: Inbound Messages
----------------------------
+ {
 
-\| Field Name \| Description \| Data Type \| Required? \| \| \| \| \|
----------- \| ----------- \| --------- \| --------- \| --- \| --- \| ---
-\| \| \| \| \| Create \| Retrieve \| Update \| Destroy \| \| \| \| \| \|
-\| \| \| \| message\_type \|
+ "key": "ABCDEF131",
 
-.. raw:: html
+ "name": "Test Object8",
 
-   <ul>
+ "type": "Mesh",
 
-.. raw:: html
+ "subtype": "Cube",
 
-   <li>
+ "owner": "123",
 
-OBJ\_UPD=0
+ "scene": "DEFGHI8",
 
-.. raw:: html
+ "translation": [0, 0, 0],
 
-   </li>
+ "rotation\_euler": [0, 0, 0],
 
-.. raw:: html
+ "rotation\_quaternion": [0, 0, 0, 0],
 
-   <li>
+ "scale": [1, 1, 1],
 
-OBJ\_CRT=1
+ "assets": ["Asset\_4"]
 
-.. raw:: html
+ }
 
-   </li>
+ ]
 
-.. raw:: html
+}
 
-   <li>
+Let’s take a look at the individual fields.
 
-OBJ\_GET=2
+Object List
+-----------
 
-.. raw:: html
+The Object List is the highest level wrapper in the API. It only
+contains 4 keys, one of which is an array of objects.
 
-   </li>
+-  msg\_type – 0 for create, 1 for update, 2 for retrieve, 3 for delete,
+   4 for query. The message type applies to all objects in the objects
+   array.
+-  transaction\_id – An ID to distinguish a transaction within a larger
+   network of applications
+-  num\_records – This lets us give Clyman a maximum number of values to
+   return from a query
+-  objects – An array containing objects
 
-.. raw:: html
+Object
+------
 
-   <li>
+A single Object (or Obj3, from here on out), is represented by a single
+element of the array from the “objects” key of the object list.
 
-OBJ\_DEL=3
+-  key – Obj3 Key value (UUID)
+-  name – Name of the Obj3
+-  type – A string type of the Obj3. Normal types are ‘Mesh’, ‘Curve’,
+   etc. However, no limitations are placed on what types may be entered.
+-  subtype – Similar to type, meant to differentiate between different
+   types and allow for use of basic primitives which can be communicated
+   from device to device very quickly. For example, ‘Cube’, ‘Sphere’,
+   etc.
+-  owner – Identifier for the owner of the Obj3
+-  scene – ID For the Scene containing the object
+-  translation – X, Y, and Z values for the translation of the object
+   from it’s origin
+-  rotation\_euler – X, Y, and Z values for the rotation of the object
+   about each axis
+-  rotation\_quaternion – W, X, Y, and Z values for the quaternion
+   rotation of the object
+-  scale – X, Y, and Z values for the scaling of the object
+-  assets – An Array of identifiers for “assets”, which should be
+   downloaded by users in order to view the object.
 
-.. raw:: html
+Field Mapping
+=============
 
-   </li>
-
-.. raw:: html
-
-   <li>
-
-OBJ\_LOCK=5
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-OBJ\_UNLOCK=6
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-KILL=999
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-PING=555
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   </ul>
-
-\| Integer \| X \| X \| X \| X \| \| key \| The UUID of the object \|
-String \| \| X \| X \| X \| \| name \| The name of the object \| String
-\| X \| \| \* \| \| \| type \| The type of the object, ie. "Mesh" \|
-String \| X \| \| \* \| \| \| subtype \| The subtype of the object, ie.
-"Cube" \| String \| X \| \| \* \| \| \| location \| The Location of the
-object \| Array - Double \| X \| \| \* \| \| \| rotation\_euler \| The
-Euler Rotation of the object \| Array - Double \| X \| \| \* \| \| \|
-rotation\_quaternion \| The Quaternion Rotation of the object \| Array -
-Double \| X \| \| \* \| \| \| scale \| The Scaling of the object \|
-Array - Double \| X \| \| \* \| \| \| transform \| The Transformation
-Matrix of the object \| Array - Double \| X \| \| \* \| \| \|
-bounding\_box \| The Bounding Box of the object \| Array - Double \| X
-\| \| \* \| \| \| scenes \| The list of string scene UUID's \| Array -
-String \| X \| \| \* \| \* \| \| owner\_device\_id \| The UUID of the
-owner User Device. \| String \| X \| \| \* \| \| \| lock\_device\_id \|
-The UUID of the locking User Device. \| String \| X \| \| \* \| \| \|
-mesh\_id \| The UUID of the mesh that corresponds to this object. \|
-String \| X \| \| \| \| \| transform\_type \| Global vs Local
-Transformations. By default, local transformations are used. However, a
-value of 'global' in this field will allow for updates according to
-global coordinate systems. \| String \| \| \| \| \|
++------------------------+------------------+----------+----------+---------+------+------+
+| Create                 | Get              | Update   | Delete   | Query   |
++------------------------+------------------+----------+----------+---------+------+------+
+| msg\_type              | Integer          | X        | X        | X       | X    | X    |
++------------------------+------------------+----------+----------+---------+------+------+
+| transaction\_id        | String           | \*       | \*       | \*      | \*   | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| num\_records           | String           |          |          |         |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| key                    | String           |          | X        | \*      | X    | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| name                   | String           | X        |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| type                   | String           | \*       |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| subtype                | String           | \*       |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| owner                  | String           | \*       |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| scene                  | String           | X        |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| translation            | Array - Double   | X        |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| rotation\_euler        | Array - Double   | X        |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| rotation\_quaternion   | Array - Double   | X        |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| scale                  | Array - Double   | X        |          | \*      |      | \*   |
++------------------------+------------------+----------+----------+---------+------+------+
+| assets                 | Array - String   | X        |          | \*      |      |      |
++------------------------+------------------+----------+----------+---------+------+------+
 
 X – Required
 
-\* - Potentially Required for message to cause any action, depending on
-configuration
+\* - Optional
+
+Message Types
+=============
 
 Object Create
 -------------
 
-The inbound object create message requires all fields to construct the
-initial object, except for the lock\_device\_id and owner\_device\_id.
-These are only required if the respective functionality is configured.
+Create a new Obj3. Returns a unique key for the object.
 
 Object Retrieve
 ---------------
 
-The object retrieve message only requires a device UUID and message
-type.
+The object retrieve message will retrieve an object by key, and return
+the full object
 
 Object Update
 -------------
 
-The behavior of the object update message depends upon the configuration
-of Smart Updates.
-
-If Smart Updates are disabled, then all fields in the message are
-required and the update is a full-replace message.
-
-If Smart Updates are enabled, then only the message\_type and key fields
-are required. Any location, rotation, scaling, or transform matrix sent
-will be interpreted as a transformation, and applied to the existing
-object in the DB.
+Object updates can be used to either update basic object attributes
+(name, type, etc), or to apply transformations to the object.
+Transformations will be applied in the order that they are received, and
+if Atomic Transactions are enabled, then they will be applied in the
+order that they are received even if sent to different instances of
+Clyman, as long as they are connected to the same Redis instance.
 
 Object Destroy
 --------------
 
-For the object destroy message, the message\_type and key fields are
-required.
+Destroy an existing Obj3 by key. Basic success/failure response.
 
-Object Lock
------------
-
-If configured, locking on an object requires a key, message type, and
-lock\_device\_id. This sends a lock request, which may be accepted or
-denied.
-
-Object Unlock
--------------
-
-If configured, unlocking an object requires a key, message type, and
-lock\_device\_id. This sends an unlock request, which may be accepted or
-denied.
-
-Section 4: Inbound Responses
-----------------------------
-
-\| Field Name \| Description \| Data Type \| Included? \| \| \| \| \|
----------- \| ----------- \| --------- \| --------- \| --- \| --- \| ---
-\| \| \| \| \| Create \| Retrieve \| Update \| Destroy \| \| \| \| \| \|
-\| \| \| \| error\_code \|
-
-.. raw:: html
-
-   <ul>
-
-.. raw:: html
-
-   <li>
-
-NO\_ERROR=0
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-ERROR=100
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-DB\_ERROR=110
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-REDIS\_ERROR=120
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-TRANSLATION\_ERROR=130
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-BAD\_SERVER\_ERROR=140
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-BAD\_REQUEST\_ERROR=150
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   </ul>
-
-\| Integer \| \* \| \* \| \* \| \* \| \| error\_message \| A description
-of any error that occurred \| String \| \* \| \* \| \* \| \* \| \|
-object\_id \| The key of the object \| String \| X \| X \| X \| X \| \|
-transaction\_id \| The Transaction ID. This is the same as the
-transaction ID given on the inbound response and can be used to link the
-two together, if this functionality is configured. \| String \| \* \| \*
-\| \* \| \* \|
-
-X – Guaranteed
-
-\* - Potentially Included, depending on whether we have a success or
-failure response and/or configuration
-
-Note: While Inbound and Outbound Messages work based off of the
-Obj3.proto file for protocol-buffer messaging, Inbound Responses work
-based off of the Response.proto file.
-
-Section 5: Outbound Messages
-----------------------------
-
-\| Field Name \| Description \| Data Type \| Included? \| \| \| \| \|
----------- \| ----------- \| --------- \| --------- \| --- \| --- \| ---
-\| \| \| \| \| Create \| Retrieve \| Update \| Destroy \| \| \| \| \| \|
-\| \| \| \| message\_type \|
-
-.. raw:: html
-
-   <ul>
-
-.. raw:: html
-
-   <li>
-
-OBJ\_UPD=0
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-OBJ\_CRT=1
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-OBJ\_GET=2
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-OBJ\_DEL=3
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-OBJ\_LOCK=5
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-OBJ\_UNLOCK=6
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-KILL=999
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   <li>
-
-PING=555
-
-.. raw:: html
-
-   </li>
-
-.. raw:: html
-
-   </ul>
-
-\| Integer \| X \| X \| X \| X \| \| key \| The UUID of the object \|
-String \| X \| X \| X \| X \| \| name \| The name of the object \|
-String \| X \| X \| X \| \| \| type \| The type of the object, ie.
-"Mesh" \| String \| X \| X \| X \| \| \| subtype \| The subtype of the
-object, ie. "Cube" \| String \| X \| X \| X \| \| \| location \| The
-Location of the object \| Array - Double \| X \| X \| X \| \| \|
-rotation\_euler \| The Euler Rotation of the object \| Array - Double \|
-X \| X \| X \| \| \| rotation\_quaternion \| The Quaternion Rotation of
-the object \| Array - Double \| X \| X \| X \| \| \| scale \| The
-Scaling of the object \| Array - Double \| X \| X \| X \| \| \|
-transform \| The Transformation Matrix of the object \| Array - Double
-\| X \| X \| X \| \| \| bounding\_box \| The Bounding Box of the object
-\| Array - Double \| X \| X \| X \| \| \| scenes \| The list of string
-scene UUID's \| Array - String \| X \| X \| X \| \| \| is\_locked \| 0
-if unlocked, 1 if locked \| Integer \| \* \| \* \| \* \| \| \| mesh\_id
-\| The UUID of the mesh that corresponds to this object. \| String \| X
-\| X \| X \| \| \| error\_message \| If outbound error responses are
-enabled, than an error message may be included here. \| String \| \* \|
-\* \| \* \| \| \| transaction\_id \| The Transaction ID. This is the
-same as the transaction ID given on the inbound response and can be used
-to link the two together, if this functionality is configured. \| String
-\| \* \| \* \| \* \| \* \|
-
-X – Guaranteed
-
-\* - Potentially Included, depending on configuration
-
-Object Create
--------------
-
-An outbound Object Create Message notifies listeners that an object has
-been created.
-
-Object Retrieve
----------------
-
-An outbound Object Retrieve Message notifies listeners that a response
-has been lodged to a previous retrieval request.
-
-Object Update
--------------
-
-An outbound Object Update Message notifies listeners that an object has
-been updated.
-
-Object Destroy
---------------
-
-An outbound Object Create Message notifies listeners that an object has
-been destroyed.
-
-Appendix: JSON Message Samples
-------------------------------
+Appendix A: JSON Message Samples
+================================
 
 Inbound
 -------
@@ -464,55 +177,41 @@ Object Create
 
 {
 
-"message\_type": 0,
+ "msg\_type": 0,
 
-"key": “24575768452345”,
+ "transaction\_id": "12354",
 
-"name": "Object1",
+ "num\_records": 1,
 
-"type": "Mesh",
+ "objects": [
 
-"subtype": "Mesh",
+ {
 
-"location": [0.0, 0.0, 0.0],
+ "key": "ABCDEF133",
 
-"rotation\_euler": [0.0, 0.0, 0.0],
+ "name": "Test Object10",
 
-"rotation\_quaternion": [0.0, 0.0, 0.0, 0.0],
+ "type": "Mesh",
 
-"scale": [0.0, 0.0, 0.0],
+ "subtype": "Cube",
 
-"transform": [
+ "owner": "123",
 
-0.0, 0.0, 0.0, 0.0,
+ "scene": "DEFGHI10",
 
-0.0, 0.0, 0.0, 0.0,
+ "translation": [0, 0, 0],
 
-0.0, 0.0, 0.0, 0.0,
+ "rotation\_euler": [0, 0, 0],
 
-0.0, 0.0, 0.0, 0.0
+ "rotation\_quaternion": [0, 0, 0, 0],
 
-],
+ "scale": [1, 1, 1],
 
-"bounding\_box": [
+ "assets": ["Asset\_5"]
 
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+ }
 
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-],
-
-"scenes": ["12346453456", "7685632194"],
-
-“owner\_device\_id”: “235jher1234ms”,
-
-"lock\_device\_id": "-1",
-
-“mesh\_id”: “234xfd432xf”
+ ]
 
 }
 
@@ -521,9 +220,21 @@ Object Retrieve
 
 {
 
-"message\_type": 1,
+ "msg\_type": 2,
 
-"key": “24575768452345”,
+ "transaction\_id": "123463",
+
+ "num\_records": 128,
+
+ "objects": [
+
+ {
+
+ "key": "5951dd759af59c00015b1409"
+
+ }
+
+ ]
 
 }
 
@@ -532,51 +243,41 @@ Object Update
 
 {
 
-"message\_type": 2,
+ "msg\_type": 1,
 
-"key": “24575768452345”,
+ "transaction\_id": "123464",
 
-"name": "Object1",
+ "num\_records": 1,
 
-"type": "Mesh",
+ "objects": [
 
-"subtype": "Mesh",
+ {
 
-"location": [0.0, 0.0, 0.0],
+ "key": "5951dd759af59c00015b140a",
 
-"rotation\_euler": [0.0, 0.0, 0.0],
+ "name": "Test Object 123464",
 
-"rotation\_quaternion": [0.0, 0.0, 0.0, 0.0],
+ "type": "Curve",
 
-"scale": [0.0, 0.0, 0.0],
+ "subtype": "Sphere",
 
-"transform": [
+ "owner": "456",
 
-0.0, 0.0, 0.0, 0.0,
+ "scene": "DEFGHIJ123464",
 
-0.0, 0.0, 0.0, 0.0,
+ "translation": [0, 0, 1],
 
-0.0, 0.0, 0.0, 0.0,
+ "rotation\_euler": [0, 0, 0],
 
-0.0, 0.0, 0.0, 0.0
+ "rotation\_quaternion": [0, 0.2, 0.3, 0.5],
 
-],
+ "scale": [1, 1, 2],
 
-"bounding\_box": [
+ "assets": ["Asset\_5"]
 
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+ }
 
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-],
-
-"scenes": ["12346453456", "7685632194"],
-
-"lock\_device\_id": "-1"
+ ]
 
 }
 
@@ -585,206 +286,106 @@ Object Destroy
 
 {
 
-"message\_type": 3,
+ "msg\_type": 3,
 
-"key": “24575768452345”,
+ "transaction\_id": "123463",
 
-"lock\_device\_id": "-1"
+ "num\_records": 1,
+
+ "objects": [
+
+ {
+
+ "key": "5951dd759af59c00015b1409"
+
+ }
+
+ ]
 
 }
 
-Inbound Responses
------------------
+Object Query
+~~~~~~~~~~~~
 
 {
 
-"error\_code": 0,
+ "msg\_type": 4,
 
-"error\_message": “”,
+ "transaction\_id": "123463",
 
-"transaction\_id": "abdsd545cxdf45",
+ "num\_records": 1,
 
-"object\_id": "dfg546dcn453d"
+ "objects": [
+
+ {
+
+ "name": "Test Object 123463"
+
+ },
+
+ {
+
+ "name": "Bad Object"
+
+ }
+
+ ]
 
 }
 
-Outbound
+Response
 --------
 
 Object Create
 ~~~~~~~~~~~~~
 
-{
-
-"message\_type": 0,
-
-"key": “24575768452345”,
-
-"name": "Object1",
-
-"type": "Mesh",
-
-"subtype": "Mesh",
-
-"location": [0.0, 0.0, 0.0],
-
-"rotation\_euler": [0.0, 0.0, 0.0],
-
-"rotation\_quaternion": [0.0, 0.0, 0.0, 0.0],
-
-"scale": [0.0, 0.0, 0.0],
-
-"transform": [
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0
-
-],
-
-"bounding\_box": [
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-],
-
-"scenes": ["12346453456", "7685632194"],
-
-"is\_locked": true,
-
-“mesh\_id”: “234xfd432xf”
-
-}
+{"msg\_type":0,"err\_code":100,"num\_records":1,"objects":[{"key":"5951dd759af59c00015b140b"}]}
 
 Object Retrieve
 ~~~~~~~~~~~~~~~
 
-{
-
-"message\_type": 1,
-
-"key": “24575768452345”,
-
-"name": "Object1",
-
-"type": "Mesh",
-
-"subtype": "Mesh",
-
-"location": [0.0, 0.0, 0.0],
-
-"rotation\_euler": [0.0, 0.0, 0.0],
-
-"rotation\_quaternion": [0.0, 0.0, 0.0, 0.0],
-
-"scale": [0.0, 0.0, 0.0],
-
-"transform": [
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0
-
-],
-
-"bounding\_box": [
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-],
-
-"scenes": ["12346453456", "7685632194"],
-
-"is\_locked": true,
-
-“mesh\_id”: “234xfd432xf”
-
-}
+{"msg\_type":2,"err\_code":100,"num\_records":1,"objects":[{"name":"Test
+Object10","scene":"DEFGHI10","type":"Mesh","subtype":"Cube","owner":"123","translation":[0.0,0.0,0.0],"scale":[1.0,1.0,1.0]}]}
 
 Object Update
 ~~~~~~~~~~~~~
 
-{
-
-"message\_type": 2,
-
-"key": “24575768452345”,
-
-"name": "Object1",
-
-"type": "Mesh",
-
-"subtype": "Mesh",
-
-"location": [0.0, 0.0, 0.0],
-
-"rotation\_euler": [0.0, 0.0, 0.0],
-
-"rotation\_quaternion": [0.0, 0.0, 0.0, 0.0],
-
-"scale": [0.0, 0.0, 0.0],
-
-"transform": [
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0
-
-],
-
-"bounding\_box": [
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-
-0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-],
-
-"scenes": ["12346453456", "7685632194"],
-
-"is\_locked": true,
-
-“mesh\_id”: “234xfd432xf”
-
-}
+{"msg\_type":1,"err\_code":100,"num\_records":1,"objects":[{"key":"5951dd759af59c00015b1409","name":"Test
+Object
+123463","scene":"DEFGHIJ123463","type":"Mesh","subtype":"Cube","{"msg\_type":1,"err\_code":100,"num\_records":1,"objects":[{"key":"5951dd759af59c00015b1409","name":"Test
+Object
+123463","scene":"DEFGHIJ123463","type":"Mesh","subtype":"Cube","owner":"456","translation":[0.0,0.0,0.0],"scale":[1.0,2.0,1.0]}]}
 
 Object Destroy
 ~~~~~~~~~~~~~~
 
-{
+{"msg\_type":3,"err\_code":100,"num\_records":1,"objects":[{"key":"5951dd759af59c00015b1408"}]}
 
-"message\_type": 3,
+Object Query
+~~~~~~~~~~~~
 
-"key": “24575768452345”,
+{"msg\_type":4,"err\_code":100,"num\_records":2,"objects":[{"name":"Test
+Object
+123465","scene":"DEFGHIJ123465","type":"Mesh","subtype":"Cube","owner":"456","translation":[0.0,0.0,0.0],"scale":[1.0,1.0,2.0]},{"name":"Test
+Object
+123456","scene":"DEFGHIJ123456","type":"Curve","subtype":"Sphere","owner":"456","translation":[0.0,0.0,0.0],"scale":[2.0,1.0,1.0]}]}
 
-“mesh\_id”: “234xfd432xf”
+Appendix B: Error Codes
+=======================
 
-}
+const int NO\_ERROR = 100
+
+const int ERROR = 101
+
+const int NOT\_FOUND = 102
+
+const int TRANSLATION\_ERROR = 110
+
+const int PROCESSING\_ERROR = 120
+
+const int BAD\_MSG\_TYPE\_ERROR = 121
+
+const int INSUFF\_DATA\_ERROR = 122
+
+
+:ref:`Go Home <index>`
