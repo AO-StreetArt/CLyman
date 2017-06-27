@@ -8,7 +8,7 @@
   <Message>
     <Message_Location>ci/json/obj_name_query.json</Message_Location>
     <Message_Extension>json</Message_Extension>
-    <CSV_Location>ci/csv/obj_name_query_bad.csv</CSV_Location>
+    <CSV_Location>ci/csv/obj_name_query.csv</CSV_Location>
     <Variable_Start_Character>$</Variable_Start_Character>
     <Variable_End_Character>@</Variable_End_Character>
   </Message>

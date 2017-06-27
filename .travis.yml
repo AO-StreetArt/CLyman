@@ -83,12 +83,17 @@ script:
 
   # Update Test
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
-  - tail $TRAVIS_BUILD_DIR/obj_get.log
+  - tail $TRAVIS_BUILD_DIR/obj_upd.log
+  - docker logs --tail 75 clyman
+
+  # Query Test
+  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query.xml
+  - tail $TRAVIS_BUILD_DIR/obj_name_query.log
   - docker logs --tail 75 clyman
 
   # Delete Test
   - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
-  - tail $TRAVIS_BUILD_DIR/obj_get.log
+  - tail $TRAVIS_BUILD_DIR/obj_del.log
   - docker logs --tail 75 clyman
 
   # Failure Tests
