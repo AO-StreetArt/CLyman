@@ -7,7 +7,7 @@ CLyman
 Overview
 ========
 
-This is a C++ microservice which synchronizes high-level 3-D object
+CLyman is a C++ microservice which synchronizes high-level 3-D object
 attributes across many user devices. The goal is to synchronize the
 position, rotation, and scale of virtual objects projected into a real
 space.
@@ -17,8 +17,8 @@ architecture designed to synchronize 3D objects across different client
 programs. It is highly scalable, and many instances can run in parallel
 to support increasing load.
 
-Features:
----------
+Features
+--------
 
 - Storage of 3-D Objects Location, Rotation, Scaling
 - Enable real-time change feeds on the objects which are stored
