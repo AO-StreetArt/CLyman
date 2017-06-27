@@ -5,9 +5,6 @@ Getting Started with CLyman
 
 :ref:`Go Home <index>`
 
-This guide will cover a few of the fastest means of getting started with
-a CLyman development environment.
-
 Docker
 ------
 
@@ -23,18 +20,26 @@ Before we can start CLyman, we need to have a few other programs running first.
 Luckily, these can all be setup with Docker as well:
 
 ``docker run -d --name=registry --network=dvs consul``
+
 ``docker run -d --network=dvs --name=document-db mongo``
+
 ``docker run --network=dvs --name=cache -d redis``
 
 This will start up a single instance each of Mongo, Redis, and Consul.  Consul stores our configuration values, so we'll need to set those up.
 You can either view the `Consul Documentation <https://www.consul.io/intro/getting-started/ui.html>`__ for information on starting the container with a Web UI, or you can use the commands below for a quick-and-dirty setup:
 
 ``docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString``
+
 ``docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString``
+
 ``docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName``
+
 ``docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection``
+
 ``docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId``
+
 ``docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions``
+
 ``docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/Data_Format_Type``
 
 Then, we can start up CLyman:

@@ -9,9 +9,8 @@ Properties File
 CLyman can be configured via a properties file, which has a few command
 line options:
 
--  ``./clyman -dev`` - This will start CLyman in dev mode
 -  ``./clyman`` - This will start CLyman with the default properties
-   file, lyman.properties
+   file, app.properties
 -  ``./clyman -config-file=file.properties`` - This will start CLyman
    with the properties file, file.properties. Can be combined with
    -log-conf.
