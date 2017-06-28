@@ -53,6 +53,7 @@ cp clyman ../$RELEASE_NAME
 
 #Copy the configuration file
 cp log4cpp_release.properties ../$RELEASE_NAME/log4cpp.properties
+cp app.properties ../$RELEASE_NAME/app.properties
 
 #Generate the Release tar files
 printf "Generate Release Tar Files\n"
