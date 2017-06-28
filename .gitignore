@@ -1,6 +1,7 @@
 *.o
 *.a
 app
+clyman
 *.log
 *.log.*
 *.cc

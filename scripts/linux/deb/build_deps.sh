@@ -43,8 +43,7 @@ fi
 # Libprotobuf and protoc are also installed by default, for using Google Protocol Buffers.
 # If you wish to use other parsing methods or message formats, simply remove these
 if [ ! -d /usr/local/include/rapidjson ]; then
-
-  printf "Cloning RapidJSON"
+  printf "Cloning RapidJSON\n"
 
   mkdir $PRE/rapidjson
 
@@ -56,7 +55,25 @@ if [ ! -d /usr/local/include/rapidjson ]; then
 
 fi
 
+#Determine if we Need Eigen
+if [ ! -d /usr/local/include/Eigen ]; then
+  printf "Downloading Eigen\n"
+
+  mkdir $PRE/eigen
+
+  #Get the Eigen Dependencies
+  wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
+
+  #Unzip the Eigen directories
+  tar -vxjf 3.2.8.tar.bz2
+  mv ./eigen-eigen* $PRE/eigen
+
+  #Move the Eigen Header files to the include path
+  sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
+
+fi
+
 #Install python, pyzmq, protobuf, and the protobuf compiler
 sudo apt-get install -y libprotobuf-dev protobuf-compiler
 
-printf "Finished installing dependencies"
+printf "Finished installing dependencies\n"

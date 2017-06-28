@@ -17,9 +17,6 @@ services:
   # Start up Docker
   - docker
 before_install:
-  # Print the python & pip version
-  - python -V
-  - pip -V
   # Install python protocol buffer & zmq modules
   - "pip install protobuf pyzmq"
   # Get DVS Interfaces

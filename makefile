@@ -25,7 +25,7 @@ main.o: main.cpp src/include/app_utils.h
 	$(CC) $(CFLAGS) -o $@ -c main.cpp $(STD) $(INCL_DIRS)
 
 main:
-	$(CC) $(CFLAGS) -o app $(OBJS) $(FULL_LIBS) $(STD) $(INCL_DIRS) $(LINK_DIRS)
+	$(CC) $(CFLAGS) -o clyman $(OBJS) $(FULL_LIBS) $(STD) $(INCL_DIRS) $(LINK_DIRS)
 
 src/Obj3.pb.cc: /usr/local/include/dvs_interface/Obj3.proto
 	$(PROTOC) $(PROTO_OPTS) --cpp_out=$(PROTO_OUT) /usr/local/include/dvs_interface/Obj3.proto
@@ -59,4 +59,4 @@ obj3_list_test:
 # Cleanup
 
 clean:
-	$(RM) app *.o src/*.o *~ *.log *.log.* *_test tests/*.o src/*.pb.* src/*/*.pb.*
+	$(RM) app clyman *.o src/*.o *~ *.log *.log.* *_test tests/*.o src/*.pb.* src/*/*.pb.*
