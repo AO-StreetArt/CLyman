@@ -53,6 +53,9 @@ extern Obj3List *response_message;
 //Shutdown the application
 inline void shutdown()
 {
+  //If necessary delete the inbound message object
+  if (inbound_message) delete inbound_message;
+
   //Delete core objects
   if (mongo) delete mongo;
   if (red) delete red;
@@ -66,9 +69,7 @@ inline void shutdown()
   if (logging) delete logging;
 
   //Shut down protocol buffer library
-
-  //Uncomment this line if you are using protocol buffers
-  //google::protobuf::ShutdownProtobufLibrary();
+  google::protobuf::ShutdownProtobufLibrary();
 
   //Delete factories
   if (cli_factory) delete cli_factory;
@@ -77,9 +78,6 @@ inline void shutdown()
   if (uuid_factory) delete uuid_factory;
   if (zmq_factory) delete zmq_factory;
   if (logging_factory) delete logging_factory;
-
-  //If necessary delete the inbound message object
-  if (inbound_message) delete inbound_message;
 }
 
 #endif

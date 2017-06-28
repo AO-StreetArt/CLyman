@@ -1,3 +1,5 @@
+//Functions to assist with running queries against Mongo
+
 #include "app_log.h"
 
 //Use a set of Obj3s to query the DB and return a list of results

@@ -1,6 +1,9 @@
 ################################################################
 
-# Dockerfile to build AOSSL Container Images
+# Dockerfile to build CLyman Development Container Images
+# The fact that this is necessary is pretty idiotic, but I cannot find
+# another way to build the dockerfile against a different branch
+# based on the branch in Travis CI
 # Based on Ubuntu-ssh
 
 ################################################################

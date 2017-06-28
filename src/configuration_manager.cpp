@@ -15,13 +15,6 @@ ConfigurationManager::~ConfigurationManager() {
 
 //----------------------------Configure from File-----------------------------//
 
-//Does a file exist?
-//bool file_exists( std::string name )
-//{
-  //struct stat buffer;
-  //return (stat (name.c_str(), &buffer) == 0);
-//}
-
 //Configure based on a properties file
 bool ConfigurationManager::configure_from_file (std::string file_path)
 {

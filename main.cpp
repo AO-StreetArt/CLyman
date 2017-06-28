@@ -64,6 +64,7 @@ void my_signal_handler(int s){
 
       sigaction(SIGINT, &sigIntHandler, NULL);
 
+      //Setup the component factories
       cli_factory = new CommandLineInterpreterFactory;
       redis_factory = new RedisComponentFactory;
       uuid_factory = new uuidComponentFactory;
@@ -100,7 +101,7 @@ void my_signal_handler(int s){
       //Set up the UUID Generator
       uid = uuid_factory->get_uuid_interface();
 
-      std::string service_instance_id = "Ivan-";
+      std::string service_instance_id = "Clyman-";
       UuidContainer sid_container;
       try {
         sid_container = uid->generate();
@@ -285,7 +286,6 @@ void my_signal_handler(int s){
 
           //Core application logic
           if (inbound_message) {
-            //Set the response message type
             try {
 
               //Object Creation
@@ -393,6 +393,7 @@ void my_signal_handler(int s){
             response_message->set_msg_type( inbound_message->get_msg_type() );
           }
 
+          //Convert the response object to a message
           main_logging->debug("Building Response");
           std::string application_response = "";
           if (config->get_formattype() == JSON_FORMAT) application_response = response_message->to_json();

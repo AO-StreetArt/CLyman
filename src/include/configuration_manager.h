@@ -46,12 +46,11 @@ PropertyReaderFactory *props_factory = NULL;
 //Internal Consul Administrator
 ConsulInterface *ca = NULL;
 bool isConsulActive;
+//Consul Service Definition
+ServiceInterface *s = NULL;
 
 //Command Line Interpreter holding config arguments
 CommandLineInterface *cli = NULL;
-
-//Consul Service Definition
-ServiceInterface *s = NULL;
 
 //Configuration Variables
 std::string DB_ConnStr;
