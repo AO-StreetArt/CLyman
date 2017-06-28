@@ -126,4 +126,4 @@ EXPOSE 12345
 EXPOSE 5000-5999
 
 #Start up the SSH terminal so that we can connect & start the app
-ENTRYPOINT ["CLyman/app"]
+ENTRYPOINT ["CLyman/clyman"]
