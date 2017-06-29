@@ -407,7 +407,7 @@ bool ConfigurationManager::configure ()
     if (env_ip) env_ip_str.assign(env_ip);
     if (env_port) env_port_str.assign(env_port);
     if (cli->opt_exist("-ip")) env_ip_str.assign(cli->get_opt("-ip"));
-    if (cli->opt_exist("-port")) env_ip_str.assign(cli->get_opt("-port"));
+    if (cli->opt_exist("-port")) env_port_str.assign(cli->get_opt("-port"));
     if ( cli->opt_exist("-consul-addr") ) env_consul_addr_str.assign( cli->get_opt("-consul-addr") );
 
     //If we had a hostname and port specified in the configuration file, then we override to that
