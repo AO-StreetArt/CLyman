@@ -58,6 +58,8 @@ std::string Mongo_ConnStr;
 std::string Mongo_DbName;
 std::string Mongo_DbCollection;
 std::string OMQ_IBConnStr;
+std::string hostname;
+std::string port;
 std::vector<RedisConnChain> RedisConnectionList;
 int format_type;
 bool StampTransactionId;
@@ -65,6 +67,9 @@ bool AtomicTransactions;
 
 //The Current Node ID
 std::string node_id;
+
+//The port
+int int_port;
 
 //String Manipulations
 
@@ -79,6 +84,8 @@ bool configure_from_file (std::string file_path);
 
 //Consul Config
 std::string get_consul_config_value(std::string key);
+//Configure based on the Services List and Key/Value store from Consul
+bool configure_from_consul (std::string consul_path, std::string conn_str);
 bool configure_from_consul (std::string consul_path, std::string ip, std::string port);
 
 public:
@@ -88,7 +95,8 @@ public:
     OMQ_IBConnStr="tcp://*:5556";Mongo_ConnStr="";Mongo_DbCollection="test";\
       isConsulActive=false;StampTransactionId=false;AtomicTransactions=false;\
         node_id=instance_id;consul_factory=new ConsulComponentFactory;\
-          props_factory = new PropertyReaderFactory;format_type=-1;Mongo_DbName="test";}
+          props_factory = new PropertyReaderFactory;format_type=-1;\
+            Mongo_DbName="test";hostname="";port="";}
   ~ConfigurationManager();
 
   //Populate the configuration variables

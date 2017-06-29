@@ -65,6 +65,6 @@ zip -r $RELEASE_NAME-$RELEASE_VERSION.zip ../$RELEASE_NAME
 mv *.tar.* ../
 mv *.zip ../
 
-printf "Script finished, release folders can be found at ../../$RELEASE_NAME, tar files at ../..\n"
+printf "Script finished, release folders can be found at ../../../$RELEASE_NAME, tar files at ../../..\n"
 
 exit 0

@@ -5,12 +5,30 @@ import sys
 
 if __name__ == "__main__":
 
+    # Determine where we are sending the message
+    conn_str = ""
+    if len(sys.argv) > 2:
+        conn_str = "tcp://%s:%s" % (sys.argv[1], sys.argv[2])
+    elif len(sys.argv) == 2:
+        props_file_name = sys.argv[1]
+
+        #Read props file and pull 0mq string
+        with open(props_file_name) as f:
+            for line in f:
+                if not (len(line) == 0 or line.startswith("//") or line.startswith("#")) or line.startswith("-")):
+                    kv_list = line.split("=")
+                    if kv_list[0] == "0MQ_InboundConnectionString":
+                        conn_str = kv_list[1].strip()
+
+    else:
+        print("Invalid input parameters")
+
+    # Actually send the message
     context = zmq.Context()
 
     # Socket to talk to server
     print("Connecting to clyman")
     socket = context.socket(zmq.REQ)
-    conn_str = "tcp://%s:%s" % (sys.argv[1], sys.argv[2])
     socket.connect(conn_str)
 
     # Send the request

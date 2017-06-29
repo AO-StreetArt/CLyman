@@ -2,13 +2,13 @@
 Description=CLyman Object Tracking Service
 
 [Service]
-Environment=CONSUL_AGENT_ADDR=localhost:8500
-Environment=CLYMAN_HOST=localhost
-Environment=CLYMAN_PORT=5556
+Environment=CLYMAN_CONSUL_ADDR=localhost:8500
+Environment=CLYMAN_CONF_FILE=/etc/clyman/app.properties
+Environment=CLYMAN_LOG_CONF=/etc/clyman/log4cpp.properties
 User=clyman
 Group=clyman
-ExecStart=/usr/local/bin/clyman -consul-addr=${CONSUL_AGENT_ADDR} -ip=${CLYMAN_HOST} -port=${CLYMAN_PORT} -log-conf=/etc/clyman/log4cpp.properties
-ExecStop=python /usr/local/bin/stop_clyman.py ${CLYMAN_HOST} ${CLYMAN_PORT}
+ExecStart=/usr/local/bin/clyman -consul-addr=$CLYMAN_CONSUL_ADDR -conf-file=$CLYMAN_CONF_FILE -log-conf=$CLYMAN_LOG_CONF
+ExecEnd=python /usr/local/bin/stop_clyman.py $CLYMAN_CONF_FILE
 
 [Install]
 WantedBy=multi-user.target

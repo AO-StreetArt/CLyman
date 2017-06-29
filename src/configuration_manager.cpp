@@ -46,6 +46,16 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
     config_logging->info("Inbound 0MQ Connection:");
     config_logging->info(OMQ_IBConnStr);
   }
+  if (props->opt_exist("0MQ_Hostname")) {
+    hostname = props->get_opt("0MQ_Hostname");
+    config_logging->info("Inbound 0MQ Hostname:");
+    config_logging->info(hostname);
+  }
+  if (props->opt_exist("0MQ_Port")) {
+    port = props->get_opt("0MQ_Port");
+    config_logging->info("Inbound 0MQ Port:");
+    config_logging->info(port);
+  }
   if (props->opt_exist("DataFormatType")) {
     std::string param_value = props->get_opt("DataFormatType");
     if (param_value == "1" || param_value == "JSON" || param_value == "json" || param_value == "Json") {
@@ -203,13 +213,6 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 //Configure based on the Services List and Key/Value store from Consul
 bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port)
 {
-
-  ca = consul_factory->get_consul_interface( consul_path );
-  config_logging->info ("Connecting to Consul");
-  config_logging->info (consul_path);
-
-  //Now, use the Consul Admin to configure the app
-
   std::string internal_address;
 
   //Step 1a: Generate new connectivity information for the inbound service from command line arguments
@@ -222,11 +225,23 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   OMQ_IBConnStr = internal_address + port;
 
-  //Step 1b: Register the Service with Consul
+  return configure_from_consul(consul_path, OMQ_IBConnStr);
+}
 
+//Configure based on the Services List and Key/Value store from Consul
+bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string conn_str)
+{
+
+  ca = consul_factory->get_consul_interface( consul_path );
+  config_logging->info ("Connecting to Consul");
+  config_logging->info (consul_path);
+
+  //Now, use the Consul Admin to configure the app
+
+  //Step 1b: Register the Service with Consul
   //Build a new service definition for this currently running instance of clyman
   std::string name = "clyman";
-  s = consul_factory->get_service_interface(node_id, name, internal_address, port);
+  s = consul_factory->get_service_interface(node_id, name, hostname, port);
   s->add_tag("ZMQ");
 
   //Register the service
@@ -357,56 +372,62 @@ bool ConfigurationManager::configure ()
     return false;
   }
   else {
-
+    bool configured = false;
     bool ret_val = false;
 
     //See if we have any environment variables specified
-    const char * env_consul_addr = std::getenv("AOSSL_APP_CONSUL_ADDR");
-    const char * env_ip = std::getenv("AOSSL_APP_IP");
-    const char * env_port = std::getenv("AOSSL_APP_PORT");
-    const char * env_db_addr = std::getenv("AOSSL_APP_DB_ADDR");
-    const char * env_mongo_addr = std::getenv("AOSSL_APP_MONGO_ADDR");
-    const char * env_mongo_db = std::getenv("AOSSL_APP_MONGO_DB");
-    const char * env_mongo_col = std::getenv("AOSSL_APP_MONGO_COL");
-    const char * env_conf_file = std::getenv("AOSSL_APP_CONFIG_FILE");
+    const char * env_consul_addr = std::getenv("CLYMAN_CONSUL_ADDR");
+    const char * env_ip = std::getenv("CLYMAN_IP");
+    const char * env_port = std::getenv("CLYMAN_PORT");
+    const char * env_db_addr = std::getenv("CLYMAN_DB_ADDR");
+    const char * env_mongo_addr = std::getenv("CLYMAN_MONGO_ADDR");
+    const char * env_mongo_db = std::getenv("CLYMAN_MONGO_DB");
+    const char * env_mongo_col = std::getenv("CLYMAN_MONGO_COL");
+    const char * env_conf_file = std::getenv("CLYMAN_CONFIG_FILE");
 
     //Check if we have a configuration file specified
     if ( env_conf_file ) {
       std::string env_conf_loc (env_conf_file);
       ret_val = configure_from_file( env_conf_loc );
+      configured = true;
     }
 
     else if ( cli->opt_exist("-config-file") ) {
       ret_val =  configure_from_file( cli->get_opt("-config-file") );
+      configured = true;
     }
 
-    //Check if we have a consul address specified
-    else if (env_consul_addr && env_ip && env_port) {
-      std::string env_consul_addr_str (env_consul_addr);
-      std::string env_ip_str (env_ip);
-      std::string env_port_str (env_port);
+    //String variables to hold the hostname, port, and consul connection info
+    std::string env_ip_str = "";
+    std::string env_port_str = "";
+    std::string env_consul_addr_str = "";
+
+    //Pull any command line and environment variables for ip, port, and consul address
+    if (env_consul_addr) env_consul_addr_str.assign(env_consul_addr);
+    if (env_ip) env_ip_str.assign(env_ip);
+    if (env_port) env_port_str.assign(env_port);
+    if (cli->opt_exist("-ip")) env_ip_str.assign(cli->get_opt("-ip"));
+    if (cli->opt_exist("-port")) env_ip_str.assign(cli->get_opt("-port"));
+    if ( cli->opt_exist("-consul-addr") ) env_consul_addr_str.assign( cli->get_opt("-consul-addr") );
+
+    //If we had a hostname and port specified in the configuration file, then we override to that
+    if ( !(hostname.empty()) ) env_ip_str.assign(hostname);
+    if ( !(port.empty()) ) env_port_str.assign(port);
+
+    //Execute Consul Configuration
+    if ( !(env_consul_addr_str.empty() || env_ip_str.empty() || env_port_str.empty()) )  {
       ret_val = configure_from_consul( env_consul_addr_str, env_ip_str, env_port_str );
       if (ret_val) {
         isConsulActive = true;
+        configured = true;
       }
       else {
         config_logging->error("Configuration from Consul failed, keeping defaults");
       }
-    }
-
-    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") )
-    {
-      ret_val = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
-      if (ret_val) {
-        isConsulActive = true;
-      }
-      else {
-        config_logging->error("Configuration from Consul failed, keeping defaults");
-      }
-    }
+    } else {config_logging->error("Insufficient information provided to register with Consul");}
 
     //If we have nothing specified, look for an app.properties file
-    else
+    if (!configured)
     {
       ret_val = configure_from_file( "app.properties" );
 	  }
