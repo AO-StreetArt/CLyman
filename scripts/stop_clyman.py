@@ -14,11 +14,18 @@ if __name__ == "__main__":
 
         #Read props file and pull 0mq string
         with open(props_file_name) as f:
+            hostname = ""
+            port = ""
             for line in f:
-                if not (len(line) == 0 or line.startswith("//") or line.startswith("#")) or line.startswith("-")):
+                if not (len(line) == 0 or line.startswith("//") or line.startswith("#") or line.startswith("-")):
                     kv_list = line.split("=")
-                    if kv_list[0] == "0MQ_InboundConnectionString":
-                        conn_str = kv_list[1].strip()
+                    if kv_list[0] == "0MQ_Hostname":
+                        hostname = kv_list[1].strip()
+                        print("Connection Host (%s)" % conn_str)
+                    elif kv_list[0] == "0MQ_Port":
+                        port = kv_list[1].strip()
+                        print("Connection Port (%s)" % conn_str)
+            conn_str = "tcp://%s:%s" % (hostname, port)
 
     else:
         print("Invalid input parameters")
