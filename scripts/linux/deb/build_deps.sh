@@ -73,6 +73,10 @@ if [ ! -d /usr/local/include/Eigen ]; then
 
 fi
 
+#Get the DVS Interface Protocol Buffer Library
+git clone https://github.com/AO-StreetArt/DvsInterface.git
+cd DvsInterface && sudo make install
+
 #Install python, pyzmq, protobuf, and the protobuf compiler
 sudo apt-get install -y libprotobuf-dev protobuf-compiler
 
