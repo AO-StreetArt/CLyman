@@ -34,7 +34,6 @@ cp scripts/$DEPS_SCRIPT_LOC/build_deps.sh ../$RELEASE_NAME/scripts
 
 #Copy the license & notice
 cp LICENSE.txt ../$RELEASE_NAME
-cp NOTICE.txt ../$RELEASE_NAME
 
 #Copy the easy install script into the release folder
 cp scripts/linux/easy_install.sh ../$RELEASE_NAME
