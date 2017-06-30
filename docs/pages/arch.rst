@@ -32,4 +32,7 @@ orientation, and scaling. This aims to solve that problem by providing a
 messaging API that is used to update objects, and a corresponding feed
 outbound which tells all devices about the update.
 
+In the second phase of development, CLyman will be extended to drive a stream
+of live outbound updates which will be sent to User Devices over UDP.
+
 :ref:`Go Home <index>`
