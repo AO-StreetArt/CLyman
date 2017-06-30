@@ -37,9 +37,9 @@ Inbound ZeroMQ Connection.
    on tcp://my.ip, and configure from the logging configuration file,
    logging.properties.
 
-We can finally use both a properties file and a Consul connection, in which case
+We can also use both a properties file and a Consul connection, in which case
 the properties file is used to define the ip and port of the inbound ZeroMQ connection,
-while Consul is used for registration and global configuration retrieval.
+while Consul is used for registration and all other configuration retrieval.
 
 -  ``./clyman -consul-addr=localhost:8500 -config-file=file.properties``
 
@@ -99,8 +99,10 @@ Behavior
 ~~~~~~~~~
 
 -  DataFormatType - Are we communicating via JSON or Protocol Buffers
--  StampTransactionId - True or False, do we stamp Transaction IDs
+-  StampTransactionId - True or False, do we stamp Transaction IDs on messages that
+   do not have them already
 -  AtomicTransactions - True or False, do we enforce atomic transactions
-   across all instances of CLyman for any given object
+   across all instances of CLyman for any given object.  This guarantees that
+   updates will be processed in the order they are received across the entire CLyman network.
 
 :ref:`Go Home <index>`

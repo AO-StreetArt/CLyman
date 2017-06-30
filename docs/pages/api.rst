@@ -61,11 +61,15 @@ Object List
 -----------
 
 The Object List is the highest level wrapper in the API. It only
-contains 4 keys, one of which is an array of objects.
+contains 6 keys, one of which is an array of objects.
 
 -  msg\_type – 0 for create, 1 for update, 2 for retrieve, 3 for delete,
    4 for query. The message type applies to all objects in the objects
    array.
+-  err\_code - An integer error code for the response, full list of codes
+   can be found in the appendix.
+-  err\_msg - A string error message for the response, will not be present when
+   no error was encountered.
 -  transaction\_id – An ID to distinguish a transaction within a larger
    network of applications
 -  num\_records – This lets us give Clyman a maximum number of values to
@@ -90,9 +94,9 @@ element of the array from the “objects” key of the object list.
 -  scene – ID For the Scene containing the object
 -  translation – X, Y, and Z values for the translation of the object
    from it’s origin
--  rotation\_euler – X, Y, and Z values for the rotation of the object
+-  rotation\_euler – X, Y, and Z values for the local rotation of the object
    about each axis
--  rotation\_quaternion – W, X, Y, and Z values for the quaternion
+-  rotation\_quaternion – W, X, Y, and Z values for the local quaternion
    rotation of the object
 -  scale – X, Y, and Z values for the scaling of the object
 -  assets – An Array of identifiers for “assets”, which should be
@@ -339,53 +343,131 @@ Response
 Object Create
 ~~~~~~~~~~~~~
 
-{"msg\_type":0,"err\_code":100,"num\_records":1,"objects":[{"key":"5951dd759af59c00015b140b"}]}
-
-Object Retrieve
-~~~~~~~~~~~~~~~
-
-{"msg\_type":2,"err\_code":100,"num\_records":1,"objects":[{"name":"Test
-Object10","scene":"DEFGHI10","type":"Mesh","subtype":"Cube","owner":"123","translation":[0.0,0.0,0.0],"scale":[1.0,1.0,1.0]}]}
+{
+  "msg\_type":0,
+  "err\_code":100,
+  "num\_records":1,
+  "objects":[
+    {
+      "key":"5951dd759af59c00015b140b"
+    }
+  ]
+}
 
 Object Update
 ~~~~~~~~~~~~~
 
-{"msg\_type":1,"err\_code":100,"num\_records":1,"objects":[{"key":"5951dd759af59c00015b1409","name":"Test
-Object
-123463","scene":"DEFGHIJ123463","type":"Mesh","subtype":"Cube","{"msg\_type":1,"err\_code":100,"num\_records":1,"objects":[{"key":"5951dd759af59c00015b1409","name":"Test
-Object
-123463","scene":"DEFGHIJ123463","type":"Mesh","subtype":"Cube","owner":"456","translation":[0.0,0.0,0.0],"scale":[1.0,2.0,1.0]}]}
+{
+  "msg\_type":1,
+  "err\_code":100,
+  "num\_records":1,
+  "objects":[
+    {
+      "key":"5951dd759af59c00015b1409",
+      "name":"Test Object 123463",
+      "scene":"DEFGHIJ123463",
+      "type":"Mesh",
+      "subtype":"Cube",
+      "owner":"456",
+      "translation":[0.0,0.0,0.0],
+      "scale":[1.0,2.0,1.0]
+    }
+  ]
+}
+
+Object Retrieve
+~~~~~~~~~~~~~~~
+
+{
+  "msg\_type":2,
+  "err\_code":100,
+  "num\_records":1,
+  "objects":[
+    {
+      "name":"Test Object10",
+      "scene":"DEFGHI10",
+      "type":"Mesh",
+      "subtype":"Cube",
+      "owner":"123",
+      "translation":[0.0,0.0,0.0],
+      "scale":[1.0,1.0,1.0]
+    }
+  ]
+}
 
 Object Destroy
 ~~~~~~~~~~~~~~
 
-{"msg\_type":3,"err\_code":100,"num\_records":1,"objects":[{"key":"5951dd759af59c00015b1408"}]}
+{
+  "msg\_type":3,
+  "err\_code":100,
+  "num\_records":1,
+  "objects":[
+    {
+      "key":"5951dd759af59c00015b1408"
+    }
+  ]
+}
 
 Object Query
 ~~~~~~~~~~~~
 
-{"msg\_type":4,"err\_code":100,"num\_records":2,"objects":[{"name":"Test
-Object
-123465","scene":"DEFGHIJ123465","type":"Mesh","subtype":"Cube","owner":"456","translation":[0.0,0.0,0.0],"scale":[1.0,1.0,2.0]},{"name":"Test
-Object
-123456","scene":"DEFGHIJ123456","type":"Curve","subtype":"Sphere","owner":"456","translation":[0.0,0.0,0.0],"scale":[2.0,1.0,1.0]}]}
+{
+  "msg\_type":4,
+  "err\_code":100,
+  "num\_records":2,
+  "objects":[
+    {
+      "name":"Test Object 123465",
+      "scene":"DEFGHIJ123465",
+      "type":"Mesh",
+      "subtype":"Cube",
+      "owner":"456",
+      "translation":[0.0,0.0,0.0],
+      "scale":[1.0,1.0,2.0]
+    },
+    {
+      "name":"Test Object 123456",
+      "scene":"DEFGHIJ123456",
+      "type":"Curve",
+      "subtype":"Sphere",
+      "owner":"456",
+      "translation":[0.0,0.0,0.0],
+      "scale":[2.0,1.0,1.0]
+    }
+  ]
+}
 
 Appendix B: Error Codes
 =======================
 
-const int NO\_ERROR = 100
+NO\_ERROR = 100
 
-const int ERROR = 101
+Operation was successful
 
-const int NOT\_FOUND = 102
+ERROR = 101
 
-const int TRANSLATION\_ERROR = 110
+An unknown error occurred
 
-const int PROCESSING\_ERROR = 120
+NOT\_FOUND = 102
 
-const int BAD\_MSG\_TYPE\_ERROR = 121
+Data was not found
 
-const int INSUFF\_DATA\_ERROR = 122
+TRANSLATION\_ERROR = 110
+
+JSON/Protocol Buffer parsing error
+
+PROCESSING\_ERROR = 120
+
+Unknown error occurred during processing stage of execution
+
+BAD\_MSG\_TYPE\_ERROR = 121
+
+An invalid msg_type was recieved (valid values are integers from 0 to 4)
+
+INSUFF\_DATA\_ERROR = 122
+
+Insufficient data received on message to form a valid response
 
 
 :ref:`Go Home <index>`
