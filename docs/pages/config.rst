@@ -37,6 +37,12 @@ Inbound ZeroMQ Connection.
    on tcp://my.ip, and configure from the logging configuration file,
    logging.properties.
 
+We can finally use both a properties file and a Consul connection, in which case
+the properties file is used to define the ip and port of the inbound ZeroMQ connection,
+while Consul is used for registration and global configuration retrieval.
+
+-  ``./clyman -consul-addr=localhost:8500 -config-file=file.properties``
+
 When configuring from Consul the keys of the properties file are equal
 to the expected keys in Consul.
 

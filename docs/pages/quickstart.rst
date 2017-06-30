@@ -52,20 +52,63 @@ This will start an instance of CLyman with the following properties:
 - Listening on localhost port 5555
 - Connected to Consul Container
 
+We can open up a terminal within the container by:
+
 ``docker exec -i -t clyman /bin/bash``
+
+The 'stop_clyman.py' script is provided as an easy way to stop CLyman running as
+a service.  This can be executed with:
+
+``python stop_clyman.py hostname port``
 
 For a more detailed discussion on the deployment of CLyman, please see
 the :ref:`Deployment Section <deployment>`
 of the documentation.
 
+Using the Latest Release
+------------------------
+
+In order to use the latest release, you will still need to start up the
+applications used by CLyman, namely Redis, Mongo, and Consul.  This can be done
+using the docker instructions above, or by installing each to the system manually.
+Instructions:
+* `Redis <https://redis.io/topics/quickstart>`__
+* `Mongo <https://docs.mongodb.com/getting-started/shell/>`__
+* `Consul <https://www.consul.io/intro/getting-started/install.html>`__
+
+Then, download the latest release from the `Releases Page <https://github.com/AO-StreetArt/CLyman/releases>`__
+
+Currently, pre-built binaries are available for:
+
+* Ubuntu 16.04
+* CentOS7
+
+Unzip/untar the release file and enter into the directory.  Then, we will use the
+easy_install.sh script to install CLyman.  Running the below will attempt to install
+the dependencies, and then install the CLyman executable:
+
+``sudo ./easy_install.sh -d``
+
+If you'd rather not automatically install dependencies, and only install the executable,
+then you can simply leave off the '-d' flag.  Additionally, you may supply
+a '-r' flag to uninstall CLyman:
+
+``sudo ./easy_install -r``
+
+Once the script is finished installing CLyman, you can start CLyman with:
+
+``sudo systemctl start clyman.service``
+
+The 'stop_clyman.py' script is provided as an easy way to stop CLyman running as
+a service.  This can be executed with:
+
+``python stop_clyman.py hostname port``
+
 Building from Source
 --------------------
 
-While using Docker is a much faster solution, it is sometimes necessary
-to build from source.
-
-The recommended deployment for development of CLyman is either
-Ubuntu 16.04 or Redhat7.
+The recommended system for development of CLyman is either
+Ubuntu 16.04 or CentOS7.
 
 ``git clone https://github.com/AO-StreetArt/CLyman.git``
 
