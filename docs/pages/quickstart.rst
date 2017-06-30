@@ -108,7 +108,8 @@ Building from Source
 --------------------
 
 The recommended system for development of CLyman is either
-Ubuntu 16.04 or CentOS7.
+Ubuntu 16.04 or CentOS7.  You will need gcc 5.0 or greater installed to
+successfully compile the program.
 
 ``git clone https://github.com/AO-StreetArt/CLyman.git``
 

@@ -80,11 +80,11 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   if (props->opt_exist("AtomicTransactions")) {
     if (props->get_opt("AtomicTransactions") == "True") {
       AtomicTransactions = true;
-      config_logging->info("Sending Outbound Failure Messages Enabled");
+      config_logging->info("Atomic Transactions Enabled");
     }
     else {
       AtomicTransactions = false;
-      config_logging->info("Sending Outbound Failure Messages Disabled");
+      config_logging->info("Atomic Transactions Disabled");
     }
   }
 
