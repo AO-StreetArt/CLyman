@@ -104,6 +104,9 @@ a service.  This can be executed with:
 
 ``python stop_clyman.py hostname port``
 
+Note: The CLyman configuration files can be found at /etc/clyman, and the log files
+can be found at /var/log/clyman.
+
 Building from Source
 --------------------
 

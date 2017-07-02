@@ -22,7 +22,7 @@ CppZmq
 ------
 `CppZmq <https://github.com/zeromq/cppzmq>`__ is the C++ binding for libzmq, which was written in C.
 
-`CppZmq <https://github.com/zeromq/cppzmq>`__ is released under an LGPL License.
+`CppZmq <https://github.com/zeromq/cppzmq>`__ is released under an MIT License.
 
 
 Log4cpp

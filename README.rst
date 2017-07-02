@@ -5,7 +5,7 @@ CLyman
    :alt:
 
 Overview
-========
+--------
 
 CLyman is a C++ microservice which synchronizes high-level 3-D object
 attributes across many user devices. The goal is to synchronize the
