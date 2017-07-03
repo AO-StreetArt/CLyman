@@ -32,3 +32,5 @@ utilizes the `DVS Interface
 library <https://github.com/AO-StreetArt/DvsInterface>`__, also
 available on github. It utilizes the Obj3.proto file for inbound
 communications when configured to read protocol buffers.
+
+Stuck and need help?  Have general questions about the application?  Reach out to the development team at clyman@emaillist.io
