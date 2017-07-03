@@ -1,120 +1,94 @@
 sudo: required
 language: python
 python:
-  - "2.7"
-
+- '2.7'
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
     packages:
-    # Install LibSSL
     - libssl-dev
-    # Install Protocol Buffer Compiler
     - protobuf-compiler
     - libprotobuf-dev
 services:
-  # Start up Docker
-  - docker
+- docker
 before_install:
-  # Install python protocol buffer & zmq modules
-  - "pip install protobuf pyzmq"
-  # Get DVS Interfaces
-  - git clone https://github.com/AO-StreetArt/DvsInterface.git
-  - cd DvsInterface && sudo make install
-  # Clone the repository for the python tests
-  - cd $TRAVIS_BUILD_DIR
-  - git clone https://github.com/AO-StreetArt/0-Meter.git
-  - git clone https://github.com/AO-StreetArt/PythonCsvHelper.git
-  # Start the docker network
-  - docker network create dvs
+- pip install protobuf pyzmq
+- git clone https://github.com/AO-StreetArt/DvsInterface.git
+- cd DvsInterface && sudo make install
+- cd $TRAVIS_BUILD_DIR
+- git clone https://github.com/AO-StreetArt/0-Meter.git
+- git clone https://github.com/AO-StreetArt/PythonCsvHelper.git
+- docker network create dvs
 install:
-  - cd $TRAVIS_BUILD_DIR
-  # Setup Consul
-  - docker pull consul
-  - docker run -d --name=registry --network=dvs consul
-  # Set up Neo4j
-  - docker pull mongo
-  - docker run -d --network=dvs --name=document-db mongo
-  # Set up Redis
-  - docker pull redis
-  - docker run --network=dvs --name=cache -d redis
-  # Populate Consul Configuration variables
-  - docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
-  - docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString
-  - docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
-  - docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
-  - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
-  - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions
-  - docker exec -t registry curl -X PUT -d 'JSON' http://localhost:8500/v1/kv/clyman/DataFormatType
-  # Build the Docker Image
-  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
-  # Start clyman
-  - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500 localhost 5556
+- cd $TRAVIS_BUILD_DIR
+- docker pull consul
+- docker run -d --name=registry --network=dvs consul
+- docker pull mongo
+- docker run -d --network=dvs --name=document-db mongo
+- docker pull redis
+- docker run --network=dvs --name=cache -d redis
+- docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
+- docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString
+- docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
+- docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
+- docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
+- docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions
+- docker exec -t registry curl -X PUT -d 'JSON' http://localhost:8500/v1/kv/clyman/DataFormatType
+- cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH
+  $TRAVIS_BUILD_DIR
+- cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500
+  localhost 5556
 before_script:
-  # Sleep for a few seconds to ensure everything is started up
-  - sleep 5
-  # Display which containers are active and the startup logs for each
-  - docker ps -a
-  - docker logs clyman
-  - docker logs cache
-  - docker logs document-db
-  - docker logs registry
+- sleep 5
+- docker ps -a
+- docker logs clyman
+- docker logs cache
+- docker logs document-db
+- docker logs registry
 script:
-  # Execute the Python Tests
-
-  # Create Test
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
-  - tail $TRAVIS_BUILD_DIR/obj_crt.log
-  - docker logs --tail 75 clyman
-
-  # Copy the keys returned from the creation test to create the other success CSV's
-  - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_get.csv 0 3
-  - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_upd.csv 0 3
-  - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_delete.csv 0 3
-
-  # Get Test
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
-  - tail $TRAVIS_BUILD_DIR/obj_get.log
-  - docker logs --tail 75 clyman
-
-  # Update Test
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
-  - tail $TRAVIS_BUILD_DIR/obj_upd.log
-  - docker logs --tail 75 clyman
-
-  # Query Test
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query.xml
-  - tail $TRAVIS_BUILD_DIR/obj_name_query.log
-  - docker logs --tail 75 clyman
-
-  # Delete Test
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
-  - tail $TRAVIS_BUILD_DIR/obj_del.log
-  - docker logs --tail 75 clyman
-
-  # Failure Tests
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get_bad.xml
-  - tail $TRAVIS_BUILD_DIR/obj_get.log
-  - docker logs --tail 60 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd_bad.xml
-  - tail $TRAVIS_BUILD_DIR/obj_upd.log
-  - docker logs --tail 60 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query_bad.xml
-  - tail $TRAVIS_BUILD_DIR/obj_name_query.log
-  - docker logs --tail 60 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query_bad.xml
-  - tail $TRAVIS_BUILD_DIR/obj_type_query.log
-  - docker logs --tail 60 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del_bad.xml
-  - tail $TRAVIS_BUILD_DIR/obj_del.log
-  - docker logs --tail 60 clyman
-  - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt_bad.xml
-  - tail $TRAVIS_BUILD_DIR/obj_crt.log
-  - docker logs --tail 60 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
+- tail $TRAVIS_BUILD_DIR/obj_crt.log
+- docker logs --tail 75 clyman
+- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_get.csv
+  0 3
+- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_upd.csv
+  0 3
+- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_delete.csv
+  0 3
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
+- tail $TRAVIS_BUILD_DIR/obj_get.log
+- docker logs --tail 75 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
+- tail $TRAVIS_BUILD_DIR/obj_upd.log
+- docker logs --tail 75 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query.xml
+- tail $TRAVIS_BUILD_DIR/obj_name_query.log
+- docker logs --tail 75 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
+- tail $TRAVIS_BUILD_DIR/obj_del.log
+- docker logs --tail 75 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get_bad.xml
+- tail $TRAVIS_BUILD_DIR/obj_get.log
+- docker logs --tail 60 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd_bad.xml
+- tail $TRAVIS_BUILD_DIR/obj_upd.log
+- docker logs --tail 60 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query_bad.xml
+- tail $TRAVIS_BUILD_DIR/obj_name_query.log
+- docker logs --tail 60 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query_bad.xml
+- tail $TRAVIS_BUILD_DIR/obj_type_query.log
+- docker logs --tail 60 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del_bad.xml
+- tail $TRAVIS_BUILD_DIR/obj_del.log
+- docker logs --tail 60 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt_bad.xml
+- tail $TRAVIS_BUILD_DIR/obj_crt.log
+- docker logs --tail 60 clyman
 after_success:
-  # Push the built image to docker hub
-- cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
+- cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN
+  $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
 notifications:
   slack:
-    secure: hnjVThmuokboFFs3gAoFEPGLCdageH2jeLq9yG9p1/6S0ZU+OsZm2PgQf85Ik8ZqU+ikIfPI+BZuG4ApQ7WU8pvhiWnyOJtX6gQU8y6nRZ2B8H0pfHbZDTEQ4roz9FdX0PrG4W6w00lCwU+Rg6/HF3kX0mziF1+V2rsdSDuY0vEL6FTxdn/eIm8ewhCBnuVnsASW49lfabdMSjD0ayURgnysJ4O4SYU3yRYF0Yj0izrMdmoPf6k6Y2htiyVYegRQ8c/4ohlRppI/J8NtpisqEcj3Ydnyudhr/Uui3wMtywy8XRxWPYkrXMFuUtQJwRfUz3eykBCFS9dnlhhtZPNRfHj6zpwR9ypOybcYtVRce0cp1DWfdaUxNM12yq2s2yJ2wBWDvIo+T/mIB3YH9YD072ncn23Yb+JIG8NAGk6QBz1eDFHXJfEf0voinWVMTlEvnLvCEq0ArJrwgNRxi2cJaztzJ8x20CctY9Bgy/biNFavZCyW1a7KN1TzURUjevQ4RTrqzhQms2fUBMYDNTS+HpfFdpbrY9dpYhf2lDH1FhLP2hAqIPpYGORXegAc8rdCtecyVRvYiY0AdnSQts/vjkMtmCKxwHD+vGmn3vDVNEAciUgUzPOR8cXs0pwyg0/XiJmedrMxTnMzjrmM26PpvJ9LqzqGNyNXehCSz5gEDm8=
+    secure: xcrx4Sh5DLlDyI10jBTNYdQZzIROwx6MeQQqWIRTbEetqPsZhyr9bQK+P9rqhePsWyY/tLMAC4DWMLGZTG6U5z1OSjJTTJFNyljrZdHxUl0zK9tnq5CHXptIoYcsd918IF6X0rnsxjt/bTSMRv95nafhi3xwOn2j6PJVJHUaqnIXiJFKF+uhzZ+jZ+o2uimsCZU+YTCn+170Q7yqeyw+zMhml62Ub2AOemE3LCwQsQypPRs6hUuXouLPbOG2P0L9yDYDdzFfO56bO6fKlr4YsksNO6gY8XlfERsUjQZtWj737GP5AAcKMmjssoVNw9gmULQvw0gOrZBN8t9dWNvpOcchepJQ3Peb9CY9pF4Zqsousvpym/F2kVPnnXXoFzPP5lqOcDMUyH1ocDmDp+Gwmnbl2PN4ZvI9NJ+9W5qseoUnnZvY7yLq6zMhDhuDqGarSHeouEHtHSUrYBbtG/0GuEBx/3EHe7944SwJiiCrxgFh1azV4kYq3lFw8ZZwy7QImYICpjllqGOwUyC/vqNNbjaGlmYQvlfUxteaxYnCMUzWBt32SnmWR6+Io5qUPISgOinqRxcTe+LYWB/B7Ll8wxsHoVynd2MFkDXjbnZcviCu8WQBBXH5EX4mbcLwN2An0g+Ts5+znYbbzWMtdwMOiMXSSIpdWxfLwQPLKCbloZI=
