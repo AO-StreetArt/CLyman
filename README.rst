@@ -26,7 +26,7 @@ Features
 - Configurable Logic
 - Scalable microservice design
 
-CLyman is a part of the AO Distributed Visualization Server, along with
+CLyman is a part of the AO Aesel Project, along with
 `Crazy Ivan <https://github.com/AO-StreetArt/CrazyIvan>`__. It therefore
 utilizes the `DVS Interface
 library <https://github.com/AO-StreetArt/DvsInterface>`__, also
