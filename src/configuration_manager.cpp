@@ -1,4 +1,4 @@
-#include "configuration_manager.h"
+#include "include/configuration_manager.h"
 
 ConfigurationManager::~ConfigurationManager() {
   if (isConsulActive)
@@ -15,13 +15,6 @@ ConfigurationManager::~ConfigurationManager() {
 
 //----------------------------Configure from File-----------------------------//
 
-//Does a file exist?
-//bool file_exists( std::string name )
-//{
-  //struct stat buffer;
-  //return (stat (name.c_str(), &buffer) == 0);
-//}
-
 //Configure based on a properties file
 bool ConfigurationManager::configure_from_file (std::string file_path)
 {
@@ -33,42 +26,46 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   //Get a properties file manager, which will give us access to the file in a hashmap
   PropertiesReaderInterface *props = props_factory->get_properties_reader_interface(file_path);
 
-  if (props->opt_exist("DB_ConnectionString")) {
-    DB_ConnStr=props->get_opt("DB_ConnectionString");
-    config_logging->info("DB Connection String:");
+  if (props->opt_exist("Mongo_ConnectionString")) {
+    Mongo_ConnStr=props->get_opt("Mongo_ConnectionString");
+    config_logging->info("Mongo Connection String:");
     config_logging->info(DB_ConnStr);
   }
-  if (props->opt_exist("DB_CollectionName")) {
-    DB_CollectionName=props->get_opt("DB_CollectionName");
-    config_logging->info("DB Collection:");
-    config_logging->info(DB_CollectionName);
+  if (props->opt_exist("Mongo_DbName")) {
+    Mongo_DbName=props->get_opt("Mongo_DbName");
+    config_logging->info("Mongo DB Name:");
+    config_logging->info(Mongo_DbName);
   }
-  if (props->opt_exist("DB_Name")) {
-    DB_Name=props->get_opt("DB_Name");
-    config_logging->info("DB Name:");
-    config_logging->info(DB_Name);
-  }
-  if (props->opt_exist("0MQ_OutboundConnectionString")) {
-    OMQ_OBConnStr = props->get_opt("0MQ_OutboundConnectionString");
-    config_logging->info("Outbound 0MQ Connection:");
-    config_logging->info(OMQ_OBConnStr);
+  if (props->opt_exist("Mongo_DbCollection")) {
+    Mongo_DbCollection=props->get_opt("Mongo_DbCollection");
+    config_logging->info("Mongo DB Collection:");
+    config_logging->info(Mongo_DbCollection);
   }
   if (props->opt_exist("0MQ_InboundConnectionString")) {
     OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
     config_logging->info("Inbound 0MQ Connection:");
     config_logging->info(OMQ_IBConnStr);
   }
-  if (props->opt_exist("MessageFormat")) {
-    if (props->get_opt("MessageFormat")=="json") {
-      MessageFormatJSON=true;
-      MessageFormatProtoBuf=false;
-      config_logging->info("Message Format set to JSON");
+  if (props->opt_exist("0MQ_Hostname")) {
+    hostname = props->get_opt("0MQ_Hostname");
+    config_logging->info("Inbound 0MQ Hostname:");
+    config_logging->info(hostname);
+  }
+  if (props->opt_exist("0MQ_Port")) {
+    port = props->get_opt("0MQ_Port");
+    config_logging->info("Inbound 0MQ Port:");
+    config_logging->info(port);
+  }
+  if (props->opt_exist("DataFormatType")) {
+    std::string param_value = props->get_opt("DataFormatType");
+    if (param_value == "1" || param_value == "JSON" || param_value == "json" || param_value == "Json") {
+      format_type = JSON_FORMAT;
     }
-    else if (props->get_opt("MessageFormat") == "protocol-buffer") {
-      MessageFormatJSON=false;
-      MessageFormatProtoBuf=true;
-      config_logging->info("Message Format set to Protocol Buffers");
+    else if (param_value == "0" || param_value == "Protobuf" || param_value == "protobuf") {
+      format_type = PROTO_FORMAT;
     }
+    config_logging->info("Inbound 0MQ Connection:");
+    config_logging->info(OMQ_IBConnStr);
   }
   if (props->opt_exist("StampTransactionId")) {
     if (props->get_opt("StampTransactionId") == "True") {
@@ -83,31 +80,11 @@ bool ConfigurationManager::configure_from_file (std::string file_path)
   if (props->opt_exist("AtomicTransactions")) {
     if (props->get_opt("AtomicTransactions") == "True") {
       AtomicTransactions = true;
-      config_logging->info("Sending Outbound Failure Messages Enabled");
+      config_logging->info("Atomic Transactions Enabled");
     }
     else {
       AtomicTransactions = false;
-      config_logging->info("Sending Outbound Failure Messages Disabled");
-    }
-  }
-  if (props->opt_exist("EnableObjectLocking")) {
-    if (props->get_opt("EnableObjectLocking") == "True") {
-      EnableObjectLocking = true;
-      config_logging->info("Object Locking Enabled");
-    }
-    else {
-      EnableObjectLocking = false;
-      config_logging->info("Object Locking Disabled");
-    }
-  }
-  if (props->opt_exist("GlobalTransforms")) {
-    if (props->get_opt("GlobalTransforms") == "True") {
-      GlobalTransforms = true;
-      config_logging->info("Global Transforms Enabled");
-    }
-    else {
-      GlobalTransforms = false;
-      config_logging->info("Global Transforms Disabled");
+      config_logging->info("Atomic Transactions Disabled");
     }
   }
 
@@ -236,13 +213,6 @@ std::string ConfigurationManager::get_consul_config_value(std::string key)
 //Configure based on the Services List and Key/Value store from Consul
 bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string ip, std::string port)
 {
-
-  ca = consul_factory->get_consul_interface( consul_path );
-  config_logging->info ("Connecting to Consul");
-  config_logging->info (consul_path);
-
-  //Now, use the Consul Admin to configure the app
-
   std::string internal_address;
 
   //Step 1a: Generate new connectivity information for the inbound service from command line arguments
@@ -255,11 +225,23 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
 
   OMQ_IBConnStr = internal_address + port;
 
-  //Step 1b: Register the Service with Consul
+  return configure_from_consul(consul_path, OMQ_IBConnStr);
+}
 
+//Configure based on the Services List and Key/Value store from Consul
+bool ConfigurationManager::configure_from_consul (std::string consul_path, std::string conn_str)
+{
+
+  ca = consul_factory->get_consul_interface( consul_path );
+  config_logging->info ("Connecting to Consul");
+  config_logging->info (consul_path);
+
+  //Now, use the Consul Admin to configure the app
+
+  //Step 1b: Register the Service with Consul
   //Build a new service definition for this currently running instance of clyman
-  std::string name = "CLyman";
-  s = consul_factory->get_service_interface(node_id, name, internal_address, port);
+  std::string name = "clyman";
+  s = consul_factory->get_service_interface(node_id, name, hostname, port);
   s->add_tag("ZMQ");
 
   //Register the service
@@ -279,34 +261,20 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
   }
 
   //Step 2: Get the key-value information for deployment-wide config (Including OB ZeroMQ Connectivity)
-  DB_ConnStr=get_consul_config_value("DB_ConnectionString");
-  config_logging->debug("Database Connection String:");
-  config_logging->debug(DB_ConnStr);
-  DB_Name = get_consul_config_value("DB_Name");
-  config_logging->debug("Database Name:");
-  config_logging->debug(DB_Name);
-  DB_CollectionName = get_consul_config_value("DB_CollectionName");
-  config_logging->debug("Database Collection:");
-  config_logging->debug(DB_CollectionName);
-  OMQ_OBConnStr = get_consul_config_value("0MQ_OutboundConnectionString");
-  config_logging->debug("Outbound 0MQ Connection String:");
-  config_logging->debug(OMQ_OBConnStr);
-  std::string msg_format_str = get_consul_config_value("MessageFormat");
-  config_logging->debug("Message Format:");
-  config_logging->debug(msg_format_str);
-  if (msg_format_str == "json")
-  {
-    MessageFormatJSON=true;
-    MessageFormatProtoBuf=false;
-  }
-  else
-  {
-    MessageFormatJSON=false;
-    MessageFormatProtoBuf=true;
-  }
+  Mongo_ConnStr=get_consul_config_value("Mongo_ConnectionString");
+  config_logging->debug("Mongo Connection String:");
+  config_logging->debug(Mongo_ConnStr);
+
+  Mongo_DbName=get_consul_config_value("Mongo_DbName");
+  config_logging->debug("Mongo DB Name:");
+  config_logging->debug(Mongo_DbName);
+
+  Mongo_DbCollection=get_consul_config_value("Mongo_DbCollection");
+  config_logging->debug("Mongo DB Collection:");
+  config_logging->debug(Mongo_DbCollection);
 
   std::string tran_ids_active = get_consul_config_value("StampTransactionId");
-  config_logging->debug("Transaction ID & Atomic Transactions Enabled:");
+  config_logging->debug("Transaction IDs Enabled:");
   config_logging->debug(tran_ids_active);
   if (tran_ids_active == "True") {
     StampTransactionId = true;
@@ -325,24 +293,14 @@ bool ConfigurationManager::configure_from_consul (std::string consul_path, std::
     AtomicTransactions = false;
   }
 
-  std::string enable_locking_message = get_consul_config_value("EnableObjectLocking");
-  config_logging->debug("Object Locking Enabled:");
-  config_logging->debug(enable_locking_message);
-  if (enable_locking_message == "True") {
-    EnableObjectLocking = true;
+  std::string format_type_str = get_consul_config_value("DataFormatType");
+  config_logging->debug("Data Format:");
+  config_logging->debug(format_type_str);
+  if (format_type_str == "JSON" || format_type_str == "Json" || format_type_str == "json" || format_type_str == "1") {
+    format_type = JSON_FORMAT;
   }
-  else {
-    EnableObjectLocking = false;
-  }
-
-  std::string enable_global_transforms = get_consul_config_value("GlobalTransforms");
-  config_logging->debug("Global Transforms Enabled:");
-  config_logging->debug(enable_global_transforms);
-  if (enable_global_transforms == "True") {
-    GlobalTransforms = true;
-  }
-  else {
-    GlobalTransforms = false;
+  else if (format_type_str == "ProtoBuf" || format_type_str == "Protobuf" || format_type_str == "protobuf" || format_type_str == "PROTOBUF" || format_type_str == "0") {
+    format_type = PROTO_FORMAT;
   }
 
   //Read from a set of global config values in consul
@@ -414,49 +372,96 @@ bool ConfigurationManager::configure ()
     return false;
   }
   else {
+    bool configured = false;
+    bool ret_val = false;
+
+    //See if we have any environment variables specified
+    const char * env_consul_addr = std::getenv("CLYMAN_CONSUL_ADDR");
+    const char * env_ip = std::getenv("CLYMAN_IP");
+    const char * env_port = std::getenv("CLYMAN_PORT");
+    const char * env_db_addr = std::getenv("CLYMAN_DB_ADDR");
+    const char * env_mongo_addr = std::getenv("CLYMAN_MONGO_ADDR");
+    const char * env_mongo_db = std::getenv("CLYMAN_MONGO_DB");
+    const char * env_mongo_col = std::getenv("CLYMAN_MONGO_COL");
+    const char * env_conf_file = std::getenv("CLYMAN_CONFIG_FILE");
 
     //Check if we have a configuration file specified
-    if ( cli->opt_exist("-config-file") ) {
-      return configure_from_file( cli->get_opt("-config-file") );
+    if ( env_conf_file ) {
+      std::string env_conf_loc (env_conf_file);
+      ret_val = configure_from_file( env_conf_loc );
+      configured = true;
     }
 
-    //Check if we have a consul address specified
+    else if ( cli->opt_exist("-config-file") ) {
+      ret_val =  configure_from_file( cli->get_opt("-config-file") );
+      configured = true;
+    }
 
-    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port") && cli->opt_exist("-db-addr") && cli->opt_exist("-db-name") && cli->opt_exist("-db-collection"))
-    {
-      bool suc = configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
-      if (suc) {
-        DB_ConnStr = cli->get_opt("-db-addr");
-        DB_CollectionName = cli->get_opt("-db-collection");
-        DB_Name = cli->get_opt("-db-name");
+    //String variables to hold the hostname, port, and consul connection info
+    std::string env_ip_str = "";
+    std::string env_port_str = "";
+    std::string env_consul_addr_str = "";
+
+    //Pull any command line and environment variables for ip, port, and consul address
+    if (env_consul_addr) env_consul_addr_str.assign(env_consul_addr);
+    if (env_ip) env_ip_str.assign(env_ip);
+    if (env_port) env_port_str.assign(env_port);
+    if (cli->opt_exist("-ip")) env_ip_str.assign(cli->get_opt("-ip"));
+    if (cli->opt_exist("-port")) env_port_str.assign(cli->get_opt("-port"));
+    if ( cli->opt_exist("-consul-addr") ) env_consul_addr_str.assign( cli->get_opt("-consul-addr") );
+
+    //If we had a hostname and port specified in the configuration file, then we override to that
+    if ( !(hostname.empty()) ) env_ip_str.assign(hostname);
+    if ( !(port.empty()) ) env_port_str.assign(port);
+
+    //Execute Consul Configuration
+    if ( !(env_consul_addr_str.empty() || env_ip_str.empty() || env_port_str.empty()) )  {
+      ret_val = configure_from_consul( env_consul_addr_str, env_ip_str, env_port_str );
+      if (ret_val) {
         isConsulActive = true;
+        configured = true;
       }
       else {
         config_logging->error("Configuration from Consul failed, keeping defaults");
       }
-    }
+    } else {config_logging->error("Insufficient information provided to register with Consul");}
 
-    else if ( cli->opt_exist("-consul-addr") && cli->opt_exist("-ip") && cli->opt_exist("-port"))
+    //If we have nothing specified, look for an app.properties file
+    if (!configured)
     {
-      bool ret_val =  configure_from_consul( cli->get_opt("-consul-addr"), cli->get_opt("-ip"), cli->get_opt("-port") );
-      if (ret_val) {
-        isConsulActive = true;
-      }
-      return ret_val;
-    }
-
-    //Check for the dev flag, which starts up with default ports and no consul connection
-    else if ( cli->opt_exist("-dev") ) {
-      return true;
-    }
-
-    //If we have nothing specified, look for a lyman.properties file
-    else
-    {
-	  bool file_success;
-      file_success = configure_from_file( "lyman.properties" );
-      return file_success;
+      ret_val = configure_from_file( "app.properties" );
 	  }
+
+    //Override DB options with command line/env variables
+    if ( cli->opt_exist("-db-addr") ) {
+      DB_ConnStr = cli->get_opt("-db-addr");
+    } else if (env_db_addr) {
+      std::string env_db_addr_str (env_db_addr);
+      DB_ConnStr = env_db_addr_str;
+    }
+
+    if ( cli->opt_exist("-mongo-addr") ) {
+      Mongo_ConnStr = cli->get_opt("-mongo-addr");
+    } else if (env_mongo_addr) {
+      std::string env_mongo_addr_str (env_mongo_addr);
+      Mongo_ConnStr = env_mongo_addr_str;
+    }
+
+    if ( cli->opt_exist("-mongo-db") ) {
+      Mongo_DbName = cli->get_opt("-mongo-db");
+    } else if (env_mongo_db) {
+      std::string env_mongo_db_str (env_mongo_db);
+      Mongo_DbName = env_mongo_db_str;
+    }
+
+    if ( cli->opt_exist("-mongo-col") ) {
+      Mongo_DbCollection = cli->get_opt("-mongo-col");
+    } else if (env_mongo_col) {
+      std::string env_mongo_col_str (env_mongo_col);
+      Mongo_DbCollection = env_mongo_col_str;
+    }
+
+    return ret_val;
 
   }
   return false;

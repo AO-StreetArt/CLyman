@@ -3,48 +3,48 @@ exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>build_deps.log 2>&1
 
-#This script will attempt to build CLyman dependencies
+#This script will attempt to build basic project dependencies
 
 #Based on CentOS 7
-#Not intended for use with other OS (should function correctly with Red Hat Enterprise Linux 7, untested)
 
-printf "Creating Dependency Folder"
 PRE=./downloads
 RETURN=..
 mkdir $PRE
 
-printf "Calling apt-get update"
-
-#Update the Ubuntu Server
+# Update the Server
 sudo yum -y update
 
-#Build the dependencies and place them in the correct places
+# Build & Install the Shared Service Library
 
-#Determine if we Need Eigen
-if [ ! -d /usr/local/include/Eigen ]; then
+if [ ! -d /usr/local/include/aossl ]; then
 
-  printf "Downloading Eigen"
+  # Create the folder to clone into
+  mkdir $PRE/aossl
 
-  mkdir $PRE/eigen
+  # Get the latest code from the master branch on github
+  # You may alternatively download a release from the github releases page and use that
+  git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
 
-  #Get the Eigen Dependencies
-  wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
+  #Build the dependencies for the shared service library
+  mkdir $PRE/aossl_deps
+  cp $PRE/aossl/scripts/rhel/build_deps.sh $PRE/aossl_deps/
+  cd $PRE/aossl_deps && sudo ./build_deps.sh
+  cd ../$RETURN
 
-  #Move the Eigen Header files to the include path
-
-  #Unzip the Eigen directories
-  tar -vxjf 3.2.8.tar.bz2
-  mv ./eigen-eigen* $PRE/eigen
-
-  #Move the files
-  sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
+  #Build the shared service library
+  cd $PRE/aossl && make && sudo make install
+  sudo ldconfig
 
 fi
 
-#Determine if we Need RapidJSON
+# Here we look to install RapidJSON
+
+# This is a recommended library for JSON Processing.
+# Libprotobuf and protoc are also installed by default, for using Google Protocol Buffers.
+# If you wish to use other parsing methods or message formats, simply remove these
 if [ ! -d /usr/local/include/rapidjson ]; then
 
-  printf "Cloning RapidJSON"
+  printf "Cloning RapidJSON\n"
 
   mkdir $PRE/rapidjson
 
@@ -56,35 +56,29 @@ if [ ! -d /usr/local/include/rapidjson ]; then
 
 fi
 
-#Ensure we have access to the Protocol Buffer Interfaces
-mkdir $PRE/interfaces/
-git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
-cd $PRE/interfaces && sudo make install
+#Determine if we Need Eigen
+if [ ! -d /usr/local/include/Eigen ]; then
+  printf "Downloading Eigen\n"
 
-#Build & Install the Shared Service Library
+  mkdir $PRE/eigen
 
-if [ ! -d /usr/local/include/aossl ]; then
+  #Get the Eigen Dependencies
+  wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
 
-  #Create the folder to clone into
-  mkdir $PRE/aossl
+  #Unzip the Eigen directories
+  tar -vxjf 3.2.8.tar.bz2
+  mv ./eigen-eigen* $PRE/eigen
 
-  #Pull the code down
-  git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
-
-  #Build the dependencies for the shared service library
-  mkdir $PRE/aossl_deps
-  cp $PRE/aossl/scripts/deb/build_deps.sh $PRE/aossl_deps/
-  cd $PRE/aossl_deps && sudo ./build_deps.sh
-  cd ../$RETURN
-
-  #Build the shared service library
-  cd $PRE/aossl && make && sudo make install
-  sudo ldconfig
+  #Move the Eigen Header files to the include path
+  sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
 
 fi
 
-#Install python, pyzmq, protobuf, and the protobuf compiler
-sudo yum install -y python-pip python-devel protobuf-devel protobuf-compiler
-sudo pip install pyzmq
+#Get the DVS Interface Protocol Buffer Library
+git clone https://github.com/AO-StreetArt/DvsInterface.git
+cd DvsInterface && sudo make install
 
-printf "Finished installing dependencies"
+#Install protobuf and the protobuf compiler
+sudo yum install -y protobuf-devel protobuf-compiler
+
+printf "Finished installing dependencies\n"

@@ -1,13 +1,5 @@
-//This is the  main structural code of CLyman
-
-//It sets up all of the Objects which help handle messages, then accepts messages,
-//parses them, and passes them to the document manager which is responsible for them
-//until they hit Couchbase.  Couchbase then gives us a set of callbacks which drive
-//the flow from the time of response by couchbase to the sending of outbound messages.
-
-//The smart update flow is a bit more complex, but mainly lies in the callbacks.
-//The document manager starts the chain with a load command, and the callback for this
-//calls a save command, which has a callback of it's own (albeit a simple one).
+//This sets up all of the components necessary for the service and runs the main
+//loop for the application.
 
 #include <sstream>
 #include <string>
@@ -21,39 +13,32 @@
 #include <exception>
 #include <signal.h>
 
-#include <zmq.hpp>
-#include <Eigen/Dense>
-
-#include "src/lyman_log.h"
-#include "src/obj3.h"
-#include "src/lyman_utils.h"
-#include "src/configuration_manager.h"
-#include "src/message_processor.h"
-#include "src/globals.h"
-#include "src/uuid.h"
+#include "src/include/app_log.h"
+#include "src/include/app_utils.h"
+#include "src/include/configuration_manager.h"
+#include "src/include/globals.h"
+#include "src/include/redis_locking.h"
+#include "src/include/query_helper.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+#include "rapidjson/error/en.h"
 
-#include "aossl/factory_cli.h"
-#include "aossl/factory_mongo.h"
-#include "aossl/factory_logging.h"
-#include "aossl/factory_redis.h"
-#include "aossl/factory_uuid.h"
-#include "aossl/factory_zmq.h"
+#include "aossl/commandline/include/commandline_interface.h"
+#include "aossl/commandline/include/factory_cli.h"
 
-#include "aossl/factory/mongo_interface.h"
-#include "aossl/factory/redis_interface.h"
-#include "aossl/factory/logging_interface.h"
-#include "aossl/factory/uuid_interface.h"
-#include "aossl/factory/commandline_interface.h"
+#include "aossl/logging/include/logging_interface.h"
+#include "aossl/logging/include/factory_logging.h"
 
-enum {
-  CACHE_TYPE_1,
-  CACHE_TYPE_2,
-  CACHE_TYPE_MAX,
-};
+#include "aossl/redis/include/redis_interface.h"
+#include "aossl/redis/include/factory_redis.h"
+
+#include "aossl/uuid/include/uuid_interface.h"
+#include "aossl/uuid/include/factory_uuid.h"
+
+#include "aossl/zmq/include/zmq_interface.h"
+#include "aossl/zmq/include/factory_zmq.h"
 
 //Catch a Signal (for example, keyboard interrupt)
 void my_signal_handler(int s){
@@ -79,12 +64,13 @@ void my_signal_handler(int s){
 
       sigaction(SIGINT, &sigIntHandler, NULL);
 
-      CommandLineInterpreterFactory *cli_factory = new CommandLineInterpreterFactory;
-      MongoComponentFactory *mongo_factory = new MongoComponentFactory;
-      RedisComponentFactory *redis_factory = new RedisComponentFactory;
-      uuidComponentFactory *uuid_factory = new uuidComponentFactory;
-      ZmqComponentFactory *zmq_factory = new ZmqComponentFactory;
-      LoggingComponentFactory *logging_factory = new LoggingComponentFactory;
+      //Setup the component factories
+      cli_factory = new CommandLineInterpreterFactory;
+      redis_factory = new RedisComponentFactory;
+      uuid_factory = new uuidComponentFactory;
+      zmq_factory = new ZmqComponentFactory;
+      logging_factory = new LoggingComponentFactory;
+      mongo_factory = new MongoComponentFactory;
 
       //Set up our command line interpreter
       cli = cli_factory->get_command_line_interface( argc, argv );
@@ -93,7 +79,12 @@ void my_signal_handler(int s){
 	    std::string initFileName;
 
       //See if we have a command line setting for the log file
-      if ( cli->opt_exist("-log-conf") ) {
+      const char * env_logging_file = std::getenv("CRAZYIVAN_LOGGING_CONF");
+      if ( env_logging_file ) {
+        std::string tempFileName (env_logging_file);
+        initFileName = tempFileName;
+      }
+      else if ( cli->opt_exist("-log-conf") ) {
         initFileName = cli->get_opt("-log-conf");
       }
       else
@@ -108,11 +99,16 @@ void my_signal_handler(int s){
       start_logging_submodules();
 
       //Set up the UUID Generator
-      ua = uuid_factory->get_uuid_interface();
+      uid = uuid_factory->get_uuid_interface();
 
-      std::string service_instance_id = "CLyman-";
+      std::string service_instance_id = "Clyman-";
+      UuidContainer sid_container;
       try {
-        service_instance_id = service_instance_id + generate_uuid();
+        sid_container = uid->generate();
+        if (!sid_container.err.empty()) {
+          main_logging->error(sid_container.err);
+        }
+        service_instance_id = service_instance_id + sid_container.id;
       }
       catch (std::exception& e) {
         main_logging->error("Exception encountered during Service Instance ID Generation");
@@ -121,7 +117,7 @@ void my_signal_handler(int s){
       }
 
       //Set up our configuration manager with the CLI
-      cm = new ConfigurationManager(cli, service_instance_id);
+      config = new ConfigurationManager(cli, service_instance_id);
 
       //The configuration manager will  look at any command line arguments,
       //configuration files, and Consul connections to try and determine the correct
@@ -129,7 +125,7 @@ void my_signal_handler(int s){
 
       bool config_success = false;
       try {
-        config_success = cm->configure();
+        config_success = config->configure();
       }
       catch (std::exception& e) {
         main_logging->error("Exception encountered during Configuration");
@@ -141,19 +137,13 @@ void my_signal_handler(int s){
         main_logging->error("Configuration Failed, defaults kept");
       }
 
-      //Set up internal variables
-      int msg_type = -1;
-      rapidjson::Document d;
-      rapidjson::Value *val;
-      protoObj3::Obj3 new_proto;
-
       //Set up our Redis Connection List, which is passed to the Redis Admin to connect
-      std::vector<RedisConnChain> RedisConnectionList = cm->get_redisconnlist();
+      std::vector<RedisConnChain> RedisConnectionList = config->get_redisconnlist();
       //Set up Redis Connection
       if (RedisConnectionList.size() > 0) {
         try {
           //Currently only support for single Redis instance
-          xRedis = redis_factory->get_redis_interface(RedisConnectionList[0].ip, RedisConnectionList[0].port);
+          red = redis_factory->get_redis_interface(RedisConnectionList[0].ip, RedisConnectionList[0].port);
         }
         catch (std::exception& e) {
           main_logging->error("Exception encountered during Redis Initialization");
@@ -168,15 +158,12 @@ void my_signal_handler(int s){
       }
 
       //Set up the Mongo Connection
-      std::string DBConnStr = cm->get_dbconnstr();
-      DBConnStr = trim(DBConnStr);
-      std::string DBName = cm->get_dbname();
-      DBName = trim(DBName);
-      std::string DBCollection = cm->get_dbcollection();
-      DBCollection = trim(DBCollection);
-      if ( !(DBConnStr.empty() || DBName.empty() || DBCollection.empty()) ) {
+      std::string DBConnStr = config->get_mongoconnstr();
+      std::string DBName = config->get_dbname();
+      std::string DBHeaderCollection = config->get_dbheadercollection();
+      if ( !(DBConnStr.empty() || DBName.empty() || DBHeaderCollection.empty()) ) {
         try {
-          mongo = mongo_factory->get_mongo_interface( DBConnStr, DBName, DBCollection );
+          mongo = mongo_factory->get_mongo_interface( DBConnStr, DBName, DBHeaderCollection );
           main_logging->debug("Connected to Mongo");
         }
         catch (std::exception& e) {
@@ -192,20 +179,8 @@ void my_signal_handler(int s){
         exit(1);
       }
 
-      //Set up the outbound ZMQ Admin
-      std::string ob_zmq_connstr = cm->get_obconnstr();
-      if (! (ob_zmq_connstr.empty()) ) {
-        zmqo = zmq_factory->get_zmq_outbound_interface(ob_zmq_connstr, PUB_SUB);
-        main_logging->info("Connected to Outbound OMQ Socket");
-      }
-      else {
-        main_logging->error("No OB ZMQ Connection String Supplied");
-        shutdown();
-        exit(1);
-      }
-
       //Connect to the inbound ZMQ Admin
-      std::string ib_zmq_connstr = cm->get_ibconnstr();
+      std::string ib_zmq_connstr = config->get_ibconnstr();
       if ( !(ib_zmq_connstr.empty()) ) {
         zmqi = zmq_factory->get_zmq_inbound_interface(ib_zmq_connstr, REQ_RESP);
         main_logging->info("ZMQ Socket Open, opening request loop");
@@ -216,195 +191,229 @@ void my_signal_handler(int s){
         exit(1);
       }
 
-      //Set up the Message Processor
-      processor = new MessageProcessor (mongo, zmqo, xRedis, cm);
+      //Set up the Redis Lock Helper
+      RedisLocker lock (red);
 
       //Main Request Loop
 
       while (true) {
 
-        msg_type = -1;
+        std::string resp_str = "";
+        rapidjson::Document d;
+        protoObj3::Obj3List new_proto;
 
         //Convert the OMQ message into a string to be passed on the event
-        std::string req_string = zmqi->recv();
-        req_string = ltrim(req_string);
-        const char * req_ptr = req_string.c_str();
+        char * req_ptr = zmqi->crecv();
         main_logging->debug("Conversion to C String performed with result: ");
         main_logging->debug(req_ptr);
-        bool go_ahead=false;
-        int current_error_code = 100;
-        std::string current_error_message = "";
 
-        //If we are expecting JSON Messages, then parse in this fashion
-        if (cm->get_mfjson()) {
-          //Process the message header and set current_event_type
+        //Trim the string recieved
+        std::string recvd_msg (req_ptr);
+        std::string clean_string;
+
+        std::string new_error_message = "";
+        response_message = new Obj3List;
+
+        if (config->get_formattype() == JSON_FORMAT) {
+
+          int final_closing_char = recvd_msg.find_last_of("}");
+          int first_opening_char = recvd_msg.find_first_of("{");
+          clean_string = recvd_msg.substr(first_opening_char, final_closing_char+1);
+
+          main_logging->debug("Input String Cleaned");
+          main_logging->debug(clean_string);
+
           try {
-            d.Parse(req_ptr);
-            translated_object = new Obj3 (d, cm->get_objectlockingenabled());
-            go_ahead=true;
+            d.Parse<rapidjson::kParseStopWhenDoneFlag>(clean_string.c_str());
+            if (d.HasParseError()) {
+              main_logging->error("Parsing Error: ");
+              main_logging->error(GetParseError_En(d.GetParseError()));
+              response_message->set_error_code(TRANSLATION_ERROR);
+              new_error_message.assign(GetParseError_En(d.GetParseError()));
+            } else {inbound_message = new Obj3List (d);}
           }
           //Catch a possible error and write to logs
           catch (std::exception& e) {
             main_logging->error("Exception occurred while parsing inbound document:");
             main_logging->error(e.what());
-            current_error_code = TRANSLATION_ERROR;
-            current_error_message = e.what();
           }
-          //Find the message type
-          if (go_ahead) {
-            val = &d["message_type"];
-            msg_type = val->GetInt();
-          }
-        }
 
-        //If we are expecting Protobuffer Messages, then parse in this fashion
-        else if (cm->get_mfprotobuf()) {
+        } else if (config->get_formattype() == PROTO_FORMAT) {
+
+          clean_string = trim(recvd_msg);
+
+          main_logging->debug("Input String Cleaned");
+          main_logging->debug(clean_string);
+
           try {
-            new_proto.Clear();
-            new_proto.ParseFromString(req_string);
-            translated_object = new Obj3 (new_proto, cm->get_objectlockingenabled());
-            go_ahead=true;
-          }
-          //Catch a possible error and write to logs
-          catch (std::exception& e) {
-            main_logging->error("Exception occurred while parsing inbound document:");
+            new_proto.ParseFromString(clean_string);
+            inbound_message = new Obj3List (new_proto);
+          } catch (std::exception& e) {
+            main_logging->error("Exception occurred while parsing inbound bytes:");
             main_logging->error(e.what());
-            current_error_code = TRANSLATION_ERROR;
-            current_error_message = e.what();
-          }
-          //Find the message type
-          if (go_ahead) {
-            msg_type = new_proto.message_type();
+            response_message->set_error_code(TRANSLATION_ERROR);
+            new_error_message.assign(e.what());
           }
         }
 
-        //Determine the Transaction ID
-        std::string tran_id_str = "";
-        if ( cm->get_transactionidsactive() ) {
-          std::string existing_trans_id = translated_object->get_transaction_id();
-          //If no transaction ID is sent in, generate a new one
-          if ( existing_trans_id.empty() ) {
+          //Determine the Transaction ID
+          UuidContainer id_container;
+          id_container.id = "";
+          if ( config->get_transactionidsactive() && inbound_message ) {
+            //Get an existing transaction ID, currently empty as we don't assume format
+            std::string existing_trans_id = inbound_message->get_transaction_id();
+            //If no transaction ID is sent in, generate a new one
+            if ( existing_trans_id.empty() ) {
+              try {
+                id_container = uid->generate();
+                if (!id_container.err.empty()) {
+                  main_logging->error(id_container.err);
+                }
+                inbound_message->set_transaction_id(id_container.id);
+              }
+              catch (std::exception& e) {
+                main_logging->error("Exception encountered during UUID Generation");
+                main_logging->error(e.what());
+                shutdown();
+                exit(1);
+              }
+            }
+            main_logging->debug("Transaction ID: ");
+            main_logging->debug( inbound_message->get_transaction_id() );
+          }
+
+          bool shutdown_needed = false;
+
+          //Core application logic
+          if (inbound_message) {
             try {
-              tran_id_str = generate_uuid();
-              main_logging->debug("Generated Transaction ID: " + tran_id_str);
+
+              //Object Creation
+              if (inbound_message->get_msg_type() == OBJ_CRT) {
+                main_logging->info("Processing Object Creation Message");
+                for (int i = 0;i < inbound_message->num_objects(); i++) {
+                  Obj3 *resp_element = new Obj3;
+                  MongoResponseInterface *resp = mongo->create_document( inbound_message->get_object(i)->to_json() );
+                  resp_element->set_key( resp->get_value() );
+                  response_message->add_object( resp_element );
+                  delete resp;
+                }
+
+              //Object Update
+              } else if (inbound_message->get_msg_type() == OBJ_UPD) {
+                main_logging->info("Processing Object Update Message");
+                for (int i = 0;i < inbound_message->num_objects(); i++) {
+                  //Enforce atomic updates -- establish redis lock
+                  if (config->get_atomictransactions()) lock.get_lock( inbound_message->get_object(i)->get_key() );
+                  //Load the current doc from the database
+                  rapidjson::Document resp_doc;
+                  MongoResponseInterface *resp = mongo->load_document( inbound_message->get_object(i)->get_key() );
+                  if (resp) {
+                    std::string mongo_resp_str = resp->get_value();
+                    main_logging->debug("Document loaded from Mongo");
+                    main_logging->debug(mongo_resp_str);
+                    resp_doc.Parse(mongo_resp_str.c_str());
+                    Obj3 *resp_obj = new Obj3(resp_doc);
+                    //Apply the object message as changes to the DB Object
+                    resp_obj->merge(inbound_message->get_object(i));
+                    //Save the resulting object
+                    mongo->save_document( resp_obj->to_json(), resp_obj->get_key() );
+                    response_message->add_object( resp_obj );
+                    delete resp;
+                  } else {
+                    main_logging->error("Document not found in Mongo");
+                    response_message->set_error_code(NOT_FOUND);
+                    new_error_message = "Object not Found";
+                    response_message->set_error_message(new_error_message);
+                  }
+                  //Enforce atomic updates -- release redis lock
+                  if (config->get_atomictransactions()) lock.release_lock( inbound_message->get_object(i)->get_key() );
+                }
+
+              //Object Retrieve
+              } else if (inbound_message->get_msg_type() == OBJ_GET) {
+                main_logging->info("Processing Object Get Message");
+                for (int i = 0;i < inbound_message->num_objects(); i++) {
+                  rapidjson::Document resp_doc;
+                  MongoResponseInterface *resp = mongo->load_document( inbound_message->get_object(i)->get_key() );
+                  if (resp) {
+                    std::string mongo_resp_str = resp->get_value();
+                    main_logging->debug("Document loaded from Mongo");
+                    main_logging->debug(mongo_resp_str);
+                    resp_doc.Parse(mongo_resp_str.c_str());
+                    Obj3 *resp_obj = new Obj3(resp_doc);
+                    response_message->add_object( resp_obj );
+                    delete resp;
+                  } else {
+                    main_logging->error("Document not found in Mongo");
+                    response_message->set_error_code(NOT_FOUND);
+                    new_error_message = "Object not Found";
+                    response_message->set_error_message(new_error_message);
+                  }
+                }
+
+              //Object Query
+              } else if (inbound_message->get_msg_type() == OBJ_QUERY) {
+                main_logging->info("Processing Object Batch Query Message");
+                response_message = batch_query(inbound_message, mongo);
+
+              //Object Delete
+              } else if (inbound_message->get_msg_type() == OBJ_DEL) {
+                main_logging->info("Processing Object Deletion Message");
+                for (int i = 0;i < inbound_message->num_objects(); i++) {
+                  Obj3 *resp_element = new Obj3;
+                  resp_element->set_key( inbound_message->get_object(i)->get_key() );
+                  mongo->delete_document( inbound_message->get_object(i)->get_key() );
+                  response_message->add_object( resp_element );
+                }
+
+              //Ping
+              } else if (inbound_message->get_msg_type() == PING) {
+                main_logging->info("Ping Message Recieved");
+
+              //Kill
+              } else if (inbound_message->get_msg_type() == KILL) {
+                main_logging->info("Shutting Down");
+                shutdown_needed = true;
+
+              //Invalid Message Type
+              } else {
+                response_message->set_error_code(BAD_MSG_TYPE_ERROR);
+                new_error_message = "Unknown Message Type";
+                response_message->set_error_message(new_error_message);
+              }
+            //Exception during processing
+            } catch (std::exception& e) {
+              main_logging->error("Exception encountered during Processing");
+              main_logging->error(e.what());
+              response_message->set_error_code(PROCESSING_ERROR);
+              new_error_message.assign(e.what());
+              response_message->set_error_message(new_error_message);
             }
-            catch (std::exception& e) {
-              main_logging->error("Exception encountered during UUID Generation");
-              shutdown();
-              exit(1);
-            }
+            response_message->set_msg_type( inbound_message->get_msg_type() );
           }
-          //Otherwise, use the existing transaction ID
-          else {
-            tran_id_str = existing_trans_id;
+
+          //Convert the response object to a message
+          main_logging->debug("Building Response");
+          std::string application_response = "";
+          if (config->get_formattype() == JSON_FORMAT) application_response = response_message->to_json();
+          if (config->get_formattype() == PROTO_FORMAT) application_response = response_message->to_protobuf();
+
+          main_logging->info("Sending Response");
+          main_logging->info( application_response );
+          zmqi->send( application_response );
+
+          if (response_message) {
+            delete response_message;
+            response_message = NULL;
           }
-        }
-        main_logging->debug(tran_id_str);
-        if (!translated_object)
-        {
-          main_logging->debug("No translated object to assign Transaction ID to");
-        }
-        else {
-          translated_object->set_transaction_id(tran_id_str);
-        }
-
-        //Process the translated object
-        std::string process_result = processor->process_message(translated_object);
-
-        //"-1", we have a processing error result
-        if (process_result == "-1") {
-          current_error_code = PROCESSING_ERROR;
-          current_error_message = "Error encountered in document processing";
-          resp = new Obj3();
-        }
-
-        //"locked", we have encountered a User Device Lock, and the update
-        //has been rejected
-        else if (process_result == "locked") {
-          current_error_code = DEVICE_LOCK;
-          current_error_message = "Device Lock Encountered, Update Rejected";
-          resp = new Obj3();
-        }
-
-        //If we don't have errors or locks:
-        //If we have a get message, then we build a new Obj3 with the document from
-        //the Message Processor, after checking for error or lock responses.
-        else if (msg_type == OBJ_GET) {
-          rapidjson::Document resp_doc;
-          resp_doc.Parse(process_result.c_str());
-          resp = new Obj3 (resp_doc, cm->get_objectlockingenabled());
-        }
-
-        //Otherwise, we have an empty response from the processor and we return sucess response
-        else {
-          resp = new Obj3();
-          current_error_code = NO_ERROR;
-
-            //If we have a create message, then set the response key before sending back
-            if (msg_type == OBJ_CRT) {
-              resp->set_key( process_result );
-            }
-            //Otherwise, set the response key from the translated object
-            else {
-              resp->set_key( translated_object->get_key() );
-            }
-
-        }
-        if ( !(current_error_message.empty()) ) {
-          resp->set_error(current_error_message);
-        }
-
-        //  Send reply back to client
-        //Ping message, send back "success"
-        if (msg_type == PING) {
-          zmqi->send( "success" );
-        }
-
-        //Kill message, shut down
-        else if (msg_type == KILL) {
-          zmqi->send( "success" );
-          shutdown();
-          exit(1);
-        }
-
-        else {
-          if (cm->get_mfjson()) {
-            if ( cm->get_transactionidsactive() ) {
-              zmqi->send( resp->to_json_msg(current_error_code, tran_id_str) );
-            }
-            else {
-              zmqi->send( resp->to_json_msg(current_error_code) );
-            }
+          if (inbound_message) {
+            delete inbound_message;
+            inbound_message = NULL;
           }
-          else if (cm->get_mfprotobuf()) {
-            if ( cm->get_transactionidsactive() ) {
-              zmqi->send( resp->to_protobuf_msg(current_error_code, tran_id_str) );
-            }
-            else {
-              zmqi->send( resp->to_protobuf_msg(current_error_code) );
-            }
-          }
-        }
-        main_logging->debug("Response Sent");
 
-        //Clear the response
-        if (!resp) {
-          main_logging->debug("Response Object not found for deletion");
-        }
-        else {
-          delete resp;
-          resp = NULL;
-        }
+          if (shutdown_needed) {shutdown();exit(1);}
 
-        //Clear the translated object
-        if (!translated_object) {
-          main_logging->debug("Translated Object not found for deletion");
-        }
-        else {
-          delete translated_object;
-          translated_object = NULL;
-        }
       }
-
       return 0;
     }

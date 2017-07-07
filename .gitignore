@@ -1,5 +1,6 @@
 *.o
 *.a
+app
 clyman
 *.log
 *.log.*
@@ -13,3 +14,4 @@ heartbeat_scripts/*/*
 scripts/*pb2.py
 *.proto
 src/*.proto
+docs/_build/

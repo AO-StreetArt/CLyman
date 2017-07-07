@@ -16,22 +16,27 @@ ENV DEBIAN_FRONTEND noninteractive
 
 #Ensure that base level build requirements are satisfied
 RUN apt-get update
-RUN	apt-get install -y apt-utils debconf-utils iputils-ping wget curl mc htop ssh
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
+RUN apt-get update
+RUN	apt-get install -y apt-utils debconf-utils iputils-ping wget curl mc htop ssh g++-5 build-essential libprotobuf-dev protobuf-compiler libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git liblog4cpp5-dev libkrb5-dev
 RUN	apt-get clean
 
-#Build the dependencies and place them in the correct places
-RUN apt-get update
+#Setup g++5 as the Compiler
+RUN unlink /usr/bin/gcc && ln -s /usr/bin/gcc-5 /usr/bin/gcc
+RUN unlink /usr/bin/g++ && ln -s /usr/bin/g++-5 /usr/bin/g++
 
-#Ensure that specific build requirements are satisfied
-RUN apt-get install -y build-essential libtool pkg-config autoconf automake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git software-properties-common
+RUN gcc --version
+
+#Get the Neo4j Dependencies
+RUN mkdir $PRE/neo
+RUN wget https://github.com/cleishm/libneo4j-client/releases/download/v1.2.1/libneo4j-client-1.2.1.tar.gz -P ./$PRE
+RUN tar -zxvf ./$PRE/libneo4j-client-1.2.1.tar.gz -C $PRE/neo
+RUN cd $PRE/neo/libneo4j-client-1.2.1 && sudo ./configure --disable-tools && sudo make clean check && sudo make install
 
 #Get the Redis Dependencies
 RUN git clone https://github.com/redis/hiredis.git ./hiredis
 RUN cd ./hiredis && make && make install
-
-#Get the Neo4j Dependencies
-RUN git clone https://github.com/cleishm/libneo4j-client.git ./$PRE/neo
-RUN cd $PRE/neo && ./autogen.sh && ./configure --disable-tools && make clean check && sudo make install
 
 #Get the Mongo Dependencies
 RUN git clone https://github.com/mongodb/mongo-c-driver.git
@@ -58,21 +63,6 @@ RUN git clone https://github.com/zeromq/cppzmq.git
 RUN cp cppzmq/zmq.hpp /usr/local/include
 RUN cp cppzmq/zmq_addon.hpp /usr/local/include
 
-#hayai, for compiling benchmarks
-RUN apt-add-repository -y ppa:bruun/hayai
-
-#Update the apt-get cache
-RUN apt-get update
-
-#Install the dependencies
-RUN apt-get install -y build-essential libprotobuf-dev protobuf-compiler liblog4cpp5-dev libhayai-dev
-
-#Get the RapidJSON Dependency
-RUN git clone https://github.com/miloyip/rapidjson.git
-
-#Move the RapidJSON header files to the include path
-RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
-
 #Get the Eigen Dependency
 RUN wget http://bitbucket.org/eigen/eigen/get/3.2.8.tar.bz2
 
@@ -81,24 +71,43 @@ RUN tar -vxjf 3.2.8.tar.bz2
 RUN mkdir $PRE/eigen
 RUN mv ./eigen-eigen* $PRE/eigen
 
+#Get the RapidJSON Dependency
+RUN git clone https://github.com/miloyip/rapidjson.git
+
+#Move the RapidJSON header files to the include path
+RUN cp -r rapidjson/include/rapidjson/ /usr/local/include
+
 #Move the Eigen files
 RUN sudo cp -r $PRE/eigen/eigen*/Eigen /usr/local/include
+
+#hayai, for compiling benchmarks
+RUN apt-add-repository -y ppa:bruun/hayai
+
+#Update the apt-get cache
+RUN apt-get update
+
+#Install the dependencies
+RUN apt-get install -y build-essential liblog4cpp5-dev libhayai-dev
 
 #Ensure we have access to the Protocol Buffer Interfaces
 RUN mkdir $PRE/interfaces/
 RUN git clone https://github.com/AO-StreetArt/DvsInterface.git $PRE/interfaces
 RUN cd $PRE/interfaces && sudo make install
 
-#Pull the project source from github
+#Pull the AOSSL source from github
 RUN git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git
 
 #Install the shared service library
 RUN cd AOSharedServiceLibrary && make && make install
 
-#Pull the project source from github
+#Pull the project source
 RUN git clone https://github.com/AO-StreetArt/CLyman.git
 
-RUN cd CLyman && make
+#Build the project and tests
+RUN cd CLyman && make && make test
+
+#Run the unit tests
+RUN cd CLyman && ./configuration_test -config-file=tests/test.properties && ./utils_test && ./log_test && ./transform_test && ./obj3_test && ./obj3_list_test
 
 #Expose some of the default ports
 EXPOSE 22
@@ -110,5 +119,8 @@ EXPOSE 8093
 EXPOSE 11210
 EXPOSE 12345
 
+#Expose the 5000 port range for DVS Services
+EXPOSE 5000-5999
+
 #Start up the SSH terminal so that we can connect & start the app
-CMD tail -f /dev/null
+ENTRYPOINT ["CLyman/clyman"]
