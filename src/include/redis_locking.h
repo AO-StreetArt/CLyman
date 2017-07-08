@@ -1,38 +1,51 @@
+/*
+Apache2 License Notice
+Copyright 2017 Alex Barry
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+#include <stdlib.h>
+#include <cstdlib>
+#include <exception>
 #include <sstream>
 #include <string>
-#include <cstdlib>
-#include <stdlib.h>
-#include <exception>
 
 #include "aossl/redis/include/redis_interface.h"
 #include "app_log.h"
 
-#ifndef REDIS_LOCKING
-#define REDIS_LOCKING
+#ifndef SRC_INCLUDE_REDIS_LOCKING_H_
+#define SRC_INCLUDE_REDIS_LOCKING_H_
 
 class RedisLocker {
-
 RedisInterface *redis = NULL;
 
-public:
-
+ public:
   RedisLocker(RedisInterface *r) {redis = r;}
   ~RedisLocker() {}
 
-//Establish a Redis Mutex Lock on a given key
+// Establish a Redis Mutex Lock on a given key
 inline void get_lock(std::string key, std::string val) {
-
-  //Determine if another instance of CLyman has a lock on the Redis Mutex
+  // Determine if another instance of CLyman has a lock on the Redis Mutex
   std::string current_mutex_key;
   bool lock_established = false;
 
   while (!lock_established) {
-
     redis_logging->error("Redis Mutex Lock Routine Started");
 
-    if ( redis->exists( key ) ) {
+    if (redis->exists(key)) {
       try {
-        current_mutex_key = redis->load( key );
+        current_mutex_key = redis->load(key);
       }
       catch (std::exception& e) {
         redis_logging->error("Exception encountered during Redis Request");
@@ -40,18 +53,19 @@ inline void get_lock(std::string key, std::string val) {
       }
     }
 
-    if ( ((current_mutex_key != "") && (current_mutex_key != val)) || val.empty() )  {
-      //Another instance of Clyman has a lock on the redis mutex
-      //Block until the lock is cleared
-      redis_logging->error("Existing Redis Mutex Lock Detected, waiting for lock to be released");
-      while (redis->exists( key )) {}
+    if (((current_mutex_key != "") && (current_mutex_key != val)) \
+      || val.empty())  {
+      // Another instance of Clyman has a lock on the redis mutex
+      // Block until the lock is cleared
+      redis_logging->error("Existing Redis Mutex Lock Detected, Waiting");
+      while (redis->exists(key)) {}
     }
 
-    //Try to establish a lock on the Redis Mutex
+    // Try to establish a lock on the Redis Mutex
     redis_logging->error("Attempting to obtain Redis Mutex Lock");
-    if ( !(redis->exists( key )) ) {
+    if (!(redis->exists(key))) {
       try {
-        lock_established = redis->setnx( key, val);
+        lock_established = redis->setnx(key, val);
       }
       catch (std::exception& e) {
         redis_logging->error("Exception encountered during Redis Request");
@@ -65,17 +79,16 @@ void get_lock(std::string key) {get_lock(key, "");}
 
 bool release_lock(std::string key, std::string val) {
   std::string current_mutex_key = "";
-  if ( redis->exists( key ) ) {
-    current_mutex_key = redis->load( key );
+  if (redis->exists(key)) {
+    current_mutex_key = redis->load(key);
   }
-  if ( val.empty() || (val == current_mutex_key) ) {
+  if (val.empty() || (val == current_mutex_key)) {
     return redis->del(key);
   }
   return false;
 }
 
 bool release_lock(std::string key) {return release_lock(key, "");}
-
 };
 
-#endif
+#endif  // SRC_INCLUDE_REDIS_LOCKING_H_

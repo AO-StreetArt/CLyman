@@ -1,14 +1,31 @@
-#include "transforms.h"
-#include "obj3_list.h"
+/*
+Apache2 License Notice
+Copyright 2017 Alex Barry
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 #include <assert.h>
 #include <math.h>
+#include <string>
+
+#include "transforms.h"
+#include "obj3_list.h"
 
 #include "aossl/logging/include/logging_interface.h"
 #include "aossl/logging/include/factory_logging.h"
 
-int main( int argc, char** argv )
-{
-
+int main(int argc, char** argv) {
   LoggingComponentFactory *logging_factory = new LoggingComponentFactory;
 
   std::string initFileName = "tests/log4cpp.properties";
@@ -18,7 +35,7 @@ int main( int argc, char** argv )
 
   main_logging->debug("Setup");
 
-  //Setup
+  // Setup
   Obj3 *test_object = new Obj3;
   Obj3 *test_object2 = new Obj3;
   Translation *trans = new Translation;
@@ -53,19 +70,19 @@ int main( int argc, char** argv )
   test_object2->set_subtype(subtype2);
   test_object2->set_owner(owner2);
 
-  assert ( test_object->get_key() == "abcdef" );
-  assert ( test_object->get_name() == "abcdefgh" );
-  assert ( test_object->get_scene() == "abcdefghij" );
-  assert ( test_object->get_type() == "abcdefghijkl" );
-  assert ( test_object->get_subtype() == "abcdefghijklmn" );
-  assert ( test_object->get_owner() == "abcdefghijklmnop" );
+  assert(test_object->get_key() == "abcdef");
+  assert(test_object->get_name() == "abcdefgh");
+  assert(test_object->get_scene() == "abcdefghij");
+  assert(test_object->get_type() == "abcdefghijkl");
+  assert(test_object->get_subtype() == "abcdefghijklmn");
+  assert(test_object->get_owner() == "abcdefghijklmnop");
 
-  assert ( test_object2->get_key() == "abcdefg" );
-  assert ( test_object2->get_name() == "abcdefghi" );
-  assert ( test_object2->get_scene() == "abcdefghijk" );
-  assert ( test_object2->get_type() == "abcdefghijklm" );
-  assert ( test_object2->get_subtype() == "abcdefghijklmno" );
-  assert ( test_object2->get_owner() == "abcdefghijklmnopq" );
+  assert(test_object2->get_key() == "abcdefg");
+  assert(test_object2->get_name() == "abcdefghi");
+  assert(test_object2->get_scene() == "abcdefghijk");
+  assert(test_object2->get_type() == "abcdefghijklm");
+  assert(test_object2->get_subtype() == "abcdefghijklmno");
+  assert(test_object2->get_owner() == "abcdefghijklmnopq");
 
   std::string asset1 = "12345";
   std::string asset2 = "12346";
@@ -83,82 +100,87 @@ int main( int argc, char** argv )
   test_object->transform(qrot);
   test_object2->transform(scl);
 
-  //Constructor Test
+  // Constructor Test
   main_logging->debug("Basic Tests");
   Obj3List *olist = new Obj3List;
-  assert( olist->get_msg_type() == -1 );
-  assert( olist->get_error_code() == 100 );
-  assert( olist->get_error_message() == "" );
-  assert( olist->get_transaction_id() == "" );
-  assert( olist->get_num_records() == 0 );
-  assert( olist->num_objects() == 0 );
+  assert(olist->get_msg_type() == -1);
+  assert(olist->get_error_code() == 100);
+  assert(olist->get_error_message() == "");
+  assert(olist->get_transaction_id() == "");
+  assert(olist->get_num_records() == 0);
+  assert(olist->num_objects() == 0);
 
-  //Getter/Setter tests
+  // Getter/Setter tests
   olist->set_msg_type(1);
-  assert( olist->get_msg_type() == 1 );
+  assert(olist->get_msg_type() == 1);
   olist->set_error_code(110);
-  assert( olist->get_error_code() == 110 );
+  assert(olist->get_error_code() == 110);
   std::string new_err_msg = "Test";
   olist->set_error_message(new_err_msg);
-  assert( olist->get_error_message() == "Test" );
+  assert(olist->get_error_message() == "Test");
   std::string tran_id = "123456789";
   olist->set_transaction_id(tran_id);
-  assert( olist->get_transaction_id() == "123456789" );
+  assert(olist->get_transaction_id() == "123456789");
   olist->set_num_records(3);
-  assert( olist->get_num_records() == 3 );
+  assert(olist->get_num_records() == 3);
   olist->add_object(test_object);
-  assert( olist->num_objects() == 1 );
+  assert(olist->num_objects() == 1);
   olist->add_object(test_object2);
-  assert( olist->num_objects() == 2 );
+  assert(olist->num_objects() == 2);
 
 
-  //Protocol Buffer Tests
+  // Protocol Buffer Tests
   std::string proto_string = olist->to_protobuf();
   protoObj3::Obj3List new_proto;
   new_proto.ParseFromString(proto_string);
-  Obj3List *parsed_olist = new Obj3List (new_proto);
+  Obj3List *parsed_olist = new Obj3List(new_proto);
 
-  assert( parsed_olist->get_msg_type() == 1 );
-  //assert( parsed_olist->get_error_code() == 110 );
-  //assert( parsed_olist->get_error_message() == "Test" );
-  assert( parsed_olist->get_transaction_id() == "123456789" );
-  assert( parsed_olist->get_num_records() == 2 );
-  assert( parsed_olist->num_objects() == 2 );
+  assert(parsed_olist->get_msg_type() == 1);
+  // assert(parsed_olist->get_error_code() == 110);
+  // assert(parsed_olist->get_error_message() == "Test");
+  assert(parsed_olist->get_transaction_id() == "123456789");
+  assert(parsed_olist->get_num_records() == 2);
+  assert(parsed_olist->num_objects() == 2);
 
-  assert ( parsed_olist->get_object(0)->get_key() == "abcdef" );
-  assert ( parsed_olist->get_object(0)->get_name() == "abcdefgh" );
-  assert ( parsed_olist->get_object(0)->get_scene() == "abcdefghij" );
-  assert ( parsed_olist->get_object(0)->get_type() == "abcdefghijkl" );
-  assert ( parsed_olist->get_object(0)->get_subtype() == "abcdefghijklmn" );
-  assert ( parsed_olist->get_object(0)->get_owner() == "abcdefghijklmnop" );
+  assert(parsed_olist->get_object(0)->get_key() == "abcdef");
+  assert(parsed_olist->get_object(0)->get_name() == "abcdefgh");
+  assert(parsed_olist->get_object(0)->get_scene() == "abcdefghij");
+  assert(parsed_olist->get_object(0)->get_type() == "abcdefghijkl");
+  assert(parsed_olist->get_object(0)->get_subtype() == "abcdefghijklmn");
+  assert(parsed_olist->get_object(0)->get_owner() == "abcdefghijklmnop");
 
-  assert ( parsed_olist->get_object(1)->get_key() == "abcdefg" );
-  assert ( parsed_olist->get_object(1)->get_name() == "abcdefghi" );
-  assert ( parsed_olist->get_object(1)->get_scene() == "abcdefghijk" );
-  assert ( parsed_olist->get_object(1)->get_type() == "abcdefghijklm" );
-  assert ( parsed_olist->get_object(1)->get_subtype() == "abcdefghijklmno" );
-  assert ( parsed_olist->get_object(1)->get_owner() == "abcdefghijklmnopq" );
+  assert(parsed_olist->get_object(1)->get_key() == "abcdefg");
+  assert(parsed_olist->get_object(1)->get_name() == "abcdefghi");
+  assert(parsed_olist->get_object(1)->get_scene() == "abcdefghijk");
+  assert(parsed_olist->get_object(1)->get_type() == "abcdefghijklm");
+  assert(parsed_olist->get_object(1)->get_subtype() == "abcdefghijklmno");
+  assert(parsed_olist->get_object(1)->get_owner() == "abcdefghijklmnopq");
 
-  assert ( parsed_olist->get_object(0)->get_translation()->get_w() - 0.0 < 0.001 );
-  assert ( parsed_olist->get_object(0)->get_translation()->get_x() - 1.0 < 0.001 );
-  assert ( parsed_olist->get_object(0)->get_translation()->get_y() - 2.0 < 0.001 );
-  assert ( parsed_olist->get_object(0)->get_translation()->get_z() - 3.0 < 0.001 );
-  assert ( parsed_olist->get_object(1)->get_erotation()->get_w() - 0.0 < 0.001 );
-  assert ( parsed_olist->get_object(1)->get_erotation()->get_x() - PI < 0.001 );
-  assert ( parsed_olist->get_object(1)->get_erotation()->get_y() - (1.5 * PI) < 0.001 );
-  assert ( parsed_olist->get_object(1)->get_erotation()->get_z() - (0.02 * PI) < 0.001 );
+  assert(parsed_olist->get_object(0)->get_translation()->get_w() - 0.0 < 0.001);
+  assert(parsed_olist->get_object(0)->get_translation()->get_x() - 1.0 < 0.001);
+  assert(parsed_olist->get_object(0)->get_translation()->get_y() - 2.0 < 0.001);
+  assert(parsed_olist->get_object(0)->get_translation()->get_z() - 3.0 < 0.001);
+  assert(parsed_olist->get_object(1)->get_erotation()->get_w() - 0.0 < 0.001);
+  assert(parsed_olist->get_object(1)->get_erotation()->get_x() - PI < 0.001);
+  assert(parsed_olist->get_object(1)->get_erotation()->get_y() - \
+    (1.5 * PI) < 0.001);
+  assert(parsed_olist->get_object(1)->get_erotation()->get_z() - \
+    (0.02 * PI) < 0.001);
 
-  assert ( parsed_olist->get_object(0)->get_qrotation()->get_w() - 0.0 < 0.001 );
-  assert ( parsed_olist->get_object(0)->get_qrotation()->get_x() - sqrt(3.0)/3.0 < 0.001 );
-  assert ( parsed_olist->get_object(0)->get_qrotation()->get_y() - sqrt(3.0)/3.0 < 0.001 );
-  assert ( parsed_olist->get_object(0)->get_qrotation()->get_z() - sqrt(3.0)/3.0 < 0.001 );
-  assert ( parsed_olist->get_object(1)->get_scale()->get_w() - 0.0 < 0.001 );
-  assert ( parsed_olist->get_object(1)->get_scale()->get_w() - 2.0 < 0.001 );
-  assert ( parsed_olist->get_object(1)->get_scale()->get_w() - 4.0 < 0.001 );
-  assert ( parsed_olist->get_object(1)->get_scale()->get_w() - 8.0 < 0.001 );
+  assert(parsed_olist->get_object(0)->get_qrotation()->get_w() - 0.0 < 0.001);
+  assert(parsed_olist->get_object(0)->get_qrotation()->get_x() - \
+    sqrt(3.0)/3.0 < 0.001);
+  assert(parsed_olist->get_object(0)->get_qrotation()->get_y() - \
+    sqrt(3.0)/3.0 < 0.001);
+  assert(parsed_olist->get_object(0)->get_qrotation()->get_z() - \
+    sqrt(3.0)/3.0 < 0.001);
+  assert(parsed_olist->get_object(1)->get_scale()->get_w() - 0.0 < 0.001);
+  assert(parsed_olist->get_object(1)->get_scale()->get_w() - 2.0 < 0.001);
+  assert(parsed_olist->get_object(1)->get_scale()->get_w() - 4.0 < 0.001);
+  assert(parsed_olist->get_object(1)->get_scale()->get_w() - 8.0 < 0.001);
 
 
-  //JSON Tests
+  // JSON Tests
   main_logging->debug("JSON Tests");
   rapidjson::Document d;
 
@@ -166,48 +188,57 @@ int main( int argc, char** argv )
   const char * json_cstr = json_string.c_str();
   d.Parse(json_cstr);
 
-  Obj3List *jparsed_olist = new Obj3List (d);
+  Obj3List *jparsed_olist = new Obj3List(d);
 
-  assert( jparsed_olist->get_msg_type() == 1 );
-  //assert( jparsed_olist->get_error_code() == 110 );
-  //assert( jparsed_olist->get_error_message() == "Test" );
-  assert( jparsed_olist->get_transaction_id() == "123456789" );
-  assert( jparsed_olist->get_num_records() == 2 );
-  assert( jparsed_olist->num_objects() == 2 );
+  assert(jparsed_olist->get_msg_type() == 1);
+  // assert(jparsed_olist->get_error_code() == 110);
+  // assert(jparsed_olist->get_error_message() == "Test");
+  assert(jparsed_olist->get_transaction_id() == "123456789");
+  assert(jparsed_olist->get_num_records() == 2);
+  assert(jparsed_olist->num_objects() == 2);
 
-  assert ( jparsed_olist->get_object(0)->get_key() == "abcdef" );
-  assert ( jparsed_olist->get_object(0)->get_name() == "abcdefgh" );
-  assert ( jparsed_olist->get_object(0)->get_scene() == "abcdefghij" );
-  assert ( jparsed_olist->get_object(0)->get_type() == "abcdefghijkl" );
-  assert ( jparsed_olist->get_object(0)->get_subtype() == "abcdefghijklmn" );
-  assert ( jparsed_olist->get_object(0)->get_owner() == "abcdefghijklmnop" );
+  assert(jparsed_olist->get_object(0)->get_key() == "abcdef");
+  assert(jparsed_olist->get_object(0)->get_name() == "abcdefgh");
+  assert(jparsed_olist->get_object(0)->get_scene() == "abcdefghij");
+  assert(jparsed_olist->get_object(0)->get_type() == "abcdefghijkl");
+  assert(jparsed_olist->get_object(0)->get_subtype() == "abcdefghijklmn");
+  assert(jparsed_olist->get_object(0)->get_owner() == "abcdefghijklmnop");
 
-  assert ( jparsed_olist->get_object(1)->get_key() == "abcdefg" );
-  assert ( jparsed_olist->get_object(1)->get_name() == "abcdefghi" );
-  assert ( jparsed_olist->get_object(1)->get_scene() == "abcdefghijk" );
-  assert ( jparsed_olist->get_object(1)->get_type() == "abcdefghijklm" );
-  assert ( jparsed_olist->get_object(1)->get_subtype() == "abcdefghijklmno" );
-  assert ( jparsed_olist->get_object(1)->get_owner() == "abcdefghijklmnopq" );
+  assert(jparsed_olist->get_object(1)->get_key() == "abcdefg");
+  assert(jparsed_olist->get_object(1)->get_name() == "abcdefghi");
+  assert(jparsed_olist->get_object(1)->get_scene() == "abcdefghijk");
+  assert(jparsed_olist->get_object(1)->get_type() == "abcdefghijklm");
+  assert(jparsed_olist->get_object(1)->get_subtype() == "abcdefghijklmno");
+  assert(jparsed_olist->get_object(1)->get_owner() == "abcdefghijklmnopq");
 
-  assert ( jparsed_olist->get_object(0)->get_translation()->get_w() - 0.0 < 0.001 );
-  assert ( jparsed_olist->get_object(0)->get_translation()->get_x() - 1.0 < 0.001 );
-  assert ( jparsed_olist->get_object(0)->get_translation()->get_y() - 2.0 < 0.001 );
-  assert ( jparsed_olist->get_object(0)->get_translation()->get_z() - 3.0 < 0.001 );
-  assert ( jparsed_olist->get_object(1)->get_erotation()->get_w() - 0.0 < 0.001 );
-  assert ( jparsed_olist->get_object(1)->get_erotation()->get_x() - PI < 0.001 );
-  assert ( jparsed_olist->get_object(1)->get_erotation()->get_y() - (1.5 * PI) < 0.001 );
-  assert ( jparsed_olist->get_object(1)->get_erotation()->get_z() - (0.02 * PI) < 0.001 );
+  assert(jparsed_olist->get_object(0)->get_translation()->get_w() - 0.0 < \
+    0.001);
+  assert(jparsed_olist->get_object(0)->get_translation()->get_x() - 1.0 < \
+    0.001);
+  assert(jparsed_olist->get_object(0)->get_translation()->get_y() - 2.0 < \
+    0.001);
+  assert(jparsed_olist->get_object(0)->get_translation()->get_z() - 3.0 < \
+    0.001);
+  assert(jparsed_olist->get_object(1)->get_erotation()->get_w() - 0.0 < 0.001);
+  assert(jparsed_olist->get_object(1)->get_erotation()->get_x() - PI < 0.001);
+  assert(jparsed_olist->get_object(1)->get_erotation()->get_y() - \
+    (1.5 * PI) < 0.001);
+  assert(jparsed_olist->get_object(1)->get_erotation()->get_z() - \
+    (0.02 * PI) < 0.001);
 
-  assert ( jparsed_olist->get_object(0)->get_qrotation()->get_w() - 0.0 < 0.001 );
-  assert ( jparsed_olist->get_object(0)->get_qrotation()->get_x() - sqrt(3.0)/3.0 < 0.001 );
-  assert ( jparsed_olist->get_object(0)->get_qrotation()->get_y() - sqrt(3.0)/3.0 < 0.001 );
-  assert ( jparsed_olist->get_object(0)->get_qrotation()->get_z() - sqrt(3.0)/3.0 < 0.001 );
-  assert ( jparsed_olist->get_object(1)->get_scale()->get_w() - 0.0 < 0.001 );
-  assert ( jparsed_olist->get_object(1)->get_scale()->get_w() - 2.0 < 0.001 );
-  assert ( jparsed_olist->get_object(1)->get_scale()->get_w() - 4.0 < 0.001 );
-  assert ( jparsed_olist->get_object(1)->get_scale()->get_w() - 8.0 < 0.001 );
+  assert(jparsed_olist->get_object(0)->get_qrotation()->get_w() - 0.0 < 0.001);
+  assert(jparsed_olist->get_object(0)->get_qrotation()->get_x() - \
+    sqrt(3.0)/3.0 < 0.001);
+  assert(jparsed_olist->get_object(0)->get_qrotation()->get_y() - \
+    sqrt(3.0)/3.0 < 0.001);
+  assert(jparsed_olist->get_object(0)->get_qrotation()->get_z() - \
+    sqrt(3.0)/3.0 < 0.001);
+  assert(jparsed_olist->get_object(1)->get_scale()->get_w() - 0.0 < 0.001);
+  assert(jparsed_olist->get_object(1)->get_scale()->get_w() - 2.0 < 0.001);
+  assert(jparsed_olist->get_object(1)->get_scale()->get_w() - 4.0 < 0.001);
+  assert(jparsed_olist->get_object(1)->get_scale()->get_w() - 8.0 < 0.001);
 
-  //Teardown
+  // Teardown
   delete olist;
   delete parsed_olist;
   delete jparsed_olist;

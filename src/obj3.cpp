@@ -1,29 +1,45 @@
+/*
+Apache2 License Notice
+Copyright 2017 Alex Barry
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 #include "include/obj3.h"
 
 // Default Constructor
 Obj3::Obj3() {
-  //Initialize Empty String elements
-  key="";
-  name="";
-  scene_id="";
-  type="";
-  subtype="";
-  owner="";
+  // Initialize Empty String elements
+  key = "";
+  name = "";
+  scene_id = "";
+  type = "";
+  subtype = "";
+  owner = "";
 }
 
-//Constructor to parse a JSON from Mongo
+// Constructor to parse a JSON from Mongo
 Obj3::Obj3(const rapidjson::Document &d) {
   obj_logging->debug("Building Obj3 from JSON Document");
-  //Initialize Empty String elements
-  key="";
-  name="";
-  scene_id="";
-  type="";
-  subtype="";
-  owner="";
-  //Start parsing the JSON Object
+  // Initialize Empty String elements
+  key = "";
+  name = "";
+  scene_id = "";
+  type = "";
+  subtype = "";
+  owner = "";
+  // Start parsing the JSON Object
   if (d.IsObject()) {
-
     obj_logging->debug("Object-Format Message Detected");
 
     if (d.HasMember("key")) {
@@ -51,7 +67,7 @@ Obj3::Obj3(const rapidjson::Document &d) {
       subtype = subtype_val->GetString();
     }
 
-    //Transformations
+    // Transformations
     if (d.HasMember("translation")) {
       const rapidjson::Value& trans_val = d["translation"];
       if (trans_val.IsArray()) {
@@ -94,28 +110,27 @@ Obj3::Obj3(const rapidjson::Document &d) {
     }
 
     if (d.HasMember("assets")) {
-      //Read the array values and stuff them into new_location
+      // Read the array values and stuff them into new_location
       const rapidjson::Value& sc = d["assets"];
       if (sc.IsArray()) {
-        for (rapidjson::SizeType i = 0; i < sc.Size();i++) {
+        for (rapidjson::SizeType i = 0; i < sc.Size(); i++) {
           asset_ids.push_back(sc[i].GetString());
         }
       }
     }
-
   }
 }
 
-//Copy Constructor
+// Copy Constructor
 Obj3::Obj3(const Obj3 &o) {
-  //Copy String values
+  // Copy String values
   key = o.get_key();
   name = o.get_name();
   scene_id = o.get_scene();
   type = o.get_type();
   subtype = o.get_subtype();
   owner = o.get_owner();
-  //Apply transforms
+  // Apply transforms
   if (o.has_translation()) {
     trans = new Translation;
     transform(o.get_translation());
@@ -132,8 +147,8 @@ Obj3::Obj3(const Obj3 &o) {
     scl = new Scale;
     transform(o.get_scale());
   }
-  //Move over asset ids
-  for (int i=0;i<o.num_assets();i++) {
+  // Move over asset ids
+  for (int i = 0; i < o.num_assets(); i++) {
     add_asset(o.get_asset(i));
   }
 }
@@ -147,7 +162,8 @@ Obj3::~Obj3() {
 }
 
 // Apply a transformation to the object
-//Depending on the type of transformation, we allocate the needed memory or add to existing
+// Depending on the type of transformation,
+// we allocate the needed memory or add to existing
 void Obj3::transform(Transformation *t) {
   if (t->get_type() == TRANSLATE) {
     if (!trans) trans = new Translation;
@@ -162,20 +178,20 @@ void Obj3::transform(Transformation *t) {
     if (!scl) scl = new Scale;
     scl->add(t->get_x(), t->get_y(), t->get_z());
   } else {
-    throw Obj3Exception("Attempted to apply transformation without a valid type");
+    throw Obj3Exception("Attempted to apply transformation without valid type");
   }
 }
 
-//Take the target and apply its fields as changes
+// Take the target and apply its fields as changes
 void Obj3::merge(Obj3 *target) {
-  //Copy String values
-  if ( !(target->get_key().empty()) ) key = target->get_key();
-  if ( !(target->get_name().empty()) ) name = target->get_name();
-  if ( !(target->get_scene().empty()) ) scene_id = target->get_scene();
-  if ( !(target->get_type().empty()) ) type = target->get_type();
-  if ( !(target->get_subtype().empty()) ) subtype = target->get_subtype();
-  if ( !(target->get_owner().empty()) ) owner = target->get_owner();
-  //Apply transforms
+  // Copy String values
+  if (!(target->get_key().empty())) key = target->get_key();
+  if (!(target->get_name().empty())) name = target->get_name();
+  if (!(target->get_scene().empty())) scene_id = target->get_scene();
+  if (!(target->get_type().empty())) type = target->get_type();
+  if (!(target->get_subtype().empty())) subtype = target->get_subtype();
+  if (!(target->get_owner().empty())) owner = target->get_owner();
+  // Apply transforms
   if (target->has_translation()) {
     if (!trans) trans = new Translation;
     transform(target->get_translation());
@@ -192,102 +208,101 @@ void Obj3::merge(Obj3 *target) {
     if (!scl) scl = new Scale;
     transform(target->get_scale());
   }
-  //Move over asset ids
-  for (int i=0;i<target->num_assets();i++) {
+  // Move over asset ids
+  for (int i = 0; i < target->num_assets(); i++) {
     add_asset(target->get_asset(i));
   }
 }
 
-//Write the Object to JSON
+// Write the Object to JSON
 std::string Obj3::to_json() {
-  //Initialize the string buffer and writer
+  // Initialize the string buffer and writer
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
-  //Start writing the object
-  //Syntax taken directly from
-  //simplewriter.cpp in rapidjson examples
+  // Start writing the object
+  // Syntax taken directly from
+  // simplewriter.cpp in rapidjson examples
   writer.StartObject();
 
-  //Write string attributes
+  // Write string attributes
 
-  if ( !(name.empty()) ) {
-  	writer.Key("name");
-  	writer.String( name.c_str(), (rapidjson::SizeType)name.length() );
+  if (!(name.empty())) {
+    writer.Key("name");
+    writer.String(name.c_str(), (rapidjson::SizeType)name.length());
   }
 
-  if ( !(scene_id.empty()) ) {
-  	writer.Key("scene");
-  	writer.String( scene_id.c_str(), (rapidjson::SizeType)scene_id.length() );
+  if (!(scene_id.empty())) {
+    writer.Key("scene");
+    writer.String(scene_id.c_str(), (rapidjson::SizeType)scene_id.length());
   }
 
-  if ( !(type.empty()) ) {
-  	writer.Key("type");
-  	writer.String( type.c_str(), (rapidjson::SizeType)type.length() );
+  if (!(type.empty())) {
+    writer.Key("type");
+    writer.String(type.c_str(), (rapidjson::SizeType)type.length());
   }
 
-  if ( !(subtype.empty()) ) {
-  	writer.Key("subtype");
-  	writer.String( subtype.c_str(), (rapidjson::SizeType)subtype.length() );
+  if (!(subtype.empty())) {
+    writer.Key("subtype");
+    writer.String(subtype.c_str(), (rapidjson::SizeType)subtype.length());
   }
 
-  if ( !(owner.empty()) ) {
-  	writer.Key("owner");
-  	writer.String( owner.c_str(), (rapidjson::SizeType)owner.length() );
+  if (!(owner.empty())) {
+    writer.Key("owner");
+    writer.String(owner.c_str(), (rapidjson::SizeType)owner.length());
   }
 
-  //Write Transforms
+  // Write Transforms
   if (trans) {
     writer.Key("translation");
     writer.StartArray();
-    writer.Double( trans->get_x() );
-    writer.Double( trans->get_y() );
-    writer.Double( trans->get_z() );
+    writer.Double(trans->get_x());
+    writer.Double(trans->get_y());
+    writer.Double(trans->get_z());
     writer.EndArray();
   }
 
   if (erot) {
     writer.Key("euler_rotation");
     writer.StartArray();
-    writer.Double( erot->get_x() );
-    writer.Double( erot->get_y() );
-    writer.Double( erot->get_z() );
+    writer.Double(erot->get_x());
+    writer.Double(erot->get_y());
+    writer.Double(erot->get_z());
     writer.EndArray();
   }
 
   if (qrot) {
     writer.Key("quaternion_rotation");
     writer.StartArray();
-    writer.Double( qrot->get_w() );
-    writer.Double( qrot->get_x() );
-    writer.Double( qrot->get_y() );
-    writer.Double( qrot->get_z() );
+    writer.Double(qrot->get_w());
+    writer.Double(qrot->get_x());
+    writer.Double(qrot->get_y());
+    writer.Double(qrot->get_z());
     writer.EndArray();
   }
 
   if (scl) {
     writer.Key("scale");
     writer.StartArray();
-    writer.Double( scl->get_x() );
-    writer.Double( scl->get_y() );
-    writer.Double( scl->get_z() );
+    writer.Double(scl->get_x());
+    writer.Double(scl->get_y());
+    writer.Double(scl->get_z());
     writer.EndArray();
   }
 
   writer.Key("assets");
   writer.StartArray();
-  for (int i=0; i<num_assets(); i++) {
+  for (int i = 0; i < num_assets(); i++) {
     std::string ast = get_asset(i);
-    writer.String( ast.c_str(), (rapidjson::SizeType)ast.length() );
+    writer.String(ast.c_str(), (rapidjson::SizeType)ast.length());
   }
   writer.EndArray();
 
   writer.EndObject();
 
-  //The Stringbuffer now contains a json message
-  //of the object
+  // The Stringbuffer now contains a json message
+  // of the object
   json_cstr_val = s.GetString();
   json_str_val.assign(json_cstr_val);
   return json_str_val;
-
 }

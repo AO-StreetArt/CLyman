@@ -1,31 +1,51 @@
-//Functions to assist with running queries against Mongo
+/*
+Apache2 License Notice
+Copyright 2017 Alex Barry
 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Functions to assist with running queries against Mongo
+
+#include <string>
 #include "app_log.h"
 
-//Use a set of Obj3s to query the DB and return a list of results
+#ifndef SRC_INCLUDE_QUERY_HELPER_H_
+#define SRC_INCLUDE_QUERY_HELPER_H_
+
+// Use a set of Obj3s to query the DB and return a list of results
 Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
-  //Determine # of results to return based on input
+  // Determine # of results to return based on input
   int max_results = inp_list->get_num_records();
   int num_results = 0;
 
-  //Create the new Obj3List to return
+  // Create the new Obj3List to return
   Obj3List *return_list = new Obj3List;
 
-  //Iterate over the input list
+  // Iterate over the input list
   for (int i = 0; i < inp_list->num_objects(); i++) {
-
     if (num_results > max_results) {
       main_logging->debug("Max Query Results Reached");
       break;
     }
 
-    //Generate a Query from each object in the list
+    // Generate a Query from each object in the list
     std::string query_string = inp_list->get_object(i)->to_json();
 
-    //Execute the Query with Mongo
+    // Execute the Query with Mongo
     MongoIteratorInterface *iter = m->query(query_string);
 
-    //Add the results to the return list until we reach our limit or find no more
+    // Add the results to the return list until we reach our limit or find none
     if (iter) {
       MongoResponseInterface *resp = iter->next();
       while (resp) {
@@ -33,7 +53,7 @@ Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
           main_logging->debug("Max Query Results Reached");
           break;
         }
-        if ( !(resp->get_err_msg().empty()) ) {
+        if (!(resp->get_err_msg().empty())) {
           main_logging->error("Error detected in cursor:");
           main_logging->error(resp->get_err_msg());
           break;
@@ -46,12 +66,10 @@ Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
         delete resp;
         resp = iter->next();
       }
-
     }
-
     delete iter;
-
   }
-
   return return_list;
 }
+
+#endif  // SRC_INCLUDE_QUERY_HELPER_H_
