@@ -224,12 +224,12 @@ void my_signal_handler(int s) {
         std::string new_error_message = "";
         response_message = new Obj3List;
 
+        // Parsing logic - JSON
         if (config->get_formattype() == JSON_FORMAT) {
           int final_closing_char = recvd_msg.find_last_of("}");
           int first_opening_char = recvd_msg.find_first_of("{");
           clean_string = \
             recvd_msg.substr(first_opening_char, final_closing_char+1);
-
           main_logging->debug("Input String Cleaned");
           main_logging->debug(clean_string);
 
@@ -247,10 +247,9 @@ void my_signal_handler(int s) {
             main_logging->error("Exception occurred while parsing document:");
             main_logging->error(e.what());
           }
-
+        // Parsing logic - Protocol Buffers
         } else if (config->get_formattype() == PROTO_FORMAT) {
           clean_string = trim(recvd_msg);
-
           main_logging->debug("Input String Cleaned");
           main_logging->debug(clean_string);
 
@@ -301,10 +300,16 @@ void my_signal_handler(int s) {
               if (inbound_message->get_msg_type() == OBJ_CRT) {
                 main_logging->info("Processing Object Creation Message");
                 for (int i = 0; i < inbound_message->num_objects(); i++) {
+                  // Create a new Obj3 to add to the return list
                   Obj3 *resp_element = new Obj3;
+
+                  // Create the Obj3 document for Mongo
                   MongoResponseInterface *resp = mongo->create_document(\
                     inbound_message->get_object(i)->to_json());
+
+                  // Add the key into the new obj3
                   resp_element->set_key(resp->get_value());
+                  // Add the new obj3 to the response list
                   response_message->add_object(resp_element);
                   delete resp;
                 }
@@ -351,6 +356,7 @@ void my_signal_handler(int s) {
               } else if (inbound_message->get_msg_type() == OBJ_GET) {
                 main_logging->info("Processing Object Get Message");
                 for (int i = 0; i < inbound_message->num_objects(); i++) {
+                  // Pull down and parse the value from Mongo
                   rapidjson::Document resp_doc;
                   MongoResponseInterface *resp = mongo->load_document(\
                     inbound_message->get_object(i)->get_key());
@@ -359,6 +365,8 @@ void my_signal_handler(int s) {
                     main_logging->debug("Document loaded from Mongo");
                     main_logging->debug(mongo_resp_str);
                     resp_doc.Parse(mongo_resp_str.c_str());
+
+                    // Create a new Obj3 and add to the return list
                     Obj3 *resp_obj = new Obj3(resp_doc);
                     response_message->add_object(resp_obj);
                     delete resp;
@@ -423,10 +431,12 @@ void my_signal_handler(int s) {
             application_response = response_message->to_protobuf();
           }
 
+          // Send the response via ZMQ
           main_logging->info("Sending Response");
           main_logging->info(application_response);
           zmqi->send(application_response);
 
+          // Cleanup
           if (response_message) {
             delete response_message;
             response_message = NULL;
@@ -436,6 +446,7 @@ void my_signal_handler(int s) {
             inbound_message = NULL;
           }
 
+          // If we recieved a shutdown message, then we cleanup and exit
           if (shutdown_needed) {shutdown(); exit(1);}
       }
       return 0;
