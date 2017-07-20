@@ -15,21 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "include/obj3.h"
-
-// Default Constructor
-Obj3::Obj3() {
-  // Initialize Empty String elements
-  key = "";
-  name = "";
-  scene_id = "";
-  type = "";
-  subtype = "";
-  owner = "";
-}
+#include "include/object_document.h"
 
 // Constructor to parse a JSON from Mongo
-Obj3::Obj3(const rapidjson::Document &d) {
+ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
   obj_logging->debug("Building Obj3 from JSON Document");
   // Initialize Empty String elements
   key = "";
@@ -71,10 +60,9 @@ Obj3::Obj3(const rapidjson::Document &d) {
     if (d.HasMember("translation")) {
       const rapidjson::Value& trans_val = d["translation"];
       if (trans_val.IsArray()) {
-        trans = new Translation;
-        trans->set_x(trans_val[0].GetDouble());
-        trans->set_y(trans_val[1].GetDouble());
-        trans->set_z(trans_val[2].GetDouble());
+        Translation new_translation(trans_val[0].GetDouble(), \
+          trans_val[1].GetDouble(), trans_val[2].GetDouble());
+        trans->multiply(new_translation);
       }
     }
 
