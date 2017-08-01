@@ -31,13 +31,6 @@ limitations under the License.
 #include <exception>
 #include <vector>
 
-#include "src/include/app_log.h"
-#include "src/include/app_utils.h"
-#include "src/include/configuration_manager.h"
-#include "src/include/globals.h"
-#include "src/include/redis_locking.h"
-#include "src/include/query_helper.h"
-
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
@@ -57,6 +50,16 @@ limitations under the License.
 
 #include "aossl/zmq/include/zmq_interface.h"
 #include "aossl/zmq/include/factory_zmq.h"
+
+#include "src/app/include/app_log.h"
+#include "src/app/include/app_utils.h"
+#include "src/app/include/configuration_manager.h"
+#include "src/app/include/globals.h"
+#include "src/app/include/redis_locking.h"
+#include "src/app/include/query_helper.h"
+
+#include "src/api/include/object_list_interface.h"
+#include "src/api/include/object_list_factory.h"
 
 // Catch a Signal (for example, keyboard interrupt)
 void my_signal_handler(int s) {
@@ -84,6 +87,9 @@ void my_signal_handler(int s) {
       zmq_factory = new ZmqComponentFactory;
       logging_factory = new LoggingComponentFactory;
       mongo_factory = new MongoComponentFactory;
+
+      ObjectListFactory ofactory;
+      ObjectFactory objfactory;
 
       // Set up our command line interpreter
       cli = cli_factory->get_command_line_interface(argc, argv);
@@ -222,10 +228,10 @@ void my_signal_handler(int s) {
         std::string clean_string;
 
         std::string new_error_message = "";
-        response_message = new Obj3List;
 
         // Parsing logic - JSON
         if (config->get_formattype() == JSON_FORMAT) {
+          response_message = ofactory.build_json_object_list();
           int final_closing_char = recvd_msg.find_last_of("}");
           int first_opening_char = recvd_msg.find_first_of("{");
           clean_string = \
@@ -240,7 +246,7 @@ void my_signal_handler(int s) {
               main_logging->error(GetParseError_En(d.GetParseError()));
               response_message->set_error_code(TRANSLATION_ERROR);
               new_error_message.assign(GetParseError_En(d.GetParseError()));
-            } else {inbound_message = new Obj3List (d);}
+            } else {inbound_message = ofactory.build_object_list(d);}
           }
           // Catch a possible error and write to logs
           catch (std::exception& e) {
@@ -249,13 +255,14 @@ void my_signal_handler(int s) {
           }
         // Parsing logic - Protocol Buffers
         } else if (config->get_formattype() == PROTO_FORMAT) {
+          response_message = ofactory.build_proto_object_list();
           clean_string = trim(recvd_msg);
           main_logging->debug("Input String Cleaned");
           main_logging->debug(clean_string);
 
           try {
             new_proto.ParseFromString(clean_string);
-            inbound_message = new Obj3List (new_proto);
+            inbound_message = ofactory.build_object_list(new_proto);
           } catch (std::exception& e) {
             main_logging->error("Exception occurred while parsing bytes:");
             main_logging->error(e.what());
@@ -301,7 +308,7 @@ void my_signal_handler(int s) {
                 main_logging->info("Processing Object Creation Message");
                 for (int i = 0; i < inbound_message->num_objects(); i++) {
                   // Create a new Obj3 to add to the return list
-                  Obj3 *resp_element = new Obj3;
+                  ObjectInterface *resp_element = objfactory.build_object();
 
                   // Create the Obj3 document for Mongo
                   MongoResponseInterface *resp = mongo->create_document(\
@@ -331,7 +338,7 @@ void my_signal_handler(int s) {
                     main_logging->debug("Document loaded from Mongo");
                     main_logging->debug(mongo_resp_str);
                     resp_doc.Parse(mongo_resp_str.c_str());
-                    Obj3 *resp_obj = new Obj3(resp_doc);
+                    ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
                     // Apply the object message as changes to the DB Object
                     resp_obj->merge(inbound_message->get_object(i));
                     // Save the resulting object
@@ -367,7 +374,7 @@ void my_signal_handler(int s) {
                     resp_doc.Parse(mongo_resp_str.c_str());
 
                     // Create a new Obj3 and add to the return list
-                    Obj3 *resp_obj = new Obj3(resp_doc);
+                    ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
                     response_message->add_object(resp_obj);
                     delete resp;
                   } else {
@@ -387,7 +394,7 @@ void my_signal_handler(int s) {
               } else if (inbound_message->get_msg_type() == OBJ_DEL) {
                 main_logging->info("Processing Object Deletion Message");
                 for (int i = 0; i < inbound_message->num_objects(); i++) {
-                  Obj3 *resp_element = new Obj3;
+                  ObjectInterface *resp_element = objfactory.build_object();
                   resp_element->set_key(\
                     inbound_message->get_object(i)->get_key());
                   mongo->delete_document(\

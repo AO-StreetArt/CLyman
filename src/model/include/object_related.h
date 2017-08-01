@@ -21,14 +21,17 @@ limitations under the License.
 #include "object_3d.h"
 #include "app_log.h"
 
-#ifndef SRC_INCLUDE_OBJECT_RELATED_H_
-#define SRC_INCLUDE_OBJECT_RELATED_H_
+#ifndef SRC_MODEL_INCLUDE_OBJECT_RELATED_H_
+#define SRC_MODEL_INCLUDE_OBJECT_RELATED_H_
 
+// A RelatedObject is an object in 3-space which is related to the other
+// attributes needed to actually create such an object (scene, assets, etc)
 class RelatedObject : public Object3d {
-  // String attributes
+  // Local key for CLyman DB
   std::string key;
+  // Remote key for a Scene ID
   std::string scene_id;
-  // Vector attributes
+  // Remote keys for assets (meshes, textures, etc)
   std::vector<std::string> asset_ids;
 
  public:
@@ -37,7 +40,7 @@ class RelatedObject : public Object3d {
   // Copy Constructor
   RelatedObject(const RelatedObject &o) : Object3d(o) {}
   // Destructor
-  ~RelatedObject() : ~Object3d() {}
+  virtual ~RelatedObject() {}
   // String Getters
   std::string get_key() const {return key;}
   std::string get_scene() const {return scene_id;}
@@ -52,4 +55,4 @@ class RelatedObject : public Object3d {
   void clear_assets() {asset_ids.clear();}
 };
 
-#endif  // SRC_INCLUDE_OBJECT_RELATED_H_
+#endif  // SRC_MODEL_INCLUDE_OBJECT_RELATED_H_

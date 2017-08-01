@@ -19,8 +19,8 @@ limitations under the License.
 #include <exception>
 #include "transforms.h"
 
-#ifndef SRC_INCLUDE_OBJECT_3D_H_
-#define SRC_INCLUDE_OBJECT_3D_H_
+#ifndef SRC_MODEL_INCLUDE_OBJECT_3D_H_
+#define SRC_MODEL_INCLUDE_OBJECT_3D_H_
 
 // An Obj3 Exception
 
@@ -45,6 +45,8 @@ struct Object3dException: public std::exception {
   }
 };
 
+// The Object3d class stores data for a single object in 3-space.
+// Basically, wraps a transform and provides some convinience methods
 class Object3d {
   // Transformation matrix
   Transformation *trans = NULL;
@@ -58,11 +60,11 @@ class Object3d {
     trans->multiply(*(o.get_transform()));
   }
   // Destructor
-  ~Object3d() {if (trans) delete trans;}
+  virtual ~Object3d() {if (trans) delete trans;}
   // Transform methods
-  void transform(Transformation *t) {trans->multiply(t);}
+  void transform(Transformation *t) {trans->multiply(*t);}
   bool has_transform() const {if (trans) {return true;} else {return false;}}
   Transformation* get_transform() const {return trans;}
 };
 
-#endif  // SRC_INCLUDE_OBJECT_3D_H_
+#endif  // SRC_MODEL_INCLUDE_OBJECT_3D_H_

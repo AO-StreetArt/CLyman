@@ -26,8 +26,8 @@ limitations under the License.
 #include <cctype>
 #include <locale>
 
-#ifndef SRC_INCLUDE_APP_UTILS_H_
-#define SRC_INCLUDE_APP_UTILS_H_
+#ifndef SRC_APP_INCLUDE_APP_UTILS_H_
+#define SRC_APP_INCLUDE_APP_UTILS_H_
 
 // Universal Event Types
 const int OBJ_CRT = 0;
@@ -68,4 +68,4 @@ static inline std::string &trim(std::string &s) {
     return ltrim(rtrim(s));
 }
 
-#endif  // SRC_INCLUDE_APP_UTILS_H_
+#endif  // SRC_APP_INCLUDE_APP_UTILS_H_

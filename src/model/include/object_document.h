@@ -19,6 +19,7 @@ limitations under the License.
 #include <vector>
 #include <exception>
 #include "object_related.h"
+#include "object_interface.h"
 #include "Obj3.pb.h"
 #include "app_log.h"
 
@@ -27,10 +28,16 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/error/en.h"
 
-#ifndef SRC_INCLUDE_OBJECT_DOCUMENT_H_
-#define SRC_INCLUDE_OBJECT_DOCUMENT_H_
+#ifndef SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
+#define SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
 
-class ObjectDocument : public RelatedObject {
+// An Object Document extends a related object by:
+//  - Storing Database metadata
+//  - Offer parsing/writing methods for translation
+//     to and from JSON.  These methods are meant for
+//     use in communicating with the database ONLY,
+//     external clients should communicate using the object_list API
+class ObjectDocument : public RelatedObject, public ObjectInterface {
   // String attributes
   std::string name;
   std::string type;
@@ -47,8 +54,9 @@ class ObjectDocument : public RelatedObject {
   ObjectDocument(const rapidjson::Document &d);
   // Copy Constructor
   ObjectDocument(const ObjectDocument &o);
+  ObjectDocument(const ObjectInterface &o);
   // Destructor
-  ~ObjectDocument() : ~RelatedObject() {if (json_cstr_val) delete json_cstr_val;}
+  ~ObjectDocument() {}
   // String Getters
   std::string get_name() const {return name;}
   std::string get_type() const {return type;}
@@ -60,9 +68,26 @@ class ObjectDocument : public RelatedObject {
   void set_subtype(std::string new_subtype) {subtype.assign(new_subtype);}
   void set_owner(std::string new_owner) {owner.assign(new_owner);}
   // Take a target object and apply it's fields as changes to this Object
-  void merge(ObjectDocument *target);
+  void merge(ObjectInterface *target);
   // to_json method to build an object to save to Mongo
   std::string to_json();
+  // Inherited Methods
+  // Transform methods
+  void transform(Transformation *t) {Object3d::transform(t);}
+  bool has_transform() const {return Object3d::has_transform();}
+  Transformation* get_transform() const {return Object3d::get_transform();}
+  // String Getters
+  std::string get_key() const {return RelatedObject::get_key();}
+  std::string get_scene() const {return RelatedObject::get_scene();}
+  // String Setters
+  void set_key(std::string new_key) {RelatedObject::set_key(new_key);}
+  void set_scene(std::string new_scene) {RelatedObject::set_scene(new_scene);}
+  // Asset methods
+  int num_assets() const {return RelatedObject::num_assets();}
+  void add_asset(std::string id) {RelatedObject::add_asset(id);}
+  std::string get_asset(int index) const {return RelatedObject::get_asset(index);}
+  void remove_asset(int index) {RelatedObject::remove_asset(index);}
+  void clear_assets() {RelatedObject::clear_assets();}
 };
 
-#endif  // SRC_INCLUDE_OBJECT_DOCUMENT_H_
+#endif  // SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_

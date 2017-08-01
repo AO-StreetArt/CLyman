@@ -19,18 +19,18 @@ limitations under the License.
 
 #include <string>
 #include "app_log.h"
+#include "object_list_interface.h"
+#include "object_list_factory.h"
 
-#ifndef SRC_INCLUDE_QUERY_HELPER_H_
-#define SRC_INCLUDE_QUERY_HELPER_H_
+#ifndef SRC_APP_INCLUDE_QUERY_HELPER_H_
+#define SRC_APP_INCLUDE_QUERY_HELPER_H_
 
 // Use a set of Obj3s to query the DB and return a list of results
-Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
+ObjectListInterface* batch_query(ObjectListInterface *inp_list, \
+  ObjectListInterface *out_list, MongoInterface *m) {
   // Determine # of results to return based on input
   int max_results = inp_list->get_num_records();
   int num_results = 0;
-
-  // Create the new Obj3List to return
-  Obj3List *return_list = new Obj3List;
 
   // Iterate over the input list
   for (int i = 0; i < inp_list->num_objects(); i++) {
@@ -60,8 +60,8 @@ Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
         }
         rapidjson::Document resp_doc;
         resp_doc.Parse(resp->get_value().c_str());
-        Obj3 *resp_obj = new Obj3(resp_doc);
-        return_list->add_object(resp_obj);
+        ObjectInterface *resp_obj = objfactory.build_object();
+        out_list->add_object(resp_obj);
         num_results++;
         delete resp;
         resp = iter->next();
@@ -69,7 +69,7 @@ Obj3List* batch_query(Obj3List *inp_list, MongoInterface *m) {
     }
     delete iter;
   }
-  return return_list;
+  return out_list;
 }
 
-#endif  // SRC_INCLUDE_QUERY_HELPER_H_
+#endif  // SRC_APP_INCLUDE_QUERY_HELPER_H_

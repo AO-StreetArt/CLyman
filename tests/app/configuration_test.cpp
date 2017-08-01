@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
     RedisConnChain redis_chain = RedisConnectionList[0];
     assert(redis_chain.ip == "127.0.0.1");
     assert(redis_chain.port == 6379);
+    logging->debug(redis_chain.password);
     assert(redis_chain.password == "test");
     assert(redis_chain.pool_size == 2);
     assert(redis_chain.timeout == 5);

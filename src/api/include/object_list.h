@@ -18,24 +18,29 @@ limitations under the License.
 #include <vector>
 #include <string>
 
-#include "obj3.h"
-
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
 #include "Obj3.pb.h"
 
-#ifndef SRC_INCLUDE_OBJ3_LIST_H_
-#define SRC_INCLUDE_OBJ3_LIST_H_
+#include "object_document.h"
+#include "object_interface.h"
+#include "object_list_interface.h"
 
-class Obj3List {
+#ifndef SRC_API_INCLUDE_OBJECT_LIST_H_
+#define SRC_API_INCLUDE_OBJECT_LIST_H_
+
+// An ObjectList stores a vector of pointers to ObjectDocuments
+// It is responsible for parsing requests from external clients,
+// and writing the responses to go back to those external clients.
+class ObjectList : public ObjectListInterface {
   int msg_type;
   int err_code;
   std::string err_msg;
   std::string transaction_id;
   int num_records;
-  std::vector<Obj3*> objects;
+  std::vector<ObjectInterface*> objects;
   // String Return Value
   const char* json_cstr_val;
   std::string json_str_val;
@@ -43,13 +48,33 @@ class Obj3List {
 
  public:
   // Constructor
-  Obj3List();
-  ~Obj3List();
-  // Inbound Message Translation methods
-  Obj3List(const rapidjson::Document& d);
-  Obj3List(protoObj3::Obj3List proto_list);
+  inline ObjectList() {
+    msg_type = -1;
+    err_code = 100;
+    err_msg = "";
+    transaction_id = "";
+    num_records = 0;
+  }
+  // Destructor
+  virtual inline ~ObjectList() {
+    for (unsigned int i = 0; i < objects.size(); i++) {
+      if (objects[i]) delete objects[i];
+    }
+  }
   // Copy Constructor
-  Obj3List(const Obj3List &olist);
+  inline ObjectList(const ObjectList &olist) {
+    obj_logging->debug("Copy Constructor Called");
+    msg_type = olist.get_msg_type();
+    err_code = olist.get_error_code();
+    err_msg = olist.get_error_message();
+    transaction_id = olist.get_transaction_id();
+    num_records = olist.get_num_records();
+    for (int i = 0; i < olist.num_objects(); i++) {
+      // Invoke the ObjectDocument Copy Constructor
+      ObjectDocument *o = new ObjectDocument(*(olist.get_object(i)));
+      objects.push_back(o);
+    }
+  }
   // Getters
   int get_msg_type() const {return msg_type;}
   int get_error_code() const {return err_code;}
@@ -64,13 +89,12 @@ class Obj3List {
   void set_num_records(int nr) {num_records = nr;}
   // Object list methods
   int num_objects() const {return objects.size();}
-  void add_object(Obj3 *o) {objects.push_back(o);}
-  Obj3* get_object(int index) const {return objects[index];}
+  void add_object(ObjectInterface *o) {objects.push_back(o);}
+  ObjectInterface* get_object(int index) const {return objects[index];}
   void remove_object(int index) {objects.erase(objects.begin()+index);}
   void clear_objects() {objects.clear();}
   // Message generation methods
-  std::string to_json();
-  std::string to_protobuf();
+  virtual void to_msg_string(std::string &out_string) = 0;
 };
 
-#endif  // SRC_INCLUDE_OBJ3_LIST_H_
+#endif  // SRC_API_INCLUDE_OBJECT_LIST_H_
