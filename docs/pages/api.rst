@@ -41,9 +41,7 @@ single object:
 
  "translation": [0, 0, 0],
 
- "rotation\_euler": [0, 0, 0],
-
- "rotation\_quaternion": [0, 0, 0, 0],
+ "rotation\_euler": [0, 0, 0, 0],
 
  "scale": [1, 1, 1],
 
@@ -94,10 +92,8 @@ element of the array from the “objects” key of the object list.
 -  scene – ID For the Scene containing the object
 -  translation – X, Y, and Z values for the translation of the object
    from it’s origin
--  rotation\_euler – X, Y, and Z values for the local rotation of the object
-   about each axis
--  rotation\_quaternion – W, X, Y, and Z values for the local quaternion
-   rotation of the object
+-  rotation\_euler – THETA, X, Y, and Z values for the local rotation of the object
+   about the axis <X, Y, Z>
 -  scale – X, Y, and Z values for the scaling of the object
 -  assets – An Array of identifiers for “assets”, which should be
    downloaded by users in order to view the object.
@@ -129,8 +125,6 @@ Field Mapping
 | translation            | Array - Double   | X          |          | \*         |            | \*        |
 +------------------------+------------------+------------+----------+------------+------------+-----------+
 | rotation\_euler        | Array - Double   | X          |          | \*         |            | \*        |
-+------------------------+------------------+------------+----------+------------+------------+-----------+
-| rotation\_quaternion   | Array - Double   | X          |          | \*         |            | \*        |
 +------------------------+------------------+------------+----------+------------+------------+-----------+
 | scale                  | Array - Double   | X          |          | \*         |            | \*        |
 +------------------------+------------------+------------+----------+------------+------------+-----------+
@@ -205,9 +199,7 @@ Object Create
 
  "translation": [0, 0, 0],
 
- "rotation\_euler": [0, 0, 0],
-
- "rotation\_quaternion": [0, 0, 0, 0],
+ "rotation\_euler": [0, 0, 0, 0],
 
  "scale": [1, 1, 1],
 
@@ -271,9 +263,7 @@ Object Update
 
  "translation": [0, 0, 1],
 
- "rotation\_euler": [0, 0, 0],
-
- "rotation\_quaternion": [0, 0.2, 0.3, 0.5],
+ "rotation\_euler": [0, 0, 0, 0],
 
  "scale": [1, 1, 2],
 
