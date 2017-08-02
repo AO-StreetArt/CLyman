@@ -388,7 +388,7 @@ void my_signal_handler(int s) {
               // Object Query
               } else if (inbound_message->get_msg_type() == OBJ_QUERY) {
                 main_logging->info("Processing Object Batch Query Message");
-                response_message = batch_query(inbound_message, mongo);
+                batch_query(inbound_message, response_message, mongo);
 
               // Object Delete
               } else if (inbound_message->get_msg_type() == OBJ_DEL) {
@@ -430,13 +430,8 @@ void my_signal_handler(int s) {
 
           // Convert the response object to a message
           main_logging->debug("Building Response");
-          std::string application_response = "";
-          if (config->get_formattype() == JSON_FORMAT) {
-            application_response = response_message->to_json();
-          }
-          if (config->get_formattype() == PROTO_FORMAT) {
-            application_response = response_message->to_protobuf();
-          }
+          std::string application_response;
+          response_message->to_msg_string(application_response);
 
           // Send the response via ZMQ
           main_logging->info("Sending Response");

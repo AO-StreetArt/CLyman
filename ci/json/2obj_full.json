@@ -11,8 +11,7 @@
       "owner": "$OWNER@",
       "scene": "$SCENE_ID@",
       "translation": [$TRN_X@, $TRN_Y@, $TRN_Z@],
-      "rotation_euler": [$RE_X@, $RE_Y@, $RE_Z@],
-      "rotation_quaternion": [$RQ_W@, $RQ_X@, $RQ_Y@, $RQ_Z@],
+      "rotation_euler": [$RE_THETA@, $RE_X@, $RE_Y@, $RE_Z@],
       "scale": [$SCL_X@, $SCL_Y@, $SCL_Z@],
       "assets": ["$ASSET_ID@", "$ASSET_ID2@"]
     },
@@ -24,8 +23,7 @@
       "owner": "$OWNER2@",
       "scene": "$SCENE_ID2@",
       "translation": [$TRN_X2@, $TRN_Y2@, $TRN_Z2@],
-      "rotation_euler": [$RE_X2@, $RE_Y2@, $RE_Z2@],
-      "rotation_quaternion": [$RQ_W2@, $RQ_X2@, $RQ_Y2@, $RQ_Z2@],
+      "rotation_euler": [$RE_THETA@, $RE_X2@, $RE_Y2@, $RE_Z2@],
       "scale": [$SCL_X2@, $SCL_Y2@, $SCL_Z2@],
       "assets": ["$ASSET_ID3@", "$ASSET_ID4@"]
     }

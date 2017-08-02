@@ -9,7 +9,7 @@ RM = rm -f
 PROTOC = protoc
 PROTO_OPTS = -I=/usr/local/include/dvs_interface
 PROTO_OUT = src/api/
-OBJS = src/app/app_log.o src/app/configuration_manager.o src/app/globals.o src/model/object_document.o src/api/Obj3.pb.cc src/api/obj3.o src/api/obj3_list.o main.o
+OBJS = src/app/app_log.o src/app/configuration_manager.o src/app/globals.o src/model/object_document.o src/api/Obj3.pb.cc src/api/json_object_list.o src/api/protobuf_object_list.o main.o
 TESTS = configuration_test log_test utils_test transform_test obj3_test object_list_test
 
 .PHONY: mksrc mktest

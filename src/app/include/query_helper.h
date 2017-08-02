@@ -31,6 +31,7 @@ ObjectListInterface* batch_query(ObjectListInterface *inp_list, \
   // Determine # of results to return based on input
   int max_results = inp_list->get_num_records();
   int num_results = 0;
+  ObjectFactory objfactory;
 
   // Iterate over the input list
   for (int i = 0; i < inp_list->num_objects(); i++) {
