@@ -57,7 +57,7 @@ if [ ! -d /usr/local/include/rapidjson ]; then
 fi
 
 #Install glm
-sudo apt-get install libglm-devel
+sudo yum install -y libglm-devel
 
 #Get the DVS Interface Protocol Buffer Library
 git clone https://github.com/AO-StreetArt/DvsInterface.git
