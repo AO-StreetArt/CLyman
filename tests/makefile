@@ -1,27 +1,14 @@
-# define some Makefile variables for the compiler and compiler flags
-# to use Makefile variables later in the Makefile: $()
-#
-CC = g++
-CFLAGS  = -g -Wall
-STD = -std=c++11
-TESTS = configuration_test.o log_test.o utils_test.o transform_test.o obj3_test.o obj3_list_test.o
+# Makefile is defined to call make within the app, api, and model directories
 
-default: $(TESTS)
+.PHONY: mkapp mkapi mkmodel
 
-configuration_test.o: configuration_test.cpp
-	$(CC) $(CFLAGS) -o $@ -c $^ $(STD) -I../src/include
+all: mkapp mkapi mkmodel
 
-log_test.o: log_test.cpp
-	$(CC) $(CFLAGS) -o $@ -c $^ $(STD) -I../src/include
+mkapp:
+	@$(MAKE) -C app
 
-utils_test.o: utils_test.cpp
-	$(CC) $(CFLAGS) -o $@ -c $^ $(STD) -I../src/include
+mkapi:
+	@$(MAKE) -C api
 
-transform_test.o: transform_test.cpp
-	$(CC) $(CFLAGS) -o $@ -c $^ $(STD) -I../src/include
-
-obj3_test.o: obj3_test.cpp
-	$(CC) $(CFLAGS) -o $@ -c $^ $(STD) -I../src/include
-
-obj3_list_test.o: obj3_list_test.cpp
-	$(CC) $(CFLAGS) -o $@ -c $^ $(STD) -I../src/include
+mkmodel:
+	@$(MAKE) -C model

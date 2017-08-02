@@ -15,23 +15,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "include/globals.h"
+#ifndef SRC_APP_INCLUDE_APP_LOG_H_
+#define SRC_APP_INCLUDE_APP_LOG_H_
 
-// Core objects
-uuidInterface *uid = NULL;
-ConfigurationManager *config = NULL;
-MongoInterface *mongo = NULL;
-RedisInterface *red = NULL;
-CommandLineInterface *cli = NULL;
-Zmqio *zmqi = NULL;
+#include "aossl/logging/include/logging_interface.h"
 
-// Factories
-CommandLineInterpreterFactory *cli_factory = NULL;
-MongoComponentFactory *mongo_factory = NULL;
-RedisComponentFactory *redis_factory = NULL;
-uuidComponentFactory *uuid_factory = NULL;
-ZmqComponentFactory *zmq_factory = NULL;
-LoggingComponentFactory *logging_factory = NULL;
+extern LoggingCategoryInterface *config_logging;
+extern LoggingCategoryInterface *redis_logging;
+extern LoggingCategoryInterface *main_logging;
+extern LoggingCategoryInterface *obj_logging;
+extern LoggingCategoryInterface *uuid_logging;
 
-Obj3List *inbound_message = NULL;
-Obj3List *response_message = NULL;
+
+void start_logging_submodules();
+void shutdown_logging_submodules();
+
+#endif  // SRC_INCLUDE_APP_LOG_H_

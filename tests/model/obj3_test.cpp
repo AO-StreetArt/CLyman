@@ -24,10 +24,16 @@ limitations under the License.
 #include "aossl/logging/include/factory_logging.h"
 
 #include "transforms.h"
-#include "obj3.h"
+#include "object_document.h"
 #include "app_log.h"
 
+#include "object_interface.h"
+#include "object_factory.h"
+
 int main(int argc, char** argv) {
+  const float PI = 3.1415f;
+  //Tolerance
+  const float TOLERANCE = 0.001f;
   LoggingComponentFactory *logging_factory = new LoggingComponentFactory;
 
   std::string initFileName = "tests/log4cpp.properties";
@@ -38,7 +44,7 @@ int main(int argc, char** argv) {
   main_logging->debug("Basic Tests");
 
   // Constructor tests
-  Obj3 test_object;
+  ObjectDocument test_object;
   assert(test_object.get_key() == "");
   assert(test_object.get_name() == "");
   assert(test_object.get_scene() == "");
@@ -79,45 +85,74 @@ int main(int argc, char** argv) {
 
   // Transform tests
   main_logging->debug("Transform Tests");
-  Translation *trans = new Translation;
-  EulerRotation *erot = new EulerRotation;
-  QuaternionRotation *qrot = new QuaternionRotation;
-  Scale *scl = new Scale;
-  trans->add(1.0, 2.0, 3.0);
-  erot->add(3 * PI, 3.5 * PI, 4.02 * PI);
-  qrot->add(0.0, sqrt(3.0)/3.0, sqrt(3.0)/3.0, sqrt(3.0)/3.0);
-  scl->add(2.0, 4.0, 8.0);
+  Translation *trans = new Translation(1.0, 1.0, 1.0);
+  EulerRotation *erot = new EulerRotation(3 * PI, 1.0f, 0.0f, 0.0f);
+  Scale *scl = new Scale(2.0, 2.0, 2.0);
 
+  main_logging->debug(test_object.get_transform()->to_string());
   test_object.transform(trans);
-  assert(test_object.get_translation()->get_w() - 0.0 < 0.001);
-  assert(test_object.get_translation()->get_x() - 1.0 < 0.001);
-  assert(test_object.get_translation()->get_y() - 2.0 < 0.001);
-  assert(test_object.get_translation()->get_z() - 3.0 < 0.001);
+  main_logging->debug(test_object.get_transform()->to_string());
+  assert(test_object.get_transform()->get_transform_element(0, 0) - 1.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(1, 1) - 1.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(2, 2) - 1.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(3, 3) - 1.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(0, 3) - 1.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(1, 3) - 1.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(2, 3) - 1.0f \
+    < TOLERANCE);
 
   test_object.transform(erot);
-  assert(test_object.get_erotation()->get_w() - 0.0 < 0.001);
-  assert(test_object.get_erotation()->get_x() - PI < 0.001);
-  assert(test_object.get_erotation()->get_y() - (1.5 * PI) < 0.001);
-  assert(test_object.get_erotation()->get_z() - (0.02 * PI) < 0.001);
-
-  test_object.transform(qrot);
-  assert(test_object.get_qrotation()->get_w() - 0.0 < 0.001);
-  assert(test_object.get_qrotation()->get_x() - sqrt(3.0)/3.0 < 0.001);
-  assert(test_object.get_qrotation()->get_y() - sqrt(3.0)/3.0 < 0.001);
-  assert(test_object.get_qrotation()->get_z() - sqrt(3.0)/3.0 < 0.001);
+  main_logging->debug(test_object.get_transform()->to_string());
+  assert(test_object.get_transform()->get_transform_element(0, 0) - 1.0f \
+    < TOLERANCE);
+  assert(std::abs(test_object.get_transform()->get_transform_element(1, 1) \
+    + 1.0f) < TOLERANCE);
+  assert(std::abs(test_object.get_transform()->get_transform_element(2, 2) \
+    + 1.0f) < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(3, 3) - 1.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(0, 3) - 1.0f \
+    < TOLERANCE);
+  assert(std::abs(test_object.get_transform()->get_transform_element(1, 3) \
+    + 1.0f) < TOLERANCE);
+  assert(std::abs(test_object.get_transform()->get_transform_element(2, 3) \
+    + 1.0f) < TOLERANCE);
 
   test_object.transform(scl);
-  assert(test_object.get_scale()->get_w() - 0.0 < 0.001);
-  assert(test_object.get_scale()->get_w() - 2.0 < 0.001);
-  assert(test_object.get_scale()->get_w() - 4.0 < 0.001);
-  assert(test_object.get_scale()->get_w() - 8.0 < 0.001);
+  main_logging->debug(test_object.get_transform()->to_string());
+  assert(test_object.get_transform()->get_transform_element(0, 0) - 2.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(1, 1) + 2.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(2, 2) + 2.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(3, 3) - 1.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(0, 3) - 2.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(1, 3) + 2.0f \
+    < TOLERANCE);
+  assert(test_object.get_transform()->get_transform_element(2, 3) + 2.0f \
+    < TOLERANCE);
 
+  // JSON Tests
   main_logging->debug("JSON Tests");
 
   std::string obj_json = test_object.to_json();
+  main_logging->debug(obj_json);
   rapidjson::Document d;
   d.Parse<rapidjson::kParseStopWhenDoneFlag>(obj_json.c_str());
-  Obj3 *translated_object = new Obj3(d);
+
+  ObjectFactory ofactory;
+  ObjectInterface *translated_object = ofactory.build_object(d);
+
+  //ObjectDocument *translated_object = new ObjectDocument(d);
 
   assert(translated_object->get_key() == "");
   assert(translated_object->get_name() == "abcdefgh");
@@ -126,30 +161,30 @@ int main(int argc, char** argv) {
   assert(translated_object->get_subtype() == "abcdefghijk");
   assert(translated_object->get_owner() == "abcdefghijkl");
 
-  assert(translated_object->get_translation()->get_w() - 0.0 < 0.001);
-  assert(translated_object->get_translation()->get_x() - 1.0 < 0.001);
-  assert(translated_object->get_translation()->get_y() - 2.0 < 0.001);
-  assert(translated_object->get_translation()->get_z() - 3.0 < 0.001);
-  assert(translated_object->get_erotation()->get_w() - 0.0 < 0.001);
-  assert(translated_object->get_erotation()->get_x() - PI < 0.001);
-  assert(translated_object->get_erotation()->get_y() - (1.5 * PI) < 0.001);
-  assert(translated_object->get_erotation()->get_z() - (0.02 * PI) < 0.001);
-  assert(translated_object->get_qrotation()->get_w() - 0.0 < 0.001);
-  assert(translated_object->get_qrotation()->get_x() - sqrt(3.0)/3.0 < 0.001);
-  assert(translated_object->get_qrotation()->get_y() - sqrt(3.0)/3.0 < 0.001);
-  assert(translated_object->get_qrotation()->get_z() - sqrt(3.0)/3.0 < 0.001);
-  assert(translated_object->get_scale()->get_w() - 0.0 < 0.001);
-  assert(translated_object->get_scale()->get_w() - 2.0 < 0.001);
-  assert(translated_object->get_scale()->get_w() - 4.0 < 0.001);
-  assert(translated_object->get_scale()->get_w() - 8.0 < 0.001);
-
   assert(translated_object->num_assets() == 2);
   assert(translated_object->get_asset(0) == "12345");
   assert(translated_object->get_asset(1) == "12346");
 
+  main_logging->debug(translated_object->get_transform()->to_string());
+
+  assert(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 1) + 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 2) + 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(3, 3) - 1.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(0, 3) - 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 3) + 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 3) + 2.0f \
+    < TOLERANCE);
+
   // Merge Test
   main_logging->debug("Merge Tests");
-  Obj3 *obj_update = new Obj3;
+  ObjectDocument *obj_update = new ObjectDocument;
   std::string upd_key = "new_key";
   obj_update->set_key(upd_key);
   std::string upd_name = "new_name";
@@ -157,8 +192,7 @@ int main(int argc, char** argv) {
   std::string upd_owner = "new_owner";
   obj_update->set_owner(upd_owner);
 
-  Translation *trans2 = new Translation;
-  trans2->add(1.0, 2.0, 3.0);
+  Translation *trans2 = new Translation(1.0, 1.0, 1.0);
   obj_update->transform(trans2);
 
   delete trans2;
@@ -175,27 +209,25 @@ int main(int argc, char** argv) {
   assert(translated_object->get_subtype() == "abcdefghijk");
   assert(translated_object->get_owner() == "new_owner");
 
-  assert(translated_object->get_translation()->get_w() - 0.0 < 0.001);
-  assert(translated_object->get_translation()->get_x() - 2.0 < 0.001);
-  assert(translated_object->get_translation()->get_y() - 4.0 < 0.001);
-  assert(translated_object->get_translation()->get_z() - 6.0 < 0.001);
-  assert(translated_object->get_erotation()->get_w() - 0.0 < 0.001);
-  assert(translated_object->get_erotation()->get_x() - PI < 0.001);
-  assert(translated_object->get_erotation()->get_y() - (1.5 * PI) < 0.001);
-  assert(translated_object->get_erotation()->get_z() - (0.02 * PI) < 0.001);
-  assert(translated_object->get_qrotation()->get_w() - 0.0 < 0.001);
-  assert(translated_object->get_qrotation()->get_x() - sqrt(3.0)/3.0 < 0.001);
-  assert(translated_object->get_qrotation()->get_y() - sqrt(3.0)/3.0 < 0.001);
-  assert(translated_object->get_qrotation()->get_z() - sqrt(3.0)/3.0 < 0.001);
-  assert(translated_object->get_scale()->get_w() - 0.0 < 0.001);
-  assert(translated_object->get_scale()->get_w() - 2.0 < 0.001);
-  assert(translated_object->get_scale()->get_w() - 4.0 < 0.001);
-  assert(translated_object->get_scale()->get_w() - 8.0 < 0.001);
-
   assert(translated_object->num_assets() == 3);
   assert(translated_object->get_asset(0) == "12345");
   assert(translated_object->get_asset(1) == "12346");
   assert(translated_object->get_asset(2) == "another_asset");
+
+  assert(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 1) + 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 2) + 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(3, 3) - 1.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(0, 3) - 3.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 3) + 1.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 3) + 1.0f \
+    < TOLERANCE);
 
   delete obj_update;
 
@@ -211,7 +243,6 @@ int main(int argc, char** argv) {
 
   delete trans;
   delete erot;
-  delete qrot;
   delete scl;
 
   shutdown_logging_submodules();

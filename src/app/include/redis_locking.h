@@ -24,8 +24,8 @@ limitations under the License.
 #include "aossl/redis/include/redis_interface.h"
 #include "app_log.h"
 
-#ifndef SRC_INCLUDE_REDIS_LOCKING_H_
-#define SRC_INCLUDE_REDIS_LOCKING_H_
+#ifndef SRC_APP_INCLUDE_REDIS_LOCKING_H_
+#define SRC_APP_INCLUDE_REDIS_LOCKING_H_
 
 class RedisLocker {
 RedisInterface *redis = NULL;
@@ -91,4 +91,4 @@ bool release_lock(std::string key, std::string val) {
 bool release_lock(std::string key) {return release_lock(key, "");}
 };
 
-#endif  // SRC_INCLUDE_REDIS_LOCKING_H_
+#endif  // SRC_APP_INCLUDE_REDIS_LOCKING_H_

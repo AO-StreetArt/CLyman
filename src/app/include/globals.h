@@ -41,10 +41,10 @@ limitations under the License.
 #include "configuration_manager.h"
 #include "app_log.h"
 
-#include "obj3_list.h"
+#include "object_list_interface.h"
 
-#ifndef SRC_INCLUDE_GLOBALS_H_
-#define SRC_INCLUDE_GLOBALS_H_
+#ifndef SRC_APP_INCLUDE_GLOBALS_H_
+#define SRC_APP_INCLUDE_GLOBALS_H_
 
 // Globals defined within this service
 extern ConfigurationManager *config;
@@ -64,8 +64,8 @@ extern uuidComponentFactory *uuid_factory;
 extern ZmqComponentFactory *zmq_factory;
 extern LoggingComponentFactory *logging_factory;
 
-extern Obj3List *inbound_message;
-extern Obj3List *response_message;
+extern ObjectListInterface *inbound_message;
+extern ObjectListInterface *response_message;
 
 // Shutdown the application
 inline void shutdown() {
@@ -96,4 +96,4 @@ inline void shutdown() {
   if (logging_factory) delete logging_factory;
 }
 
-#endif  // SRC_INCLUDE_GLOBALS_H_
+#endif  // SRC_APP_INCLUDE_GLOBALS_H_
