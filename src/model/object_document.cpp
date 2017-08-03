@@ -26,7 +26,7 @@ ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
     obj_logging->debug("Object-Format Message Detected");
 
     if (d.HasMember("_id")) {
-      const rapidjson::Value *key_val = &d["_id"];
+      const rapidjson::Value *key_val = &d["_id"]["$oid"];
       RelatedObject::set_key(key_val->GetString());
     }
     if (d.HasMember("name")) {
