@@ -16,8 +16,11 @@ limitations under the License.
 */
 
 #include <math.h>
+
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+
 #include <string>
 
 #ifndef SRC_MODEL_INCLUDE_TRANSFORMS_H_
