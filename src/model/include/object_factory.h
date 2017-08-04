@@ -25,12 +25,13 @@ limitations under the License.
 #ifndef SRC_MODEL_INCLUDE_OBJECT_FACTORY_H_
 #define SRC_MODEL_INCLUDE_OBJECT_FACTORY_H_
 
-// An Object represents a single object in 3D space, and the factory
-// Generates objects from parsed rapidjson documents
+// The ObjectFactory allows for creation of new instances of the ObjectInterface
 class ObjectFactory {
  public:
+  // Create an ObjectInterface from a Parsed Rapidjson Document
   ObjectInterface* build_object(const rapidjson::Document& d) \
     {return new ObjectDocument(d);}
+  // Create an ObjectInterface with the default settings
   ObjectInterface* build_object() {return new ObjectDocument;}
 };
 

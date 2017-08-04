@@ -25,30 +25,46 @@ limitations under the License.
 #define SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
 
 // An Object Interface defines the functions for the Object-3D Data Model
+// Represents a single document in Mongo
 class ObjectInterface {
  public:
   virtual ~ObjectInterface() {}
-  // String Getters
+  // Object Name
+  // Non-Unique Object identifier
   virtual std::string get_name() const = 0;
-  virtual std::string get_type() const = 0;
-  virtual std::string get_subtype() const = 0;
-  virtual std::string get_owner() const = 0;
-  virtual std::string get_key() const = 0;
-  virtual std::string get_scene() const = 0;
-  // String Setters
   virtual void set_name(std::string new_name) = 0;
+  // Object Type
+  // The type of object, used in the specification of primitives
+  // Examples: Mesh, Curve, etc
+  virtual std::string get_type() const = 0;
   virtual void set_type(std::string new_type) = 0;
+  // Object Subtype
+  // The subtype of the object, used in the specification of primitives
+  // Examples: Cube, Icosphere, Bezier Curve, etc
+  virtual std::string get_subtype() const = 0;
   virtual void set_subtype(std::string new_subtype) = 0;
+  // Object Owner
+  // The device which owns the object, informational
+  virtual std::string get_owner() const = 0;
   virtual void set_owner(std::string new_owner) = 0;
+  // Object Key
+  // The OID of the object in Mongo
+  virtual std::string get_key() const = 0;
   virtual void set_key(std::string new_key) = 0;
+  // Scene ID
+  // The Unique Identifier of the scene to which the object is associated
+  virtual std::string get_scene() const = 0;
   virtual void set_scene(std::string new_scene) = 0;
-  // Asset methods
+  // Object Assets
+  // A Unique ID corresponding to a record in the asset module
+  // Represents mesh files, texture files, shader scripts, etc
   virtual int num_assets() const = 0;
   virtual void add_asset(std::string id) = 0;
   virtual std::string get_asset(int index) const = 0;
   virtual void remove_asset(int index) = 0;
   virtual void clear_assets() = 0;
-  // Transform methods
+  // Object Transform
+  // The transform holds the objects position, rotation, and scaling in 3-space
   virtual void transform(Transformation *t) = 0;
   virtual bool has_transform() const = 0;
   virtual Transformation* get_transform() const = 0;
