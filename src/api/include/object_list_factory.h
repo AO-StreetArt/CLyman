@@ -31,16 +31,19 @@ limitations under the License.
 #ifndef SRC_API_INCLUDE_OBJECT_LIST_FACTORY_H_
 #define SRC_API_INCLUDE_OBJECT_LIST_FACTORY_H_
 
-// An ObjectList stores a vector of pointers to ObjectDocuments
-// It is responsible for parsing requests from external clients,
-// and writing the responses to go back to those external clients.
+// The ObjectListFactory allows for creation of new instances of the
+// ObjectListInterface
 class ObjectListFactory {
  public:
+  // Create an ObjectListInterface from a parsed Protocol Buffer Obj3List
   ObjectListInterface* build_object_list(const protoObj3::Obj3List proto_list) \
     {return new PbObjectList(proto_list);}
+  // Create an ObjectListInterface from a parsed Rapidjson Document
   ObjectListInterface* build_object_list(const rapidjson::Document& d) \
     {return new JsonObjectList(d);}
+  // Create an empty ObjectListInterface which converts to JSON
   ObjectListInterface* build_json_object_list() {return new JsonObjectList;}
+  // Create an empty ObjectListInterface which converts to Protocol Buffer
   ObjectListInterface* build_proto_object_list() {return new PbObjectList;}
 };
 

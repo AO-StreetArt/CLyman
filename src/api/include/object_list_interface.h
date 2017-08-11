@@ -36,25 +36,39 @@ class ObjectListInterface {
  public:
   // Destructor
   virtual ~ObjectListInterface() {}
-  // Getters
+  // Message Type
+  // Integer constant representing the acion type
+  // Defined in app_utils.h
   virtual int get_msg_type() const = 0;
-  virtual int get_error_code() const = 0;
-  virtual std::string get_error_message() const = 0;
-  virtual std::string get_transaction_id() const = 0;
-  virtual int get_num_records() const = 0;
-  // Setters
   virtual void set_msg_type(int nt) = 0;
+  // Error Code
+  // Integer code representing the failure/success of an operation
+  // Values are defined in app_utils.h
+  virtual int get_error_code() const = 0;
   virtual void set_error_code(int nc) = 0;
+  // Error Message
+  // A String value containing a human-readable Error Message
+  // Will be empty if no error is encountered
+  virtual std::string get_error_message() const = 0;
   virtual void set_error_message(std::string nm) = 0;
+  // Transaction ID
+  // Transaction ID's can be used to trace a single transaction across services
+  // It can either be passed in, or generated upon reciept of a message
+  virtual std::string get_transaction_id() const = 0;
   virtual void set_transaction_id(std::string nid) = 0;
+  // Number of Records
+  // Allows a device to specify the number of records to
+  // be returned from a query.
+  virtual int get_num_records() const = 0;
   virtual void set_num_records(int nr) = 0;
-  // Object list methods
+  // Object List
+  // An array of Object Interfaces
   virtual int num_objects() const = 0;
   virtual void add_object(ObjectInterface *o) = 0;
   virtual ObjectInterface* get_object(int index) const = 0;
   virtual void remove_object(int index) = 0;
   virtual void clear_objects() = 0;
-  // Message generation methods
+  // Generate a string message from the object list
   virtual void to_msg_string(std::string &out_string) = 0;
 };
 
