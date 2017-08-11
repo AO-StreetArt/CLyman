@@ -85,7 +85,8 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   // Asset methods
   int num_assets() const {return RelatedObject::num_assets();}
   void add_asset(std::string id) {RelatedObject::add_asset(id);}
-  std::string get_asset(int index) const {return RelatedObject::get_asset(index);}
+  std::string get_asset(int index) const \
+    {return RelatedObject::get_asset(index);}
   void remove_asset(int index) {RelatedObject::remove_asset(index);}
   void clear_assets() {RelatedObject::clear_assets();}
 };

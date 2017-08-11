@@ -100,8 +100,10 @@ void PbObjectList::to_msg_string(std::string &out_string) {
   new_proto->set_message_type(get_msg_type());
   new_proto->set_err_code(get_error_code());
   new_proto->set_num_records(num_objects());
-  if (!(get_transaction_id().empty())) new_proto->set_transaction_id(get_transaction_id());
-  if (!(get_error_message().empty())) new_proto->set_err_msg(get_error_message());
+  if (!(get_transaction_id().empty())) \
+    {new_proto->set_transaction_id(get_transaction_id());}
+  if (!(get_error_message().empty())) \
+    {new_proto->set_err_msg(get_error_message());}
 
   obj_logging->debug("Basic Attributes Written");
 

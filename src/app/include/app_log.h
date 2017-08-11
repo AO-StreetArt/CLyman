@@ -30,4 +30,4 @@ extern LoggingCategoryInterface *uuid_logging;
 void start_logging_submodules();
 void shutdown_logging_submodules();
 
-#endif  // SRC_INCLUDE_APP_LOG_H_
+#endif  // SRC_APP_INCLUDE_APP_LOG_H_

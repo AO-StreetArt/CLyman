@@ -105,7 +105,8 @@ class ConfigurationManager {
  public:
   // Constructor
   // Provides a set of default values
-  inline ConfigurationManager(CommandLineInterface *c, std::string instance_id) {
+  inline ConfigurationManager(CommandLineInterface *c, \
+    std::string instance_id) {
     cli = c;
     OMQ_IBConnStr = "tcp://*:5556";
     Mongo_ConnStr = "";

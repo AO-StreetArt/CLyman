@@ -16,6 +16,7 @@ limitations under the License.
 */
 
 #include <string>
+#include <algorithm>
 #include <exception>
 #include "transforms.h"
 

@@ -167,20 +167,20 @@ int main(int argc, char** argv) {
 
   main_logging->debug(translated_object->get_transform()->to_string());
 
-  assert(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(1, 1) + 2.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(2, 2) + 2.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(3, 3) - 1.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(0, 3) - 2.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(1, 3) + 2.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(2, 3) + 2.0f \
-    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(0, 0) - \
+    2.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 1) + \
+    2.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 2) + \
+    2.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(3, 3) - \
+    1.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(0, 3) - \
+    2.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 3) + \
+    2.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 3) + \
+    2.0f < TOLERANCE);
 
   // Merge Test
   main_logging->debug("Merge Tests");
@@ -214,20 +214,20 @@ int main(int argc, char** argv) {
   assert(translated_object->get_asset(1) == "12346");
   assert(translated_object->get_asset(2) == "another_asset");
 
-  assert(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(1, 1) + 2.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(2, 2) + 2.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(3, 3) - 1.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(0, 3) - 3.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(1, 3) + 1.0f \
-    < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(2, 3) + 1.0f \
-    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(0, 0) - \
+    2.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 1) + \
+    2.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 2) + \
+    2.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(3, 3) - \
+    1.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(0, 3) - \
+    3.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 3) + \
+    1.0f < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 3) + \
+    1.0f < TOLERANCE);
 
   delete obj_update;
 
