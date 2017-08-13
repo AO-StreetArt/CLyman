@@ -62,8 +62,8 @@ The Object List is the highest level wrapper in the API. It only
 contains 6 keys, one of which is an array of objects.
 
 -  msg\_type – 0 for create, 1 for update, 2 for retrieve, 3 for delete,
-   4 for query. The message type applies to all objects in the objects
-   array.
+   4 for query, 5 to acquire a Device Lock, and 6 to release a Device Lock.
+   The message type applies to all objects in the objects array.
 -  err\_code - An integer error code for the response, full list of codes
    can be found in the appendix.
 -  err\_msg - A string error message for the response, will not be present when
@@ -163,6 +163,21 @@ Object Destroy
 --------------
 
 Destroy an existing Obj3 by key. Basic success/failure response.
+
+Object Query
+--------------
+
+This will query objects by attributes other than their keys
+
+Device Lock Acquire
+-------------------
+
+Subset of Object Update, uses 'owner' field as the key to acquire a lock on an object.
+
+Device Lock Release
+-------------------
+
+Subset of Object Update, uses 'owner' field as the key to release a lock on an object.
 
 Appendix A: JSON Message Samples
 ================================
@@ -458,6 +473,10 @@ An invalid msg_type was recieved (valid values are integers from 0 to 4)
 INSUFF\_DATA\_ERROR = 122
 
 Insufficient data received on message to form a valid response
+
+LOCK\_EXISTS\_ERROR = 123
+
+A Device Lock Exists on the Object
 
 
 :ref:`Go Home <index>`

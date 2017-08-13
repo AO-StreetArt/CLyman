@@ -35,6 +35,8 @@ const int OBJ_UPD = 1;
 const int OBJ_GET = 2;
 const int OBJ_DEL = 3;
 const int OBJ_QUERY = 4;
+const int OBJ_LOCK = 5;
+const int OBJ_UNLOCK = 6;
 const int KILL = 999;
 const int PING = 555;
 
@@ -46,6 +48,7 @@ const int TRANSLATION_ERROR = 110;
 const int PROCESSING_ERROR = 120;
 const int BAD_MSG_TYPE_ERROR = 121;
 const int INSUFF_DATA_ERROR = 122;
+const int LOCK_EXISTS_ERROR = 123;
 
 // Trim String methods
 

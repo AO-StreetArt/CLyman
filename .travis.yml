@@ -34,6 +34,7 @@ install:
 - docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
 - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
 - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions
+- docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/ObjectLockingActive
 - docker exec -t registry curl -X PUT -d 'JSON' http://localhost:8500/v1/kv/clyman/DataFormatType
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH
   $TRAVIS_BUILD_DIR
@@ -56,6 +57,14 @@ script:
   0 3
 - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_delete.csv
   0 3
+- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_lock.csv
+  0 3
+- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_lock_second.csv
+  0 3
+- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_lock_bad.csv
+  0 3
+- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_unlock.csv
+  0 3
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
 - tail $TRAVIS_BUILD_DIR/obj_get.log
 - docker logs --tail 75 clyman
@@ -68,6 +77,18 @@ script:
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
 - tail $TRAVIS_BUILD_DIR/obj_del.log
 - docker logs --tail 75 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_lock.xml
+- tail $TRAVIS_BUILD_DIR/obj_lock.log
+- docker logs --tail 75 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_lock_bad.xml
+- tail $TRAVIS_BUILD_DIR/obj_lock.log
+- docker logs --tail 50 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_unlock.xml
+- tail $TRAVIS_BUILD_DIR/obj_unlock.log
+- docker logs --tail 50 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_lock_second.xml
+- tail $TRAVIS_BUILD_DIR/obj_lock.log
+- docker logs --tail 50 clyman
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get_bad.xml
 - tail $TRAVIS_BUILD_DIR/obj_get.log
 - docker logs --tail 60 clyman

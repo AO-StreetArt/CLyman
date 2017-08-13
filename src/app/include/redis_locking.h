@@ -35,7 +35,7 @@ RedisInterface *redis = NULL;
   ~RedisLocker() {}
 
 // Establish a Redis Mutex Lock on a given key
-inline void get_lock(std::string key, std::string val) {
+inline bool get_lock(std::string key, std::string val, bool exit_on_existing_lock) {
   // Determine if another instance of CLyman has a lock on the Redis Mutex
   std::string current_mutex_key;
   bool lock_established = false;
@@ -58,24 +58,32 @@ inline void get_lock(std::string key, std::string val) {
       // Another instance of Clyman has a lock on the redis mutex
       // Block until the lock is cleared
       redis_logging->error("Existing Redis Mutex Lock Detected, Waiting");
-      while (redis->exists(key)) {}
-    }
-
-    // Try to establish a lock on the Redis Mutex
-    redis_logging->error("Attempting to obtain Redis Mutex Lock");
-    if (!(redis->exists(key))) {
-      try {
-        lock_established = redis->setnx(key, val);
-      }
-      catch (std::exception& e) {
-        redis_logging->error("Exception encountered during Redis Request");
-        redis_logging->error(e.what());
+      if (!exit_on_existing_lock) {
+        while (redis->exists(key)) {}
+        // Try to establish a lock on the Redis Mutex
+        redis_logging->error("Attempting to obtain Redis Mutex Lock");
+        if (!(redis->exists(key))) {
+          try {
+            return redis->setnx(key, val);
+          }
+          catch (std::exception& e) {
+            redis_logging->error("Exception encountered during Redis Request");
+            redis_logging->error(e.what());
+            return false;
+          }
+        }
+      } else {
+        return false;
       }
     }
   }
+  return false;
 }
 
-void get_lock(std::string key) {get_lock(key, "");}
+bool get_lock(std::string key, std::string val) \
+  {return get_lock(key, val, true);}
+
+bool get_lock(std::string key) {return get_lock(key, "", false);}
 
 bool release_lock(std::string key, std::string val) {
   std::string current_mutex_key = "";

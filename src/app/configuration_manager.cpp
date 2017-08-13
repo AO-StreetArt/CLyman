@@ -102,6 +102,15 @@ bool ConfigurationManager::configure_from_file(std::string file_path) {
       config_logging->info("Atomic Transactions Disabled");
     }
   }
+  if (props->opt_exist("ObjectLockingActive")) {
+    if (props->get_opt("ObjectLockingActive") == "True") {
+      ObjectLockingActive = true;
+      config_logging->info("Object Locking Enabled");
+    } else {
+      ObjectLockingActive = false;
+      config_logging->info("Object Locking Disabled");
+    }
+  }
 
   if (props->list_exist("RedisConnectionString")) {
     std::vector<std::string> conn_list = \
@@ -299,6 +308,15 @@ bool ConfigurationManager::configure_from_consul(std::string consul_path, \
   config_logging->debug("Atomic Transactions Enabled:");
   config_logging->debug(atomic);
   if (atomic == "True") {
+    AtomicTransactions = true;
+  } else {
+    AtomicTransactions = false;
+  }
+
+  std::string olocking = get_consul_config_value("ObjectLockingActive");
+  config_logging->debug("Object Locking Enabled:");
+  config_logging->debug(olocking);
+  if (olocking == "True") {
     AtomicTransactions = true;
   } else {
     AtomicTransactions = false;
