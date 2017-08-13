@@ -79,11 +79,12 @@ class Translation: public Transformation {
  public:
   inline Translation(float ix, float iy, float iz) : Transformation() {
     set_type(TRANSLATE);
-    set_transform_vector(glm::translate(glm::mat4(1.0f), glm::vec3(ix, iy, iz)));
+    set_transform_vector(glm::translate(glm::mat4(1.0f), \
+      glm::vec3(ix, iy, iz)));
   }
   Translation(double ix, double iy, double iz) : \
     Translation((float) ix, (float) iy, (float) iz) {}
-  //Identity Transform
+  // Identity Transform
   Translation() : Translation(0.0f, 0.0f, 0.0f) {}
 };
 
@@ -93,11 +94,12 @@ class EulerRotation: public Transformation {
   inline EulerRotation(float theta, float ix, float iy, float iz) :
     Transformation() {
       set_type(EROTATE);
-      set_transform_vector(glm::rotate(glm::mat4(1.0f), theta, glm::vec3(ix, iy, iz)));
+      set_transform_vector(glm::rotate(glm::mat4(1.0f), \
+        theta, glm::vec3(ix, iy, iz)));
     }
   EulerRotation(double theta, double ix, double iy, double iz) : \
     EulerRotation((float) theta, (float) ix, (float) iy, (float) iz) {}
-  //Identity Transform
+  // Identity Transform
   EulerRotation() : EulerRotation(0.0f, 1.0f, 0.0f, 0.0f) {}
 };
 
@@ -110,7 +112,7 @@ class Scale: public Transformation {
   }
   Scale(double ix, double iy, double iz) : \
     Scale((float) ix, (float) iy, (float) iz) {}
-  //Identity Transform
+  // Identity Transform
   Scale() : Scale(1.0f, 1.0f, 1.0f) {}
 };
 

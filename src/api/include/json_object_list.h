@@ -37,7 +37,7 @@ class JsonObjectList : public ObjectList {
   // String Return Value
   const char* json_cstr_val;
   std::string json_str_val;
-  //Object Factory
+  // Object Factory
   ObjectFactory ofactory;
 
  public:

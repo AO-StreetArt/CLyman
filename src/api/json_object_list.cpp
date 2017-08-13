@@ -31,7 +31,8 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
     obj_logging->debug("Object-Format Message Detected");
 
     // Parse the base elements
-    if (!(d.HasMember("msg_type"))) throw Object3dException("No Msg Type Found");
+    if (!(d.HasMember("msg_type"))) \
+      {throw Object3dException("No Msg Type Found");}
     const rapidjson::Value *mtype_val = &d["msg_type"];
     set_msg_type(mtype_val->GetInt());
     if (d.HasMember("transaction_id")) {
@@ -197,7 +198,8 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
   // Add the error message
   if (!get_error_message().empty()) {
   writer.Key("err_msg");
-  writer.String(get_error_message().c_str(), (rapidjson::SizeType)get_error_message().length());
+  writer.String(get_error_message().c_str(), \
+    (rapidjson::SizeType)get_error_message().length());
   }
   // Add the Transaction ID
   if (!(get_transaction_id().empty())) {
@@ -262,7 +264,8 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
     writer.StartArray();
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
-        writer.Double(get_object(a)->get_transform()->get_transform_element(i, j));
+        writer.Double(get_object(a)->get_transform()->get_transform_element(i, \
+          j));
       }
     }
     writer.EndArray();

@@ -117,7 +117,8 @@ void ObjectDocument::merge(ObjectInterface *target) {
   // Copy String values
   if (!(target->get_key().empty())) RelatedObject::set_key(target->get_key());
   if (!(target->get_name().empty())) name = target->get_name();
-  if (!(target->get_scene().empty())) RelatedObject::set_scene(target->get_scene());
+  if (!(target->get_scene().empty())) \
+    {RelatedObject::set_scene(target->get_scene());}
   if (!(target->get_type().empty())) type = target->get_type();
   if (!(target->get_subtype().empty())) subtype = target->get_subtype();
   if (!(target->get_owner().empty())) owner = target->get_owner();
@@ -151,7 +152,8 @@ std::string ObjectDocument::to_json() {
 
   if (!(RelatedObject::get_scene().empty())) {
     writer.Key("scene");
-    writer.String(RelatedObject::get_scene().c_str(), (rapidjson::SizeType)RelatedObject::get_scene().length());
+    writer.String(RelatedObject::get_scene().c_str(), \
+      (rapidjson::SizeType)RelatedObject::get_scene().length());
   }
 
   if (!(type.empty())) {
