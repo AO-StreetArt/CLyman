@@ -317,9 +317,9 @@ bool ConfigurationManager::configure_from_consul(std::string consul_path, \
   config_logging->debug("Object Locking Enabled:");
   config_logging->debug(olocking);
   if (olocking == "True") {
-    AtomicTransactions = true;
+    ObjectLockingActive = true;
   } else {
-    AtomicTransactions = false;
+    ObjectLockingActive = false;
   }
 
   std::string format_type_str = get_consul_config_value("DataFormatType");
