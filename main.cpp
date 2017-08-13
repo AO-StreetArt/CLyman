@@ -375,6 +375,11 @@ int main(int argc, char** argv) {
                     inbound_message->get_object(i)->get_owner()))) \
                     {main_logging->error("Failed to release Lock");}
                 }
+              } else {
+                main_logging->error("Object Lock Encountered");
+                response_message->set_error_code(LOCK_EXISTS_ERROR);
+                new_error_message = "Existing Lock Encountered";
+                response_message->set_error_message(new_error_message);
               }
             }
 
