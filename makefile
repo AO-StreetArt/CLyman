@@ -34,6 +34,12 @@ src/Obj3.pb.cc: /usr/local/include/dvs_interface/Obj3.proto
 # Tests
 
 test: mktest $(TESTS)
+	./configuration_test -config-file=tests/test.properties
+	./utils_test
+	./log_test
+	./transform_test
+	./obj3_test
+	./object_list_test
 
 mktest:
 	@$(MAKE) -C tests
