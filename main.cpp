@@ -220,6 +220,7 @@ int main(int argc, char** argv) {
 
     // Convert the OMQ message into a string to be passed on the event
     char * req_ptr = zmqi->crecv();
+    if (!req_ptr) continue;
     main_logging->debug("Conversion to C String performed with result: ");
     main_logging->debug(req_ptr);
 
