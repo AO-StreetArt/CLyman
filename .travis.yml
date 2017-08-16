@@ -78,6 +78,12 @@ script:
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_lock_bad.xml
 - tail $TRAVIS_BUILD_DIR/obj_lock.log
 - docker logs --tail 50 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_unlock.xml
+- tail $TRAVIS_BUILD_DIR/obj_unlock.log
+- docker logs --tail 50 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_lock_second.xml
+- tail $TRAVIS_BUILD_DIR/obj_lock.log
+- docker logs --tail 50 clyman
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
 - tail $TRAVIS_BUILD_DIR/obj_del.log
 - docker logs --tail 75 clyman
