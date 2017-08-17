@@ -111,7 +111,12 @@ bool release_lock(std::string key, std::string val) {
   return false;
 }
 
-bool release_lock(std::string key) {return release_lock(key, "");}
+bool release_lock(std::string key) {
+  if (redis->exists(key)) {
+    return redis->del(key);
+  }
+  return false;
+}
 };
 
 #endif  // SRC_APP_INCLUDE_REDIS_LOCKING_H_
