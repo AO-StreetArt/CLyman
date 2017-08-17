@@ -335,13 +335,13 @@ int main(int argc, char** argv) {
                   lock.get_lock(inbound_message->get_object(i)->get_key());
               }
               // Enforce Object Locking -- establish redis lock
-              if (lock_obtained && config->get_locking_active() && inbound_message->get_msg_type() == OBJ_LOCK) {
-                std::string lock_key = "ObjectLock-";
-                lock_key = lock_key + inbound_message->get_object(i)->get_key();
-                lock_obtained = \
-                  lock.get_lock(lock_key, \
-                  inbound_message->get_object(i)->get_owner());
-              }
+              // if (lock_obtained && config->get_locking_active() && inbound_message->get_msg_type() == OBJ_LOCK) {
+              //   std::string lock_key = "ObjectLock-";
+              //   lock_key = lock_key + inbound_message->get_object(i)->get_key();
+              //   lock_obtained = \
+              //     lock.get_lock(lock_key, \
+              //     inbound_message->get_object(i)->get_owner());
+              // }
               if (lock_obtained) {
                 // Load the current doc from the database
                 rapidjson::Document resp_doc;
@@ -373,13 +373,13 @@ int main(int argc, char** argv) {
                     {main_logging->error("Failed to release Lock");}
                 }
                 // Enforce Object Locking -- release redis lock
-                // if (config->get_locking_active() && inbound_message->get_msg_type() == OBJ_UNLOCK) {
-                //   std::string lock_key = "ObjectLock-";
-                //   lock_key = lock_key + inbound_message->get_object(i)->get_key();
-                //   if (!(lock.release_lock(lock_key, \
-                //     inbound_message->get_object(i)->get_owner()))) \
-                //     {main_logging->error("Failed to release Lock");}
-                // }
+                if (config->get_locking_active() && inbound_message->get_msg_type() == OBJ_UNLOCK) {
+                  std::string lock_key = "ObjectLock-";
+                  lock_key = lock_key + inbound_message->get_object(i)->get_key();
+                  if (!(lock.release_lock(lock_key, \
+                    inbound_message->get_object(i)->get_owner()))) \
+                    {main_logging->error("Failed to release Lock");}
+                }
               } else {
                 main_logging->error("Object Lock Encountered");
                 response_message->set_error_code(LOCK_EXISTS_ERROR);
