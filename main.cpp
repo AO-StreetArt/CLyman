@@ -220,6 +220,7 @@ int main(int argc, char** argv) {
 
     // Convert the OMQ message into a string to be passed on the event
     char * req_ptr = zmqi->crecv();
+    if (!req_ptr) continue;
     main_logging->debug("Conversion to C String performed with result: ");
     main_logging->debug(req_ptr);
 
@@ -322,40 +323,68 @@ int main(int argc, char** argv) {
             }
 
           // Object Update
-          } else if (inbound_message->get_msg_type() == OBJ_UPD) {
+          } else if (inbound_message->get_msg_type() == OBJ_UPD || \
+            inbound_message->get_msg_type() == OBJ_LOCK || \
+            inbound_message->get_msg_type() == OBJ_UNLOCK) {
             main_logging->info("Processing Object Update Message");
             for (int i = 0; i < inbound_message->num_objects(); i++) {
               // Enforce atomic updates -- establish redis lock
+              bool lock_obtained = true;
               if (config->get_atomictransactions()) {
-                lock.get_lock(inbound_message->get_object(i)->get_key());
+                lock_obtained = \
+                  lock.get_lock(inbound_message->get_object(i)->get_key());
               }
-              // Load the current doc from the database
-              rapidjson::Document resp_doc;
-              MongoResponseInterface *resp = mongo->load_document(\
-                inbound_message->get_object(i)->get_key());
-              if (resp) {
-                std::string mongo_resp_str = resp->get_value();
-                main_logging->debug("Document loaded from Mongo");
-                main_logging->debug(mongo_resp_str);
-                resp_doc.Parse(mongo_resp_str.c_str());
-                ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
-                // Apply the object message as changes to the DB Object
-                resp_obj->merge(inbound_message->get_object(i));
-                // Save the resulting object
-                mongo->save_document(resp_obj->to_json(), \
-                  resp_obj->get_key());
-                response_message->add_object(resp_obj);
-                delete resp;
-              } else {
-                main_logging->error("Document not found in Mongo");
-                response_message->set_error_code(NOT_FOUND);
-                new_error_message = "Object not Found";
-                response_message->set_error_message(new_error_message);
+              // Enforce Object Locking -- establish redis lock
+              if (lock_obtained && config->get_locking_active() && inbound_message->get_msg_type() == OBJ_LOCK) {
+                std::string lock_key = "ObjectLock-";
+                lock_key = lock_key + inbound_message->get_object(i)->get_key();
+                lock_obtained = \
+                  lock.get_lock(lock_key, \
+                  inbound_message->get_object(i)->get_owner());
               }
-              // Enforce atomic updates -- release redis lock
-              if (config->get_atomictransactions()) {
-                lock.release_lock(\
+              if (lock_obtained) {
+                // Load the current doc from the database
+                rapidjson::Document resp_doc;
+                MongoResponseInterface *resp = mongo->load_document(\
                   inbound_message->get_object(i)->get_key());
+                if (resp) {
+                  std::string mongo_resp_str = resp->get_value();
+                  main_logging->debug("Document loaded from Mongo");
+                  main_logging->debug(mongo_resp_str);
+                  resp_doc.Parse(mongo_resp_str.c_str());
+                  ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
+                  // Apply the object message as changes to the DB Object
+                  resp_obj->merge(inbound_message->get_object(i));
+                  // Save the resulting object
+                  mongo->save_document(resp_obj->to_json(), \
+                    resp_obj->get_key());
+                  response_message->add_object(resp_obj);
+                  delete resp;
+                } else {
+                  main_logging->error("Document not found in Mongo");
+                  response_message->set_error_code(NOT_FOUND);
+                  new_error_message = "Object not Found";
+                  response_message->set_error_message(new_error_message);
+                }
+                // Enforce atomic updates -- release redis lock
+                if (config->get_atomictransactions()) {
+                  if (!(lock.release_lock(\
+                    inbound_message->get_object(i)->get_key()))) \
+                    {main_logging->error("Failed to release Lock");}
+                }
+                // Enforce Object Locking -- release redis lock
+                if (config->get_locking_active() && inbound_message->get_msg_type() == OBJ_UNLOCK) {
+                  std::string lock_key = "ObjectLock-";
+                  lock_key = lock_key + inbound_message->get_object(i)->get_key();
+                  if (!(lock.release_lock(lock_key, \
+                    inbound_message->get_object(i)->get_owner()))) \
+                    {main_logging->error("Failed to release Lock");}
+                }
+              } else {
+                main_logging->error("Object Lock Encountered");
+                response_message->set_error_code(LOCK_EXISTS_ERROR);
+                new_error_message = "Existing Lock Encountered";
+                response_message->set_error_message(new_error_message);
               }
             }
 

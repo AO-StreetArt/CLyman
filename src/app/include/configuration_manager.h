@@ -77,6 +77,7 @@ class ConfigurationManager {
   int format_type;
   bool StampTransactionId;
   bool AtomicTransactions;
+  bool ObjectLockingActive;
 
   // The Current Node ID
   std::string node_id;
@@ -114,6 +115,7 @@ class ConfigurationManager {
     isConsulActive = false;
     StampTransactionId = false;
     AtomicTransactions = false;
+    ObjectLockingActive = false;
     node_id = instance_id;
     consul_factory = new ConsulComponentFactory;
     props_factory = new PropertyReaderFactory;
@@ -135,6 +137,7 @@ class ConfigurationManager {
   std::vector<RedisConnChain> get_redisconnlist() {return RedisConnectionList;}
   bool get_transactionidsactive() {return StampTransactionId;}
   bool get_atomictransactions() {return AtomicTransactions;}
+  bool get_locking_active() {return ObjectLockingActive;}
   int get_formattype() {return format_type;}
 
   // Get the Current Node ID

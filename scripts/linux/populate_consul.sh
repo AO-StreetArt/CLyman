@@ -10,4 +10,6 @@ curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/StampTransactionId
 
 curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/AtomicTransactions
 
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/ObjectLockingActive
+
 curl -X PUT -d 'Json' http://localhost:8500/v1/kv/ivan/DataFormatType
