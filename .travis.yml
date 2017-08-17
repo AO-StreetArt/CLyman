@@ -33,8 +33,8 @@ install:
 - docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
 - docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
 - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
-- docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions
-- docker exec -t registry curl -X PUT -d 'False' http://localhost:8500/v1/kv/clyman/ObjectLockingActive
+- docker exec -t registry curl -X PUT -d 'False' http://localhost:8500/v1/kv/clyman/AtomicTransactions
+- docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/ObjectLockingActive
 - docker exec -t registry curl -X PUT -d 'JSON' http://localhost:8500/v1/kv/clyman/DataFormatType
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH
   $TRAVIS_BUILD_DIR
