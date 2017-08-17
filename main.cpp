@@ -330,11 +330,11 @@ int main(int argc, char** argv) {
             for (int i = 0; i < inbound_message->num_objects(); i++) {
               // Enforce atomic updates -- establish redis lock
               bool lock_obtained = true;
-              // if (config->get_atomictransactions()) {
-              //   lock_obtained = \
-              //     lock.get_lock(inbound_message->get_object(i)->get_key());
-              // }
-              // // Enforce Object Locking -- establish redis lock
+              if (config->get_atomictransactions()) {
+                lock_obtained = \
+                  lock.get_lock(inbound_message->get_object(i)->get_key());
+              }
+              // Enforce Object Locking -- establish redis lock
               // if (lock_obtained && config->get_locking_active() && inbound_message->get_msg_type() == OBJ_LOCK) {
               //   std::string lock_key = "ObjectLock-";
               //   lock_key = lock_key + inbound_message->get_object(i)->get_key();
@@ -366,13 +366,13 @@ int main(int argc, char** argv) {
                   new_error_message = "Object not Found";
                   response_message->set_error_message(new_error_message);
                 }
-                // // Enforce atomic updates -- release redis lock
-                // if (config->get_atomictransactions()) {
-                //   if (!(lock.release_lock(\
-                //     inbound_message->get_object(i)->get_key()))) \
-                //     {main_logging->error("Failed to release Lock");}
-                // }
-                // // Enforce Object Locking -- release redis lock
+                // Enforce atomic updates -- release redis lock
+                if (config->get_atomictransactions()) {
+                  if (!(lock.release_lock(\
+                    inbound_message->get_object(i)->get_key()))) \
+                    {main_logging->error("Failed to release Lock");}
+                }
+                // Enforce Object Locking -- release redis lock
                 // if (config->get_locking_active() && inbound_message->get_msg_type() == OBJ_UNLOCK) {
                 //   std::string lock_key = "ObjectLock-";
                 //   lock_key = lock_key + inbound_message->get_object(i)->get_key();
