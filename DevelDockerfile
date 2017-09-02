@@ -77,7 +77,7 @@ RUN cd AOSharedServiceLibrary && make && make install
 
 #Pull the project source
 RUN git clone https://github.com/AO-StreetArt/CLyman.git
-RUN cd CLyman && git checkout dev && git pull origin development
+RUN cd CLyman && git checkout dev && git pull origin dev
 
 #Build the project and tests
 RUN cd CLyman && make && make test
