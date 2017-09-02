@@ -23,7 +23,7 @@ RUN	apt-get clean
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN add-apt-repository -y ppa:cleishm/neo4j
 RUN apt-get update
-RUN apt-get install -y build-essential g++-5 libtool pkg-config autoconf automake cmake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git libsnappy-dev liblog4cpp5-dev neo4j-client libneo4j-client-dev libprotobuf-dev protobuf-compiler libglm-dev
+RUN apt-get install -y build-essential g++-5 libtool pkg-config autoconf automake cmake uuid-dev libhiredis-dev libcurl4-openssl-dev libevent-dev git libsnappy-dev liblog4cpp5-dev libssl-dev openssl neo4j-client libneo4j-client-dev libprotobuf-dev protobuf-compiler libglm-dev
 RUN	apt-get clean
 
 #Setup g++5 as the Compiler
