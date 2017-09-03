@@ -189,9 +189,9 @@ Object Create
 ~~~~~~~~~~~~~
 
 {
-  "msg_type": 0,
-  "transaction_id": "12354",
-  "num_records": 1,
+  "msg\_type": 0,
+  "transaction\_id": "12354",
+  "num\_records": 1,
   "objects": [
     {
       "key": "ABCDEF133",
@@ -201,9 +201,9 @@ Object Create
       "owner": "123",
       "scene": "DEFGHI10",
       "translation": [0, 0, 0],
-      "rotation_euler": [0, 0, 0, 0],
+      "rotation\_euler": [0, 0, 0, 0],
       "scale": [1, 1, 1],
-      "assets": ["Asset_5"]
+      "assets": ["Asset\_5"]
     }
   ]
 }
@@ -212,9 +212,9 @@ Object Retrieve
 ~~~~~~~~~~~~~~~
 
 {
-  "msg_type": 2,
-  "transaction_id": "123464",
-  "num_records": 256,
+  "msg\_type": 2,
+  "transaction\_id": "123464",
+  "num\_records": 256,
   "objects": [
     {
       "key": "59ab6e44ac48b7000148c86a"
@@ -226,9 +226,9 @@ Object Update
 ~~~~~~~~~~~~~
 
 {
-  "msg_type": 1,
-  "transaction_id": "123464",
-  "num_records": 1,
+  "msg\_type": 1,
+  "transaction\_id": "123464",
+  "num\_records": 1,
   "objects": [
     {
       "key": "59ab6e44ac48b7000148c86a",
@@ -238,9 +238,9 @@ Object Update
       "owner": "456",
       "scene": "DEFGHIJ123464",
       "translation": [0, 0, 1],
-      "rotation_euler": [0, 1, 0, 0],
+      "rotation\_euler": [0, 1, 0, 0],
       "scale": [1, 1, 2],
-      "assets": ["Asset_5"]
+      "assets": ["Asset\_5"]
     }
   ]
 }
@@ -249,9 +249,9 @@ Object Destroy
 ~~~~~~~~~~~~~~
 
 {
-  "msg_type": 3,
-  "transaction_id": "123463",
-  "num_records": 1,
+  "msg\_type": 3,
+  "transaction\_id": "123463",
+  "num\_records": 1,
   "objects": [
     {
       "key": "59ab6e44ac48b7000148c869"
@@ -263,9 +263,9 @@ Object Query
 ~~~~~~~~~~~~
 
 {
-  "msg_type": 4,
-  "transaction_id": "123463",
-  "num_records": 1,
+  "msg\_type": 4,
+  "transaction\_id": "123463",
+  "num\_records": 1,
   "objects": [
     {
       "name": "Test Object 123463"
@@ -280,9 +280,9 @@ Object Lock
 ~~~~~~~~~~~
 
 {
-  "msg_type": 5,
-  "transaction_id": "123465",
-  "num_records": 1,
+  "msg\_type": 5,
+  "transaction\_id": "123465",
+  "num\_records": 1,
   "objects": [
     {
       "key": "59ab6e44ac48b7000148c86b",
@@ -292,9 +292,9 @@ Object Lock
       "owner": "10",
       "scene": "DEFGHIJ123465",
       "translation": [0, 0, 1],
-      "rotation_euler": [0, 1, 0, 0],
+      "rotation\_euler": [0, 1, 0, 0],
       "scale": [1, 1, 2],
-      "assets": ["Asset_5"]
+      "assets": ["Asset\_5"]
     }
   ]
 }
@@ -303,9 +303,9 @@ Object Unlock
 ~~~~~~~~~~~~~
 
 {
-  "msg_type": 6,
-  "transaction_id": "123465",
-  "num_records": 1,
+  "msg\_type": 6,
+  "transaction\_id": "123465",
+  "num\_records": 1,
   "objects": [
     {
       "key": "59ab6e44ac48b7000148c86b",
@@ -315,9 +315,9 @@ Object Unlock
       "owner": "10",
       "scene": "DEFGHIJ123465",
       "translation": [0, 0, 1],
-      "rotation_euler": [0, 1, 0, 0],
+      "rotation\_euler": [0, 1, 0, 0],
       "scale": [1, 1, 2],
-      "assets": ["Asset_5"]
+      "assets": ["Asset\_5"]
     }
   ]
 }
@@ -329,9 +329,9 @@ Object Create
 ~~~~~~~~~~~~~
 
 {
-  "msg_type":0,
-  "err_code":100,
-  "num_records":1,
+  "msg\_type":0,
+  "err\_code":100,
+  "num\_records":1,
   "objects":[
     {
       "key":"59ab6e44ac48b7000148c86b",
@@ -344,9 +344,9 @@ Object Update
 ~~~~~~~~~~~~~
 
 {
-  "msg_type":1,
-  "err_code":100,
-  "num_records":1,
+  "msg\_type":1,
+  "err\_code":100,
+  "num\_records":1,
   "objects":[
     {
       "key":"59ab6e44ac48b7000148c86b",
@@ -356,7 +356,7 @@ Object Update
       "subtype":"Cube",
       "owner":"456",
       "transform":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,2.0,2.0,0.0,0.0,0.0,1.0],
-      "assets": ["Asset_5"]
+      "assets": ["Asset\_5"]
     }
   ]
 }
@@ -365,9 +365,9 @@ Object Retrieve
 ~~~~~~~~~~~~~~~
 
 {
-  "msg_type":2,
-  "err_code":100,
-  "num_records":1,
+  "msg\_type":2,
+  "err\_code":100,
+  "num\_records":1,
   "objects":[
     {
       "key":"59ab6e44ac48b7000148c869",
@@ -377,7 +377,7 @@ Object Retrieve
       "subtype":"Cube",
       "owner":"123",
       "transform":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0],
-      "assets": ["Asset_5"]
+      "assets": ["Asset\_5"]
     }
   ]
 }
@@ -386,9 +386,9 @@ Object Destroy
 ~~~~~~~~~~~~~~
 
 {
-  "msg\_type":3,
-  "err\_code":100,
-  "num\_records":1,
+  "msg\\_type":3,
+  "err\\_code":100,
+  "num\\_records":1,
   "objects":[
     {
       "key":"5951dd759af59c00015b1408",
@@ -412,7 +412,7 @@ Object Query
       "subtype":"Cube",
       "owner":"456",
       "transform":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0],
-      "assets": ["Asset_5"]
+      "assets": ["Asset\_5"]
     },
     {
       "name":"Test Object 123456",
@@ -421,7 +421,7 @@ Object Query
       "subtype":"Sphere",
       "owner":"456",
       "transform":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0],
-      "assets": ["Asset_5"]
+      "assets": ["Asset\_5"]
     }
   ]
 }
@@ -430,9 +430,9 @@ Object Lock
 ~~~~~~~~~~~
 
 {
-  "msg_type":5,
-  "err_code":100,
-  "num_records":1,
+  "msg\_type":5,
+  "err\_code":100,
+  "num\_records":1,
   "objects":[
     {
       "key":"59ab6e44ac48b7000148c86b",
@@ -450,9 +450,9 @@ Object Unlock
 ~~~~~~~~~~~~~
 
 {
-  "msg_type":6,
-  "err_code":100,
-  "num_records":1,
+  "msg\_type":6,
+  "err\_code":100,
+  "num\_records":1,
   "objects":[
     {
       "key":"59ab6e44ac48b7000148c86b",
