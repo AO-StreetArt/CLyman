@@ -70,8 +70,8 @@ ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
       // Read the array values and stuff them into new_location
       const rapidjson::Value& sc = d["assets"];
       if (sc.IsArray()) {
-        for (rapidjson::SizeType i = 0; i < sc.Size(); i++) {
-          RelatedObject::add_asset(sc[i].GetString());
+        for (auto& asset_itr : sc.GetArray()) {
+          RelatedObject::add_asset(asset_itr.GetString());
         }
       }
     }
