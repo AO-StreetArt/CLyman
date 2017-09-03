@@ -93,6 +93,15 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             new_obj->set_subtype(subtype_iter->value.GetString());
           }
 
+          rapidjson::Value::ConstMemberIterator assets_iter = \
+            itr.FindMember("assets");
+          if (assets_iter != itr.MemberEnd()) {
+            const rapidjson::Value& asset_val = assets_iter->value;
+            for (auto& asset_itr : asset_val.GetArray()) {
+              new_obj->add_asset(asset_itr.GetString());
+            }
+          }
+
           obj_logging->debug("Basic string values pulled");
 
           // Parse the transform elements
