@@ -94,6 +94,14 @@ int main(int argc, char** argv) {
   // Set up our command line interpreter
   cli = cli_factory->get_command_line_interface(argc, argv);
 
+  // Allow for wait on startup, if configured
+  if (cli->opt_exist("-wait")) {
+    std::string wait_time_string = cli->get_opt("-wait");
+    int wait_time = std::stoi(wait_time_string, NULL);
+    // Accept input on the command line in seconds, convert to microseconds
+    usleep(wait_time * 1000000);
+  }
+
   // Set up logging
   std::string initFileName;
 
