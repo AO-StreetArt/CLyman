@@ -67,6 +67,18 @@ appender or pattern entirely. These modules should always be present
 within configuration files, but can be configured to suit the particular
 deployment needs.
 
+Startup
+-------
+
+CLyman can be started with an option to wait for a specified number of
+seconds prior to looking for configuration values and opening up for requests.
+This is particularly useful when used with orchestration providers, in order
+to ensure that other components are properly started (in particular, in order
+to allow time for Consul to be populated with default configuration values).
+
+-  ``./clyman -wait=5`` - This will start CLyman with the default
+   properties file, and wait 5 seconds before starting.
+
 Configuration Key-Value Variables
 ---------------------------------
 

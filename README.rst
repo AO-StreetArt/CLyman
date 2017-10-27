@@ -17,6 +17,8 @@ architecture designed to synchronize 3D objects across different client
 programs. It is highly scalable, and many instances can run in parallel
 to support increasing load.
 
+Detailed documentation can be found on `ReadTheDocs <http://clyman.readthedocs.io/en/latest/>`__.
+
 Features
 --------
 

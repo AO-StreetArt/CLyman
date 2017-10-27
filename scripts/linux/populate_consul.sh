@@ -2,14 +2,18 @@
 
 #Populate default configuration values into Consul
 
-curl -X PUT -d 'neo4j://localhost:7687' http://localhost:8500/v1/kv/ivan/DB_ConnectionString
+curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/DB_ConnectionString
 
-curl -X PUT -d '127.0.0.1--6379----2--5--0' http://localhost:8500/v1/kv/ivan/RedisConnectionString
+curl -X PUT -d '127.0.0.1--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
 
-curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/StampTransactionId
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
 
-curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/AtomicTransactions
+curl -X PUT -d 'False' http://localhost:8500/v1/kv/clyman/AtomicTransactions
 
-curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/ObjectLockingActive
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/ObjectLockingActive
 
-curl -X PUT -d 'Json' http://localhost:8500/v1/kv/ivan/DataFormatType
+curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/DataFormatType
+
+curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
+
+curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
