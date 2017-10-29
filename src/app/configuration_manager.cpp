@@ -247,12 +247,12 @@ bool ConfigurationManager::configure_from_consul(std::string consul_path, \
 
   OMQ_IBConnStr = internal_address + port;
 
-  return configure_from_consul(consul_path, OMQ_IBConnStr);
+  return configure_from_consul(consul_path, OMQ_IBConnStr, internal_address, port);
 }
 
 // Configure based on the Services List and Key/Value store from Consul
 bool ConfigurationManager::configure_from_consul(std::string consul_path, \
-  std::string conn_str) {
+  std::string conn_str, std::string addr, std::string port_str) {
   ca = consul_factory->get_consul_interface(consul_path);
   config_logging->info("Connecting to Consul");
   config_logging->info(consul_path);
@@ -261,8 +261,8 @@ bool ConfigurationManager::configure_from_consul(std::string consul_path, \
 
   // Step 1b: Register the Service with Consul
   // Build a new service definition for this currently running instance
-  std::string name = "clyman";
-  s = consul_factory->get_service_interface(node_id, name, hostname, port);
+  std::string name = "Clyman";
+  s = consul_factory->get_service_interface(node_id, name, addr, port_str);
   s->add_tag("ZMQ");
 
   // Register the service
