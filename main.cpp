@@ -125,23 +125,10 @@ int main(int argc, char** argv) {
   // Set up the UUID Generator
   uid = uuid_factory->get_uuid_interface();
 
-  std::string service_instance_id = "Clyman-";
-  UuidContainer sid_container;
-  try {
-    sid_container = uid->generate();
-    if (!sid_container.err.empty()) {
-      main_logging->error(sid_container.err);
-    }
-    service_instance_id = service_instance_id + sid_container.id;
-  }
-  catch (std::exception& e) {
-    main_logging->error("Exception encountered in Service ID Generation");
-    shutdown();
-    exit(1);
-  }
+  std::string service_id = "Clyman";
 
   // Set up our configuration manager with the CLI
-  config = new ConfigurationManager(cli, service_instance_id);
+  config = new ConfigurationManager(cli, service_id);
 
   // The configuration manager will  look at any command line arguments,
   // configuration files, and Consul connections to try and determine the
