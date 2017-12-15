@@ -262,7 +262,7 @@ bool ConfigurationManager::configure_from_consul(std::string consul_path, \
   if (addr == "localhost") {
     internal_address = "*";
   } else {
-    internal_address = ip;
+    internal_address = addr;
   }
 
   // Step 1b: Register the Service with Consul
