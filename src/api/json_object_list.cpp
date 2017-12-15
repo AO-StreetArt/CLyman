@@ -37,143 +37,169 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
     set_msg_type(mtype_val->GetInt());
     if (d.HasMember("transaction_id")) {
       const rapidjson::Value *tid_val = &d["transaction_id"];
-      set_transaction_id(tid_val->GetString());
-      obj_logging->debug("Transaction ID Pulled");
+      if (!(tid_val->IsNull())) {
+        set_transaction_id(tid_val->GetString());
+        obj_logging->debug("Transaction ID Pulled");
+      }
     }
     if (d.HasMember("num_records")) {
       const rapidjson::Value *nr_val = &d["num_records"];
-      set_num_records(nr_val->GetInt());
-      obj_logging->debug("Num Records Pulled");
+      if (!(nr_val->IsNull())) {
+        set_num_records(nr_val->GetInt());
+        obj_logging->debug("Num Records Pulled");
+      }
     }
 
     // Parse the object list
     if (d.HasMember("objects")) {
       const rapidjson::Value *objs_val = &d["objects"];
-      obj_logging->debug("Objects Array pulled");
-      if (objs_val->IsArray()) {
-        for (auto& itr : objs_val->GetArray()) {
-          obj_logging->debug("Object Returned from objects array");
-          // Create a new object
-          ObjectInterface *new_obj = ofactory.build_object();
+      if (!(objs_val->IsNull())) {
+        obj_logging->debug("Objects Array pulled");
+        if (objs_val->IsArray()) {
+          for (auto& itr : objs_val->GetArray()) {
+            obj_logging->debug("Object Returned from objects array");
+            // Create a new object
+            ObjectInterface *new_obj = ofactory.build_object();
 
-          // Parse the string attributes
-          rapidjson::Value::ConstMemberIterator key_iter = \
-            itr.FindMember("key");
-          if (key_iter != itr.MemberEnd()) {
-            new_obj->set_key(key_iter->value.GetString());
-          }
-
-          rapidjson::Value::ConstMemberIterator name_iter = \
-            itr.FindMember("name");
-          if (name_iter != itr.MemberEnd()) {
-            new_obj->set_name(name_iter->value.GetString());
-          }
-
-          rapidjson::Value::ConstMemberIterator scn_iter = \
-            itr.FindMember("scene");
-          if (scn_iter != itr.MemberEnd()) {
-            new_obj->set_scene(scn_iter->value.GetString());
-          }
-
-          rapidjson::Value::ConstMemberIterator owner_iter = \
-            itr.FindMember("owner");
-          if (owner_iter != itr.MemberEnd()) {
-            new_obj->set_owner(owner_iter->value.GetString());
-          }
-
-          rapidjson::Value::ConstMemberIterator type_iter = \
-            itr.FindMember("type");
-          if (type_iter != itr.MemberEnd()) {
-            new_obj->set_type(type_iter->value.GetString());
-          }
-
-          rapidjson::Value::ConstMemberIterator subtype_iter = \
-            itr.FindMember("subtype");
-          if (subtype_iter != itr.MemberEnd()) {
-            new_obj->set_subtype(subtype_iter->value.GetString());
-          }
-
-          rapidjson::Value::ConstMemberIterator assets_iter = \
-            itr.FindMember("assets");
-          if (assets_iter != itr.MemberEnd()) {
-            const rapidjson::Value& asset_val = assets_iter->value;
-            for (auto& asset_itr : asset_val.GetArray()) {
-              new_obj->add_asset(asset_itr.GetString());
+            // Parse the string attributes
+            rapidjson::Value::ConstMemberIterator key_iter = \
+              itr.FindMember("key");
+            if (key_iter != itr.MemberEnd()) {
+              if (!(key_iter->value.IsNull())) {
+                new_obj->set_key(key_iter->value.GetString());
+              }
             }
-          }
 
-          obj_logging->debug("Basic string values pulled");
-
-          // Parse the transform elements
-          rapidjson::Value::ConstMemberIterator translation_iter = \
-            itr.FindMember("translation");
-          if (translation_iter != itr.MemberEnd()) {
-            obj_logging->debug("Translation pulled");
-            const rapidjson::Value& translation_val = translation_iter->value;
-            int i = 0;
-            double x = 0.0;
-            double y = 0.0;
-            double z = 0.0;
-            for (auto& trans_itr : translation_val.GetArray()) {
-              if (i == 0) {
-                x = trans_itr.GetDouble();
-              } else if (i == 1) {
-                y = trans_itr.GetDouble();
-              } else if (i == 2) {z = trans_itr.GetDouble();}
-              i++;
+            rapidjson::Value::ConstMemberIterator name_iter = \
+              itr.FindMember("name");
+            if (name_iter != itr.MemberEnd()) {
+              if (!(name_iter->value.IsNull())) {
+                new_obj->set_name(name_iter->value.GetString());
+              }
             }
-            Translation *trans = new Translation(x, y, z);
-            new_obj->transform(trans);
-            delete trans;
-          }
 
-          rapidjson::Value::ConstMemberIterator erot_iter = \
-            itr.FindMember("euler_rotation");
-          if (erot_iter != itr.MemberEnd()) {
-            obj_logging->debug("Euler Rotation pulled");
-            const rapidjson::Value& erot_val = erot_iter->value;
-            int i = 0;
-            double theta = 0.0;
-            double x = 0.0;
-            double y = 0.0;
-            double z = 0.0;
-            for (auto& erot_itr : erot_val.GetArray()) {
-              if (i == 0) {
-                theta = erot_itr.GetDouble();
-              } else if (i == 1) {
-                x = erot_itr.GetDouble();
-              } else if (i == 2) {
-                y = erot_itr.GetDouble();
-              } else {z = erot_itr.GetDouble();}
-              i++;
+            rapidjson::Value::ConstMemberIterator scn_iter = \
+              itr.FindMember("scene");
+            if (scn_iter != itr.MemberEnd()) {
+              if (!(scn_iter->value.IsNull())) {
+                new_obj->set_scene(scn_iter->value.GetString());
+              }
             }
-            EulerRotation *erot = new EulerRotation(theta, x, y, z);
-            new_obj->transform(erot);
-            delete erot;
-          }
 
-          rapidjson::Value::ConstMemberIterator scale_iter = \
-            itr.FindMember("scale");
-          if (scale_iter != itr.MemberEnd()) {
-            obj_logging->debug("Scale pulled");
-            const rapidjson::Value& scale_val = scale_iter->value;
-            int i = 0;
-            double x = 0.0;
-            double y = 0.0;
-            double z = 0.0;
-            for (auto& scale_itr : scale_val.GetArray()) {
-              if (i == 0) {
-                x = scale_itr.GetDouble();
-              } else if (i == 1) {
-                y = scale_itr.GetDouble();
-              } else if (i == 2) {z = scale_itr.GetDouble();}
-              i++;
+            rapidjson::Value::ConstMemberIterator owner_iter = \
+              itr.FindMember("owner");
+            if (owner_iter != itr.MemberEnd()) {
+              if (!(owner_iter->value.IsNull())) {
+                new_obj->set_owner(owner_iter->value.GetString());
+              }
             }
-            Scale *scl = new Scale(x, y, z);
-            new_obj->transform(scl);
-            delete scl;
+
+            rapidjson::Value::ConstMemberIterator type_iter = \
+              itr.FindMember("type");
+            if (type_iter != itr.MemberEnd()) {
+              if (!(type_iter->value.IsNull())) {
+                new_obj->set_type(type_iter->value.GetString());
+              }
+            }
+
+            rapidjson::Value::ConstMemberIterator subtype_iter = \
+              itr.FindMember("subtype");
+            if (subtype_iter != itr.MemberEnd()) {
+              if (!(subtype_iter->value.IsNull())) {
+                new_obj->set_subtype(subtype_iter->value.GetString());
+              }
+            }
+
+            rapidjson::Value::ConstMemberIterator assets_iter = \
+              itr.FindMember("assets");
+            if (assets_iter != itr.MemberEnd()) {
+              const rapidjson::Value& asset_val = assets_iter->value;
+              if (!(asset_val.IsNull())) {
+                for (auto& asset_itr : asset_val.GetArray()) {
+                  new_obj->add_asset(asset_itr.GetString());
+                }
+              }
+            }
+
+            obj_logging->debug("Basic string values pulled");
+
+            // Parse the transform elements
+            rapidjson::Value::ConstMemberIterator translation_iter = \
+              itr.FindMember("translation");
+            if (translation_iter != itr.MemberEnd()) {
+              obj_logging->debug("Translation pulled");
+              const rapidjson::Value& translation_val = translation_iter->value;
+              if (!(translation_val.IsNull())) {
+                int i = 0;
+                double x = 0.0;
+                double y = 0.0;
+                double z = 0.0;
+                for (auto& trans_itr : translation_val.GetArray()) {
+                  if (i == 0) {
+                    x = trans_itr.GetDouble();
+                  } else if (i == 1) {
+                    y = trans_itr.GetDouble();
+                  } else if (i == 2) {z = trans_itr.GetDouble();}
+                  i++;
+                }
+                Translation *trans = new Translation(x, y, z);
+                new_obj->transform(trans);
+                delete trans;
+              }
+            }
+
+            rapidjson::Value::ConstMemberIterator erot_iter = \
+              itr.FindMember("euler_rotation");
+            if (erot_iter != itr.MemberEnd()) {
+              obj_logging->debug("Euler Rotation pulled");
+              const rapidjson::Value& erot_val = erot_iter->value;
+              if (!(erot_val.IsNull())) {
+                int i = 0;
+                double theta = 0.0;
+                double x = 0.0;
+                double y = 0.0;
+                double z = 0.0;
+                for (auto& erot_itr : erot_val.GetArray()) {
+                  if (i == 0) {
+                    theta = erot_itr.GetDouble();
+                  } else if (i == 1) {
+                    x = erot_itr.GetDouble();
+                  } else if (i == 2) {
+                    y = erot_itr.GetDouble();
+                  } else {z = erot_itr.GetDouble();}
+                  i++;
+                }
+                EulerRotation *erot = new EulerRotation(theta, x, y, z);
+                new_obj->transform(erot);
+                delete erot;
+              }
+            }
+
+            rapidjson::Value::ConstMemberIterator scale_iter = \
+              itr.FindMember("scale");
+            if (scale_iter != itr.MemberEnd()) {
+              obj_logging->debug("Scale pulled");
+              const rapidjson::Value& scale_val = scale_iter->value;
+              if (!(scale_val.IsNull())) {
+                int i = 0;
+                double x = 0.0;
+                double y = 0.0;
+                double z = 0.0;
+                for (auto& scale_itr : scale_val.GetArray()) {
+                  if (i == 0) {
+                    x = scale_itr.GetDouble();
+                  } else if (i == 1) {
+                    y = scale_itr.GetDouble();
+                  } else if (i == 2) {z = scale_itr.GetDouble();}
+                  i++;
+                }
+                Scale *scl = new Scale(x, y, z);
+                new_obj->transform(scl);
+                delete scl;
+              }
+            }
+            add_object(new_obj);
           }
-          add_object(new_obj);
         }
       }
     // d.HasMember(objects)
