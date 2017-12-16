@@ -42,6 +42,8 @@ ObjectListInterface* batch_query(ObjectListInterface *inp_list, \
 
     // Generate a Query from each object in the list
     std::string query_string = inp_list->get_object(i)->to_json();
+    main_logging->debug("Mongo Query:");
+    main_logging->debug(query_string);
 
     // Execute the Query with Mongo
     MongoIteratorInterface *iter = m->query(query_string);
@@ -59,16 +61,20 @@ ObjectListInterface* batch_query(ObjectListInterface *inp_list, \
           main_logging->error(resp->get_err_msg());
           break;
         }
+        main_logging->debug("Adding response document to return list");
         rapidjson::Document resp_doc;
         resp_doc.Parse(resp->get_value().c_str());
+        main_logging->debug(resp->get_value().c_str());
         ObjectInterface *resp_obj = objfactory.build_object();
         out_list->add_object(resp_obj);
         num_results++;
         delete resp;
         resp = iter->next();
       }
+      delete iter;
+    } else {
+      main_logging->debug("Mongo Query returned no results");
     }
-    delete iter;
   }
   return out_list;
 }
