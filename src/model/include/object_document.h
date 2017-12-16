@@ -70,6 +70,7 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   // Take a target object and apply it's fields as changes to this Object
   void merge(ObjectInterface *target);
   // to_json method to build an object to save to Mongo
+  std::string to_json(bool is_query);
   std::string to_json();
   // Inherited Methods
   // Transform methods
