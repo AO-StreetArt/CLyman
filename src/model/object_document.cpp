@@ -134,6 +134,14 @@ void ObjectDocument::merge(ObjectInterface *target) {
 
 // Write the Object to JSON
 std::string ObjectDocument::to_json() {
+  return to_json(false);
+}
+
+// Write the Object to JSON
+// is_query flag used to control whether we are writing a full document
+// or a query string.  We can only query on specific fields, so we don't want
+// to write out things like transform matrix if we are sending a query to mongo
+std::string ObjectDocument::to_json(bool is_query) {
   // Initialize the string buffer and writer
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
@@ -172,7 +180,7 @@ std::string ObjectDocument::to_json() {
   }
 
   // Write Transform
-  if (Object3d::has_transform()) {
+  if (Object3d::has_transform() && (!is_query)) {
     writer.Key("transform");
     writer.StartArray();
     for (int i = 0; i < 4; i++) {
@@ -183,13 +191,15 @@ std::string ObjectDocument::to_json() {
     writer.EndArray();
   }
 
-  writer.Key("assets");
-  writer.StartArray();
-  for (int i = 0; i < RelatedObject::num_assets(); i++) {
-    std::string ast = RelatedObject::get_asset(i);
-    writer.String(ast.c_str(), (rapidjson::SizeType)ast.length());
+  if ((is_query && num_assets() > 0) || (!is_query)) {
+    writer.Key("assets");
+    writer.StartArray();
+    for (int i = 0; i < RelatedObject::num_assets(); i++) {
+      std::string ast = RelatedObject::get_asset(i);
+      writer.String(ast.c_str(), (rapidjson::SizeType)ast.length());
+    }
+    writer.EndArray();
   }
-  writer.EndArray();
 
   writer.EndObject();
 
