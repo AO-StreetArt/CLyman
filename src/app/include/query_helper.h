@@ -65,7 +65,7 @@ ObjectListInterface* batch_query(ObjectListInterface *inp_list, \
         rapidjson::Document resp_doc;
         resp_doc.Parse(resp->get_value().c_str());
         main_logging->debug(resp->get_value().c_str());
-        ObjectInterface *resp_obj = objfactory.build_object();
+        ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
         out_list->add_object(resp_obj);
         num_results++;
         delete resp;
