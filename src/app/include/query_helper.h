@@ -41,7 +41,7 @@ ObjectListInterface* batch_query(ObjectListInterface *inp_list, \
     }
 
     // Generate a Query from each object in the list
-    std::string query_string = inp_list->get_object(i)->to_json();
+    std::string query_string = inp_list->get_object(i)->to_json(true);
     main_logging->debug("Mongo Query:");
     main_logging->debug(query_string);
 
