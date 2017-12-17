@@ -72,6 +72,7 @@ class ObjectInterface {
   virtual void merge(ObjectInterface *target) = 0;
   // to_json method to build an object to save to Mongo
   virtual std::string to_json() = 0;
+  virtual std::string to_json(bool is_query) = 0;
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
