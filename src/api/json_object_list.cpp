@@ -68,6 +68,21 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               if (!(key_iter->value.IsNull())) {
                 new_obj->set_key(key_iter->value.GetString());
               }
+            } else {
+              // If we don't have a key, then check for an OID from Mongo
+              rapidjson::Value::ConstMemberIterator id_iter = \
+                itr.FindMember("_id");
+              if (id_iter != itr.MemberEnd()) {
+                if (!(id_iter->value.IsNull())) {
+                  rapidjson::Value::ConstMemberIterator oid_iter = \
+                    itr.FindMember("$oid");
+                  if (oid_iter != itr.MemberEnd()) {
+                    if (!(oid_iter->value.IsNull())) {
+                      new_obj->set_key(id_iter->value.GetString());
+                    }
+                  }
+                }
+              }
             }
 
             rapidjson::Value::ConstMemberIterator name_iter = \
