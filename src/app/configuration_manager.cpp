@@ -46,32 +46,32 @@ bool ConfigurationManager::configure_from_file(std::string file_path) {
     Mongo_ConnStr = props->get_opt("Mongo_ConnectionString");
     config_logging->info("Mongo Connection String:");
     config_logging->info(DB_ConnStr);
-  }
+  } else {throw ConfigurationException("No Mongo Connection Specified");}
   if (props->opt_exist("Mongo_DbName")) {
     Mongo_DbName = props->get_opt("Mongo_DbName");
     config_logging->info("Mongo DB Name:");
     config_logging->info(Mongo_DbName);
-  }
+  } else {throw ConfigurationException("No Mongo DB Name Specified");}
   if (props->opt_exist("Mongo_DbCollection")) {
     Mongo_DbCollection = props->get_opt("Mongo_DbCollection");
     config_logging->info("Mongo DB Collection:");
     config_logging->info(Mongo_DbCollection);
-  }
+  } else {throw ConfigurationException("No Mongo DB Collection Specified");}
   if (props->opt_exist("0MQ_InboundConnectionString")) {
     OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
     config_logging->info("Inbound 0MQ Connection:");
     config_logging->info(OMQ_IBConnStr);
-  }
+  } else {throw ConfigurationException("No ZMQ Connection Specified");}
   if (props->opt_exist("0MQ_Hostname")) {
     hostname = props->get_opt("0MQ_Hostname");
     config_logging->info("Inbound 0MQ Hostname:");
     config_logging->info(hostname);
-  }
+  } else {throw ConfigurationException("No ZMQ Host Specified");}
   if (props->opt_exist("0MQ_Port")) {
     port = props->get_opt("0MQ_Port");
     config_logging->info("Inbound 0MQ Port:");
     config_logging->info(port);
-  }
+  } else {throw ConfigurationException("No ZMQ Port Specified");}
   if (props->opt_exist("DataFormatType")) {
     std::string param_value = props->get_opt("DataFormatType");
     if (param_value == "1" || param_value == "JSON" || param_value == "json" \
@@ -80,7 +80,7 @@ bool ConfigurationManager::configure_from_file(std::string file_path) {
     } else if (param_value == "0" || param_value == "Protobuf" \
       || param_value == "protobuf") {
       format_type = PROTO_FORMAT;
-    }
+    } else {throw ConfigurationException("No Data Format Specified");}
     config_logging->info("Inbound 0MQ Connection:");
     config_logging->info(OMQ_IBConnStr);
   }
@@ -92,7 +92,7 @@ bool ConfigurationManager::configure_from_file(std::string file_path) {
       StampTransactionId = false;
       config_logging->info("Transaction ID's Disabled");
     }
-  }
+  } else {throw ConfigurationException("No Transaction ID Instruction");}
   if (props->opt_exist("AtomicTransactions")) {
     if (props->get_opt("AtomicTransactions") == "True") {
       AtomicTransactions = true;
@@ -101,7 +101,7 @@ bool ConfigurationManager::configure_from_file(std::string file_path) {
       AtomicTransactions = false;
       config_logging->info("Atomic Transactions Disabled");
     }
-  }
+  } else {throw ConfigurationException("No Atomic Transactions Instruction");}
   if (props->opt_exist("ObjectLockingActive")) {
     if (props->get_opt("ObjectLockingActive") == "True") {
       ObjectLockingActive = true;
@@ -110,7 +110,7 @@ bool ConfigurationManager::configure_from_file(std::string file_path) {
       ObjectLockingActive = false;
       config_logging->info("Object Locking Disabled");
     }
-  }
+  } else {throw ConfigurationException("No Object Locking Instruction");}
 
   if (props->list_exist("RedisConnectionString")) {
     std::vector<std::string> conn_list = \
@@ -161,7 +161,7 @@ bool ConfigurationManager::configure_from_file(std::string file_path) {
 
       RedisConnectionList.push_back(chain);
     }
-  }
+  } else {throw ConfigurationException("No Redis Connection Specified");}
   delete props;
   return true;
 }

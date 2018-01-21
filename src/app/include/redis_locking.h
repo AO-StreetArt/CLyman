@@ -16,6 +16,7 @@ limitations under the License.
 */
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <cstdlib>
 #include <exception>
 #include <sstream>
@@ -75,9 +76,10 @@ inline bool get_lock(std::string key, std::string val, bool exit_on_existing_loc
     }
     // We have an existing lock that isn't ours,
     // and we want to keep trying to obtain it until we do.
+    // We wait a tenth of a second between each request
     else if (key_exists && (!exit_on_existing_lock)) {
       redis_logging->error("Existing Redis Mutex Lock Detected, Waiting");
-      while (redis->exists(key)) {}
+      while (redis->exists(key)) {usleep(100000);}
     }
 
     // Try to establish a lock on the Redis Mutex

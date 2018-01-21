@@ -52,6 +52,28 @@ const int JSON_FORMAT = 1;
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
+//! An Implementation of std::exception that
+//! denotes an error during an http operation
+struct ConfigurationException: public std::exception {
+  //! An error message passed on initialization
+  std::string int_msg;
+  const char * int_msg_cstr;
+
+  //! Create a HTTP Request Exception, and store the given error message
+  inline ConfigurationException(std::string msg) {
+    int_msg = "Configuration Error: " + msg;
+    int_msg_cstr = int_msg.c_str();
+  }
+
+  ConfigurationException() {}
+  ~ConfigurationException() throw() {}
+
+  //! Show the error message in readable format
+  const char * what() const throw() {
+    return int_msg_cstr;
+  }
+};
+
 class ConfigurationManager {
   ConsulComponentFactory *consul_factory = NULL;
   PropertyReaderFactory *props_factory = NULL;
