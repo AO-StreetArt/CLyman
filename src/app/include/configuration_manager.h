@@ -82,6 +82,9 @@ class ConfigurationManager {
   // The Current Node ID
   std::string node_id;
 
+  // Response string for ensuring valid response values
+  std::string config_resp_str;
+
   // The port
   int int_port;
 
