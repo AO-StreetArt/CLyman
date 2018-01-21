@@ -38,10 +38,6 @@ if [ ! -d /usr/local/include/aossl ]; then
 fi
 
 # Here we look to install RapidJSON
-
-# This is a recommended library for JSON Processing.
-# Libprotobuf and protoc are also installed by default, for using Google Protocol Buffers.
-# If you wish to use other parsing methods or message formats, simply remove these
 if [ ! -d /usr/local/include/rapidjson ]; then
   printf "Cloning RapidJSON\n"
 
@@ -52,6 +48,30 @@ if [ ! -d /usr/local/include/rapidjson ]; then
 
   #Move the RapidJSON header files to the include path
   sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
+
+fi
+
+# Install librdkafka
+if [ ! -d /usr/local/include/librdkafka ]; then
+  wget https://github.com/edenhill/librdkafka/archive/v0.11.3.tar.gz
+  tar -xvzf v0.11.3.tar.gz
+  cd librdkafka-0.11.3 && ./configure && make && sudo make install
+fi
+
+# Install Boost (dependency of cppkafka)
+sudo apt-get install libboost-all-dev
+
+# Here we look to install cppkafka
+if [ ! -d /usr/local/include/cppkafka ]; then
+  printf "Cloning CppKafka\n"
+
+  mkdir $PRE/cppkafka
+
+  #Get the RapidJSON Dependency
+  git clone https://github.com/mfontanini/cppkafka.git $PRE/cppkafka
+
+  # Build and install
+  mkdir $PRE/cppkafka/build && cd $PRE/cppkafka/build && cmake .. && make && sudo make install
 
 fi
 
