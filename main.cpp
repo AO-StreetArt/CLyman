@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
       config_tried = true;
     }
     try {
-      config_success = cm->configure();
+      config_success = config->configure();
     }
     catch (std::exception& e) {
       main_logging->error("Exception encountered during Configuration");
