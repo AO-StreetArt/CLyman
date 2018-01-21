@@ -320,6 +320,15 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
     }
     writer.EndArray();
 
+    obj_logging->debug("Writing Asset IDs");
+    writer.Key("assets");
+    writer.StartArray();
+    for (int i = 0; i < get_object(a)->num_assets(); i++) {
+      writer.String(get_object(a)->get_asset(i).c_str(), \
+        (rapidjson::SizeType)get_object(a)->get_asset(i).length());
+    }
+    writer.EndArray();
+
     writer.EndObject();
   }
 
