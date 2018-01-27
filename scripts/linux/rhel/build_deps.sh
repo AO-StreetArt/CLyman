@@ -1,7 +1,4 @@
 #!/bin/bash
-exec 3>&1 4>&2
-trap 'exec 2>&4 1>&3' 0 1 2 3
-exec 1>build_deps.log 2>&1
 
 #This script will attempt to build basic project dependencies
 
@@ -37,6 +34,9 @@ if [ ! -d /usr/local/include/aossl ]; then
 
 fi
 
+#Install glm, protocol buffers, boost
+sudo yum install -y libglm-devel protobuf-devel protobuf-compiler boost-devel
+
 # Here we look to install RapidJSON
 
 # This is a recommended library for JSON Processing.
@@ -63,9 +63,6 @@ if [ ! -d /usr/local/include/librdkafka ]; then
   cd librdkafka-0.11.3 && ./configure && make && sudo make install
 fi
 
-# Install Boost (dependency of cppkafka)
-sudo yum install boost-devel
-
 # Here we look to install cppkafka
 if [ ! -d /usr/local/include/cppkafka ]; then
   printf "Cloning CppKafka\n"
@@ -79,9 +76,6 @@ if [ ! -d /usr/local/include/cppkafka ]; then
   mkdir $PRE/cppkafka/build && cd $PRE/cppkafka/build && cmake .. && make && sudo make install
 
 fi
-
-#Install glm
-sudo yum install -y libglm-devel protobuf-devel protobuf-compiler
 
 #Get the DVS Interface Protocol Buffer Library
 git clone https://github.com/AO-StreetArt/DvsInterface.git
