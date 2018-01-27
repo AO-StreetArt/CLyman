@@ -57,6 +57,7 @@ limitations under the License.
 #include "src/app/include/globals.h"
 #include "src/app/include/redis_locking.h"
 #include "src/app/include/query_helper.h"
+#include "src/app/include/kafka_client.h"
 
 #include "src/api/include/object_list_interface.h"
 #include "src/api/include/object_list_factory.h"
@@ -129,6 +130,9 @@ int main(int argc, char** argv) {
 
   // Set up our configuration manager with the CLI
   config = new ConfigurationManager(cli, service_id);
+
+  // Start up the Kafka Producer
+  kafka = new KafkaClient();
 
   // The configuration manager will  look at any command line arguments,
   // configuration files, and Consul connections to try and determine the
@@ -330,7 +334,8 @@ int main(int argc, char** argv) {
           // Object Update
           } else if (inbound_message->get_msg_type() == OBJ_UPD || \
             inbound_message->get_msg_type() == OBJ_LOCK || \
-            inbound_message->get_msg_type() == OBJ_UNLOCK) {
+            inbound_message->get_msg_type() == OBJ_UNLOCK ||
+            inbound_message->get_msg_type() == OBJ_OVERWRITE) {
             main_logging->info("Processing Object Update Message");
             for (int i = 0; i < inbound_message->num_objects(); i++) {
               // Enforce atomic updates -- establish redis lock
@@ -348,6 +353,10 @@ int main(int argc, char** argv) {
                   inbound_message->get_object(i)->get_owner());
               }
               if (lock_obtained) {
+                if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
+                  // Send an update on the Kafka 'dvs' topic
+                  kafka->send(inbound_message->get_object(i)->to_transform_json(), config->get_kafkabroker());
+                }
                 // Load the current doc from the database
                 rapidjson::Document resp_doc;
                 MongoResponseInterface *resp = mongo->load_document(\
@@ -359,7 +368,12 @@ int main(int argc, char** argv) {
                   resp_doc.Parse(mongo_resp_str.c_str());
                   ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
                   // Apply the object message as changes to the DB Object
-                  resp_obj->merge(inbound_message->get_object(i));
+                  if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
+                    resp_obj->overwrite(inbound_message->get_object(i));
+                  } else {
+                    // overwrite the changes on the DB object
+                    resp_obj->merge(inbound_message->get_object(i));
+                  }
                   // Save the resulting object
                   mongo->save_document(resp_obj->to_json(), \
                     resp_obj->get_key());

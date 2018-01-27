@@ -5,7 +5,8 @@ CC = g++
 CFLAGS  = -g -Wall
 STD = -std=c++11
 TESTS = configuration_test.o log_test.o utils_test.o
-INCL_DIRS = -I$(CURDIR)/../../src/app/include -I$(CURDIR)/../../src/api/include -I$(CURDIR)/../../src/model/include
+BASE_INCL_DIR = $(CURDIR)
+INCL_DIRS = -I$(BASE_INCL_DIR)/../../src/app/include -I$(BASE_INCL_DIR)/../../src/api/include -I$(BASE_INCL_DIR)/../../src/model/include
 
 default: $(TESTS)
 
