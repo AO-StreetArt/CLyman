@@ -96,6 +96,7 @@ class ConfigurationManager {
   std::string hostname;
   std::string port;
   std::vector<RedisConnChain> RedisConnectionList;
+  std::string KafkaBrokerList;
   int format_type;
   bool StampTransactionId;
   bool AtomicTransactions;
@@ -149,6 +150,7 @@ class ConfigurationManager {
     Mongo_DbName = "test";
     hostname = "";
     port = "";
+    KafkaBrokerList = "";
   }
   ~ConfigurationManager();
 
@@ -161,6 +163,7 @@ class ConfigurationManager {
   std::string get_dbheadercollection() {return Mongo_DbCollection;}
   std::string get_ibconnstr() {return OMQ_IBConnStr;}
   std::vector<RedisConnChain> get_redisconnlist() {return RedisConnectionList;}
+  std::string get_kafkabroker() {return KafkaBrokerList;}
   bool get_transactionidsactive() {return StampTransactionId;}
   bool get_atomictransactions() {return AtomicTransactions;}
   bool get_locking_active() {return ObjectLockingActive;}
