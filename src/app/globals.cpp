@@ -24,6 +24,7 @@ MongoInterface *mongo = NULL;
 RedisInterface *red = NULL;
 CommandLineInterface *cli = NULL;
 Zmqio *zmqi = NULL;
+KafkaClient *kafka = NULL;
 
 // Factories
 CommandLineInterpreterFactory *cli_factory = NULL;

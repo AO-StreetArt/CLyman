@@ -40,6 +40,7 @@ limitations under the License.
 
 #include "configuration_manager.h"
 #include "app_log.h"
+#include "kafka_client.h"
 
 #include "object_list_interface.h"
 
@@ -55,6 +56,7 @@ extern RedisInterface *red;
 extern uuidInterface *uid;
 extern Zmqio *zmqi;
 extern CommandLineInterface *cli;
+extern KafkaClient *kafka;
 
 // Global Factory Objects
 extern CommandLineInterpreterFactory *cli_factory;
@@ -79,6 +81,7 @@ inline void shutdown() {
   if (config) delete config;
   if (uid) delete uid;
   if (cli) delete cli;
+  if (kafka) delete kafka;
 
   // Shutdown logging
   shutdown_logging_submodules();
