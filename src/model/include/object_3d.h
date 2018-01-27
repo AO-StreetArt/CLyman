@@ -66,6 +66,13 @@ class Object3d {
   void transform(Transformation *t) {trans->multiply(*t);}
   bool has_transform() const {if (trans) {return true;} else {return false;}}
   Transformation* get_transform() const {return trans;}
+  inline void set_transform(Transformation *t) {
+    if (trans) {
+      delete trans;
+    }
+    trans = new Transformation;
+    trans->multiply(*t);
+  }
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_3D_H_

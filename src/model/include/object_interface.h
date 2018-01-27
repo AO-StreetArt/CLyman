@@ -70,9 +70,12 @@ class ObjectInterface {
   virtual Transformation* get_transform() const = 0;
   // Take a target object and apply it's fields as changes to this Object
   virtual void merge(ObjectInterface *target) = 0;
+  // Take a target object and overwrite this object's fields with it
+  virtual void overwrite(ObjectInterface *target) = 0;
   // to_json method to build an object to save to Mongo
   virtual std::string to_json() = 0;
   virtual std::string to_json(bool is_query) = 0;
+  virtual std::string to_transform_json() = 0;
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_

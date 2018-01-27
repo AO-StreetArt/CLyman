@@ -112,8 +112,7 @@ ObjectDocument::ObjectDocument(const ObjectInterface &o) {
   }
 }
 
-// Take the target and apply its fields as changes
-void ObjectDocument::merge(ObjectInterface *target) {
+void ObjectDocument::write_string_attributes(ObjectInterface *target) {
   // Copy String values
   if (!(target->get_key().empty())) RelatedObject::set_key(target->get_key());
   if (!(target->get_name().empty())) name = target->get_name();
@@ -122,6 +121,12 @@ void ObjectDocument::merge(ObjectInterface *target) {
   if (!(target->get_type().empty())) type = target->get_type();
   if (!(target->get_subtype().empty())) subtype = target->get_subtype();
   if (!(target->get_owner().empty())) owner = target->get_owner();
+}
+
+// Take the target and apply its fields as changes
+void ObjectDocument::merge(ObjectInterface *target) {
+  // Copy String values
+  write_string_attributes(target);
   // Apply transforms
   if (target->has_transform()) {
     Object3d::transform(target->get_transform());
@@ -129,6 +134,24 @@ void ObjectDocument::merge(ObjectInterface *target) {
   // Move over asset ids
   for (int i = 0; i < target->num_assets(); i++) {
     RelatedObject::add_asset(target->get_asset(i));
+  }
+}
+
+// Take a target object and overwrite this object's fields with it
+void ObjectDocument::overwrite(ObjectInterface *target) {
+  // Copy String values
+  write_string_attributes(target);
+  // update transform
+  if (target->has_transform()) {
+    Object3d::set_transform(target->get_transform());
+  }
+  // update asset ids
+  if (target->num_assets() > 0) {
+    RelatedObject::clear_assets();
+    int i = 0;
+    for (i = 0; i < target->num_assets(); i++) {
+      RelatedObject::add_asset(target->get_asset(i));
+    }
   }
 }
 
@@ -208,4 +231,54 @@ std::string ObjectDocument::to_json(bool is_query) {
   json_cstr_val = s.GetString();
   json_str_val.assign(json_cstr_val);
   return json_str_val;
+}
+
+std::string ObjectDocument::to_transform_json() {
+  // Initialize the string buffer and writer
+  rapidjson::StringBuffer s;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+
+  // Start writing the object
+  // Syntax taken directly from
+  // simplewriter.cpp in rapidjson examples
+  writer.StartObject();
+
+  // Write string attributes
+
+  if (!(RelatedObject::get_key().empty())) {
+    writer.Key("key");
+    writer.String(RelatedObject::get_key().c_str(),
+      (rapidjson::SizeType)RelatedObject::get_key().length());
+  }
+
+  if (!(name.empty())) {
+    writer.Key("name");
+    writer.String(name.c_str(), (rapidjson::SizeType)name.length());
+  }
+
+  if (!(RelatedObject::get_scene().empty())) {
+    writer.Key("scene");
+    writer.String(RelatedObject::get_scene().c_str(), \
+      (rapidjson::SizeType)RelatedObject::get_scene().length());
+  }
+
+  // Write Transform
+  if (Object3d::has_transform()) {
+    writer.Key("transform");
+    writer.StartArray();
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        writer.Double(Object3d::get_transform()->get_transform_element(i, j));
+      }
+    }
+    writer.EndArray();
+  }
+
+  writer.EndObject();
+
+  // The Stringbuffer now contains a json message
+  // of the object
+  transform_cstr_val = s.GetString();
+  transform_str_val.assign(transform_cstr_val);
+  return transform_str_val;
 }
