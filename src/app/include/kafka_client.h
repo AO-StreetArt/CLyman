@@ -20,6 +20,7 @@ limitations under the License.
 #include <cppkafka/producer.h>
 
 #include <string>
+#include <chrono>
 
 #include "app_log.h"
 
@@ -44,6 +45,9 @@ cppkafka::Producer *kafka_producer = NULL;
           { "metadata.broker.list", broker_address }
         };
         kafka_producer = new cppkafka::Producer(kafka_config);
+        // Update the timeout for the new producer
+        std::chrono::milliseconds timeout_duration(5000);
+        kafka_producer->set_timeout(timeout_duration);
       }
       catch (std::exception& e) {
         main_logging->error("Exception encountered during Kafka Connection");
