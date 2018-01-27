@@ -9,7 +9,7 @@ echo $BRANCH_NAME
 echo $DIR
 
 if [ $BRANCH_NAME != "master" ]; then
-  cd $DIR && sudo docker build --file DevelDockerfile -t "aostreetart/clyman:$BRANCH_NAME" .
+  cd $DIR && sudo docker build -t "aostreetart/clyman:$BRANCH_NAME" .
   TAG_NAME=$BRANCH_NAME
 else
   cd $DIR && sudo docker build -t "aostreetart/clyman:$TAG_NAME" .
