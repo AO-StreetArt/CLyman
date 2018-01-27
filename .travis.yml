@@ -44,7 +44,7 @@ install:
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500
   localhost 5556
 before_script:
-- sleep 5
+- sleep 10
 - docker ps -a
 - docker logs clyman
 - docker logs cache
