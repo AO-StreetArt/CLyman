@@ -37,6 +37,7 @@ const int OBJ_DEL = 3;
 const int OBJ_QUERY = 4;
 const int OBJ_LOCK = 5;
 const int OBJ_UNLOCK = 6;
+const int OBJ_OVERWRITE = 7;
 const int KILL = 999;
 const int PING = 555;
 
