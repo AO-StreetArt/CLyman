@@ -107,6 +107,11 @@ Redis Connection
 
 Note, currently only connecting to a single Redis instance is supported.
 
+Kafka Connection
+~~~~~~~~~~~~~~~~
+
+- KafkaBrokerAddress - The address and port of the Kafka Broker to send Object Updates to
+
 Behavior
 ~~~~~~~~~
 

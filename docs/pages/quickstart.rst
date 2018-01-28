@@ -122,9 +122,7 @@ successfully compile the program.
 
 ``cd clyman_deps``
 
-``./build_deps.sh``
-
-You will be asked once for your sudo password.
+``sudo ./build_deps.sh``
 
 ``cd ../CLyman``
 

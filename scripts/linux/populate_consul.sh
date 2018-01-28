@@ -4,6 +4,8 @@
 
 curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/DB_ConnectionString
 
+curl -X PUT -d 'localhost:9092' http://localhost:8500/v1/kv/clyman/KafkaBrokerAddress
+
 curl -X PUT -d '127.0.0.1--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
 
 curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId

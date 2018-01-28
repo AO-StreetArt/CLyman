@@ -28,14 +28,17 @@ install:
 - docker run -d --network=dvs --name=document-db mongo
 - docker pull redis
 - docker run --network=dvs --name=cache -d redis
+- docker run -i -t -d -p 2181:2181 -p 9092:9092 --env ADVERTISED_PORT=9092 --env ADVERTISED_HOST=queue --name=queue --network=dvs spotify/kafka
 - docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
 - docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString
+- docker exec -t registry curl -X PUT -d 'queue:9092' http://localhost:8500/v1/kv/clyman/KafkaBrokerAddress
 - docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
 - docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
 - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
 - docker exec -t registry curl -X PUT -d 'False' http://localhost:8500/v1/kv/clyman/AtomicTransactions
 - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/ObjectLockingActive
 - docker exec -t registry curl -X PUT -d 'JSON' http://localhost:8500/v1/kv/clyman/DataFormatType
+- cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_test_consumer.sh
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH
   $TRAVIS_BUILD_DIR
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500
@@ -55,6 +58,8 @@ script:
   0 3
 - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_upd.csv
   0 3
+- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_overwrite.csv
+  0 3
 - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_delete.csv
   0 3
 - cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_lock.csv
@@ -68,6 +73,9 @@ script:
 - docker logs --tail 75 clyman
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
 - tail $TRAVIS_BUILD_DIR/obj_upd.log
+- docker logs --tail 75 clyman
+- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_overwrite.xml
+- tail $TRAVIS_BUILD_DIR/obj_overwrite.log
 - docker logs --tail 75 clyman
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query.xml
 - tail $TRAVIS_BUILD_DIR/obj_name_query.log
@@ -105,6 +113,7 @@ script:
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt_bad.xml
 - tail $TRAVIS_BUILD_DIR/obj_crt.log
 - docker logs --tail 60 clyman
+- docker logs --tail 150 test_consumer
 after_success:
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN
   $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR

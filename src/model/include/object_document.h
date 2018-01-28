@@ -46,6 +46,9 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   // String Return Value
   const char* json_cstr_val = NULL;
   std::string json_str_val;
+  // String Return Value
+  const char* transform_cstr_val = NULL;
+  std::string transform_str_val;
 
  public:
   // Constructors
@@ -67,11 +70,16 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   void set_type(std::string new_type) {type.assign(new_type);}
   void set_subtype(std::string new_subtype) {subtype.assign(new_subtype);}
   void set_owner(std::string new_owner) {owner.assign(new_owner);}
+  void write_string_attributes(ObjectInterface *target);
   // Take a target object and apply it's fields as changes to this Object
   void merge(ObjectInterface *target);
+  // Take a target object and overwrite this object's fields with it
+  void overwrite(ObjectInterface *target);
   // to_json method to build an object to save to Mongo
   std::string to_json(bool is_query);
   std::string to_json();
+  // to_transform_message to build a JSON to send via UDP
+  std::string to_transform_json();
   // Inherited Methods
   // Transform methods
   void transform(Transformation *t) {Object3d::transform(t);}

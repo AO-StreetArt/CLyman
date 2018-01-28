@@ -57,6 +57,11 @@ bool ConfigurationManager::configure_from_file(std::string file_path) {
     config_logging->info("Mongo DB Collection:");
     config_logging->info(Mongo_DbCollection);
   } else {throw ConfigurationException("No Mongo DB Collection Specified");}
+  if (props->opt_exist("KafkaBrokerAddress")) {
+    KafkaBrokerList = props->get_opt("KafkaBrokerAddress");
+    config_logging->info("Kafka Address:");
+    config_logging->info(KafkaBrokerList);
+  } else {throw ConfigurationException("No Kafka Address Specified");}
   if (props->opt_exist("0MQ_InboundConnectionString")) {
     OMQ_IBConnStr = props->get_opt("0MQ_InboundConnectionString");
     config_logging->info("Inbound 0MQ Connection:");
@@ -297,6 +302,11 @@ bool ConfigurationManager::configure_from_consul(std::string consul_path, \
   config_logging->debug("Mongo DB Collection:");
   config_logging->debug(Mongo_DbCollection);
   if (Mongo_DbCollection == "__NULLSTR__") return false;
+
+  KafkaBrokerList = get_consul_config_value("KafkaBrokerAddress");
+  config_logging->debug("Kafka Broker Address:");
+  config_logging->debug(KafkaBrokerList);
+  if (KafkaBrokerList == "__NULLSTR__") return false;
 
   std::string tran_ids_active = get_consul_config_value("StampTransactionId");
   config_logging->debug("Transaction IDs Enabled:");
