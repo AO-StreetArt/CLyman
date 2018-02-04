@@ -35,7 +35,7 @@ if [ ! -d /usr/local/include/aossl ]; then
 fi
 
 #Install glm, protocol buffers, boost
-sudo yum install -y libglm-devel protobuf-devel protobuf-compiler boost-devel
+sudo yum install -y glm-devel protobuf-devel protobuf-compiler boost-devel
 
 # Here we look to install RapidJSON
 
