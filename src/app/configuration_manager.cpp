@@ -460,7 +460,7 @@ bool ConfigurationManager::configure() {
       env_consul_addr_str.assign(cli->get_opt("-consul-addr"));
     }
     if (cli->opt_exist("-advertised-host")) {
-      advertised_host = cli->get_opt("-advertised-host");
+      advertised_host.assign(cli->get_opt("-advertised-host"));
     }
 
     // If we had a hostname and port specified in the configuration file,
