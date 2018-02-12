@@ -239,7 +239,7 @@ std::string ConfigurationManager::get_consul_config_value(std::string key) {
 
 // Configure based on the Services List and Key/Value store from Consul
 bool ConfigurationManager::configure_from_consul(std::string consul_path, \
-  std::string ip, std::string port) {
+  std::string ip, std::string port, std::string advertised_host) {
   std::string internal_address;
 
   // Step 1a: Generate new connectivity information for the inbound service
@@ -252,12 +252,12 @@ bool ConfigurationManager::configure_from_consul(std::string consul_path, \
 
   OMQ_IBConnStr = "tcp://" + internal_address + ":" + port;
 
-  return configure_from_consul(consul_path, OMQ_IBConnStr, internal_address, port);
+  return configure_from_consul(consul_path, OMQ_IBConnStr, internal_address, port, advertised_host);
 }
 
 // Configure based on the Services List and Key/Value store from Consul
 bool ConfigurationManager::configure_from_consul(std::string consul_path, \
-  std::string conn_str, std::string addr, std::string port_str) {
+  std::string conn_str, std::string addr, std::string port_str, std::string advertised_host) {
   ca = consul_factory->get_consul_interface(consul_path);
   config_logging->info("Connecting to Consul");
   config_logging->info(consul_path);
@@ -267,6 +267,7 @@ bool ConfigurationManager::configure_from_consul(std::string consul_path, \
   // Step 1b: Register the Service with Consul
   // Build a new service definition for this currently running instance
   std::string name = "Clyman";
+  if (!(advertised_host.empty())) {addr = advertised_host;}
   s = consul_factory->get_service_interface(node_id, name, addr, port_str);
   s->add_tag("ZMQ");
 
@@ -446,6 +447,7 @@ bool ConfigurationManager::configure() {
     std::string env_ip_str = "";
     std::string env_port_str = "";
     std::string env_consul_addr_str = "";
+    std::string advertised_host = "";
 
     // Pull any command line and environment variables for ip, port,
     // and consul address
@@ -457,6 +459,9 @@ bool ConfigurationManager::configure() {
     if (cli->opt_exist("-consul-addr")) {
       env_consul_addr_str.assign(cli->get_opt("-consul-addr"));
     }
+    if (cli->opt_exist("-advertised-host")) {
+      advertised_host.assign(cli->get_opt("-advertised-host"));
+    }
 
     // If we had a hostname and port specified in the configuration file,
     // then we override to that
@@ -466,8 +471,8 @@ bool ConfigurationManager::configure() {
     // Execute Consul Configuration
     if (!(env_consul_addr_str.empty() || env_ip_str.empty() \
       || env_port_str.empty()))  {
-      ret_val = \
-        configure_from_consul(env_consul_addr_str, env_ip_str, env_port_str);
+      ret_val = configure_from_consul(env_consul_addr_str, env_ip_str, \
+        env_port_str, advertised_host);
       if (ret_val) {
         isConsulActive = true;
         configured = true;

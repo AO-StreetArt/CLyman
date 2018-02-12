@@ -126,9 +126,9 @@ class ConfigurationManager {
   std::string get_consul_config_value(std::string key);
   // Configure based on the Services List and Key/Value store from Consul
   bool configure_from_consul(std::string consul_path, std::string conn_str, \
-    std::string addr, std::string port_str);
+    std::string addr, std::string port_str, std::string advertised_host);
   bool configure_from_consul(std::string consul_path, \
-    std::string ip, std::string port);
+    std::string ip, std::string port, std::string advertised_host);
 
  public:
   // Constructor
