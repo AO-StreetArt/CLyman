@@ -233,6 +233,130 @@ std::string ObjectDocument::to_json(bool is_query) {
   return json_str_val;
 }
 
+// to_bson_update which outputs fields as update operators
+// this method should get used for OVERWRITE type messages
+void ObjectDocument::to_bson_update(AOSSL::MongoBufferInterface *bson) {
+  to_bson_update(false, bson);
+}
+
+// to_bson_update which outputs fields as update operators
+// this method should get used for OVERWRITE type messages
+void ObjectDocument::to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson) {
+  std::string update_opt_key = "$set";
+  if (!(name.empty())) {
+    std::string key = "name";
+    bson->start_object(update_opt_key);
+    bson->add_string(key, name);
+    bson->end_object();
+  }
+
+  if (!(RelatedObject::get_scene().empty())) {
+    std::string key = "scene";
+    bson->start_object(update_opt_key);
+    bson->add_string(key, RelatedObject::get_scene());
+    bson->end_object();
+  }
+
+  if (!(type.empty())) {
+    std::string key = "type";
+    bson->start_object(update_opt_key);
+    bson->add_string(key, type);
+    bson->end_object();
+  }
+
+  if (!(subtype.empty())) {
+    std::string key = "subtype";
+    bson->start_object(update_opt_key);
+    bson->add_string(key, subtype);
+    bson->end_object();
+  }
+
+  if (!(owner.empty())) {
+    std::string key = "owner";
+    bson->start_object(update_opt_key);
+    bson->add_string(key, owner);
+    bson->end_object();
+  }
+
+  // Write Transform
+  if (Object3d::has_transform() && (!is_query)) {
+    bson->start_object(update_opt_key);
+    std::string key = "transform";
+    bson->start_array(key);
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        bson->add_double(Object3d::get_transform()->get_transform_element(i, j));
+      }
+    }
+    bson->end_array();
+    bson->end_object();
+  }
+
+  if ((is_query && num_assets() > 0) || (!is_query)) {
+    bson->start_object(update_opt_key);
+    std::string key = "assets";
+    bson->start_array(key);
+    for (int i = 0; i < RelatedObject::num_assets(); i++) {
+      bson->add_string(RelatedObject::get_asset(i));
+    }
+    bson->end_array();
+    bson->end_object();
+  }
+}
+
+// to_bson method to build an object to save to Mongo
+void ObjectDocument::to_bson(bool is_query, AOSSL::MongoBufferInterface *bson) {
+  if (!(name.empty())) {
+    std::string key = "name";
+    bson->add_string(key, name);
+  }
+
+  if (!(RelatedObject::get_scene().empty())) {
+    std::string key = "scene";
+    bson->add_string(key, RelatedObject::get_scene());
+  }
+
+  if (!(type.empty())) {
+    std::string key = "type";
+    bson->add_string(key, type);
+  }
+
+  if (!(subtype.empty())) {
+    std::string key = "subtype";
+    bson->add_string(key, subtype);
+  }
+
+  if (!(owner.empty())) {
+    std::string key = "owner";
+    bson->add_string(key, owner);
+  }
+
+  // Write Transform
+  if (Object3d::has_transform() && (!is_query)) {
+    std::string key = "transform";
+    bson->start_array(key);
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        bson->add_double(Object3d::get_transform()->get_transform_element(i, j));
+      }
+    }
+    bson->end_array();
+  }
+
+  if ((is_query && num_assets() > 0) || (!is_query)) {
+    std::string key = "assets";
+    bson->start_array(key);
+    for (int i = 0; i < RelatedObject::num_assets(); i++) {
+      bson->add_string(RelatedObject::get_asset(i));
+    }
+    bson->end_array();
+  }
+}
+
+void ObjectDocument::to_bson(AOSSL::MongoBufferInterface *bson) {
+  return to_bson(false, bson);
+}
+
 std::string ObjectDocument::to_transform_json() {
   // Initialize the string buffer and writer
   rapidjson::StringBuffer s;

@@ -141,6 +141,15 @@ int main(int argc, char** argv) {
   assert(test_object.get_transform()->get_transform_element(2, 3) + 2.0f \
     < TOLERANCE);
 
+  // BSON Tests
+  AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
+  inbound_message->get_object(i)->to_bson_update(bson);
+
+  // Can't really do any other tests until we expose some get methods
+  // on the MongoBufferInterface
+
+  delete bson;
+
   // JSON Tests
   main_logging->debug("JSON Tests");
 

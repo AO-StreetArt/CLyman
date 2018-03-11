@@ -28,6 +28,8 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/error/en.h"
 
+#include "aossl/mongo/include/mongo_buffer_interface.h"
+
 #ifndef SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
 #define SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
 
@@ -78,6 +80,13 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   // to_json method to build an object to save to Mongo
   std::string to_json(bool is_query);
   std::string to_json();
+  // to_bson method to build an object to save to Mongo
+  void to_bson(bool is_query, AOSSL::MongoBufferInterface *bson);
+  void to_bson(AOSSL::MongoBufferInterface *bson);
+  // to_bson_update which outputs fields as update operators
+  // this method should get used for OVERWRITE type messages
+  void to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson);
+  void to_bson_update(AOSSL::MongoBufferInterface *bson);
   // to_transform_message to build a JSON to send via UDP
   std::string to_transform_json();
   // Inherited Methods
