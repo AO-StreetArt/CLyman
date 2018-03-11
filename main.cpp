@@ -384,12 +384,7 @@ int main(int argc, char** argv) {
                     resp_doc.Parse(mongo_resp_str.c_str());
                     ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
                     // Apply the object message as changes to the DB Object
-                    if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
-                      resp_obj->overwrite(inbound_message->get_object(i));
-                    } else {
-                      // overwrite the changes on the DB object
-                      resp_obj->merge(inbound_message->get_object(i));
-                    }
+                    resp_obj->merge(inbound_message->get_object(i));
                     // Save the resulting object
                     AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
                     resp_obj->to_bson_update(bson);
