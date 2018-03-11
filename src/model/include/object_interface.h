@@ -20,6 +20,7 @@ limitations under the License.
 #include <exception>
 #include "object_related.h"
 #include "app_log.h"
+#include "aossl/mongo/include/mongo_buffer_interface.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
 #define SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
@@ -72,6 +73,13 @@ class ObjectInterface {
   virtual void merge(ObjectInterface *target) = 0;
   // Take a target object and overwrite this object's fields with it
   virtual void overwrite(ObjectInterface *target) = 0;
+  // to_bson method to build an object to save to Mongo
+  virtual void to_bson(bool is_query, AOSSL::MongoBufferInterface *bson) = 0;
+  virtual void to_bson(AOSSL::MongoBufferInterface *bson) = 0;
+  // to_bson_update which outputs fields as update operators
+  // this method should get used for OVERWRITE type messages
+  virtual void to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson) = 0;
+  virtual void to_bson_update(AOSSL::MongoBufferInterface *bson) = 0;
   // to_json method to build an object to save to Mongo
   virtual std::string to_json() = 0;
   virtual std::string to_json(bool is_query) = 0;

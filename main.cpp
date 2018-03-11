@@ -36,6 +36,8 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/error/en.h"
 
+#include "aossl/mongo/include/mongo_buffer_interface.h"
+
 #include "aossl/commandline/include/commandline_interface.h"
 #include "aossl/commandline/include/factory_cli.h"
 
@@ -325,8 +327,10 @@ int main(int argc, char** argv) {
               ObjectInterface *resp_element = objfactory.build_object();
 
               // Create the Obj3 document for Mongo
-              MongoResponseInterface *resp = mongo->create_document(\
-                inbound_message->get_object(i)->to_json());
+              AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
+              inbound_message->get_object(i)->to_bson(bson);
+              MongoResponseInterface *resp = mongo->create_document(bson);
+              delete bson;
 
               // Add the key into the new obj3
               resp_element->set_key(resp->get_value());
@@ -357,37 +361,49 @@ int main(int argc, char** argv) {
                   inbound_message->get_object(i)->get_owner());
               }
               if (lock_obtained) {
-                if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
-                  // Send an update on the Kafka 'dvs' topic
-                  kafka->send(inbound_message->get_object(i)->to_transform_json(), config->get_kafkabroker());
+                if (inbound_message->get_msg_type() == OBJ_OVERWRITE || \
+                  inbound_message->get_msg_type() == OBJ_UPD) {
+                    // Send an update on the Kafka 'dvs' topic
+                    kafka->send(inbound_message->get_object(i)->to_transform_json(), config->get_kafkabroker());
                 }
-                // Load the current doc from the database
-                rapidjson::Document resp_doc;
-                MongoResponseInterface *resp = mongo->load_document(\
-                  inbound_message->get_object(i)->get_key());
-                if (resp) {
-                  std::string mongo_resp_str = resp->get_value();
-                  main_logging->debug("Document loaded from Mongo");
-                  main_logging->debug(mongo_resp_str);
-                  resp_doc.Parse(mongo_resp_str.c_str());
-                  ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
-                  // Apply the object message as changes to the DB Object
-                  if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
-                    resp_obj->overwrite(inbound_message->get_object(i));
-                  } else {
-                    // overwrite the changes on the DB object
-                    resp_obj->merge(inbound_message->get_object(i));
-                  }
-                  // Save the resulting object
-                  mongo->save_document(resp_obj->to_json(), \
-                    resp_obj->get_key());
-                  response_message->add_object(resp_obj);
-                  delete resp;
+                if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
+                  AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
+                  inbound_message->get_object(i)->to_bson_update(bson);
+                  const char *msg_key = inbound_message->get_object(i)->get_key().c_str();
+                  mongo->save_document(bson, msg_key);
+                  delete bson;
                 } else {
-                  main_logging->error("Document not found in Mongo");
-                  response_message->set_error_code(NOT_FOUND);
-                  new_error_message = "Object not Found";
-                  response_message->set_error_message(new_error_message);
+                  // Load the current doc from the database
+                  rapidjson::Document resp_doc;
+                  MongoResponseInterface *resp = mongo->load_document(\
+                    inbound_message->get_object(i)->get_key());
+                  if (resp) {
+                    std::string mongo_resp_str = resp->get_value();
+                    main_logging->debug("Document loaded from Mongo");
+                    main_logging->debug(mongo_resp_str);
+                    resp_doc.Parse(mongo_resp_str.c_str());
+                    ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
+                    // Apply the object message as changes to the DB Object
+                    if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
+                      resp_obj->overwrite(inbound_message->get_object(i));
+                    } else {
+                      // overwrite the changes on the DB object
+                      resp_obj->merge(inbound_message->get_object(i));
+                    }
+                    // Save the resulting object
+                    AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
+                    resp_obj->to_bson_update(bson);
+                    const char *msg_key = resp_obj->get_key().c_str();
+                    mongo->save_document(bson, msg_key);
+                    response_message->add_object(resp_obj);
+                    delete bson;
+                    delete resp;
+                  } else {
+                    main_logging->error("Document not found in Mongo");
+                    response_message->set_error_code(NOT_FOUND);
+                    new_error_message = "Object not Found";
+                    response_message->set_error_message(new_error_message);
+                  }
                 }
                 // Enforce atomic updates -- release redis lock
                 if (config->get_atomictransactions()) {

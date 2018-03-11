@@ -22,6 +22,9 @@ limitations under the License.
 
 #include "aossl/logging/include/logging_interface.h"
 #include "aossl/logging/include/factory_logging.h"
+#include "aossl/mongo/include/mongo_interface.h"
+#include "aossl/mongo/include/factory_mongo.h"
+#include "aossl/mongo/include/mongo_buffer_interface.h"
 
 #include "transforms.h"
 #include "object_document.h"
@@ -140,6 +143,17 @@ int main(int argc, char** argv) {
     < TOLERANCE);
   assert(test_object.get_transform()->get_transform_element(2, 3) + 2.0f \
     < TOLERANCE);
+
+  // BSON Tests
+  MongoComponentFactory *mongo_factory = new MongoComponentFactory;
+  AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
+  test_object.to_bson_update(bson);
+
+  // Can't really do any other tests until we expose some get methods
+  // on the MongoBufferInterface
+
+  delete bson;
+  delete mongo_factory;
 
   // JSON Tests
   main_logging->debug("JSON Tests");
