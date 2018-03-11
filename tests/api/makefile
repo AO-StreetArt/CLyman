@@ -5,7 +5,7 @@ CC = g++
 CFLAGS  = -g -Wall
 STD = -std=c++11
 TESTS = object_list_test.o
-INCL_DIRS = -I$(CURDIR)/../../src/app/include -I$(CURDIR)/../../src/api/include -I$(CURDIR)/../../src/model/include
+INCL_DIRS = -I/usr/include/libbson-1.0 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0 -I$(CURDIR)/../../src/app/include -I$(CURDIR)/../../src/api/include -I$(CURDIR)/../../src/model/include
 
 default: $(TESTS)
 
