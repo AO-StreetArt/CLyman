@@ -244,44 +244,34 @@ void ObjectDocument::to_bson_update(AOSSL::MongoBufferInterface *bson) {
 void ObjectDocument::to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson) {
   obj_logging->debug("Converting Obj3 to BSON update operator document");
   std::string update_opt_key = "$set";
+  bson->start_object(update_opt_key);
   if (!(name.empty())) {
     std::string key = "name";
-    bson->start_object(update_opt_key);
     bson->add_string(key, name);
-    bson->end_object();
   }
 
   if (!(RelatedObject::get_scene().empty())) {
     std::string key = "scene";
-    bson->start_object(update_opt_key);
     bson->add_string(key, RelatedObject::get_scene());
-    bson->end_object();
   }
 
   if (!(type.empty())) {
     std::string key = "type";
-    bson->start_object(update_opt_key);
     bson->add_string(key, type);
-    bson->end_object();
   }
 
   if (!(subtype.empty())) {
     std::string key = "subtype";
-    bson->start_object(update_opt_key);
     bson->add_string(key, subtype);
-    bson->end_object();
   }
 
   if (!(owner.empty())) {
     std::string key = "owner";
-    bson->start_object(update_opt_key);
     bson->add_string(key, owner);
-    bson->end_object();
   }
 
   // Write Transform
   if (Object3d::has_transform() && (!is_query)) {
-    bson->start_object(update_opt_key);
     std::string key = "transform";
     bson->start_array(key);
     for (int i = 0; i < 4; i++) {
@@ -290,19 +280,17 @@ void ObjectDocument::to_bson_update(bool is_query, AOSSL::MongoBufferInterface *
       }
     }
     bson->end_array();
-    bson->end_object();
   }
 
   if ((is_query && num_assets() > 0) || (!is_query)) {
-    bson->start_object(update_opt_key);
     std::string key = "assets";
     bson->start_array(key);
     for (int i = 0; i < RelatedObject::num_assets(); i++) {
       bson->add_string(RelatedObject::get_asset(i));
     }
     bson->end_array();
-    bson->end_object();
   }
+  bson->end_object();
 }
 
 // to_bson method to build an object to save to Mongo

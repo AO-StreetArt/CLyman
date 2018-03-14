@@ -199,6 +199,7 @@ def execute_main(zmq_addr="tcp://localhost:5556"):
     socket.send_string(get_message + "\n")
     get_response = socket.recv_string()
     logging.debug("Get Response: %s" % get_response)
+    updated_test_data['assets'].insert(0, test_data['assets'][0])
     validate_get_response(get_response, updated_test_data, updated_test_transform)
 
 if __name__ == "__main__":
