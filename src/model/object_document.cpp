@@ -242,6 +242,7 @@ void ObjectDocument::to_bson_update(AOSSL::MongoBufferInterface *bson) {
 // to_bson_update which outputs fields as update operators
 // this method should get used for OVERWRITE type messages
 void ObjectDocument::to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson) {
+  obj_logging->debug("Converting Obj3 to BSON update operator document");
   std::string update_opt_key = "$set";
   if (!(name.empty())) {
     std::string key = "name";
@@ -306,6 +307,7 @@ void ObjectDocument::to_bson_update(bool is_query, AOSSL::MongoBufferInterface *
 
 // to_bson method to build an object to save to Mongo
 void ObjectDocument::to_bson(bool is_query, AOSSL::MongoBufferInterface *bson) {
+  obj_logging->debug("Converting Obj3 to BSON document");
   if (!(name.empty())) {
     std::string key = "name";
     bson->add_string(key, name);

@@ -52,7 +52,7 @@ before_script:
 - docker logs registry
 script:
 - cd $TRAVIS_BUILD_DIR && python ci/py/basicClymanFlow.py
-- cat ci/py.basicClymanFlow.log
+- cat ci/py/basicClymanFlow.log
 - cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
 - tail $TRAVIS_BUILD_DIR/obj_crt.log
 - docker logs --tail 75 clyman

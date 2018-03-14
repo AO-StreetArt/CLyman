@@ -388,6 +388,8 @@ int main(int argc, char** argv) {
                     // Save the resulting object
                     AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
                     resp_obj->to_bson_update(bson);
+                    main_logging->debug("Saving BSON Object");
+                    main_logging->debug(bson->to_json());
                     const char *msg_key = resp_obj->get_key().c_str();
                     mongo->save_document(bson, msg_key);
                     response_message->add_object(resp_obj);

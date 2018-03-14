@@ -98,6 +98,7 @@ def validate_create_response(create_response):
         for i in range(0,16):
             assert(parsed_json["objects"][0]["transform"][i] - test_transform[i] < 0.01)
         test_data["key"] = parsed_json["objects"][0]["key"]
+        logging.info("Key set: %s" % test_data["key"])
 
 def validate_get_response(get_response, validation_data, validation_transform):
     logging.debug("Validating Get Response")
@@ -179,6 +180,7 @@ def execute_main(zmq_addr="tcp://localhost:5556"):
     get_message = json.dumps(get_data)
     socket.send_string(get_message + "\n")
     get_response = socket.recv_string()
+    logging.debug("Get Response: %s" % get_response)
     validate_get_response(get_response, test_data, test_transform)
 
     # Follow up with an update message
@@ -196,6 +198,7 @@ def execute_main(zmq_addr="tcp://localhost:5556"):
     # Validate the update by issuing a get request
     socket.send_string(get_message + "\n")
     get_response = socket.recv_string()
+    logging.debug("Get Response: %s" % get_response)
     validate_get_response(get_response, updated_test_data, updated_test_transform)
 
 if __name__ == "__main__":
