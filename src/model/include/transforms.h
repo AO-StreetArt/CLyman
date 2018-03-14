@@ -94,6 +94,7 @@ class EulerRotation: public Transformation {
   inline EulerRotation(float theta, float ix, float iy, float iz) :
     Transformation() {
       set_type(EROTATE);
+      // Rotate theta degrees about the vector <ix, iy, iz>
       set_transform_vector(glm::rotate(glm::mat4(1.0f), \
         theta, glm::vec3(ix, iy, iz)));
     }

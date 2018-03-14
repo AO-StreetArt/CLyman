@@ -366,17 +366,18 @@ int main(int argc, char** argv) {
                     // Send an update on the Kafka 'dvs' topic
                     kafka->send(inbound_message->get_object(i)->to_transform_json(), config->get_kafkabroker());
                 }
+                std::string msg_key = inbound_message->get_object(i)->get_key();
                 if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
+                  main_logging->debug("Overwriting BSON Object");
                   AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
                   inbound_message->get_object(i)->to_bson_update(bson);
-                  const char *msg_key = inbound_message->get_object(i)->get_key().c_str();
+                  main_logging->debug(msg_key);
                   mongo->save_document(bson, msg_key);
                   delete bson;
                 } else {
                   // Load the current doc from the database
                   rapidjson::Document resp_doc;
-                  MongoResponseInterface *resp = mongo->load_document(\
-                    inbound_message->get_object(i)->get_key());
+                  MongoResponseInterface *resp = mongo->load_document(msg_key);
                   if (resp) {
                     std::string mongo_resp_str = resp->get_value();
                     main_logging->debug("Document loaded from Mongo");
@@ -384,16 +385,13 @@ int main(int argc, char** argv) {
                     resp_doc.Parse(mongo_resp_str.c_str());
                     ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
                     // Apply the object message as changes to the DB Object
-                    if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
-                      resp_obj->overwrite(inbound_message->get_object(i));
-                    } else {
-                      // overwrite the changes on the DB object
-                      resp_obj->merge(inbound_message->get_object(i));
-                    }
+                    resp_obj->merge(inbound_message->get_object(i));
                     // Save the resulting object
                     AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
-                    resp_obj->to_bson_update(bson);
-                    const char *msg_key = resp_obj->get_key().c_str();
+                    resp_obj->to_bson(bson);
+                    main_logging->debug("Saving BSON Object");
+                    main_logging->debug(bson->to_json());
+                    main_logging->debug(msg_key);
                     mongo->save_document(bson, msg_key);
                     response_message->add_object(resp_obj);
                     delete bson;
