@@ -120,10 +120,8 @@ def validate_get_response(get_response, validation_data, validation_transform):
             logging.debug("Validating Transform element: %s" % i)
             assert(parsed_data["transform"][i] - validation_transform[i] < 0.01)
 
-def validate_update_response(update_response):
+def validate_update_response(update_response, updated_test_data, updated_test_transform):
     logging.debug("Validating Update Response")
-    global updated_test_data
-    global updated_test_transform
     logging.debug("Validating against: %s : %s" % (updated_test_data, updated_test_transform))
     parsed_json = parse_response(update_response)
 
@@ -139,6 +137,13 @@ def validate_update_response(update_response):
         for i in range(0,16):
             logging.debug("Validating Transform element: %s" % i)
             assert(parsed_data["transform"][i] - updated_test_transform[i] < 0.01)
+
+def validate_delete(delete_response):
+    logging.debug("Validating Delete Response")
+    parsed_json = parse_response(delete_response)
+
+    if parsed_json is not None:
+        assert(parsed_json["err_code"] == 100)
 
 # Execute the actual tests
 def execute_main(zmq_addr="tcp://localhost:5556"):
@@ -163,45 +168,99 @@ def execute_main(zmq_addr="tcp://localhost:5556"):
     # Start with a create message
     logging.info("Create Test")
     create_data = {
-      "msg_type": 0,
-      "objects": [test_data]
+        "msg_type": 0,
+        "objects": [test_data]
     }
     create_message = json.dumps(create_data)
+    logging.debug(create_message)
     socket.send_string(create_message + "\n")
     create_response = socket.recv_string()
+    logging.debug(create_response)
     validate_create_response(create_response)
 
     # Next, perform a get message
     logging.info("Get Test")
     get_data = {
-      "msg_type": 2,
-      "objects": [{"key":test_data["key"]}]
+        "msg_type": 2,
+        "objects": [{"key":test_data["key"]}]
     }
     get_message = json.dumps(get_data)
+    logging.debug(get_message)
     socket.send_string(get_message + "\n")
     get_response = socket.recv_string()
+    logging.debug(get_response)
     logging.debug("Get Response: %s" % get_response)
     validate_get_response(get_response, test_data, test_transform)
+
+    # Execute a lock request
+    test_data["owner"] = updated_test_data["owner"]
+    lock_data = {
+        "msg_type": 5,
+        "objects": [test_data]
+    }
+    lock_message = json.dumps(lock_data)
+    logging.debug(lock_message)
+    socket.send_string(lock_message + "\n")
+    lock_response = socket.recv_string()
+    logging.debug(lock_response)
+    validate_update_response(lock_response,
+                             test_data,
+                             test_transform)
 
     # Follow up with an update message
     updated_test_data["key"] = test_data["key"]
     logging.info("Update Test")
     update_data = {
-      "msg_type": 1,
-      "objects": [updated_test_data]
+        "msg_type": 1,
+        "objects": [updated_test_data]
     }
     update_message = json.dumps(update_data)
+    logging.debug(update_message)
     socket.send_string(update_message + "\n")
     update_response = socket.recv_string()
-    validate_update_response(update_response)
+    logging.debug(update_response)
+    validate_update_response(update_response,
+                             updated_test_data,
+                             updated_test_transform)
 
     # Validate the update by issuing a get request
+    logging.debug(get_message)
     socket.send_string(get_message + "\n")
     get_response = socket.recv_string()
+    logging.debug(get_response)
     logging.debug("Get Response: %s" % get_response)
     # Update the test data since the asset elements are appended
     updated_test_data['assets'].insert(0, test_data['assets'][0])
-    validate_get_response(get_response, updated_test_data, updated_test_transform)
+    validate_get_response(get_response,
+                          updated_test_data,
+                          updated_test_transform)
+
+    # Issue an unlock request
+    unlock_data = {
+        "msg_type": 6,
+        "objects": [{"key":test_data["key"]}]
+    }
+    unlock_message = json.dumps(unlock_data)
+    logging.debug(unlock_message)
+    socket.send_string(unlock_message + "\n")
+    unlock_response = socket.recv_string()
+    logging.debug(unlock_response)
+    validate_get_response(unlock_response,
+                          updated_test_data,
+                          updated_test_transform)
+
+    # Issue an unlock request
+    delete_data = {
+        "msg_type": 3,
+        "objects": [{"key":test_data["key"]}]
+    }
+    delete_message = json.dumps(delete_data)
+    logging.debug(delete_message)
+    socket.send_string(delete_message + "\n")
+    delete_response = socket.recv_string()
+    logging.debug(delete_response)
+    validate_delete(delete_response)
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
