@@ -368,11 +368,31 @@ int main(int argc, char** argv) {
                 }
                 std::string msg_key = inbound_message->get_object(i)->get_key();
                 if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
+                  // Build the BSON Update
                   main_logging->debug("Overwriting BSON Object");
                   AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
                   inbound_message->get_object(i)->to_bson_update(bson);
-                  main_logging->debug(msg_key);
-                  mongo->save_document(bson, msg_key);
+                  // If no key is present but we have both a name and
+                  // scene present, then use the update_by_query API
+                  if (msg_key.empty() && \
+                    !(inbound_message->get_object(i)->get_name().empty() && \
+                      inbound_message->get_object(i)->get_scene().empty())) {
+                    main_logging->debug("Updating object by name and scene");
+                    main_logging->debug(inbound_message->get_object(i)->get_name());
+                    main_logging->debug(inbound_message->get_object(i)->get_scene());
+                    // Build a query bson to pass to the update_by_query
+                    AOSSL::MongoBufferInterface *query_bson = mongo_factory->get_mongo_buffer();
+                    std::string name_key = "name";
+                    std::string scene_key = "scene";
+                    query_bson->add_string(name_key, inbound_message->get_object(i)->get_name());
+                    query_bson->add_string(scene_key, inbound_message->get_object(i)->get_scene());
+                    mongo->update_by_query(query_bson, bson);
+                    delete query_bson;
+                  // If we do have a key, then use that to make the update
+                  } else {
+                    main_logging->debug(msg_key);
+                    mongo->save_document(bson, msg_key);
+                  }
                   delete bson;
                 } else {
                   // Load the current doc from the database

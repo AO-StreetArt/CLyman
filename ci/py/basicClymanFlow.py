@@ -6,6 +6,7 @@ import zmq
 import logging
 import sys
 import json
+import copy
 
 # Basic Config
 log_file = 'basicClymanFlow.log'
@@ -83,10 +84,8 @@ def parse_response(response):
             logging.error(get_exception())
     return parsed_json
 
-def validate_create_response(create_response):
+def validate_create_response(create_response, test_data, test_transform):
     logging.debug("Validating Create Response")
-    global test_data
-    global test_transform
     logging.debug("Validating against: %s : %s" % (test_data, test_transform))
     parsed_json = parse_response(create_response)
 
@@ -138,6 +137,13 @@ def validate_update_response(update_response, updated_test_data, updated_test_tr
             logging.debug("Validating Transform element: %s" % i)
             assert(parsed_data["transform"][i] - updated_test_transform[i] < 0.01)
 
+def validate_overwrite_response(update_response):
+    logging.debug("Validating Overwrite Response")
+    parsed_json = parse_response(update_response)
+
+    if parsed_json is not None:
+        assert(parsed_json["err_code"] == 100)
+
 def validate_delete(delete_response):
     logging.debug("Validating Delete Response")
     parsed_json = parse_response(delete_response)
@@ -145,27 +151,8 @@ def validate_delete(delete_response):
     if parsed_json is not None:
         assert(parsed_json["err_code"] == 100)
 
-# Execute the actual tests
-def execute_main(zmq_addr="tcp://localhost:5556"):
-    # Grab the global pieces of data
-    global test_data
-    global test_transform
-    global updated_test_data
-    global updated_test_transform
-    global log_file
-    global log_level
-
-    logging.basicConfig(filename=log_file, level=log_level)
-
-    # Connect to ZeroMQ
-    context = zmq.Context()
-    context.setsockopt(zmq.RCVTIMEO, 10000)
-    context.setsockopt(zmq.LINGER, 0)
-    socket = context.socket(zmq.REQ)
-    socket.connect(zmq_addr)
-    logging.debug("Connected to ZMQ Socket")
-
-    # Start with a create message
+# Tests
+def create_test(socket, test_data, test_transform):
     logging.info("Create Test")
     create_data = {
         "msg_type": 0,
@@ -176,7 +163,13 @@ def execute_main(zmq_addr="tcp://localhost:5556"):
     socket.send_string(create_message + "\n")
     create_response = socket.recv_string()
     logging.debug(create_response)
-    validate_create_response(create_response)
+    validate_create_response(create_response, test_data, test_transform)
+
+# Lock Flow
+def execute_lock_flow(socket, test_data, test_transform,
+                      updated_test_data, updated_test_transform):
+    # Start with a create message
+    create_test(socket, test_data, test_transform)
 
     # Next, perform a get message
     logging.info("Get Test")
@@ -260,6 +253,76 @@ def execute_main(zmq_addr="tcp://localhost:5556"):
     delete_response = socket.recv_string()
     logging.debug(delete_response)
     validate_delete(delete_response)
+
+# Stream Flow
+def execute_stream_flow(socket, test_data, test_transform,
+                        updated_test_data, updated_test_transform):
+    # Start with a create message
+    create_test(socket, test_data, test_transform)
+
+    # Follow up with an update message
+    updated_test_data['name'] = test_data['name']
+    updated_test_data['scene'] = test_data['scene']
+    logging.info("Update Test")
+    update_data = {
+        "msg_type": 7,
+        "objects": [updated_test_data]
+    }
+    update_message = json.dumps(update_data)
+    logging.debug(update_message)
+    socket.send_string(update_message + "\n")
+    update_response = socket.recv_string()
+    logging.debug(update_response)
+    validate_overwrite_response(update_response)
+
+    # Validate the update by issuing a get request
+    get_data = {
+        "msg_type": 2,
+        "objects": [{"key":test_data["key"]}]
+    }
+    get_message = json.dumps(get_data)
+    logging.debug(get_message)
+    socket.send_string(get_message + "\n")
+    get_response = socket.recv_string()
+    logging.debug(get_response)
+    logging.debug("Get Response: %s" % get_response)
+    updated_test_data['key'] = test_data['key']
+    validate_get_response(get_response,
+                          updated_test_data,
+                          updated_test_transform)
+
+# Execute the actual tests
+def execute_main(zmq_addr="tcp://localhost:5556"):
+    # Grab the global pieces of data
+    global test_data
+    global test_transform
+    global updated_test_data
+    global updated_test_transform
+    global log_file
+    global log_level
+
+    logging.basicConfig(filename=log_file, level=log_level)
+
+    # Connect to ZeroMQ
+    context = zmq.Context()
+    context.setsockopt(zmq.RCVTIMEO, 10000)
+    context.setsockopt(zmq.LINGER, 0)
+    socket = context.socket(zmq.REQ)
+    socket.connect(zmq_addr)
+    logging.debug("Connected to ZMQ Socket")
+
+    # Execute each test with a deep copy of the data, so that it stays
+    # independent through each test
+    execute_lock_flow(socket,
+                      copy.deepcopy(test_data),
+                      copy.deepcopy(test_transform),
+                      copy.deepcopy(updated_test_data),
+                      copy.deepcopy(updated_test_transform))
+    execute_stream_flow(socket,
+                      copy.deepcopy(test_data),
+                      copy.deepcopy(test_transform),
+                      copy.deepcopy(updated_test_data),
+                      copy.deepcopy(updated_test_transform))
 
 
 if __name__ == "__main__":
