@@ -144,7 +144,7 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             if (translation_iter != itr.MemberEnd()) {
               obj_logging->debug("Translation pulled");
               const rapidjson::Value& translation_val = translation_iter->value;
-              if (!(translation_val.IsNull())) {
+              if (!(translation_val.IsNull() || translation_val.Size() == 0)) {
                 int i = 0;
                 double x = 0.0;
                 double y = 0.0;
@@ -168,7 +168,7 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             if (erot_iter != itr.MemberEnd()) {
               obj_logging->debug("Euler Rotation pulled");
               const rapidjson::Value& erot_val = erot_iter->value;
-              if (!(erot_val.IsNull())) {
+              if (!(erot_val.IsNull() || erot_val.Size() == 0)) {
                 int i = 0;
                 double theta = 0.0;
                 double x = 0.0;
@@ -195,7 +195,7 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             if (scale_iter != itr.MemberEnd()) {
               obj_logging->debug("Scale pulled");
               const rapidjson::Value& scale_val = scale_iter->value;
-              if (!(scale_val.IsNull())) {
+              if (!(scale_val.IsNull() || scale_val.Size() == 0)) {
                 int i = 0;
                 double x = 0.0;
                 double y = 0.0;
