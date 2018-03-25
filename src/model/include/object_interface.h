@@ -78,6 +78,7 @@ class ObjectInterface {
   virtual void to_bson(AOSSL::MongoBufferInterface *bson) = 0;
   // to_bson_update which outputs fields as update operators
   // this method should get used for OVERWRITE type messages
+  virtual void to_bson_update(bool is_append_operation, bool is_query, AOSSL::MongoBufferInterface *bson) = 0;
   virtual void to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson) = 0;
   virtual void to_bson_update(AOSSL::MongoBufferInterface *bson) = 0;
   // to_json method to build an object to save to Mongo

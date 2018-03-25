@@ -36,6 +36,7 @@ limitations under the License.
 // and writing the responses to go back to those external clients.
 class ObjectList : public ObjectListInterface {
   int msg_type;
+  int op_type;
   int err_code;
   std::string err_msg;
   std::string transaction_id;
@@ -54,6 +55,7 @@ class ObjectList : public ObjectListInterface {
     err_msg = "";
     transaction_id = "";
     num_records = 0;
+    op_type = 10;
   }
   // Destructor
   virtual inline ~ObjectList() {
@@ -69,6 +71,7 @@ class ObjectList : public ObjectListInterface {
     err_msg = olist.get_error_message();
     transaction_id = olist.get_transaction_id();
     num_records = olist.get_num_records();
+    op_type = olist.get_op_type();
     for (int i = 0; i < olist.num_objects(); i++) {
       // Invoke the ObjectDocument Copy Constructor
       ObjectDocument *o = new ObjectDocument(*(olist.get_object(i)));
@@ -77,12 +80,14 @@ class ObjectList : public ObjectListInterface {
   }
   // Getters
   int get_msg_type() const {return msg_type;}
+  int get_op_type() const {return op_type;}
   int get_error_code() const {return err_code;}
   std::string get_error_message() const {return err_msg;}
   std::string get_transaction_id() const {return transaction_id;}
   int get_num_records() const {return num_records;}
   // Setters
   void set_msg_type(int nt) {msg_type = nt;}
+  void set_op_type(int nt) {op_type = nt;}
   void set_error_code(int nc) {err_code = nc;}
   void set_error_message(std::string nm) {err_msg.assign(nm);}
   void set_transaction_id(std::string nid) {transaction_id.assign(nid);}

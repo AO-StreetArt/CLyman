@@ -85,6 +85,7 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   void to_bson(AOSSL::MongoBufferInterface *bson);
   // to_bson_update which outputs fields as update operators
   // this method should get used for OVERWRITE type messages
+  void to_bson_update(bool is_query, bool is_append_operation, AOSSL::MongoBufferInterface *bson);
   void to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson);
   void to_bson_update(AOSSL::MongoBufferInterface *bson);
   // to_transform_message to build a JSON to send via UDP

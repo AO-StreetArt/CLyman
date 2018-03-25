@@ -51,6 +51,10 @@ const int BAD_MSG_TYPE_ERROR = 121;
 const int INSUFF_DATA_ERROR = 122;
 const int LOCK_EXISTS_ERROR = 123;
 
+// Operation Types
+const int APPEND = 10;
+const int REMOVE = 11;
+
 // Trim String methods
 
 // trim from start

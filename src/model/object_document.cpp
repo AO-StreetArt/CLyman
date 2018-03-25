@@ -236,42 +236,53 @@ std::string ObjectDocument::to_json(bool is_query) {
 // to_bson_update which outputs fields as update operators
 // this method should get used for OVERWRITE type messages
 void ObjectDocument::to_bson_update(AOSSL::MongoBufferInterface *bson) {
-  to_bson_update(false, bson);
+  to_bson_update(false, true, bson);
 }
 
 // to_bson_update which outputs fields as update operators
 // this method should get used for OVERWRITE type messages
 void ObjectDocument::to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson) {
+  to_bson_update(is_query, true, bson);
+}
+
+// to_bson_update which outputs fields as update operators
+// this method should get used for OVERWRITE type messages
+void ObjectDocument::to_bson_update(bool is_query, bool is_append_operation, AOSSL::MongoBufferInterface *bson) {
   obj_logging->debug("Converting Obj3 to BSON update operator document");
-  std::string update_opt_key = "$set";
+  std::string update_opt_key;
+  if (is_append_operation) {
+    update_opt_key = "$set";
+  } else {
+    update_opt_key = "$pullAll";
+  }
   bson->start_object(update_opt_key);
-  if (!(name.empty())) {
+  if ((!(name.empty())) && is_append_operation) {
     std::string key = "name";
     bson->add_string(key, name);
   }
 
-  if (!(RelatedObject::get_scene().empty())) {
+  if ((!(RelatedObject::get_scene().empty())) && is_append_operation) {
     std::string key = "scene";
     bson->add_string(key, RelatedObject::get_scene());
   }
 
-  if (!(type.empty())) {
+  if ((!(type.empty())) && is_append_operation) {
     std::string key = "type";
     bson->add_string(key, type);
   }
 
-  if (!(subtype.empty())) {
+  if ((!(subtype.empty())) && is_append_operation) {
     std::string key = "subtype";
     bson->add_string(key, subtype);
   }
 
-  if (!(owner.empty())) {
+  if ((!(owner.empty())) && is_append_operation) {
     std::string key = "owner";
     bson->add_string(key, owner);
   }
 
   // Write Transform
-  if (Object3d::has_transform() && (!is_query)) {
+  if (Object3d::has_transform() && (!is_query) && is_append_operation) {
     std::string key = "transform";
     bson->start_array(key);
     for (int i = 0; i < 4; i++) {

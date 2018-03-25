@@ -46,6 +46,11 @@ class ObjectListInterface {
   // Values are defined in app_utils.h
   virtual int get_error_code() const = 0;
   virtual void set_error_code(int nc) = 0;
+  // Operation Type
+  // Integer code representing the type of operation
+  // Values are defined in app_utils.h
+  virtual int get_op_type() const = 0;
+  virtual void set_op_type(int nt) = 0;
   // Error Message
   // A String value containing a human-readable Error Message
   // Will be empty if no error is encountered

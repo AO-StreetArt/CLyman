@@ -29,6 +29,9 @@ PbObjectList::PbObjectList(protoObj3::Obj3List proto_list) {
   if (proto_list.has_transaction_id()) {
     set_transaction_id(proto_list.transaction_id());
   }
+  if (proto_list.has_op_type()) {
+    set_op_type(proto_list.op_type());
+  }
   if (proto_list.has_num_records()) {
     set_num_records(proto_list.num_records());
   }
