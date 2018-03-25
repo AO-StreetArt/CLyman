@@ -408,9 +408,12 @@ int main(int argc, char** argv) {
                     resp_obj->merge(inbound_message->get_object(i));
                     // Save the resulting object
                     AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
-                    resp_obj->to_bson(bson);
+                    if (inbound_message->get_op_type() == APPEND) {
+                      resp_obj->to_bson(bson);
+                    } else {
+                      resp_obj->to_bson_update(false, false, bson);
+                    }
                     main_logging->debug("Saving BSON Object");
-                    main_logging->debug(bson->to_json());
                     main_logging->debug(msg_key);
                     mongo->save_document(bson, msg_key);
                     response_message->add_object(resp_obj);

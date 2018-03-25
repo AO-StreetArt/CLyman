@@ -35,6 +35,13 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
       {throw Object3dException("No Msg Type Found");}
     const rapidjson::Value *mtype_val = &d["msg_type"];
     set_msg_type(mtype_val->GetInt());
+    if (d.HasMember("operation")) {
+      const rapidjson::Value *opid_val = &d["operation"];
+      if (!(opid_val->IsNull())) {
+        set_op_type(opid_val->GetInt());
+        obj_logging->debug("Operation Pulled");
+      }
+    }
     if (d.HasMember("transaction_id")) {
       const rapidjson::Value *tid_val = &d["transaction_id"];
       if (!(tid_val->IsNull())) {
