@@ -69,6 +69,11 @@ updated_test_data = {
   "assets": ["anotherAsset"]
 }
 
+removal_test_data = {
+  "key": "",
+  "assets": ["basicTestAsset"]
+}
+
 # Validation Methods
 def parse_response(response):
     logging.debug("Parsing Response: %s" % response)
@@ -186,16 +191,17 @@ def execute_lock_flow(socket, test_data, test_transform,
     validate_get_response(get_response, test_data, test_transform)
 
     # Execute a lock request
-    test_data["owner"] = updated_test_data["owner"]
     lock_data = {
         "msg_type": 5,
-        "objects": [test_data]
+        "objects": [{"key":test_data["key"],
+                     "owner": updated_test_data["owner"]}]
     }
     lock_message = json.dumps(lock_data)
     logging.debug(lock_message)
     socket.send_string(lock_message + "\n")
     lock_response = socket.recv_string()
     logging.debug(lock_response)
+    test_data['owner'] = updated_test_data['owner']
     validate_update_response(lock_response,
                              test_data,
                              test_transform)
@@ -227,6 +233,24 @@ def execute_lock_flow(socket, test_data, test_transform,
     validate_get_response(get_response,
                           updated_test_data,
                           updated_test_transform)
+
+    # Follow up with an update message to remove an asset
+    removal_test_data["key"] = test_data["key"]
+    logging.info("Asset removal Test")
+    removal_data = {
+        "msg_type": 1,
+        "operation": 11,
+        "objects": [removal_test_data]
+    }
+    removal_message = json.dumps(removal_data)
+    logging.debug(removal_message)
+    socket.send_string(removal_message + "\n")
+    removal_response = socket.recv_string()
+    logging.debug(removal_response)
+    del updated_test_data['assets'][0]
+    validate_update_response(update_response,
+                             updated_test_data,
+                             updated_test_transform)
 
     # Issue an unlock request
     unlock_data = {
