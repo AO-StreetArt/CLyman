@@ -411,7 +411,7 @@ int main(int argc, char** argv) {
                       resp_obj->merge(inbound_message->get_object(i));
                       resp_obj->to_bson(bson);
                     } else {
-                      resp_obj->to_bson_update(true, false, bson);
+                      inbound_message->get_object(0)->to_bson_update(true, false, bson);
                     }
                     main_logging->debug("Saving BSON Object");
                     main_logging->debug(msg_key);

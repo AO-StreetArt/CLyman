@@ -253,7 +253,7 @@ void ObjectDocument::to_bson_update(bool is_query, bool is_append_operation, AOS
   if (is_append_operation) {
     update_opt_key = "$set";
   } else {
-    update_opt_key = "$pullAll";
+    update_opt_key = "$pull";
   }
   bson->start_object(update_opt_key);
   if ((!(name.empty())) && is_append_operation) {
@@ -295,11 +295,20 @@ void ObjectDocument::to_bson_update(bool is_query, bool is_append_operation, AOS
 
   if ((is_query && num_assets() > 0) || (!is_query)) {
     std::string key = "assets";
-    bson->start_array(key);
+    std::string cond_key = "$in";
+    if (!is_append_operation) {
+      bson->start_object(key);
+      bson->start_array(cond_key);
+    } else {
+      bson->start_array(key);
+    }
     for (int i = 0; i < RelatedObject::num_assets(); i++) {
       bson->add_string(RelatedObject::get_asset(i));
     }
     bson->end_array();
+    if (!is_append_operation) {
+      bson->end_object();
+    }
   }
   bson->end_object();
 }
