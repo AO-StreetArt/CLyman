@@ -404,14 +404,14 @@ int main(int argc, char** argv) {
                     main_logging->debug(mongo_resp_str);
                     resp_doc.Parse(mongo_resp_str.c_str());
                     ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
-                    // Apply the object message as changes to the DB Object
-                    resp_obj->merge(inbound_message->get_object(i));
                     // Save the resulting object
                     AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
                     if (inbound_message->get_op_type() == APPEND) {
+                      // Apply the object message as changes to the DB Object
+                      resp_obj->merge(inbound_message->get_object(i));
                       resp_obj->to_bson(bson);
                     } else {
-                      resp_obj->to_bson_update(false, false, bson);
+                      resp_obj->to_bson_update(true, false, bson);
                     }
                     main_logging->debug("Saving BSON Object");
                     main_logging->debug(msg_key);
