@@ -41,7 +41,6 @@ ObjectDocument* build_test_document(std::string key, std::string name, \
 }
 
 int main(int argc, char** argv) {
-  const float PI = 3.1415f;
 
   LoggingComponentFactory *logging_factory = new LoggingComponentFactory;
   ObjectListFactory ofactory;
@@ -87,7 +86,7 @@ int main(int argc, char** argv) {
   test_object4->add_asset(asset3);
 
   Translation *trans = new Translation(1.0, 1.0, 1.0);
-  EulerRotation *erot = new EulerRotation(PI, 1.0f, 0.0f, 0.0f);
+  EulerRotation *erot = new EulerRotation(3.1415f, 0.0f, 0.0f);
   Scale *scl = new Scale(2.0, 2.0, 2.0);
   test_object->transform(trans);
   test_object2->transform(trans);
