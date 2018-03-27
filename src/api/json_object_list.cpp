@@ -165,7 +165,11 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                   } else if (i == 2) {z = trans_itr.GetDouble();}
                   i++;
                 }
-                trans = new Translation(x, y, z);
+                if ((x > 0.001 || x < -0.001) && \
+                  (y > 0.001 || y < -0.001) && \
+                  (z > 0.001 || z < -0.001)) {
+                  trans = new Translation(x, y, z);
+                }
               }
             }
 
@@ -188,7 +192,11 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                   } else {z = erot_itr.GetDouble();}
                   i++;
                 }
-                erot = new EulerRotation(x, y, z);
+                if ((x > 0.001 || x < -0.001) && \
+                  (y > 0.001 || y < -0.001) && \
+                  (z > 0.001 || z < -0.001)) {
+                  erot = new EulerRotation(x, y, z);
+                }
               }
             }
 
@@ -214,7 +222,12 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                   } else {z = qrot_itr.GetDouble();}
                   i++;
                 }
-                qrot = new QuaternionRotation(w, x, y, z);
+                if ((w > 0.001 || w < -0.001) &&
+                  ((x > 0.001 || x < -0.001) && \
+                  (y > 0.001 || y < -0.001) && \
+                  (z > 0.001 || z < -0.001))) {
+                  qrot = new QuaternionRotation(w, x, y, z);
+                }
               }
             }
 
@@ -237,7 +250,11 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                   } else if (i == 2) {z = scale_itr.GetDouble();}
                   i++;
                 }
-                scl = new Scale(x, y, z);
+                if ((x > 0.001 || x < -0.001) && \
+                  (y > 0.001 || y < -0.001) && \
+                  (z > 0.001 || z < -0.001)) {
+                  scl = new Scale(x, y, z);
+                }
               }
             }
             if (scl) {
