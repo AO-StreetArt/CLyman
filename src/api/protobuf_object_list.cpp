@@ -67,11 +67,20 @@ PbObjectList::PbObjectList(protoObj3::Obj3List proto_list) {
 
     if (obj->has_rotation_euler()) {
       obj_logging->debug("Pulling Euler Rotation");
-      protoObj3::Obj3List_Vertex4 *msg_rote = obj->mutable_rotation_euler();
-      EulerRotation *int_erotation = new EulerRotation(msg_rote->theta(), \
-        msg_rote->x(), msg_rote->y(), msg_rote->z());
+      protoObj3::Obj3List_Vertex3 *msg_rote = obj->mutable_rotation_euler();
+      EulerRotation *int_erotation = new EulerRotation(msg_rote->x(), \
+        msg_rote->y(), msg_rote->z());
       o->transform(int_erotation);
       delete int_erotation;
+    }
+
+    if (obj->has_rotation_quaternion()) {
+      obj_logging->debug("Pulling Quaternion Rotation");
+      protoObj3::Obj3List_Vertex4 *msg_rotq = obj->mutable_rotation_quaternion();
+      QuaternionRotation *int_qrotation = new QuaternionRotation(msg_rotq->w(), \
+        msg_rotq->x(), msg_rotq->y(), msg_rotq->z());
+      o->transform(int_qrotation);
+      delete int_qrotation;
     }
 
     if (obj->has_scale()) {

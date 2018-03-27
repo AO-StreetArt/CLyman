@@ -146,6 +146,7 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             obj_logging->debug("Basic string values pulled");
 
             // Parse the transform elements
+            Translation *trans = NULL;
             rapidjson::Value::ConstMemberIterator translation_iter = \
               itr.FindMember("translation");
             if (translation_iter != itr.MemberEnd()) {
@@ -164,12 +165,15 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                   } else if (i == 2) {z = trans_itr.GetDouble();}
                   i++;
                 }
-                Translation *trans = new Translation(x, y, z);
-                new_obj->transform(trans);
-                delete trans;
+                if ((x > 0.001 || x < -0.001) || \
+                  (y > 0.001 || y < -0.001) || \
+                  (z > 0.001 || z < -0.001)) {
+                  trans = new Translation(x, y, z);
+                }
               }
             }
 
+            EulerRotation *erot = NULL;
             rapidjson::Value::ConstMemberIterator erot_iter = \
               itr.FindMember("euler_rotation");
             if (erot_iter != itr.MemberEnd()) {
@@ -177,26 +181,57 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               const rapidjson::Value& erot_val = erot_iter->value;
               if (!(erot_val.IsNull() || erot_val.Size() == 0)) {
                 int i = 0;
-                double theta = 0.0;
                 double x = 0.0;
                 double y = 0.0;
                 double z = 0.0;
                 for (auto& erot_itr : erot_val.GetArray()) {
                   if (i == 0) {
-                    theta = erot_itr.GetDouble();
-                  } else if (i == 1) {
                     x = erot_itr.GetDouble();
-                  } else if (i == 2) {
+                  } else if (i == 1) {
                     y = erot_itr.GetDouble();
                   } else {z = erot_itr.GetDouble();}
                   i++;
                 }
-                EulerRotation *erot = new EulerRotation(theta, x, y, z);
-                new_obj->transform(erot);
-                delete erot;
+                if ((x > 0.001 || x < -0.001) || \
+                  (y > 0.001 || y < -0.001) || \
+                  (z > 0.001 || z < -0.001)) {
+                  erot = new EulerRotation(x, y, z);
+                }
               }
             }
 
+            QuaternionRotation *qrot = NULL;
+            rapidjson::Value::ConstMemberIterator qrot_iter = \
+              itr.FindMember("quaternion_rotation");
+            if (qrot_iter != itr.MemberEnd()) {
+              obj_logging->debug("Quaternion Rotation pulled");
+              const rapidjson::Value& qrot_val = qrot_iter->value;
+              if (!(qrot_val.IsNull() || qrot_val.Size() == 0)) {
+                int i = 0;
+                double w = 0.0;
+                double x = 0.0;
+                double y = 0.0;
+                double z = 0.0;
+                for (auto& qrot_itr : qrot_val.GetArray()) {
+                  if (i == 0) {
+                    w = qrot_itr.GetDouble();
+                  } else if (i == 1) {
+                    x = qrot_itr.GetDouble();
+                  } else if (i == 2) {
+                    y = qrot_itr.GetDouble();
+                  } else {z = qrot_itr.GetDouble();}
+                  i++;
+                }
+                if ((w > 0.001 || w < -0.001) &&
+                  ((x > 0.001 || x < -0.001) || \
+                  (y > 0.001 || y < -0.001) || \
+                  (z > 0.001 || z < -0.001))) {
+                  qrot = new QuaternionRotation(w, x, y, z);
+                }
+              }
+            }
+
+            Scale *scl = NULL;
             rapidjson::Value::ConstMemberIterator scale_iter = \
               itr.FindMember("scale");
             if (scale_iter != itr.MemberEnd()) {
@@ -215,10 +250,32 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                   } else if (i == 2) {z = scale_itr.GetDouble();}
                   i++;
                 }
-                Scale *scl = new Scale(x, y, z);
-                new_obj->transform(scl);
-                delete scl;
+                if ((x > 1.001 || x < 0.999) || \
+                  (y > 1.001 || y < 0.999) || \
+                  (z > 1.001 || z < 0.999)) {
+                  scl = new Scale(x, y, z);
+                }
               }
+            }
+            if (scl) {
+              obj_logging->debug(scl->to_string());
+              new_obj->transform(scl);
+              delete scl;
+            }
+            if (qrot) {
+              obj_logging->debug(qrot->to_string());
+              new_obj->transform(qrot);
+              delete qrot;
+            }
+            if (erot) {
+              obj_logging->debug(erot->to_string());
+              new_obj->transform(erot);
+              delete erot;
+            }
+            if (trans) {
+              obj_logging->debug(trans->to_string());
+              new_obj->transform(trans);
+              delete trans;
             }
             add_object(new_obj);
           }

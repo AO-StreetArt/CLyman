@@ -24,7 +24,8 @@ limitations under the License.
 int main(int argc, char** argv) {
 
   //Tolerance
-  const float TOLERANCE = 0.001f;
+  const int PI = 3.1415f;
+  const float TOLERANCE = 0.1f;
   // Identity Transformation tests
   Translation Itrans;
   EulerRotation Ierot;
@@ -55,8 +56,12 @@ int main(int argc, char** argv) {
 
   // Non-Identity Transformation Tests
   Translation trans(1.0f, 1.0f, 1.0f);
-  EulerRotation rot(3.1415f, 1.0f, 0.0f, 0.0f);
+  EulerRotation rot(PI, 0.0f, 0.0f);
   Scale scl(2.0f, 2.0f, 2.0f);
+  std::cout << "Transformations" << std::endl;
+  std::cout << trans.to_string() << std::endl;
+  std::cout << rot.to_string() << std::endl;
+  std::cout << scl.to_string() << std::endl;
 
   assert(trans.get_transform_element(0, 0) - 1.0f < TOLERANCE);
   assert(trans.get_transform_element(1, 1) - 1.0f < TOLERANCE);
@@ -111,22 +116,22 @@ int main(int argc, char** argv) {
   assert(std::abs(base_transform.get_transform_element(2, 2) + 1.0f) \
     < TOLERANCE);
   assert(base_transform.get_transform_element(3, 3) - 1.0f < TOLERANCE);
-  assert(base_transform.get_transform_element(0, 3) - 1.0f < TOLERANCE);
-  assert(std::abs(base_transform.get_transform_element(1, 3) + 1.0f) \
+  assert(base_transform.get_transform_element(0, 3) - 2.0f < TOLERANCE);
+  assert(std::abs(base_transform.get_transform_element(1, 3) + 1.13f) \
     < TOLERANCE);
-  assert(std::abs(base_transform.get_transform_element(2, 3) + 1.0f) \
+  assert(std::abs(base_transform.get_transform_element(2, 3) + 0.84f) \
     < TOLERANCE);
 
   // Scale the base transformation
   base_transform.multiply(scl);
   std::cout << base_transform.to_string() << std::endl;
   assert(base_transform.get_transform_element(0, 0) - 2.0f < TOLERANCE);
-  assert(base_transform.get_transform_element(1, 1) + 2.0f < TOLERANCE);
+  assert(base_transform.get_transform_element(1, 1) - 2.0f < TOLERANCE);
   assert(base_transform.get_transform_element(2, 2) + 2.0f < TOLERANCE);
   assert(base_transform.get_transform_element(3, 3) - 1.0f < TOLERANCE);
   assert(base_transform.get_transform_element(0, 3) - 2.0f < TOLERANCE);
-  assert(base_transform.get_transform_element(1, 3) + 2.0f < TOLERANCE);
-  assert(base_transform.get_transform_element(2, 3) + 2.0f < TOLERANCE);
+  assert(base_transform.get_transform_element(1, 3) + 2.26f < TOLERANCE);
+  assert(base_transform.get_transform_element(2, 3) + 1.69f < TOLERANCE);
 
   return 0;
 }

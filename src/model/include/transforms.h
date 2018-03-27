@@ -19,6 +19,8 @@ limitations under the License.
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/ext.hpp>
 
 #include <string>
@@ -30,6 +32,7 @@ const int NO_TRANSFORM_TYPE = 0;
 const int TRANSLATE = 1;
 const int EROTATE = 2;
 const int SCALE = 3;
+const int QROTATE = 4;
 
 const double PI = 3.14159265358979;
 
@@ -91,17 +94,31 @@ class Translation: public Transformation {
 // Rotation Class
 class EulerRotation: public Transformation {
  public:
-  inline EulerRotation(float theta, float ix, float iy, float iz) :
+  inline EulerRotation(float ix, float iy, float iz) :
     Transformation() {
       set_type(EROTATE);
-      // Rotate theta degrees about the vector <ix, iy, iz>
-      set_transform_vector(glm::rotate(glm::mat4(1.0f), \
-        theta, glm::vec3(ix, iy, iz)));
+      // Rotate by Euler angles X, Y, and Z
+      set_transform_vector(glm::eulerAngleYXZ(iy, ix, iz));
     }
-  EulerRotation(double theta, double ix, double iy, double iz) : \
-    EulerRotation((float) theta, (float) ix, (float) iy, (float) iz) {}
+  EulerRotation(double ix, double iy, double iz) : \
+    EulerRotation((float) ix, (float) iy, (float) iz) {}
   // Identity Transform
-  EulerRotation() : EulerRotation(0.0f, 1.0f, 0.0f, 0.0f) {}
+  EulerRotation() : EulerRotation(0.0f, 0.0f, 0.0f) {}
+};
+
+// Quaternion Rotation Class
+class QuaternionRotation: public Transformation {
+ public:
+  inline QuaternionRotation(float iw, float ix, float iy, float iz) :
+    Transformation() {
+      set_type(QROTATE);
+      // Rotate theta degrees about the vector <ix, iy, iz>
+      set_transform_vector(glm::toMat4(glm::quat(iw, ix, iy, iz)));
+    }
+  QuaternionRotation(double iw, double ix, double iy, double iz) : \
+    QuaternionRotation((float) iw, (float) ix, (float) iy, (float) iz) {}
+  // Identity Transform
+  QuaternionRotation() : QuaternionRotation(0.0f, 1.0f, 0.0f, 0.0f) {}
 };
 
 // Scale Class

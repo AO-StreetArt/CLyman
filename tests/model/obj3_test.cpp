@@ -34,9 +34,9 @@ limitations under the License.
 #include "object_factory.h"
 
 int main(int argc, char** argv) {
-  const float PI = 3.1415f;
   //Tolerance
-  const float TOLERANCE = 0.001f;
+  const float TOLERANCE = 0.1f;
+  const int PI = 3.1415f;
   LoggingComponentFactory *logging_factory = new LoggingComponentFactory;
 
   std::string initFileName = "tests/log4cpp.properties";
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
   // Transform tests
   main_logging->debug("Transform Tests");
   Translation *trans = new Translation(1.0, 1.0, 1.0);
-  EulerRotation *erot = new EulerRotation(3 * PI, 1.0f, 0.0f, 0.0f);
+  EulerRotation *erot = new EulerRotation(3 * PI, 0.0f, 0.0f);
   Scale *scl = new Scale(2.0, 2.0, 2.0);
 
   main_logging->debug(test_object.get_transform()->to_string());
@@ -115,33 +115,33 @@ int main(int argc, char** argv) {
   assert(test_object.get_transform()->get_transform_element(0, 0) - 1.0f \
     < TOLERANCE);
   assert(std::abs(test_object.get_transform()->get_transform_element(1, 1) \
-    + 1.0f) < TOLERANCE);
+    + 0.91f) < TOLERANCE);
   assert(std::abs(test_object.get_transform()->get_transform_element(2, 2) \
-    + 1.0f) < TOLERANCE);
+    + 0.91f) < TOLERANCE);
   assert(test_object.get_transform()->get_transform_element(3, 3) - 1.0f \
     < TOLERANCE);
   assert(test_object.get_transform()->get_transform_element(0, 3) - 1.0f \
     < TOLERANCE);
   assert(std::abs(test_object.get_transform()->get_transform_element(1, 3) \
-    + 1.0f) < TOLERANCE);
+    + 1.32f) < TOLERANCE);
   assert(std::abs(test_object.get_transform()->get_transform_element(2, 3) \
-    + 1.0f) < TOLERANCE);
+    + 0.49f) < TOLERANCE);
 
   test_object.transform(scl);
   main_logging->debug(test_object.get_transform()->to_string());
   assert(test_object.get_transform()->get_transform_element(0, 0) - 2.0f \
     < TOLERANCE);
-  assert(test_object.get_transform()->get_transform_element(1, 1) + 2.0f \
+  assert(test_object.get_transform()->get_transform_element(1, 1) + 1.8f \
     < TOLERANCE);
-  assert(test_object.get_transform()->get_transform_element(2, 2) + 2.0f \
+  assert(test_object.get_transform()->get_transform_element(2, 2) + 1.8f \
     < TOLERANCE);
   assert(test_object.get_transform()->get_transform_element(3, 3) - 1.0f \
     < TOLERANCE);
   assert(test_object.get_transform()->get_transform_element(0, 3) - 2.0f \
     < TOLERANCE);
-  assert(test_object.get_transform()->get_transform_element(1, 3) + 2.0f \
+  assert(test_object.get_transform()->get_transform_element(1, 3) + 2.64f \
     < TOLERANCE);
-  assert(test_object.get_transform()->get_transform_element(2, 3) + 2.0f \
+  assert(test_object.get_transform()->get_transform_element(2, 3) + 1.0f \
     < TOLERANCE);
 
   // BSON Tests
@@ -181,20 +181,21 @@ int main(int argc, char** argv) {
 
   main_logging->debug(translated_object->get_transform()->to_string());
 
-  assert(translated_object->get_transform()->get_transform_element(0, 0) - \
-    2.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(1, 1) + \
-    2.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(2, 2) + \
-    2.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(3, 3) - \
-    1.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(0, 3) - \
-    2.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(1, 3) + \
-    2.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(2, 3) + \
-    2.0f < TOLERANCE);
+  main_logging->debug(translated_object->get_transform()->to_string());
+  assert(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 1) + 1.8f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 2) + 1.8f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(3, 3) - 1.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(0, 3) - 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 3) + 2.64f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 3) + 1.0f \
+    < TOLERANCE);
 
   // Merge Test
   main_logging->debug("Merge Tests");
@@ -228,20 +229,21 @@ int main(int argc, char** argv) {
   assert(translated_object->get_asset(1) == "12346");
   assert(translated_object->get_asset(2) == "another_asset");
 
-  assert(translated_object->get_transform()->get_transform_element(0, 0) - \
-    2.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(1, 1) + \
-    2.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(2, 2) + \
-    2.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(3, 3) - \
-    1.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(0, 3) - \
-    3.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(1, 3) + \
-    1.0f < TOLERANCE);
-  assert(translated_object->get_transform()->get_transform_element(2, 3) + \
-    1.0f < TOLERANCE);
+  main_logging->debug(translated_object->get_transform()->to_string());
+  assert(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 1) + 1.8f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 2) + 1.8f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(3, 3) - 1.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(0, 3) - 3.0f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(1, 3) + 1.64f \
+    < TOLERANCE);
+  assert(translated_object->get_transform()->get_transform_element(2, 3) + 0.0f \
+    < TOLERANCE);
 
   delete obj_update;
 
