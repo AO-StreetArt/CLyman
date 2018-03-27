@@ -19,6 +19,8 @@ single object:
 
  "msg\_type": 0,
 
+ "operation": 10,
+
  "transaction\_id": "12352",
 
  "num\_records": 1,
@@ -41,7 +43,9 @@ single object:
 
  "translation": [0, 0, 0],
 
- "rotation\_euler": [0, 0, 0, 0],
+ "quaternion\_rotation": [0, 0, 0, 0],
+
+ "euler\_rotation": [0, 0, 0],
 
  "scale": [1, 1, 1],
 
@@ -64,6 +68,9 @@ contains 6 keys, one of which is an array of objects.
 -  msg\_type – 0 for create, 1 for update, 2 for retrieve, 3 for delete,
    4 for query, 5 to acquire a Device Lock, and 6 to release a Device Lock.
    The message type applies to all objects in the objects array.
+-  operation - An optional field used during updates to specify the type of operation.
+   10 is append, and 11 is remove.  Remove operations can be used to
+   remove assets from an object.
 -  err\_code - An integer error code for the response, full list of codes
    can be found in the appendix.
 -  err\_msg - A string error message for the response, will not be present when
@@ -92,8 +99,10 @@ element of the array from the “objects” key of the object list.
 -  scene – ID For the Scene containing the object
 -  translation – X, Y, and Z values for the translation of the object
    from it’s origin
--  rotation\_euler – THETA, X, Y, and Z values for the local rotation of the object
-   about the axis <X, Y, Z>
+-  euler\_rotation –  X, Y, and Z values for the local rotation of the object
+   about the respective axis, in radians
+-  quaternion\_rotation - W, X, Y, and Z values for the local quaternion rotation
+   of the object, in radians
 -  scale – X, Y, and Z values for the scaling of the object
 -  assets – An Array of identifiers for “assets”, which should be
    downloaded by users in order to view the object.
@@ -101,35 +110,39 @@ element of the array from the “objects” key of the object list.
 Field Mapping
 =============
 
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| **Field**              | **Data Type**    | **Create** | **Get**  | **Update** | **Delete** | **Query** | **Lock** | **Unlock** |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| msg\_type              | Integer          | X          | X        | X          | X          | X         | X        | X          |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| transaction\_id        | String           | \*         | \*       | \*         | \*         | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| num\_records           | String           |            |          |            |            | \*        |          |            |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| key                    | String           |            | X        | \*         | X          | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| name                   | String           | X          |          | \*         |            | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| type                   | String           | \*         |          | \*         |            | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| subtype                | String           | \*         |          | \*         |            | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| owner                  | String           | \*         |          | \*         |            | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| scene                  | String           | X          |          | \*         |            | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| translation            | Array - Double   | X          |          | \*         |            | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| rotation\_euler        | Array - Double   | X          |          | \*         |            | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| scale                  | Array - Double   | X          |          | \*         |            | \*        |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
-| assets                 | Array - String   | X          |          | \*         |            |           |\*        | \*         |
-+------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| **Field**              | **Data Type**    | **Create** | **Get**  | **Update** | **Delete** | **Query** | **Lock** | **Unlock** | **Overwrite** |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| msg\_type              | Integer          | X          | X        | X          | X          | X         | X        | X          | X             |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| operation              | Integer          |            |          | \*         |            |           |          |            |               |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| transaction\_id        | String           | \*         | \*       | \*         | \*         | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| num\_records           | String           |            |          |            |            | \*        |          |            |               |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| key                    | String           |            | X        | \*         | X          | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| name                   | String           | X          |          | \*         |            | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| type                   | String           | \*         |          | \*         |            | \*        |\*        | \*         |               |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| subtype                | String           | \*         |          | \*         |            | \*        |\*        | \*         |               |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| owner                  | String           | \*         |          | \*         |            | \*        |\*        | \*         |               |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| scene                  | String           | X          |          | \*         |            | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| translation            | Array - Double   | X          |          | \*         |            | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| euler\_rotation        | Array - Double   | X          |          | \*         |            | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| quaternion\_rotation   | Array - Double   | X          |          | \*         |            | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| scale                  | Array - Double   | X          |          | \*         |            | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| assets                 | Array - String   | X          |          | \*         |            |           |\*        | \*         |               |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
 
 X – Required
 
@@ -179,6 +192,19 @@ Device Lock Release
 
 Subset of Object Update, uses 'owner' field as the key to release a lock on an object.
 
+Object Overwrite
+----------------
+
+An Object Overwrite is designed to be a high-speed update, primarily used for
+live feeds.  Rather than sending in transformations from the current state of
+the object, as in the Object Update message, here the Object sends the current
+total state of the object, rather than the difference.  This completely overwrites
+the transform information of the object, and streams that information out to
+other devices via Apache Kafka.
+
+This message can utilize either a Key or a Name-Scene combination to perform
+the overwrite.
+
 Appendix A: JSON Message Samples
 ================================
 
@@ -201,7 +227,8 @@ Object Create
       "owner": "123",
       "scene": "DEFGHI10",
       "translation": [0, 0, 0],
-      "rotation\_euler": [0, 0, 0, 0],
+      "quaternion\_rotation": [0, 0, 0, 0],
+      "euler\_rotation": [0, 0, 0],
       "scale": [1, 1, 1],
       "assets": ["Asset\_5"]
     }
@@ -227,6 +254,7 @@ Object Update
 
 {
   "msg\_type": 1,
+  "operation": 10,
   "transaction\_id": "123464",
   "num\_records": 1,
   "objects": [
@@ -238,9 +266,31 @@ Object Update
       "owner": "456",
       "scene": "DEFGHIJ123464",
       "translation": [0, 0, 1],
-      "rotation\_euler": [0, 1, 0, 0],
+      "quaternion\_rotation": [0, 0, 0, 0],
+      "euler\_rotation": [0, 0, 0],
       "scale": [1, 1, 2],
       "assets": ["Asset\_5"]
+    }
+  ]
+}
+
+Object Overwrite
+~~~~~~~~~~~~~~~~
+
+{
+  "msg\_type": 1,
+  "operation": 10,
+  "transaction\_id": "123464",
+  "num\_records": 1,
+  "objects": [
+    {
+      "key": "59ab6e44ac48b7000148c86a",
+      "name": "Test Object 123464",
+      "scene": "DEFGHIJ123464",
+      "translation": [0, 0, 1],
+      "quaternion\_rotation": [0, 0, 0, 0],
+      "euler\_rotation": [3.14, 0, 0],
+      "scale": [1, 1, 2]
     }
   ]
 }
@@ -292,7 +342,8 @@ Object Lock
       "owner": "10",
       "scene": "DEFGHIJ123465",
       "translation": [0, 0, 1],
-      "rotation\_euler": [0, 1, 0, 0],
+      "quaternion\_rotation": [0, 0, 0, 0],
+      "euler\_rotation": [0, 0, 0],
       "scale": [1, 1, 2],
       "assets": ["Asset\_5"]
     }
@@ -315,7 +366,8 @@ Object Unlock
       "owner": "10",
       "scene": "DEFGHIJ123465",
       "translation": [0, 0, 1],
-      "rotation\_euler": [0, 1, 0, 0],
+      "quaternion\_rotation": [0, 0, 0, 0],
+      "euler\_rotation": [0, 0, 0],
       "scale": [1, 1, 2],
       "assets": ["Asset\_5"]
     }
@@ -360,6 +412,10 @@ Object Update
     }
   ]
 }
+
+Object Overwrite
+~~~~~~~~~~~~~~~~
+{"msg_type":7,"err_code":100,"num_records":0,"objects":[]}
 
 Object Retrieve
 ~~~~~~~~~~~~~~~
