@@ -250,9 +250,9 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                   } else if (i == 2) {z = scale_itr.GetDouble();}
                   i++;
                 }
-                if ((x > 0.001 || x < -0.001) || \
-                  (y > 0.001 || y < -0.001) || \
-                  (z > 0.001 || z < -0.001)) {
+                if ((x > 1.001 || x < 0.999) || \
+                  (y > 1.001 || y < 0.999) || \
+                  (z > 1.001 || z < 0.999)) {
                   scl = new Scale(x, y, z);
                 }
               }
