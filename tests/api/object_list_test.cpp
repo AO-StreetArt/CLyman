@@ -37,6 +37,8 @@ ObjectDocument* build_test_document(std::string key, std::string name, \
     test_object->set_type(type);
     test_object->set_subtype(subtype);
     test_object->set_owner(owner);
+    test_object->set_frame(0);
+    test_object->set_timestamp(123456789);
     return test_object;
 }
 
@@ -163,6 +165,8 @@ int main(int argc, char** argv) {
   assert(parsed_olist->get_object(0)->get_type() == "abcdefghijkl");
   assert(parsed_olist->get_object(0)->get_subtype() == "abcdefghijklmn");
   assert(parsed_olist->get_object(0)->get_owner() == "abcdefghijklmnop");
+  assert(parsed_olist->get_object(0)->get_frame() == 0);
+  assert(parsed_olist->get_object(0)->get_timestamp() == 123456789);
 
   assert(parsed_olist->get_object(1)->get_key() == "abcdefg");
   assert(parsed_olist->get_object(1)->get_name() == "abcdefghi");
@@ -199,6 +203,8 @@ int main(int argc, char** argv) {
   assert(jparsed_olist->get_object(0)->get_type() == "abcdefghijkl");
   assert(jparsed_olist->get_object(0)->get_subtype() == "abcdefghijklmn");
   assert(jparsed_olist->get_object(0)->get_owner() == "abcdefghijklmnop");
+  assert(parsed_olist->get_object(0)->get_frame() == 0);
+  assert(parsed_olist->get_object(0)->get_timestamp() == 123456789);
 
   assert(jparsed_olist->get_object(1)->get_key() == "abcdefg");
   assert(jparsed_olist->get_object(1)->get_name() == "abcdefghi");

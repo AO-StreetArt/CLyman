@@ -68,6 +68,8 @@ int main(int argc, char** argv) {
   test_object.set_subtype(test_subtype);
   std::string test_owner = "abcdefghijkl";
   test_object.set_owner(test_owner);
+  test_object.set_frame(0);
+  test_object.set_timestamp(123456789);
 
   assert(test_object.get_key() == "abcdefg");
   assert(test_object.get_name() == "abcdefgh");
@@ -174,6 +176,8 @@ int main(int argc, char** argv) {
   assert(translated_object->get_type() == "abcdefghij");
   assert(translated_object->get_subtype() == "abcdefghijk");
   assert(translated_object->get_owner() == "abcdefghijkl");
+  assert(translated_object->get_frame() == 0);
+  assert(translated_object->get_timestamp() == 123456789);
 
   assert(translated_object->num_assets() == 2);
   assert(translated_object->get_asset(0) == "12345");

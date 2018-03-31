@@ -69,6 +69,11 @@ class ObjectInterface {
   virtual void transform(Transformation *t) = 0;
   virtual bool has_transform() const = 0;
   virtual Transformation* get_transform() const = 0;
+  // Frame/Timestamp
+  virtual int get_frame() const = 0;
+  virtual int get_timestamp() const = 0;
+  virtual void set_frame(int new_frame) = 0;
+  virtual void set_timestamp(int new_timestamp) = 0;
   // Take a target object and apply it's fields as changes to this Object
   virtual void merge(ObjectInterface *target) = 0;
   // Take a target object and overwrite this object's fields with it
