@@ -52,6 +52,8 @@ PbObjectList::PbObjectList(protoObj3::Obj3List proto_list) {
     if (obj->has_type()) o->set_type(obj->type());
     if (obj->has_subtype()) o->set_subtype(obj->subtype());
     if (obj->has_owner()) o->set_owner(obj->owner());
+    if (obj->has_frame()) o->set_frame(obj->frame());
+    if (obj->has_timestamp()) o->set_timestamp(obj->timestamp());
 
     obj_logging->debug("Basic Attributes Pulled");
 
@@ -144,6 +146,12 @@ void PbObjectList::to_msg_string(std::string &out_string) {
     }
     if (!(get_object(i)->get_owner().empty())) {
       new_obj->set_owner(get_object(i)->get_owner());
+    }
+    if (get_object(i)->get_frame() > -9999.1) {
+      new_obj->set_frame(get_object(i)->get_frame());
+    }
+    if (!(get_object(i)->get_owner().empty())) {
+      new_obj->set_timestamp(get_object(i)->get_timestamp());
     }
 
     obj_logging->debug("Basic attributes written");

@@ -132,6 +132,22 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               }
             }
 
+            rapidjson::Value::ConstMemberIterator frame_iter = \
+              itr.FindMember("frame");
+            if (frame_iter != itr.MemberEnd()) {
+              if (!(frame_iter->value.IsNull())) {
+                new_obj->set_frame(frame_iter->value.GetInt());
+              }
+            }
+
+            rapidjson::Value::ConstMemberIterator date_iter = \
+              itr.FindMember("timestamp");
+            if (date_iter != itr.MemberEnd()) {
+              if (!(date_iter->value.IsNull())) {
+                new_obj->set_timestamp(date_iter->value.GetInt());
+              }
+            }
+
             rapidjson::Value::ConstMemberIterator assets_iter = \
               itr.FindMember("assets");
             if (assets_iter != itr.MemberEnd()) {
@@ -368,6 +384,16 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
       writer.Key("owner");
       writer.String(get_object(a)->get_owner().c_str(), \
         (rapidjson::SizeType)get_object(a)->get_owner().length());
+    }
+
+    if (get_object(a)->get_frame() > -9999) {
+      writer.Key("frame");
+      writer.Uint(get_object(a)->get_frame());
+    }
+
+    if (get_object(a)->get_timestamp() > -9999) {
+      writer.Key("timestamp");
+      writer.Uint(get_object(a)->get_timestamp());
     }
 
     obj_logging->debug("Basic Object Attributes written");

@@ -41,6 +41,10 @@ single object:
 
  "scene": "DEFGHI8",
 
+ "frame": 1,
+
+ "timestamp": 123456789,
+
  "translation": [0, 0, 0],
 
  "quaternion\_rotation": [0, 0, 0, 0],
@@ -97,6 +101,8 @@ element of the array from the “objects” key of the object list.
    etc.
 -  owner – Identifier for the owner of the Obj3
 -  scene – ID For the Scene containing the object
+-  frame – The frame of the Object transformations
+-  timestamp – The timestamp of the Object transformations
 -  translation – X, Y, and Z values for the translation of the object
    from it’s origin
 -  euler\_rotation –  X, Y, and Z values for the local rotation of the object
@@ -132,6 +138,10 @@ Field Mapping
 | owner                  | String           | \*         |          | \*         |            | \*        |\*        | \*         |               |
 +------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
 | scene                  | String           | X          |          | \*         |            | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| frame                  | Integer          | \*         |          | \*         |            | \*        |\*        | \*         | \*            |
++------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
+| timestamp              | Integer          | \*         |          | \*         |            | \*        |\*        | \*         | \*            |
 +------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+
 | translation            | Array - Double   | X          |          | \*         |            | \*        |\*        | \*         | \*            |
 +------------------------+------------------+------------+----------+------------+------------+-----------+----------+------------+---------------+

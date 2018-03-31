@@ -47,10 +47,11 @@ struct Object3dException: public std::exception {
 };
 
 // The Object3d class stores data for a single object in 3-space.
-// Basically, wraps a transform and provides some convinience methods
 class Object3d {
   // Transformation matrix
   Transformation *trans = NULL;
+  int frame = -9999;
+  int timestamp = -9999;
 
  public:
   // Constructors
@@ -73,6 +74,10 @@ class Object3d {
     trans = new Transformation;
     trans->multiply(*t);
   }
+  int get_frame() const {return frame;}
+  int get_timestamp() const {return timestamp;}
+  void set_frame(int new_frame) {frame = new_frame;}
+  void set_timestamp(int new_timestamp) {timestamp = new_timestamp;}
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_3D_H_

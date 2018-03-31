@@ -49,6 +49,14 @@ ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
       const rapidjson::Value *subtype_val = &d["subtype"];
       subtype = subtype_val->GetString();
     }
+    if (d.HasMember("frame")) {
+      const rapidjson::Value *frame_val = &d["frame"];
+      Object3d::set_frame(frame_val->GetInt());
+    }
+    if (d.HasMember("timestamp")) {
+      const rapidjson::Value *date_val = &d["timestamp"]["$date"];
+      Object3d::set_timestamp(date_val->GetInt());
+    }
 
     // Transformations
     if (d.HasMember("transform")) {
@@ -87,6 +95,8 @@ ObjectDocument::ObjectDocument(const ObjectDocument &o) {
   type = o.get_type();
   subtype = o.get_subtype();
   owner = o.get_owner();
+  Object3d::set_frame(o.get_frame());
+  Object3d::set_timestamp(o.get_timestamp());
   // Apply transforms
   Object3d::transform(o.Object3d::get_transform());
   // Move over asset ids
@@ -104,6 +114,8 @@ ObjectDocument::ObjectDocument(const ObjectInterface &o) {
   type = o.get_type();
   subtype = o.get_subtype();
   owner = o.get_owner();
+  Object3d::set_frame(o.get_frame());
+  Object3d::set_timestamp(o.get_timestamp());
   // Apply transforms
   Object3d::transform(o.get_transform());
   // Move over asset ids
@@ -121,6 +133,8 @@ void ObjectDocument::write_string_attributes(ObjectInterface *target) {
   if (!(target->get_type().empty())) type = target->get_type();
   if (!(target->get_subtype().empty())) subtype = target->get_subtype();
   if (!(target->get_owner().empty())) owner = target->get_owner();
+  if (target->get_frame() > -9999.1) Object3d::set_frame(target->get_frame());
+  if (target->get_timestamp() > -9999.1) Object3d::set_timestamp(target->get_timestamp());
 }
 
 // Take the target and apply its fields as changes
@@ -202,6 +216,19 @@ std::string ObjectDocument::to_json(bool is_query) {
     writer.String(owner.c_str(), (rapidjson::SizeType)owner.length());
   }
 
+  if (Object3d::get_frame() > -9999) {
+    writer.Key("frame");
+    writer.Uint(Object3d::get_frame());
+  }
+
+  if (Object3d::get_timestamp() > -9999) {
+    writer.Key("timestamp");
+    writer.StartObject();
+    writer.Key("$date");
+    writer.Uint(Object3d::get_timestamp());
+    writer.EndObject();
+  }
+
   // Write Transform
   if (Object3d::has_transform() && (!is_query)) {
     writer.Key("transform");
@@ -281,6 +308,16 @@ void ObjectDocument::to_bson_update(bool is_query, bool is_append_operation, AOS
     bson->add_string(key, owner);
   }
 
+  if (Object3d::get_frame() > -9999.1 && is_append_operation) {
+    std::string key = "frame";
+    bson->add_int(key, Object3d::get_frame());
+  }
+
+  if (Object3d::get_timestamp() > -9999.1 && is_append_operation) {
+    std::string key = "timestamp";
+    bson->add_date(key, Object3d::get_timestamp());
+  }
+
   // Write Transform
   if (Object3d::has_transform() && (!is_query) && is_append_operation) {
     std::string key = "transform";
@@ -341,6 +378,16 @@ void ObjectDocument::to_bson(bool is_query, AOSSL::MongoBufferInterface *bson) {
     bson->add_string(key, owner);
   }
 
+  if (Object3d::get_frame() > -9999.1) {
+    std::string key = "frame";
+    bson->add_int(key, Object3d::get_frame());
+  }
+
+  if (Object3d::get_timestamp() > -9999.1) {
+    std::string key = "timestamp";
+    bson->add_date(key, Object3d::get_timestamp());
+  }
+
   // Write Transform
   if (Object3d::has_transform() && (!is_query)) {
     std::string key = "transform";
@@ -394,6 +441,16 @@ std::string ObjectDocument::to_transform_json() {
     writer.Key("scene");
     writer.String(RelatedObject::get_scene().c_str(), \
       (rapidjson::SizeType)RelatedObject::get_scene().length());
+  }
+
+  if (Object3d::get_frame() > -9999.1) {
+    writer.Key("frame");
+    writer.Uint(Object3d::get_frame());
+  }
+
+  if (Object3d::get_timestamp() > -9999.1) {
+    writer.Key("timestamp");
+    writer.Uint(Object3d::get_timestamp());
   }
 
   // Write Transform

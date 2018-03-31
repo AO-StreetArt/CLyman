@@ -95,6 +95,11 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   void transform(Transformation *t) {Object3d::transform(t);}
   bool has_transform() const {return Object3d::has_transform();}
   Transformation* get_transform() const {return Object3d::get_transform();}
+  // Frame/timestamp
+  int get_frame() const {return Object3d::get_frame();}
+  int get_timestamp() const {return Object3d::get_timestamp();}
+  void set_frame(int new_frame) {Object3d::set_frame(new_frame);}
+  void set_timestamp(int new_timestamp) {Object3d::set_timestamp(new_timestamp);}
   // String Getters
   std::string get_key() const {return RelatedObject::get_key();}
   std::string get_scene() const {return RelatedObject::get_scene();}
