@@ -308,12 +308,12 @@ void ObjectDocument::to_bson_update(bool is_query, bool is_append_operation, AOS
     bson->add_string(key, owner);
   }
 
-  if (Object3d::get_frame() > -9999.1 && is_append_operation) {
+  if (Object3d::get_frame() != -9999 && is_append_operation) {
     std::string key = "frame";
     bson->add_int(key, Object3d::get_frame());
   }
 
-  if (Object3d::get_timestamp() > -9999.1 && is_append_operation) {
+  if (Object3d::get_timestamp() != -9999 && is_append_operation) {
     std::string key = "timestamp";
     bson->add_date(key, Object3d::get_timestamp());
   }
