@@ -74,9 +74,7 @@ PbObjectList::PbObjectList(protoObj3::Obj3List proto_list) {
         msg_rote->y(), msg_rote->z());
       o->transform(int_erotation);
       delete int_erotation;
-    }
-
-    if (obj->has_rotation_quaternion()) {
+    } else if (obj->has_rotation_quaternion()) {
       obj_logging->debug("Pulling Quaternion Rotation");
       protoObj3::Obj3List_Vertex4 *msg_rotq = obj->mutable_rotation_quaternion();
       QuaternionRotation *int_qrotation = new QuaternionRotation(msg_rotq->w(), \
