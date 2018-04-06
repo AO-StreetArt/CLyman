@@ -53,10 +53,6 @@ ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
       const rapidjson::Value *frame_val = &d["frame"];
       Object3d::set_frame(frame_val->GetInt());
     }
-    if (d.HasMember("timestamp")) {
-      const rapidjson::Value *date_val = &d["timestamp"]["$date"];
-      Object3d::set_timestamp(date_val->GetInt());
-    }
 
     // Transformations
     if (d.HasMember("transform")) {
@@ -221,14 +217,6 @@ std::string ObjectDocument::to_json(bool is_query) {
     writer.Uint(Object3d::get_frame());
   }
 
-  if (Object3d::get_timestamp() > -9999) {
-    writer.Key("timestamp");
-    writer.StartObject();
-    writer.Key("$date");
-    writer.Uint(Object3d::get_timestamp());
-    writer.EndObject();
-  }
-
   // Write Transform
   if (Object3d::has_transform() && (!is_query)) {
     writer.Key("transform");
@@ -313,11 +301,6 @@ void ObjectDocument::to_bson_update(bool is_query, bool is_append_operation, AOS
     bson->add_int(key, Object3d::get_frame());
   }
 
-  if (Object3d::get_timestamp() != -9999 && is_append_operation) {
-    std::string key = "timestamp";
-    bson->add_date(key, Object3d::get_timestamp());
-  }
-
   // Write Transform
   if (Object3d::has_transform() && (!is_query) && is_append_operation) {
     std::string key = "transform";
@@ -383,11 +366,6 @@ void ObjectDocument::to_bson(bool is_query, AOSSL::MongoBufferInterface *bson) {
     bson->add_int(key, Object3d::get_frame());
   }
 
-  if (Object3d::get_timestamp() > -9999.1) {
-    std::string key = "timestamp";
-    bson->add_date(key, Object3d::get_timestamp());
-  }
-
   // Write Transform
   if (Object3d::has_transform() && (!is_query)) {
     std::string key = "transform";
@@ -446,11 +424,6 @@ std::string ObjectDocument::to_transform_json() {
   if (Object3d::get_frame() > -9999.1) {
     writer.Key("frame");
     writer.Uint(Object3d::get_frame());
-  }
-
-  if (Object3d::get_timestamp() > -9999.1) {
-    writer.Key("timestamp");
-    writer.Uint(Object3d::get_timestamp());
   }
 
   // Write Transform

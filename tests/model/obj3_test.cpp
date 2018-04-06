@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
   assert(translated_object->get_subtype() == "abcdefghijk");
   assert(translated_object->get_owner() == "abcdefghijkl");
   assert(translated_object->get_frame() == 0);
-  assert(translated_object->get_timestamp() == 123456789);
+  //assert(translated_object->get_timestamp() == 123456789);
 
   assert(translated_object->num_assets() == 2);
   assert(translated_object->get_asset(0) == "12345");
