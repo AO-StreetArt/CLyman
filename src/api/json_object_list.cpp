@@ -278,15 +278,14 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               new_obj->transform(scl);
               delete scl;
             }
-            if (qrot) {
-              obj_logging->debug(qrot->to_string());
-              new_obj->transform(qrot);
-              delete qrot;
-            }
             if (erot) {
               obj_logging->debug(erot->to_string());
               new_obj->transform(erot);
               delete erot;
+            } else if (qrot) {
+              obj_logging->debug(qrot->to_string());
+              new_obj->transform(qrot);
+              delete qrot;
             }
             if (trans) {
               obj_logging->debug(trans->to_string());
