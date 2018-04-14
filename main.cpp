@@ -346,106 +346,87 @@ int main(int argc, char** argv) {
             inbound_message->get_msg_type() == OBJ_OVERWRITE) {
             main_logging->info("Processing Object Update Message");
             for (int i = 0; i < inbound_message->num_objects(); i++) {
-              // Enforce atomic updates -- establish redis lock
-              bool lock_obtained = true;
-              if (config->get_atomictransactions()) {
-                lock_obtained = \
-                  lock.get_lock(inbound_message->get_object(i)->get_key());
-              }
-              // Enforce Object Locking -- establish redis lock
-              if (lock_obtained && config->get_locking_active() && inbound_message->get_msg_type() == OBJ_LOCK) {
-                std::string lock_key = "ObjectLock-";
-                lock_key = lock_key + inbound_message->get_object(i)->get_key();
-                lock_obtained = \
-                  lock.get_lock(lock_key, \
-                  inbound_message->get_object(i)->get_owner());
-              }
-              if (lock_obtained) {
-                if (inbound_message->get_msg_type() == OBJ_OVERWRITE || \
-                  inbound_message->get_msg_type() == OBJ_UPD) {
-                    // Send an update on the Kafka 'dvs' topic
-                    kafka->send(inbound_message->get_object(i)->to_transform_json(), config->get_kafkabroker());
-                }
-                std::string msg_key = inbound_message->get_object(i)->get_key();
-                if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
-                  // Build the BSON Update
-                  main_logging->debug("Overwriting BSON Object");
-                  AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
-                  inbound_message->get_object(i)->to_bson_update(bson);
-                  // If no key is present but we have both a name and
-                  // scene present, then use the update_by_query API
-                  if (msg_key.empty() && \
-                    !(inbound_message->get_object(i)->get_name().empty() && \
-                      inbound_message->get_object(i)->get_scene().empty())) {
-                    main_logging->debug("Updating object by name and scene");
-                    main_logging->debug(inbound_message->get_object(i)->get_name());
-                    main_logging->debug(inbound_message->get_object(i)->get_scene());
-                    // Build a query bson to pass to the update_by_query
-                    AOSSL::MongoBufferInterface *query_bson = mongo_factory->get_mongo_buffer();
+              // Build a query bson to pass to the update_by_query
+              AOSSL::MongoBufferInterface *query_bson = mongo_factory->get_mongo_buffer();
+              AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
+              std::string msg_key = inbound_message->get_object(i)->get_key();
+              bool execute_query = true;
+              if (msg_key.empty() && \
+                !(inbound_message->get_object(i)->get_name().empty() && \
+                  inbound_message->get_object(i)->get_scene().empty())) {
                     std::string name_key = "name";
                     std::string scene_key = "scene";
                     query_bson->add_string(name_key, inbound_message->get_object(i)->get_name());
                     query_bson->add_string(scene_key, inbound_message->get_object(i)->get_scene());
-                    mongo->update_by_query(query_bson, bson);
-                    delete query_bson;
-                  // If we do have a key, then use that to make the update
-                  } else {
-                    main_logging->debug(msg_key);
-                    mongo->save_document(bson, msg_key);
-                  }
-                  delete bson;
-                } else {
-                  // Load the current doc from the database
-                  rapidjson::Document resp_doc;
-                  MongoResponseInterface *resp = mongo->load_document(msg_key);
-                  if (resp) {
-                    std::string mongo_resp_str = resp->get_value();
-                    main_logging->debug("Document loaded from Mongo");
-                    main_logging->debug(mongo_resp_str);
-                    resp_doc.Parse(mongo_resp_str.c_str());
-                    ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
-                    // Save the resulting object
-                    AOSSL::MongoBufferInterface *bson = mongo_factory->get_mongo_buffer();
-                    if (inbound_message->get_op_type() == APPEND) {
-                      // Apply the object message as changes to the DB Object
-                      resp_obj->merge(inbound_message->get_object(i));
-                      resp_obj->to_bson(bson);
-                    } else {
-                      inbound_message->get_object(0)->to_bson_update(true, false, bson);
-                    }
-                    main_logging->debug("Saving BSON Object");
-                    main_logging->debug(msg_key);
-                    mongo->save_document(bson, msg_key);
-                    response_message->add_object(resp_obj);
-                    delete bson;
-                    delete resp;
-                  } else {
-                    main_logging->error("Document not found in Mongo");
-                    response_message->set_error_code(NOT_FOUND);
-                    new_error_message = "Object not Found";
-                    response_message->set_error_message(new_error_message);
-                  }
-                }
-                // Enforce atomic updates -- release redis lock
-                if (config->get_atomictransactions()) {
-                  if (!(lock.release_lock(\
-                    inbound_message->get_object(i)->get_key()))) \
-                    {main_logging->error("Failed to release Lock");}
-                }
-                // Enforce Object Locking -- release redis lock
-                if (config->get_locking_active() && inbound_message->get_msg_type() == OBJ_UNLOCK) {
-                  std::string lock_key = "ObjectLock-";
-                  lock_key = lock_key + inbound_message->get_object(i)->get_key();
-                  if (!(lock.release_lock(lock_key, \
-                    inbound_message->get_object(i)->get_owner()))) \
-                    {main_logging->error("Failed to release Lock");}
-                }
-              } else {
-                main_logging->error("Object Lock Encountered");
-                response_message->set_error_code(LOCK_EXISTS_ERROR);
-                new_error_message = "Existing Lock Encountered";
-                response_message->set_error_message(new_error_message);
+              } else if (!(msg_key.empty())) {
+                query_bson->add_oid(msg_key);
               }
+              // Add an owner query if object locking is active
+              if (config->get_locking_active()) {
+                std::string owner_key = "owner";
+                // If we have a lock message, then look for an empty owner
+                if (inbound_message->get_msg_type() == OBJ_LOCK) {
+                  std::string owner_search = "";
+                  query_bson->add_string(owner_key, owner_search);
+                // Otherwise, look for a matching owner to the input
+                } else {
+                  std::string owner_search = inbound_message->get_object(i)->get_owner();
+                  query_bson->add_string(owner_key, owner_search);
+                }
+              }
+              if (inbound_message->get_msg_type() == OBJ_OVERWRITE) {
+                // Build the BSON Update
+                main_logging->debug("Overwriting BSON Object");
+                inbound_message->get_object(i)->to_bson_update(bson);
+              } else {
+                // Load the current doc from the database
+                rapidjson::Document resp_doc;
+                MongoResponseInterface *resp = mongo->load_document(msg_key);
+                if (resp) {
+                  std::string mongo_resp_str = resp->get_value();
+                  main_logging->debug("Document loaded from Mongo");
+                  main_logging->debug(mongo_resp_str);
+                  resp_doc.Parse(mongo_resp_str.c_str());
+                  ObjectInterface *resp_obj = objfactory.build_object(resp_doc);
+                  // Save the resulting object
+                  if (inbound_message->get_op_type() == APPEND) {
+                    // Apply the object message as changes to the DB Object
+                    resp_obj->merge(inbound_message->get_object(i));
+                    // Update the object in case of unlock to have no owner before saving
+                    if (inbound_message->get_msg_type() == OBJ_UNLOCK) {
+                      std::string new_owner = "";
+                      resp_obj->set_owner(new_owner);
+                    }
+                    resp_obj->to_bson(bson);
+                  } else {
+                    // Update the object in case of unlock to have no owner before saving
+                    if (inbound_message->get_msg_type() == OBJ_UNLOCK) {
+                      std::string new_owner = "";
+                      inbound_message->get_object(0)->set_owner(new_owner);
+                    }
+                    inbound_message->get_object(0)->to_bson_update(true, false, bson);
+                  }
+                  response_message->add_object(resp_obj);
+                  delete resp;
+                } else {
+                  main_logging->error("Document not found in Mongo");
+                  response_message->set_error_code(NOT_FOUND);
+                  new_error_message = "Object not Found";
+                  response_message->set_error_message(new_error_message);
+                  execute_query = false;
+                }
+              }
+
+              // Actually execute the  Mongo update
+              if (execute_query) mongo->update_by_query(query_bson, bson);
+
+              // Send an update on the Kafka 'dvs' topic
+              if (inbound_message->get_msg_type() == OBJ_OVERWRITE || \
+                inbound_message->get_msg_type() == OBJ_UPD) {
+                  kafka->send(inbound_message->get_object(i)->to_transform_json(), config->get_kafkabroker());
+              }
+              delete query_bson;
+              delete bson;
             }
 
           // Object Retrieve
