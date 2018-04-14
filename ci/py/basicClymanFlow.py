@@ -48,7 +48,7 @@ test_data = {
   "name": "basicTestObject",
   "type": "basicTestType",
   "subtype": "basicTestSubtype",
-  "owner": "basicTestOwner",
+  "owner": "",
   "scene": "basicTestScene",
   "frame": 0,
   "translation": [0.0, 0.0, 0.0],
@@ -73,6 +73,7 @@ updated_test_data = {
 
 removal_test_data = {
   "key": "",
+  "owner": "Alex",
   "assets": ["basicTestAsset"]
 }
 
@@ -257,18 +258,22 @@ def execute_lock_flow(socket, test_data, test_transform,
     # Issue an unlock request
     unlock_data = {
         "msg_type": 6,
-        "objects": [{"key":test_data["key"]}]
+        "objects": [{"key":test_data["key"],
+                     "owner": updated_test_data['owner']}]
     }
     unlock_message = json.dumps(unlock_data)
     logging.debug(unlock_message)
     socket.send_string(unlock_message + "\n")
     unlock_response = socket.recv_string()
     logging.debug(unlock_response)
+    # Clear the owner on the updated test data, since it should be blank
+    # after being unlocked
+    updated_test_data["owner"] = ""
     validate_get_response(unlock_response,
                           updated_test_data,
                           updated_test_transform)
 
-    # Issue an unlock request
+    # Issue a delete request
     delete_data = {
         "msg_type": 3,
         "objects": [{"key":test_data["key"]}]
@@ -283,6 +288,7 @@ def execute_lock_flow(socket, test_data, test_transform,
 # Stream Flow
 def execute_stream_flow(socket, test_data, test_transform,
                         updated_test_data, updated_test_transform):
+    test_data["owner"] = "Alex"
     # Start with a create message
     create_test(socket, test_data, test_transform)
 

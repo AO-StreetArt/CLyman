@@ -367,7 +367,7 @@ int main(int argc, char** argv) {
                       std::string new_owner = "";
                       resp_obj->set_owner(new_owner);
                     }
-                    resp_obj->to_bson(bson);
+                    resp_obj->to_bson_update(bson);
                   } else {
                     // Update the object in case of unlock to have no owner before saving
                     if (inbound_message->get_msg_type() == OBJ_UNLOCK) {

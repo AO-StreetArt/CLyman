@@ -128,7 +128,7 @@ void ObjectDocument::write_string_attributes(ObjectInterface *target) {
     {RelatedObject::set_scene(target->get_scene());}
   if (!(target->get_type().empty())) type = target->get_type();
   if (!(target->get_subtype().empty())) subtype = target->get_subtype();
-  if (!(target->get_owner().empty())) owner = target->get_owner();
+  owner = target->get_owner();
   if (target->get_frame() > -9999.1) Object3d::set_frame(target->get_frame());
   if (target->get_timestamp() > -9999.1) Object3d::set_timestamp(target->get_timestamp());
 }
@@ -207,10 +207,8 @@ std::string ObjectDocument::to_json(bool is_query) {
     writer.String(subtype.c_str(), (rapidjson::SizeType)subtype.length());
   }
 
-  if (!(owner.empty())) {
-    writer.Key("owner");
-    writer.String(owner.c_str(), (rapidjson::SizeType)owner.length());
-  }
+  writer.Key("owner");
+  writer.String(owner.c_str(), (rapidjson::SizeType)owner.length());
 
   if (Object3d::get_frame() > -9999) {
     writer.Key("frame");
@@ -291,7 +289,9 @@ void ObjectDocument::to_bson_update(bool is_query, bool is_append_operation, AOS
     bson->add_string(key, subtype);
   }
 
-  if ((!(owner.empty())) && is_append_operation) {
+  // Always write the owner attribute, even if it's empty
+  // Needed for locking implementation (blank owner means unlocked)
+  if (is_append_operation) {
     std::string key = "owner";
     bson->add_string(key, owner);
   }
@@ -356,10 +356,10 @@ void ObjectDocument::to_bson(bool is_query, AOSSL::MongoBufferInterface *bson) {
     bson->add_string(key, subtype);
   }
 
-  if (!(owner.empty())) {
-    std::string key = "owner";
-    bson->add_string(key, owner);
-  }
+  // Always write the owner attribute, even if it's empty
+  // Needed for locking implementation (blank owner means unlocked)
+  std::string key = "owner";
+  bson->add_string(key, owner);
 
   if (Object3d::get_frame() > -9999.1) {
     std::string key = "frame";

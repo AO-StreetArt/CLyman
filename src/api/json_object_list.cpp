@@ -379,11 +379,9 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
         (rapidjson::SizeType)get_object(a)->get_subtype().length());
     }
 
-    if (!(get_object(a)->get_owner().empty())) {
-      writer.Key("owner");
-      writer.String(get_object(a)->get_owner().c_str(), \
-        (rapidjson::SizeType)get_object(a)->get_owner().length());
-    }
+    writer.Key("owner");
+    writer.String(get_object(a)->get_owner().c_str(), \
+      (rapidjson::SizeType)get_object(a)->get_owner().length());
 
     if (get_object(a)->get_frame() > -9999) {
       writer.Key("frame");
