@@ -26,16 +26,13 @@ install:
 - docker run -d --name=registry --network=dvs consul
 - docker pull mongo
 - docker run -d --network=dvs --name=document-db mongo
-- docker pull redis
-- docker run --network=dvs --name=cache -d redis
+- docker pull spotify/kafka
 - docker run -i -t -d -p 2181:2181 -p 9092:9092 --env ADVERTISED_PORT=9092 --env ADVERTISED_HOST=queue --name=queue --network=dvs spotify/kafka
-- docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString
 - docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString
 - docker exec -t registry curl -X PUT -d 'queue:9092' http://localhost:8500/v1/kv/clyman/KafkaBrokerAddress
 - docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
 - docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
 - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
-- docker exec -t registry curl -X PUT -d 'False' http://localhost:8500/v1/kv/clyman/AtomicTransactions
 - docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/ObjectLockingActive
 - docker exec -t registry curl -X PUT -d 'JSON' http://localhost:8500/v1/kv/clyman/DataFormatType
 - cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_test_consumer.sh
