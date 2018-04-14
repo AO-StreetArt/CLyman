@@ -29,9 +29,6 @@ limitations under the License.
 #include "aossl/logging/include/logging_interface.h"
 #include "aossl/logging/include/factory_logging.h"
 
-#include "aossl/redis/include/redis_interface.h"
-#include "aossl/redis/include/factory_redis.h"
-
 #include "aossl/uuid/include/uuid_interface.h"
 #include "aossl/uuid/include/factory_uuid.h"
 
@@ -52,7 +49,6 @@ extern ConfigurationManager *config;
 
 // Globals from the AO Shared Service Library
 extern MongoInterface *mongo;
-extern RedisInterface *red;
 extern uuidInterface *uid;
 extern Zmqio *zmqi;
 extern CommandLineInterface *cli;
@@ -61,7 +57,6 @@ extern KafkaClient *kafka;
 // Global Factory Objects
 extern CommandLineInterpreterFactory *cli_factory;
 extern MongoComponentFactory *mongo_factory;
-extern RedisComponentFactory *redis_factory;
 extern uuidComponentFactory *uuid_factory;
 extern ZmqComponentFactory *zmq_factory;
 extern LoggingComponentFactory *logging_factory;
@@ -76,7 +71,6 @@ inline void shutdown() {
 
   // Delete core objects
   if (mongo) delete mongo;
-  if (red) delete red;
   if (zmqi) delete zmqi;
   if (config) delete config;
   if (uid) delete uid;
@@ -93,7 +87,6 @@ inline void shutdown() {
   // Delete factories
   if (cli_factory) delete cli_factory;
   if (mongo_factory) delete mongo_factory;
-  if (redis_factory) delete redis_factory;
   if (uuid_factory) delete uuid_factory;
   if (zmq_factory) delete zmq_factory;
   if (logging_factory) delete logging_factory;

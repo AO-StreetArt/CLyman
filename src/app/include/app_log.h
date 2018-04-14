@@ -21,7 +21,6 @@ limitations under the License.
 #include "aossl/logging/include/logging_interface.h"
 
 extern LoggingCategoryInterface *config_logging;
-extern LoggingCategoryInterface *redis_logging;
 extern LoggingCategoryInterface *main_logging;
 extern LoggingCategoryInterface *obj_logging;
 extern LoggingCategoryInterface *uuid_logging;

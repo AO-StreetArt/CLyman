@@ -44,9 +44,6 @@ limitations under the License.
 #include "aossl/logging/include/logging_interface.h"
 #include "aossl/logging/include/factory_logging.h"
 
-#include "aossl/redis/include/redis_interface.h"
-#include "aossl/redis/include/factory_redis.h"
-
 #include "aossl/uuid/include/uuid_interface.h"
 #include "aossl/uuid/include/factory_uuid.h"
 
@@ -57,7 +54,6 @@ limitations under the License.
 #include "src/app/include/app_utils.h"
 #include "src/app/include/configuration_manager.h"
 #include "src/app/include/globals.h"
-#include "src/app/include/redis_locking.h"
 #include "src/app/include/query_helper.h"
 #include "src/app/include/kafka_client.h"
 
@@ -85,7 +81,6 @@ int main(int argc, char** argv) {
 
   // Setup the component factories
   cli_factory = new CommandLineInterpreterFactory;
-  redis_factory = new RedisComponentFactory;
   uuid_factory = new uuidComponentFactory;
   zmq_factory = new ZmqComponentFactory;
   logging_factory = new LoggingComponentFactory;
@@ -167,28 +162,6 @@ int main(int argc, char** argv) {
     }
   }
 
-  // Set up our Redis Connection List, which is passed
-  // to the Redis Admin to connect
-  std::vector<RedisConnChain> RedisConnectionList = \
-    config->get_redisconnlist();
-  // Set up Redis Connection
-  if (RedisConnectionList.size() > 0) {
-    try {
-      // Currently only support for single Redis instance
-      red = redis_factory->get_redis_interface(RedisConnectionList[0].ip, \
-        RedisConnectionList[0].port);
-    }
-    catch (std::exception& e) {
-      main_logging->error("Exception encountered during Redis Startup");
-      main_logging->error(e.what());
-      shutdown();
-      exit(1);
-    }
-    main_logging->info("Connected to Redis");
-  } else {
-    main_logging->error("No Redis Connections found in configuration");
-  }
-
   // Set up the Mongo Connection
   std::string DBConnStr = config->get_mongoconnstr();
   std::string DBName = config->get_dbname();
@@ -222,9 +195,6 @@ int main(int argc, char** argv) {
     shutdown();
     exit(1);
   }
-
-  // Set up the Redis Lock Helper
-  RedisLocker lock(red);
 
   // Main Request Loop
 
@@ -418,7 +388,7 @@ int main(int argc, char** argv) {
               }
 
               // Actually execute the  Mongo update
-              if (execute_query) mongo->update_by_query(query_bson, bson);
+              if (execute_query) mongo->update_by_query(query_bson, bson, false);
 
               // Send an update on the Kafka 'dvs' topic
               if (inbound_message->get_msg_type() == OBJ_OVERWRITE || \
