@@ -177,10 +177,7 @@ Object Update
 
 Object updates can be used to either update basic object attributes
 (name, type, etc), or to apply transformations to the object.
-Transformations will be applied in the order that they are received, and
-if Atomic Transactions are enabled, then they will be applied in the
-order that they are received even if sent to different instances of
-Clyman, as long as they are connected to the same Redis instance.
+Transformations will be applied in the order that they are received.
 
 Object Destroy
 --------------
