@@ -388,11 +388,34 @@ int main(int argc, char** argv) {
               }
 
               // Actually execute the  Mongo update
-              if (execute_query) mongo->update_by_query(query_bson, bson, false);
-
+              AOSSL::MongoBufferInterface *response_buffer = NULL;
+              bool send_update = false;
+              if (execute_query) {
+                response_buffer = mongo->update_single_by_query(query_bson, bson);
+                // Look at the response buffer to ensure that a single document
+                // was matched and updated
+                std::string mdc_key = "modifiedCount";
+                std::string mtc_key = "matchedCount";
+                int num_modified = response_buffer->get_int(mdc_key);
+                int num_matched = response_buffer->get_int(mtc_key);
+                if (num_matched == 0) {
+                  main_logging->error("Document not found in Mongo");
+                  response_message->set_error_code(NOT_FOUND);
+                  new_error_message = "Object not Found";
+                  response_message->set_error_message(new_error_message);
+                } else if (num_modified == 0) {
+                  main_logging->error("Document found in Mongo, but update failed");
+                  response_message->set_error_code(LOCK_EXISTS_ERROR);
+                  new_error_message = "Object locked by another device";
+                  response_message->set_error_message(new_error_message);
+                } else {
+                  // Updates were successful in Mongo, so send via streams
+                  send_update = true;
+                }
+              }
               // Send an update on the Kafka 'dvs' topic
-              if (inbound_message->get_msg_type() == OBJ_OVERWRITE || \
-                inbound_message->get_msg_type() == OBJ_UPD) {
+              if ((inbound_message->get_msg_type() == OBJ_OVERWRITE || \
+                inbound_message->get_msg_type() == OBJ_UPD) && send_update) {
                   kafka->send(inbound_message->get_object(i)->to_transform_json(), config->get_kafkabroker());
               }
               delete query_bson;

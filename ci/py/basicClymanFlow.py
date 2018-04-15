@@ -295,6 +295,7 @@ def execute_stream_flow(socket, test_data, test_transform,
     # Follow up with an update message
     updated_test_data['name'] = test_data['name']
     updated_test_data['scene'] = test_data['scene']
+    updated_test_data['key'] = test_data['key']
     logging.info("Update Test")
     update_data = {
         "msg_type": 7,
