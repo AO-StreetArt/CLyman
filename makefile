@@ -2,7 +2,7 @@
 CC = g++
 CFLAGS  = -g -Wall
 STD = -std=c++11
-FULL_LIBS = -laossl -lcurl -lpthread -lzmq -llog4cpp -luuid -lmongoc-1.0 -lbson-1.0 -lhiredis -lrdkafka -lcppkafka `pkg-config --cflags --libs protobuf`
+FULL_LIBS = -laossl -lcurl -lpthread -lzmq -llog4cpp -luuid -lmongoc-1.0 -lbson-1.0 -lrdkafka -lcppkafka `pkg-config --cflags --libs protobuf`
 INCL_DIRS = -I/usr/include/libbson-1.0 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0 -Isrc/api/include -Isrc/app/include -Isrc/model/include
 BASE_INCL_DIR = $(CURDIR)
 LINK_DIRS = -L/usr/local/lib

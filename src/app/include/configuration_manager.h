@@ -42,7 +42,6 @@ const int JSON_FORMAT = 1;
 #include "aossl/commandline/include/commandline_interface.h"
 #include "aossl/consul/include/consul_interface.h"
 #include "aossl/logging/include/logging_interface.h"
-#include "aossl/redis/include/redis_interface.h"
 
 #include "aossl/consul/include/factory_consul.h"
 #include "aossl/properties/include/properties_reader_interface.h"
@@ -95,11 +94,9 @@ class ConfigurationManager {
   std::string OMQ_IBConnStr;
   std::string hostname;
   std::string port;
-  std::vector<RedisConnChain> RedisConnectionList;
   std::string KafkaBrokerList;
   int format_type;
   bool StampTransactionId;
-  bool AtomicTransactions;
   bool ObjectLockingActive;
 
   // The Current Node ID
@@ -141,7 +138,6 @@ class ConfigurationManager {
     Mongo_DbCollection = "test";
     isConsulActive = false;
     StampTransactionId = false;
-    AtomicTransactions = false;
     ObjectLockingActive = false;
     node_id = instance_id;
     consul_factory = new ConsulComponentFactory;
@@ -162,10 +158,8 @@ class ConfigurationManager {
   std::string get_dbname() {return Mongo_DbName;}
   std::string get_dbheadercollection() {return Mongo_DbCollection;}
   std::string get_ibconnstr() {return OMQ_IBConnStr;}
-  std::vector<RedisConnChain> get_redisconnlist() {return RedisConnectionList;}
   std::string get_kafkabroker() {return KafkaBrokerList;}
   bool get_transactionidsactive() {return StampTransactionId;}
-  bool get_atomictransactions() {return AtomicTransactions;}
   bool get_locking_active() {return ObjectLockingActive;}
   int get_formattype() {return format_type;}
 
