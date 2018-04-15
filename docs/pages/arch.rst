@@ -22,8 +22,7 @@ CLyman can also be deployed with Consul (https://www.consul.io/) as a
 Service Discovery and Distributed Configuration architecture. This
 requires a Consul Agent to be deployed that CLyman can connect to.
 
-CLyman depends on Redis (caching & atomic transactions), Mongo (database),
-and Kafka (data streaming) instances in order to function.
+CLyman depends on Mongo (database), and Kafka (data streaming) instances in order to function.
 
 Design
 ======

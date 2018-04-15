@@ -23,12 +23,8 @@ Luckily, these can all be setup with Docker as well:
 
 ``docker run -d --network=dvs --name=document-db mongo``
 
-``docker run --network=dvs --name=cache -d redis``
-
-This will start up a single instance each of Mongo, Redis, and Consul.  Consul stores our configuration values, so we'll need to set those up.
+This will start up a single instance each of Mongo and Consul.  Consul stores our configuration values, so we'll need to set those up.
 You can either view the `Consul Documentation <https://www.consul.io/intro/getting-started/ui.html>`__ for information on starting the container with a Web UI, or you can use the commands below for a quick-and-dirty setup:
-
-``docker exec -t registry curl -X PUT -d 'cache--6379----2--5--0' http://localhost:8500/v1/kv/clyman/RedisConnectionString``
 
 ``docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString``
 
@@ -37,8 +33,6 @@ You can either view the `Consul Documentation <https://www.consul.io/intro/getti
 ``docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection``
 
 ``docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId``
-
-``docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/AtomicTransactions``
 
 ``docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/Data_Format_Type``
 
@@ -69,10 +63,9 @@ Using the Latest Release
 ------------------------
 
 In order to use the latest release, you will still need to start up the
-applications used by CLyman, namely Redis, Mongo, and Consul.  This can be done
+applications used by CLyman, namely Mongo and Consul.  This can be done
 using the docker instructions above, or by installing each to the system manually.
 Instructions:
-* `Redis <https://redis.io/topics/quickstart>`__
 * `Mongo <https://docs.mongodb.com/getting-started/shell/>`__
 * `Consul <https://www.consul.io/intro/getting-started/install.html>`__
 
@@ -141,11 +134,11 @@ You may also build the test modules with:
 
 In order to run CLyman from a properties file, you will need:
 
--  To install and configure a Redis Server locally, instructions can be
-   found at http://redis.io/documentation
-
--  You will also need to have a Mongo Server installed locally.  Instructions
+-  You need to have a Mongo Server installed locally.  Instructions
    can be found at https://docs.mongodb.com/getting-started/
+
+-  You will also need a Kafka server running locally, instructions can
+   be found at https://kafka.apache.org/quickstart
 
 Continue on to the :ref:`Configuration Section <configuration>` for more details
 on the configuration options available when starting CLyman.

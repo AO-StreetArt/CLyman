@@ -99,14 +99,6 @@ DB
 -  0MQ\_InboundConnectionString - The connectivity string for the
    inbound 0MQ Port (example: tcp://\*:5555)
 
-Redis Connection
-~~~~~~~~~~~~~~~~
-
--  RedisConnectionString - We have a list of Redis Connections in our
-   cluster in the format "-ip--port--password--poolsize--timeout--role"
-
-Note, currently only connecting to a single Redis instance is supported.
-
 Kafka Connection
 ~~~~~~~~~~~~~~~~
 
