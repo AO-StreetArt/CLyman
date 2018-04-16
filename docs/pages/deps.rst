@@ -60,14 +60,6 @@ of C++ wrappers on many of the C libraries listed here.
 
 `AOSSL <https://github.com/AO-StreetArt/AOSharedServiceLibrary>`__ is released under an MIT License.
 
-
-LibHiredis
-----------
-`LibHiredis <https://github.com/redis/hiredis>`__ is used to communicate with Redis, a distributed key-value store.
-
-`LibHiredis <https://github.com/redis/hiredis>`__ is released under a BSD License.
-
-
 LibBson & LibMongoc
 -------------------
 `LibBson <https://github.com/mongodb/libbson>`__ and `LibMongoc <https://github.com/mongodb/mongo-c-driver>`__

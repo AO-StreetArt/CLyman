@@ -207,8 +207,10 @@ std::string ObjectDocument::to_json(bool is_query) {
     writer.String(subtype.c_str(), (rapidjson::SizeType)subtype.length());
   }
 
-  writer.Key("owner");
-  writer.String(owner.c_str(), (rapidjson::SizeType)owner.length());
+  if (!(owner.empty())) {
+    writer.Key("owner");
+    writer.String(owner.c_str(), (rapidjson::SizeType)owner.length());
+  }
 
   if (Object3d::get_frame() > -9999) {
     writer.Key("frame");
