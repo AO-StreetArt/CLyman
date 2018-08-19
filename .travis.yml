@@ -1,120 +1,63 @@
 sudo: required
-language: python
-python:
-- '2.7'
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - libssl-dev
-    - protobuf-compiler
-    - libprotobuf-dev
+dist: trusty
+language: cpp
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - nodejs
+            - python
+            - python-pip
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - nodejs
+            - python
+            - python-pip
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 services:
-- docker
+  - docker
 before_install:
-- pip install protobuf pyzmq
-- git clone https://github.com/AO-StreetArt/DvsInterface.git
-- cd DvsInterface && sudo make install
-- cd $TRAVIS_BUILD_DIR
-- git clone https://github.com/AO-StreetArt/0-Meter.git
-- git clone https://github.com/AO-StreetArt/PythonCsvHelper.git
-- docker network create dvs
+  - eval "${MATRIX_EVAL}"
+  - docker run -d -p 0.0.0.0:5005:5005 -p 0.0.0.0:5005:5005/udp --name udp-listener mendhak/udp-listener
+  - docker run -d --publish=7474:7474 --publish=7687:7687 --env=NEO4J_AUTH=none --volume=$HOME/neo4j/data:/data --name=database neo4j
+  - $CXX -v
+  - mkdir ../ivan_deps
+  - sudo cp scripts/linux/deb/build_deps.sh ../ivan_deps
+  - cd ../ivan_deps && sudo ./build_deps.sh $CXX > deps_log.txt
+  - sudo ldconfig
+  - npm install newman --global;
+  - pip install --user requests
+  - cd $TRAVIS_BUILD_DIR
+  - export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 install:
-- cd $TRAVIS_BUILD_DIR
-- docker pull consul
-- docker run -d --name=registry --network=dvs consul
-- docker pull mongo
-- docker run -d --network=dvs --name=document-db mongo
-- docker pull spotify/kafka
-- docker run -i -t -d -p 2181:2181 -p 9092:9092 --env ADVERTISED_PORT=9092 --env ADVERTISED_HOST=queue --name=queue --network=dvs spotify/kafka
-- docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString
-- docker exec -t registry curl -X PUT -d 'queue:9092' http://localhost:8500/v1/kv/clyman/KafkaBrokerAddress
-- docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
-- docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
-- docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
-- docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/ObjectLockingActive
-- docker exec -t registry curl -X PUT -d 'JSON' http://localhost:8500/v1/kv/clyman/DataFormatType
-- cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_test_consumer.sh
-- cd $TRAVIS_BUILD_DIR/scripts/linux && ./build_docker_instance.sh $TRAVIS_BRANCH
-  $TRAVIS_BUILD_DIR
-- cd $TRAVIS_BUILD_DIR/scripts/linux && ./run_docker_instance.sh $TRAVIS_BRANCH registry:8500
-  localhost 5556
+  - cd $TRAVIS_BUILD_DIR && make CC=$CXX && make test CC=$CXX
 before_script:
-- sleep 5
-- docker ps -a
-- docker logs clyman
-- docker logs document-db
-- docker logs registry
+  - docker logs database
 script:
-- cd $TRAVIS_BUILD_DIR && python ci/py/basicClymanFlow.py
-- cat basicClymanFlow.log
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt.xml
-- tail $TRAVIS_BUILD_DIR/obj_crt.log
-- docker logs --tail 75 clyman
-- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_get.csv
-  0 3
-- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_upd.csv
-  0 3
-- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_overwrite.csv
-  0 3
-- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_delete.csv
-  0 3
-- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_lock.csv
-  0 3
-- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_lock_bad.csv
-  0 3
-- cd $TRAVIS_BUILD_DIR && python PythonCsvHelper/CsvHelper.py obj_crt_out.csv ci/csv/obj_unlock.csv
-  0 3
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get.xml
-- tail $TRAVIS_BUILD_DIR/obj_get.log
-- docker logs --tail 75 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd.xml
-- tail $TRAVIS_BUILD_DIR/obj_upd.log
-- docker logs --tail 75 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_overwrite.xml
-- tail $TRAVIS_BUILD_DIR/obj_overwrite.log
-- docker logs --tail 75 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query.xml
-- tail $TRAVIS_BUILD_DIR/obj_name_query.log
-- docker logs --tail 75 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_lock.xml
-- tail $TRAVIS_BUILD_DIR/obj_lock.log
-- docker logs --tail 75 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_lock_bad.xml
-- tail $TRAVIS_BUILD_DIR/obj_lock.log
-- docker logs --tail 50 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_unlock.xml
-- tail $TRAVIS_BUILD_DIR/obj_unlock.log
-- docker logs --tail 50 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_lock_second.xml
-- tail $TRAVIS_BUILD_DIR/obj_lock.log
-- docker logs --tail 50 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del.xml
-- tail $TRAVIS_BUILD_DIR/obj_del.log
-- docker logs --tail 75 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_get_bad.xml
-- tail $TRAVIS_BUILD_DIR/obj_get.log
-- docker logs --tail 60 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_upd_bad.xml
-- tail $TRAVIS_BUILD_DIR/obj_upd.log
-- docker logs --tail 60 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_name_query_bad.xml
-- tail $TRAVIS_BUILD_DIR/obj_name_query.log
-- docker logs --tail 60 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_type_query_bad.xml
-- tail $TRAVIS_BUILD_DIR/obj_type_query.log
-- docker logs --tail 60 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_del_bad.xml
-- tail $TRAVIS_BUILD_DIR/obj_del.log
-- docker logs --tail 60 clyman
-- cd $TRAVIS_BUILD_DIR && python 0-Meter/0-meter.py ci/obj_crt_bad.xml
-- tail $TRAVIS_BUILD_DIR/obj_crt.log
-- docker logs --tail 60 clyman
-- docker logs --tail 150 test_consumer
-after_success:
-- cd $TRAVIS_BUILD_DIR/scripts/linux && ./push_docker_instance.sh $DOCKER_MAIL $DOCKER_UN
-  $DOCKER_PW $TRAVIS_BRANCH $TRAVIS_BUILD_DIR
+  - cd $TRAVIS_BUILD_DIR/tests && ./tests [unit]
+  - cd $TRAVIS_BUILD_DIR/tests && ./tests [integration]
+  - cd $TRAVIS_BUILD_DIR && ./crazy_ivan &
+  - echo $! > $TRAVIS_BUILD_DIR/pid.txt
+  - sleep 5
+  - cd $TRAVIS_BUILD_DIR/tests/postman && newman run ivan_flow.postman_collection.json -e ivan_flow.postman_environment.json
+  - cd $TRAVIS_BUILD_DIR/tests/netcat && ./udp_test.sh
+  - kill $(cat $TRAVIS_BUILD_DIR/pid.txt)
+  - sleep 1
+  - echo "kill" | nc -u -w 3 $(ip addr show eth0 | grep -Po 'inet \K[\d.]+') 8764
+  - docker logs udp-listener
 notifications:
   slack:
-    secure: xcrx4Sh5DLlDyI10jBTNYdQZzIROwx6MeQQqWIRTbEetqPsZhyr9bQK+P9rqhePsWyY/tLMAC4DWMLGZTG6U5z1OSjJTTJFNyljrZdHxUl0zK9tnq5CHXptIoYcsd918IF6X0rnsxjt/bTSMRv95nafhi3xwOn2j6PJVJHUaqnIXiJFKF+uhzZ+jZ+o2uimsCZU+YTCn+170Q7yqeyw+zMhml62Ub2AOemE3LCwQsQypPRs6hUuXouLPbOG2P0L9yDYDdzFfO56bO6fKlr4YsksNO6gY8XlfERsUjQZtWj737GP5AAcKMmjssoVNw9gmULQvw0gOrZBN8t9dWNvpOcchepJQ3Peb9CY9pF4Zqsousvpym/F2kVPnnXXoFzPP5lqOcDMUyH1ocDmDp+Gwmnbl2PN4ZvI9NJ+9W5qseoUnnZvY7yLq6zMhDhuDqGarSHeouEHtHSUrYBbtG/0GuEBx/3EHe7944SwJiiCrxgFh1azV4kYq3lFw8ZZwy7QImYICpjllqGOwUyC/vqNNbjaGlmYQvlfUxteaxYnCMUzWBt32SnmWR6+Io5qUPISgOinqRxcTe+LYWB/B7Ll8wxsHoVynd2MFkDXjbnZcviCu8WQBBXH5EX4mbcLwN2An0g+Ts5+znYbbzWMtdwMOiMXSSIpdWxfLwQPLKCbloZI=
+    secure: YGqapA0ZH4TFv9G0otZRcqQXTpL0Y/4J51V0pm6mNp9bQi9XIoE8zoCEtZcCPnEFWjPoq8Nj1tA86WzRnriOzZIkzm83Ou/ZRcB4ZCmro0qC9fffALubzEvbqqG3TW77Xq3N7orz7Bjs8H2nxYgNQPjfQtaIMqL8ziGvf6s22LBQOBlusFJF3uELhtFCXvToKTO6XkkmLQ7Oj/qeX/kF6k7R1+lLna4JVNgkIpoEoubticMqY+/3MiS1tY41Y9phW3rxOi1O4upWnRo0fR/1fXS6Gn2Tr2PBSxdNzaJsbhJWUHf+e4DJtPkuqc7ftqSrb4DZhSukBnjXpMtE45oYcWo3h4txxTGnnzD9yMnEHegvlj1kQbcwCNc8We3RDAP80DWgvH3i1rghJ01n0okOQ4Zokz0Ntw+8pExFXO7qfa1vH3s36oIOF97cU+HWGGxqDmcBNVLNBvYfEWqWEOpZeP5p6YvnOCBwSoPXvjbcu+PeP1n9b+95ZBTTzoTJ5sHy54q7r8o/037n5kij3BfKJIjgVHkFPpXVMWkSsMZnQpBHe0RF+Iiv9SIcySF1ln3jUWIBM4heXYywYNjE6Qpw0xVQ3oq4xBPxmcSN+kcWC7wiwMGLzBQErNhbI2IRNVRAZCWIpGVnrHXB4Ev6+A2YgH4c3pWZsXmXu3L1esLv0ac=

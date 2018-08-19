@@ -19,14 +19,16 @@ limitations under the License.
 
 // Constructor to parse a JSON from Mongo
 ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
-  obj_logging->debug("Building Obj3 from JSON Document");
   // Message Transforms
   // Start parsing the JSON Object
   if (d.IsObject()) {
-    obj_logging->debug("Object-Format Message Detected");
 
     if (d.HasMember("_id")) {
-      const rapidjson::Value *key_val = &d["_id"]["$oid"];
+      const rapidjson::Value *id_val = &d["_id"]["$oid"];
+      RelatedObject::set_key(id_val->GetString());
+    }
+    if (d.HasMember("key")) {
+      const rapidjson::Value *key_val = &d["key"];
       RelatedObject::set_key(key_val->GetString());
     }
     if (d.HasMember("name")) {
@@ -187,6 +189,12 @@ std::string ObjectDocument::to_json(bool is_query) {
   // Write string attributes
 
   if (!(name.empty())) {
+    writer.Key("key");
+    writer.String(RelatedObject::get_key().c_str(), \
+      (rapidjson::SizeType)RelatedObject::get_key().length());
+  }
+
+  if (!(name.empty())) {
     writer.Key("name");
     writer.String(name.c_str(), (rapidjson::SizeType)name.length());
   }
@@ -248,152 +256,6 @@ std::string ObjectDocument::to_json(bool is_query) {
   return json_str_val;
 }
 
-// to_bson_update which outputs fields as update operators
-// this method should get used for OVERWRITE type messages
-void ObjectDocument::to_bson_update(AOSSL::MongoBufferInterface *bson) {
-  to_bson_update(false, true, bson);
-}
-
-// to_bson_update which outputs fields as update operators
-// this method should get used for OVERWRITE type messages
-void ObjectDocument::to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson) {
-  to_bson_update(is_query, true, bson);
-}
-
-// to_bson_update which outputs fields as update operators
-// this method should get used for OVERWRITE type messages
-void ObjectDocument::to_bson_update(bool is_query, bool is_append_operation, AOSSL::MongoBufferInterface *bson) {
-  obj_logging->debug("Converting Obj3 to BSON update operator document");
-  std::string update_opt_key;
-  if (is_append_operation) {
-    update_opt_key = "$set";
-  } else {
-    update_opt_key = "$pull";
-  }
-  bson->start_object(update_opt_key);
-  if ((!(name.empty())) && is_append_operation) {
-    std::string key = "name";
-    bson->add_string(key, name);
-  }
-
-  if ((!(RelatedObject::get_scene().empty())) && is_append_operation) {
-    std::string key = "scene";
-    bson->add_string(key, RelatedObject::get_scene());
-  }
-
-  if ((!(type.empty())) && is_append_operation) {
-    std::string key = "type";
-    bson->add_string(key, type);
-  }
-
-  if ((!(subtype.empty())) && is_append_operation) {
-    std::string key = "subtype";
-    bson->add_string(key, subtype);
-  }
-
-  // Always write the owner attribute, even if it's empty
-  // Needed for locking implementation (blank owner means unlocked)
-  if (is_append_operation) {
-    std::string key = "owner";
-    bson->add_string(key, owner);
-  }
-
-  if (Object3d::get_frame() != -9999 && is_append_operation) {
-    std::string key = "frame";
-    bson->add_int(key, Object3d::get_frame());
-  }
-
-  // Write Transform
-  if (Object3d::has_transform() && (!is_query) && is_append_operation) {
-    std::string key = "transform";
-    bson->start_array(key);
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        bson->add_double(Object3d::get_transform()->get_transform_element(i, j));
-      }
-    }
-    bson->end_array();
-  }
-
-  if ((is_query && num_assets() > 0) || (!is_query)) {
-    std::string key = "assets";
-    std::string cond_key = "$in";
-    if (!is_append_operation) {
-      bson->start_object(key);
-      bson->start_array(cond_key);
-    } else {
-      bson->start_array(key);
-    }
-    for (int i = 0; i < RelatedObject::num_assets(); i++) {
-      bson->add_string(RelatedObject::get_asset(i));
-    }
-    bson->end_array();
-    if (!is_append_operation) {
-      bson->end_object();
-    }
-  }
-  bson->end_object();
-}
-
-// to_bson method to build an object to save to Mongo
-void ObjectDocument::to_bson(bool is_query, AOSSL::MongoBufferInterface *bson) {
-  obj_logging->debug("Converting Obj3 to BSON document");
-  if (!(name.empty())) {
-    std::string key = "name";
-    bson->add_string(key, name);
-  }
-
-  if (!(RelatedObject::get_scene().empty())) {
-    std::string key = "scene";
-    bson->add_string(key, RelatedObject::get_scene());
-  }
-
-  if (!(type.empty())) {
-    std::string key = "type";
-    bson->add_string(key, type);
-  }
-
-  if (!(subtype.empty())) {
-    std::string key = "subtype";
-    bson->add_string(key, subtype);
-  }
-
-  // Always write the owner attribute, even if it's empty
-  // Needed for locking implementation (blank owner means unlocked)
-  std::string key = "owner";
-  bson->add_string(key, owner);
-
-  if (Object3d::get_frame() > -9999.1) {
-    std::string key = "frame";
-    bson->add_int(key, Object3d::get_frame());
-  }
-
-  // Write Transform
-  if (Object3d::has_transform() && (!is_query)) {
-    std::string key = "transform";
-    bson->start_array(key);
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        bson->add_double(Object3d::get_transform()->get_transform_element(i, j));
-      }
-    }
-    bson->end_array();
-  }
-
-  if ((is_query && num_assets() > 0) || (!is_query)) {
-    std::string key = "assets";
-    bson->start_array(key);
-    for (int i = 0; i < RelatedObject::num_assets(); i++) {
-      bson->add_string(RelatedObject::get_asset(i));
-    }
-    bson->end_array();
-  }
-}
-
-void ObjectDocument::to_bson(AOSSL::MongoBufferInterface *bson) {
-  return to_bson(false, bson);
-}
-
 std::string ObjectDocument::to_transform_json() {
   // Initialize the string buffer and writer
   rapidjson::StringBuffer s;
@@ -445,6 +307,9 @@ std::string ObjectDocument::to_transform_json() {
   // The Stringbuffer now contains a json message
   // of the object
   transform_cstr_val = s.GetString();
-  transform_str_val.assign(transform_cstr_val);
+  // Build the expected format for an Object Change Stream
+  transform_str_val.assign(RelatedObject::get_scene());
+  transform_str_val.append("\n");
+  transform_str_val.append(transform_cstr_val);
   return transform_str_val;
 }

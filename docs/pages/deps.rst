@@ -5,45 +5,10 @@ Dependencies
 
 :ref:`Go Home <index>`
 
-CLyman is built on top of the work of many others, and here you will find information
-on all of the libraries and components that CLyman uses to be successful.
+CrazyIvan is built on top of the work of many others, and here you will find information
+on all of the libraries and components that CrazyIvan uses to be successful.
 
 Licenses for all dependencies can be found in the licenses folder within the repository.
-
-CppKafka
---------
-`CppKafka <https://github.com/mfontanini/cppkafka>`__ is a wrapper on top of librdkafka,
-which provides quick and easy access to pushing Kafka messages.
-
-`CppKafka <https://github.com/mfontanini/cppkafka>`__ is released under a BSD License.
-
-ZeroMQ
-------
-`Zero MQ <http://zeromq.org/>`__ is a lightweight messaging library that CLyman uses to communicate.  It is
-fast, versatile, and has bindings for many major languages.
-
-`Zero MQ <http://zeromq.org/>`__ is released under an LGPL License.
-
-
-CppZmq
-------
-`CppZmq <https://github.com/zeromq/cppzmq>`__ is the C++ binding for libzmq, which was written in C.
-
-`CppZmq <https://github.com/zeromq/cppzmq>`__ is released under an MIT License.
-
-
-Log4cpp
--------
-`Log4Cpp <http://log4cpp.sourceforge.net/>`__ is a logging library based on Log4j.
-
-`Log4Cpp <http://log4cpp.sourceforge.net/>`__ is released under an LGPL License.
-
-
-Eigen
------
-`Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__ is a Linear Algebra library.
-
-`Eigen <http://eigen.tuxfamily.org/index.php?title=Main_Page>`__ is released under an MPL License.
 
 
 RapidJson
@@ -60,13 +25,15 @@ of C++ wrappers on many of the C libraries listed here.
 
 `AOSSL <https://github.com/AO-StreetArt/AOSharedServiceLibrary>`__ is released under an MIT License.
 
-LibBson & LibMongoc
--------------------
-`LibBson <https://github.com/mongodb/libbson>`__ and `LibMongoc <https://github.com/mongodb/mongo-c-driver>`__
-are used to communicate with Mongo, a Document Based Database.
 
-`LibBson <https://github.com/mongodb/libbson>`__ and `LibMongoc <https://github.com/mongodb/mongo-c-driver>`__
-are released under Apache 2 Licenses.
+NeoCpp
+--------
+`NeoCpp <https://github.com/AO-StreetArt/NeoCpp>`__ is a wrapper on
+`LibNeo4j <https://github.com/cleishm/libneo4j-client/>`__, which is used to
+communicate with Neo4j, a Graph Based Database.
+
+`NeoCpp <https://github.com/AO-StreetArt/NeoCpp>`__ is released under an Apache 2 License.
+`LibNeo4j <https://github.com/cleishm/libneo4j-client/>`__ is released under an Apache 2 License.
 
 
 LibUUID
@@ -76,36 +43,35 @@ LibUUID
 `LibUUID <https://sourceforge.net/projects/libuuid/>`__ is released under a BSD License.
 
 
-LibCurl
--------
-`LibCurl <https://curl.haxx.se/libcurl/>`__ is a ubiquitous networking library.
+POCO
+----
+`The POCO Project <https://pocoproject.org/>`__ is a set of libraries for building networked C++ applications.
 
-`LibCurl <https://curl.haxx.se/libcurl/>`__ is released under an MIT License.
-
-
-LibProtobuf
------------
-LibProtobuf and the Protocol Buffer Compiler comprise a serialization system which
-CLyman can use to communicate in lieu of JSON.  You can find more information about
-Protocol Buffers at `the Google Developer Site <https://developers.google.com/protocol-buffers>`__
-
-The Protocol Buffer License is unique yet very unrestrictive.  For more information please see the
-`license itself <https://github.com/google/protobuf/blob/master/LICENSE>`__
+It is released under the Boost Software License.
 
 
-DVS Interface
--------------
-Finally, we also depend on the `DVS Interface Library <https://github.com/AO-StreetArt/DvsInterface>`__
-which houses a collection of .proto files for this project.
+Boost
+-----
+`The Boost Project <https://www.boost.org/>`__ is a set of C++ libraries, that are primarily used for UDP Processing.
 
-`DVS Interface <https://github.com/AO-StreetArt/DvsInterface>`__ is released under an MIT License.
+It is released under the Boost Software License.
 
+GLM
+---
+`GLM <https://glm.g-truc.net/0.9.9/index.html>`__ is the OpenGL math library,
+and is used to perform transformation calculations between scenes and/or devices.
+
+This is licensed under an MIT license.
 
 Automatic Dependency Resolution
 -------------------------------
 
-For Ubuntu 16.04 & Debian 7, the build\_deps.sh script should allow for
+For Ubuntu 16.04 or Centos7, the build\_deps.sh scripts should allow for
 automatic resolution of dependencies.
+
+Developers can utilize the Vagrant image, which will install dependencies in the VM.
+
+End-Users can run the Docker image, which will install dependencies in the container.
 
 Other Acknowledgements
 ----------------------

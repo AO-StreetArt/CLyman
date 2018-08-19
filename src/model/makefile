@@ -5,7 +5,7 @@ CC = g++
 CFLAGS  = -g -Wall
 STD = -std=c++11
 OBJS = object_document.o
-INCL_DIRS = -I/usr/include/libbson-1.0 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0 -I$(CURDIR)/../api/include/ -I$(CURDIR)/../app/include/
+INCL_DIRS = -Iinclude
 
 default: $(OBJS)
 

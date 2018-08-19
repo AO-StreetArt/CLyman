@@ -1,84 +1,61 @@
 #!/bin/bash
+set -e
 
-#This script will attempt to build basic project dependencies
+#This script will attempt to build CLyman dependencies
 
 #Based on CentOS 7
+#Not intended for use with other OS (should function correctly with Red Hat Enterprise Linux 7, untested)
 
 PRE=./downloads
 RETURN=..
 mkdir $PRE
 
-# Update the Server
-sudo yum -y update
+# Set up a reasonably new version of gcc
+yum -y install openssl-devel boost-devel centos-release-scl wget git gcc gcc-c++ cmake3
+yum -y update
+yum -y install devtoolset-6
+scl enable devtoolset-6 bash
 
-# Build & Install the Shared Service Library
-
+#Build & Install the Shared Service Library
 if [ ! -d /usr/local/include/aossl ]; then
 
-  # Create the folder to clone into
-  mkdir $PRE/aossl
-
-  # Get the latest code from the master branch on github
-  # You may alternatively download a release from the github releases page and use that
-  git clone https://github.com/AO-StreetArt/AOSharedServiceLibrary.git $PRE/aossl
+  wget https://github.com/AO-StreetArt/AOSharedServiceLibrary/releases/download/2.4.0/aossl-rhel-2.4.0.tar.gz
+  tar -xvzf aossl-rhel-2.4.0.tar.gz
 
   #Build the dependencies for the shared service library
   mkdir $PRE/aossl_deps
-  cp $PRE/aossl/scripts/rhel/build_deps.sh $PRE/aossl_deps/
-  cd $PRE/aossl_deps && sudo ./build_deps.sh
+  cp aossl-rhel/deps/build_deps.sh $PRE/aossl_deps/
+  cd $PRE/aossl_deps && ./build_deps.sh
   cd ../$RETURN
 
   #Build the shared service library
-  cd $PRE/aossl && make && sudo make install
-  sudo ldconfig
+  cd aossl-rhel && make clean && make && make install
+  cd ../
 
 fi
 
-#Install glm, protocol buffers, boost
-sudo yum install -y glm-devel protobuf-devel protobuf-compiler boost-devel
+# Build and install Mongocxx
+if [ ! -d /usr/local/include/neocpp ]; then
 
-# Here we look to install RapidJSON
+  wget https://github.com/mongodb/mongo-c-driver/releases/download/1.12.0/mongo-c-driver-1.12.0.tar.gz
+  tar xzf mongo-c-driver-1.12.0.tar.gz
+  mkdir mongo-c-driver-1.12.0/cmake-build
+  cd mongo-c-driver-1.12.0/cmake-build && cmake3 -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF .. && make && make install
 
-# This is a recommended library for JSON Processing.
-# Libprotobuf and protoc are also installed by default, for using Google Protocol Buffers.
-# If you wish to use other parsing methods or message formats, simply remove these
-if [ ! -d /usr/local/include/rapidjson ]; then
-
-  printf "Cloning RapidJSON\n"
-
-  mkdir $PRE/rapidjson
-
-  #Get the RapidJSON Dependency
-  git clone https://github.com/miloyip/rapidjson.git $PRE/rapidjson
-
-  #Move the RapidJSON header files to the include path
-  sudo cp -r $PRE/rapidjson/include/rapidjson/ /usr/local/include
+  wget https://github.com/mongodb/mongo-cxx-driver/archive/r3.3.1.tar.gz
+  tar -xzf r3.3.1.tar.gz
+  cd mongo-cxx-driver-r3.3.1/build && cmake3 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBSONCXX_POLY_USE_MNMLSTC=1 .. && make EP_mnmlstc_core && make && make install
 
 fi
 
-# Install librdkafka
-if [ ! -d /usr/local/include/librdkafka ]; then
-  wget https://github.com/edenhill/librdkafka/archive/v0.11.3.tar.gz
-  tar -xvzf v0.11.3.tar.gz
-  cd librdkafka-0.11.3 && ./configure && make && sudo make install
-fi
+# Install GLM
+if [ ! -d /usr/local/include/glm ]; then
 
-# Here we look to install cppkafka
-if [ ! -d /usr/local/include/cppkafka ]; then
-  printf "Cloning CppKafka\n"
-
-  mkdir $PRE/cppkafka
-
-  #Get the RapidJSON Dependency
-  git clone https://github.com/mfontanini/cppkafka.git $PRE/cppkafka
-
-  # Build and install
-  mkdir $PRE/cppkafka/build && cd $PRE/cppkafka/build && cmake .. && make && sudo make install
+  wget https://github.com/g-truc/glm/releases/download/0.9.9.0/glm-0.9.9.0.zip
+  unzip glm-0.9.9.0.zip
+  mkdir /usr/local/include/glm/
+  cp -r glm/glm/* /usr/local/include/glm/
 
 fi
 
-#Get the DVS Interface Protocol Buffer Library
-git clone https://github.com/AO-StreetArt/DvsInterface.git
-cd DvsInterface && sudo make install
-
-printf "Finished installing dependencies\n"
+printf "Finished installing dependencies"

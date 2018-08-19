@@ -1,144 +1,178 @@
 .. _quickstart:
 
-Getting Started with CLyman
-===========================
+Getting Started with CrazyIvan
+==============================
 
 :ref:`Go Home <index>`
 
 Docker
 ------
 
-The easiest way to get started with CLyman is with `Docker <https://docs.docker.com/get-started/>`__
+Using the Crazy Ivan Docker image is as simple as:
 
-If you do not have Docker installed, please visit the link above to get setup before continuing.
+.. code-block:: bash
 
-The first thing we need to do is setup the Docker Network that will allow us to communicate between our containers:
+   docker run --publish=8766:8766 --publish=8764:8764/udp aostreetart/crazyivan:v2
 
-``docker network create dvs``
+However, we also need a running instance of Neo4j to do anything interesting.  To
+get you up and running quickly, a Docker Compose file is provided.  To start up
+a Neo4j instance and a Crazy Ivan instance, simply run the following from the
+'compose/min' folder:
 
-Before we can start CLyman, we need to have a few other programs running first.
-Luckily, these can all be setup with Docker as well:
+.. code-block:: bash
 
-``docker run -d --name=registry --network=dvs consul``
+   docker-compose up
 
-``docker run -d --network=dvs --name=document-db mongo``
+Alternatively, you can deploy the stack with Docker Swarm using:
 
-This will start up a single instance each of Mongo and Consul.  Consul stores our configuration values, so we'll need to set those up.
-You can either view the `Consul Documentation <https://www.consul.io/intro/getting-started/ui.html>`__ for information on starting the container with a Web UI, or you can use the commands below for a quick-and-dirty setup:
+.. code-block:: bash
 
-``docker exec -t registry curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/Mongo_ConnectionString``
+   docker stack deploy --compose-file compose/min/docker-compose.yml ivan-stack
 
-``docker exec -t registry curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName``
+Once the services have started, test them by hitting Ivan's healthcheck endpoint:
 
-``docker exec -t registry curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection``
+.. code-block:: bash
 
-``docker exec -t registry curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId``
+   curl http://localhost:8766/health
 
-``docker exec -t registry curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/Data_Format_Type``
+The Transaction (HTTP) API is available on port 8766, and the Event (UDP) API
+is available on port 8764.  Keep in mind that this is not a secure deployment,
+but is suitable for exploring the :ref:`Crazy Ivan API <api_index>`.
 
-Then, we can start up CLyman:
+You may also continue on to the discussion of :ref:`How to Use Crazy Ivan <use>`.
 
-``docker run --name clyman --network=dvs -p 5555:5555 -d aostreetart/clyman -consul-addr=registry:8500 -ip=localhost -port=5555 -log-conf=CLyman/log4cpp.properties``
+Shutdown
+--------
+Shutdown of Crazy Ivan can be initiated with a kill or interrupt signal to the
+container, or with 'docker stop'.  However, at least one udp message must be
+received afterwards in order to successfully shut down the main event thread.
+You can send one with:
 
-This will start an instance of CLyman with the following properties:
+.. code-block:: bash
 
-- Connected to network 'dvs', which lets us refer to the other containers in the network by name when connecting.
-- Listening on localhost port 5555
-- Connected to Consul Container
+   echo "kill" | nc -u $(ip addr show eth0 | grep -Po 'inet \K[\d.]+') 8764
 
-We can open up a terminal within the container by:
+Replacing 'eth0' with your network device, if necessary.
 
-``docker exec -i -t clyman /bin/bash``
+Latest Release
+--------------
 
-The 'stop_clyman.py' script is provided as an easy way to stop CLyman running as
-a service.  This can be executed with:
+Download and unzip the latest release file from https://github.com/AO-StreetArt/CrazyIvan/releases.
 
-``python stop_clyman.py hostname port``
+Once you have done this, you can run the easy_install script with the -d option
+to install dependencies and the Crazy Ivan executable.  Alternatively, you can
+simply run the install_deps.sh script from the scripts/ folder, and then run
+the crazy_ivan executable from the main release folder.
 
-For a more detailed discussion on the deployment of CLyman, please see
-the :ref:`Deployment Section <deployment>`
-of the documentation.
+.. code-block:: bash
 
-Using the Latest Release
-------------------------
+   ./crazy_ivan
 
-In order to use the latest release, you will still need to start up the
-applications used by CLyman, namely Mongo and Consul.  This can be done
-using the docker instructions above, or by installing each to the system manually.
-Instructions:
-* `Mongo <https://docs.mongodb.com/getting-started/shell/>`__
-* `Consul <https://www.consul.io/intro/getting-started/install.html>`__
+In order to run CrazyIvan, you will need a Neo4j Server installed locally.
+Instructions can be found at https://neo4j.com/developer/get-started/, or Neo4j
+can be started via a Docker image:
 
-Then, download the latest release from the `Releases Page <https://github.com/AO-StreetArt/CLyman/releases>`__
+.. code-block:: bash
 
-Currently, pre-built binaries are available for:
+   docker run -d --publish=7474:7474 --publish=7687:7687 --env=NEO4J_AUTH=none --volume=$HOME/neo4j/data:/data --name=database neo4j
 
-* Ubuntu 16.04
-* CentOS7
+Either way, the default connection for CrazyIvan will connect without authentication.
 
-Unzip/untar the release file and enter into the directory.  Then, we will use the
-easy_install.sh script to install CLyman.  Running the below will attempt to install
-the dependencies, and then install the CLyman executable:
+You can move on to explore the :ref:`Crazy Ivan API <api_index>`, or
+check out the :ref:`Configuration Section <configuration>` for more details
+on the configuration options available when starting CrazyIvan.
 
-``sudo ./easy_install.sh -d``
+You may also continue on to the discussion of :ref:`How to Use Crazy Ivan <use>`.
 
-If you'd rather not automatically install dependencies, and only install the executable,
-then you can simply leave off the '-d' flag.  Additionally, you may supply
-a '-r' flag to uninstall CLyman:
 
-``sudo ./easy_install -r``
-
-Once the script is finished installing CLyman, you can start CLyman with:
-
-``sudo systemctl start clyman.service``
-
-The 'stop_clyman.py' script is provided as an easy way to stop CLyman running as
-a service.  This can be executed with:
-
-``python stop_clyman.py hostname port``
-
-Note: The CLyman configuration files can be found at /etc/clyman, and the log files
-can be found at /var/log/clyman.
 
 Building from Source
 --------------------
 
-The recommended system for development of CLyman is either
-Ubuntu 16.04 or CentOS7.  You will need gcc 5.0 or greater installed to
-successfully compile the program.
+The recommended system for development of CrazyIvan is either
+Ubuntu 18.04 or CentOS7.  You will need gcc 6.0 or greater and gnu make
+installed to successfully compile the program.
 
-``git clone https://github.com/AO-StreetArt/CLyman.git``
+* Ubuntu
 
-``mkdir clyman_deps``
+.. code-block:: bash
 
-``cp CLyman/scripts/linux/deb/build_deps.sh clyman_deps/build_deps.sh``
+   sudo apt-get install gcc-6 g++-6
+   export CC=gcc-6
+   export CXX=g++-6
 
-``cd clyman_deps``
+* Redhat
 
-``sudo ./build_deps.sh``
+https://www.softwarecollections.org/en/scls/rhscl/devtoolset-6/
 
-``cd ../CLyman``
+Next, you'll need to clone the repository and run the build_deps script.
+This will install all of the required dependencies for Crazy Ivan, and may take
+a while to run.
 
-``make``
+.. code-block:: bash
 
-This will result in creation of the clyman executable, which we can run
+   git clone https://github.com/AO-StreetArt/CrazyIvan.git
+   mkdir crazyivan_deps
+   cp CrazyIvan/scripts/deb/build_deps.sh crazyivan_deps/build_deps.sh
+   cd crazyivan_deps
+   sudo ./build_deps.sh
+
+You will also need to ensure that the POCO dependency is on the linker path,
+which can be done with:
+
+.. code-block:: bash
+
+   export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+
+Now, we can build Crazy Ivan:
+
+.. code-block:: bash
+
+   cd ../CrazyIvan
+   make
+
+This will result in creation of the crazy_ivan executable, which we can run
 with the below command:
 
-``./clyman``
+.. code-block:: bash
 
-When not supplied with any command line parameters, CLyman will look for an app.properties file and log4cpp.properties file to start from.
+   ./crazy_ivan
 
-You may also build the test modules with:
+When not supplied with any command line parameters, CrazyIvan will look for an app.properties file to start from.
 
-``make tests``
+You may also build the test executable in the tests/ directory with:
 
-In order to run CLyman from a properties file, you will need:
+.. code-block:: bash
 
--  You need to have a Mongo Server installed locally.  Instructions
-   can be found at https://docs.mongodb.com/getting-started/
+   make tests
 
--  You will also need a Kafka server running locally, instructions can
-   be found at https://kafka.apache.org/quickstart
+In order to run CrazyIvan from a properties file, you will need:
 
-Continue on to the :ref:`Configuration Section <configuration>` for more details
-on the configuration options available when starting CLyman.
+-  A Neo4j Server installed locally.  Instructions
+   can be found at https://neo4j.com/developer/get-started/
+
+Neo4j can be started via a Docker image:
+
+.. code-block:: bash
+
+   docker run -d --publish=7474:7474 --publish=7687:7687 --env=NEO4J_AUTH=none --volume=$HOME/neo4j/data:/data --name=database neo4j
+
+Either way, the default connection for CrazyIvan will connect without authentication.
+
+You can move on to explore the :ref:`Crazy Ivan API <api_index>`, or
+check out the :ref:`Configuration Section <configuration>` for more details
+on the configuration options available when starting CrazyIvan.
+
+You may also continue on to the discussion of :ref:`How to Use Crazy Ivan <use>`.
+
+Shutdown
+--------
+Shutdown of Crazy Ivan can be initiated with a kill or interrupt signal to the
+main thread.  However, at least one udp message must be received afterwards
+in order to successfully shut down the main event thread.  You can send one with:
+
+.. code-block:: bash
+
+   echo "kill" | nc -u $(ip addr show eth0 | grep -Po 'inet \K[\d.]+') 8764
+
+Replacing 'eth0' with your network device, if necessary.

@@ -18,14 +18,14 @@ limitations under the License.
 #include <vector>
 #include <string>
 
-#include "object_document.h"
+#include "model/include/object_document.h"
+#include "model/include/object_factory.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
 #include "object_list.h"
-#include "object_factory.h"
 
 #ifndef SRC_API_INCLUDE_JSON_OBJECT_LIST_H_
 #define SRC_API_INCLUDE_JSON_OBJECT_LIST_H_
@@ -34,9 +34,6 @@ limitations under the License.
 // It is responsible for parsing requests from external clients,
 // and writing the responses to go back to those external clients.
 class JsonObjectList : public ObjectList {
-  // String Return Value
-  const char* json_cstr_val;
-  std::string json_str_val;
   // Object Factory
   ObjectFactory ofactory;
 
@@ -49,7 +46,7 @@ class JsonObjectList : public ObjectList {
   // Copy Constructor
   JsonObjectList(const ObjectList &olist) : ObjectList(olist) {}
   // Message generation methods
-  void to_msg_string(std::string &out_string);
+  void to_msg_string(std::string &out_string) override;
 };
 
 #endif  // SRC_API_INCLUDE_JSON_OBJECT_LIST_H_

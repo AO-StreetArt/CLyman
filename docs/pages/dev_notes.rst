@@ -3,29 +3,99 @@
 Developer Notes
 ===============
 
-This page contains a series of notes intended to be beneficial for any contributors to CLyman.
+This page contains a series of notes intended to be beneficial for any contributors to Crazy Ivan.
 
-Development Docker Image
-------------------------
-Generating a development Docker Image is made easy by the DebugDockerfile.
-This image is unique in that it does not enter directly into CLyman, but
-rather installs all of the necessary dependencies and then waits.
+Vagrant
+-------
+We provide a Vagrantfile to setup a development environment, but this requires
+that you install `Vagrant <(https://www.vagrantup.com/)>`__.
+Once you have Vagrant installed, cd into the main directory and run:
 
-First, execute the below command from the root folder of the project to build your local debug image:
-``docker build --no-cache --file DebugDockerfile -t "aostreetart/clyman:debug" .``
+.. code-block:: bash
 
-Once this completes, run your image with the below command:
-``docker run --name clyman -p 5555:5555 -d aostreetart/clyman:debug``
+   vagrant up
 
-You can update the port number to whatever you like, and keep in mind that you may
-also need to connect the container to a docker network, depending on your configuration.
-For example:
-``docker run --name clyman --network=dvs -p 5555:5555 -d aostreetart/clyman:debug``
+Once the box starts, you can enter it with:
 
-Finally, you can open up a terminal within the box with:
-``docker exec -i -t clyman /bin/bash``
+.. code-block:: bash
 
-The container will have CLyman and all it's dependencies pre-installed, so you can get right to work!
+   vagrant ssh
+
+The Project folder on your machine is synced to the /vagrant folder in the VM, so you will
+need to move there before building.  Once in that folder, you can build the executable and tests:
+
+.. code-block:: bash
+
+   make && make test
+
+Packer
+------
+
+A Packer file is provided, which can be used with
+`Hashicorp Packer <https://www.packer.io>`__.  Configuration is provided for
+building a Docker Image, which can be executed with:
+
+.. code-block:: bash
+
+   packer build packer.json
+
+This will create a tagged image, which can then be pushed with
+
+.. code-block:: bash
+
+   docker push aostreetart/crazyivan:v2
+
+Docker
+------
+
+The `Crazy Ivan Docker Hub Repository <https://hub.docker.com/r/aostreetart/crazyivan/>`__
+contains the latest Docker images for Crazy Ivan.
+
+Running Test Cases
+------------------
+Building the tests can be done with:
+
+.. code-block:: bash
+
+   make test
+
+Tests cases are run using Catch2 (https://github.com/catchorg/Catch2), a few examples are shown below:
+
+Run all tests:
+
+.. code-block:: bash
+
+   ./tests/tests
+
+Run only the unit tests:
+
+.. code-block:: bash
+
+   ./tests/tests [unit]
+
+Run only the integration tests:
+
+.. code-block:: bash
+
+   ./tests/tests [integration]
+
+Continuous Integration
+----------------------
+
+Travis CI is used to run automated tests against Crazy Ivan each time a commit
+or pull request is submitted against the main repository.  The configuration for
+this can be updated via the .travis.yml file in the main folder of the project
+repository.
+
+`Latest CI Runs <https://travis-ci.org/AO-StreetArt/CrazyIvan/>`__
+
+Documentation
+-------------
+
+Documentation is built using Sphinx and hosted on Read the Docs.
+
+Updates to documentation can be made in the docs/ folder of the project
+repository, with files being in the .rst format.
 
 Generating Releases
 -------------------
@@ -35,7 +105,5 @@ It accepts three command line arguments:
 * the name of the release: crazyivan-*os_name*-*os_version*
 * the version of the release: we follow `semantic versioning <http://semver.org/>`__
 * the location of the dependency script: current valid paths are linux/deb (uses apt-get) and linux/rhel (uses yum)
-
-:ref:`Read About CLyman Automated Testing <tests>`
 
 :ref:`Go Home <index>`

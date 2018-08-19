@@ -3,115 +3,272 @@
 Configuration
 =============
 
-Properties File
----------------
+Crazy Ivan can be configured from one or more sources:
 
-CLyman can be configured via a properties file, which has a few command
-line options:
+* Environment Variables
+* Command Line Arguments
+* Consul KV Store
+* Vault KV Store
+* Properties File
 
--  ``./clyman`` - This will start CLyman with the default properties
-   file, app.properties
--  ``./clyman -config-file=file.properties`` - This will start CLyman
-   with the properties file, file.properties. Can be combined with
-   -log-conf.
--  ``./clyman -log-conf=logging.properties`` - This will start CLyman
-   with the logging properties file, logging.properties. Can be combined
-   with -config-file.
+The application gives priority to the values retrieved in the above order.  This means
+that an environment variable setting will override any other setting.
 
-The properties file can be edited in any text editor.
+Command Line arguments and Properties File keys are lower case, and separated
+by periods (ie. 'section.key=').  Environment Variables, Vault, and Consul keys
+are all upper case, and are separated by underscores (ie. 'SECTION_KEY=').
+
+All arguments are prefixed with the application name and profile name (ie.
+'section.key' becomes 'ivan.prod.section.key').  The profile name can be changed
+by providing the command line argument 'profile':
+
+.. code-block:: bash
+
+   ./crazy_ivan profile=dev
+
+You can store multiple profiles in your configuration sources, and then specify
+which one to use on startup of each instance.
+
+Cluster Name
+------------
+The 'cluster' option on the command line or in a properties file, or the 'AOSSL_CLUSTER_NAME' environment variable,
+will set the name of the cluster.  A cluster is a grouping of Crazy Ivan instances, which have been assigned particular
+scenes to manage.  Each Crazy Ivan instance is designed to manage a set number of scenes, and this allows for highly
+optimized streaming of object updates.
+
+The cluster name will affect both how Crazy Ivan registers with Consul, if provided, as well as the names of
+cluster-specific security properties.
+
+Vault
+-----
+Vault Address - Starts Crazy Ivan against a Vault instance.  Specified by
+a collection of arguments:
+
+* vault (Environment Variable VAULT) - the address of the vault instance
+
+.. code-block:: properties
+
+   vault=http://localhost:8200
+
+* vault.cert (Environment Variable VAULT_CERT) - the location of the SSL certificate
+to use when communicating with Vault.  You may also leave this
+blank to enable SSL encryption without providing a client certificate.
+
+.. code-block:: properties
+
+   vault.cert=
+
+* vault.authtype (Environment Variable VAULT_AUTHTYPE) - the authentication type
+used by Vault, currently supported options are 'APPROLE' and 'BASIC'
+
+.. code-block:: properties
+
+   vault.authtype=BASIC
+
+* vault.un (Environment Variable VAULT_UN) - The Username/Role Id for
+authenticating with Vault
+
+.. code-block:: properties
+
+   vault.un=test
+
+* vault.pw (Environment Variable VAULT_PW) - The Password/Secret Id for
+authenticating with Vault
+
+.. code-block:: properties
+
+   vault.pw=test
+
+In addition, the Vault UN and PW can be loaded from files on disk, 'vault_un.txt' and 'vault_pw.txt'.  This is the recommended
+method to set authentication info in CI/CD processes within an application container.
+
+Secure Properties
+-----------------
+Secure Properties can be loaded from a properties file for development purposes, but in a
+Production scenario should always be loaded from a Vault instance.  Once Crazy Ivan is connected
+to a Vault instance, the following properties can be loaded:
+
+* CONSUL_SSL_CERT - The SSL Certificate to use when communicating with Consul
+* CONSUL_ACL_TOKEN - The ACL Token to use when communicating with Consul
+* NEO4J_AUTH_UN - The Username to authenticate with discovered Neo4j instances
+* NEO4J_AUTH_PW - The Password to authenticate with discovered Neo4j instances
+* {cluster-name}_TRANSACTION_SECURITY_AUTH_USER - The username which will authenticate with Crazy Ivan over HTTP(s)
+* {cluster-name}_TRANSACTION_SECURITY_AUTH_PASSWORD - The password which will authenticate with Crazy Ivan over HTTP(s)
+* {cluster-name}_TRANSACTION_SECURITY_HASH_PASSWORD - The password for the hashing algorithm used to hash the password prior to storage.
+* {cluster-name}_EVENT_SECURITY_OUT_AES_KEY - The key for the AES-256 encryption used for sending UDP messages.
+* {cluster-name}_EVENT_SECURITY_OUT_AES_SALT - The salt used for the AES-256 encryption used for sending UDP messages.
+* {cluster-name}_EVENT_SECURITY_IN_AES_KEY - The key for the AES-256 encryption used for receiving UDP messages.
+* {cluster-name}_EVENT_SECURITY_IN_AES_SALT - The salt used for the AES-256 encryption used for receiving UDP messages.
+
+Secure properties can be loaded from any configuration source, but when loaded
+from Vault they should be present at the default path ('secret/') in the v2 KV Store.
 
 Consul
 ------
+Consul Address - Starts Crazy Ivan against a Consul instance.  Specified by
+either the `consul` command line argument or the `AOSSL_CONSUL_ADDRESS`
+environment variable.
 
-Clyman can also be configured via a Consul Connection, in which we must
-specify the address of the consul agent, and the ip & port of the
-Inbound ZeroMQ Connection.
+.. code-block:: bash
 
--  ``./clyman -consul-addr=localhost:8500 -ip=localhost -port=5555`` -
-   Start Clyman, register as a service with consul, and configure based
-   on configuration values in Consul, and bind to an internal 0MQ port
-   on localhost
--  ``./clyman -consul-addr=localhost:8500 -ip=tcp://my.ip -port=5555 -log-conf=logging.properties``
-   - Start Clyman, register as a service with consul, and configure
-   based on configuration values in Consul. Bind to an external 0MQ port
-   on tcp://my.ip, and configure from the logging configuration file,
-   logging.properties.
+   ./crazy_ivan consul=http://127.0.0.1:8500
 
-We can also use both a properties file and a Consul connection, in which case
-the properties file is used to define the ip and port of the inbound ZeroMQ connection,
-while Consul is used for registration and all other configuration retrieval.
+We may also include the arguments:
 
--  ``./clyman -consul-addr=localhost:8500 -config-file=file.properties``
+* consul.cert (Environment Variable AOSSL_CONSUL_SSL_CERT) - The location of the
+SSL Certificate to use when communicating with Consul.  You may also leave this
+blank to enable SSL encryption without providing a client certificate.
 
-When configuring from Consul the keys of the properties file are equal
-to the expected keys in Consul.
+.. code-block:: properties
 
-Logging
--------
+   consul.cert=
 
-The Logging Configuration File can also be edited with a text file, and
-the documentation for this can be found at
-http://log4cpp.sourceforge.net/api/classlog4cpp\_1\_1PropertyConfigurator.html
-Note that logging configuration is not yet in Consul, and always exists
-in a properties file.
+* consul.token (Environment Variable AOSSL_CONSUL_ACL_TOKEN) - The ACL Token to use when communicating with Consul
 
-The logging configuration provided shows all of the logging
-modules utilized by CLyman during all phases of execution, and all of
-these should be configured with the same names (for example,
-log4cpp.category.main).
+This will enable property retrieval from Consul KV Store & registering with Consul on start up.
 
-Clyman is built with many different logging modules, so that
-configuration values can change the log level for any given module, the
-log file of any given module, or shift any given module to a different
-appender or pattern entirely. These modules should always be present
-within configuration files, but can be configured to suit the particular
-deployment needs.
+The Consul ACL Token can alternatively be generated from the Consul Secret Store in Vault.
 
-Startup
--------
+* consul.token.role - The role configured in Vault to use to generate the Consul ACL Token.
 
-CLyman can be started with an option to wait for a specified number of
-seconds prior to looking for configuration values and opening up for requests.
-This is particularly useful when used with orchestration providers, in order
-to ensure that other components are properly started (in particular, in order
-to allow time for Consul to be populated with default configuration values).
+.. code-block:: properties
 
--  ``./clyman -wait=5`` - This will start CLyman with the default
-   properties file, and wait 5 seconds before starting.
+   consul.token.role=consul-role
 
-Configuration Key-Value Variables
----------------------------------
+Properties File
+---------------
+Properties File - Starts Crazy Ivan against a Properties File.  Specified by either
+the `props` command line argument or the `AOSSL_PROPS_FILE` environment variable.  For example:
 
-Below you can find a summary of the options in the Properties File or
-Consul Key-Value Store:
+.. code-block:: bash
 
-DB
-~~
+   ./crazy_ivan props=app.properties
 
--  Mongo\_ConnectionString - The string used to connect to the Mongo
-   instance (example: mongodb://localhost:27017/)
--  Mongo\_DbName - The Mongo Database to connect to within the cluster
--  Mongo\_DbCollection - The Mongo Collection to utilize for storing documents
+If no properties file is specified, Crazy Ivan will look for one named `app.properties` in both the
+current working folder, and in /etc/ivan/.
 
-0MQ
-~~~
+The consul address can also be specified within the properties file, with the key `consul`.
 
--  0MQ\_InboundConnectionString - The connectivity string for the
-   inbound 0MQ Port (example: tcp://\*:5555)
+HTTPS Setup
+-----------
+SSL Context Configuration is performed on startup, if enabled.  If the following properties
+are set, then SSL Certs for Crazy Ivan can be generated dynamically from Vault:
 
-Kafka Connection
-~~~~~~~~~~~~~~~~
+* transaction.security.ssl.ca.vault.active - 'true' or 'false'
 
-- KafkaBrokerAddress - The address and port of the Kafka Broker to send Object Updates to
+.. code-block:: properties
 
-Behavior
-~~~~~~~~~
+   transaction.security.ssl.ca.vault.active=true
 
--  DataFormatType - Are we communicating via JSON or Protocol Buffers
--  StampTransactionId - True or False, do we stamp Transaction IDs on messages that
-   do not have them already
--  AtomicTransactions - True or False, do we enforce atomic transactions
-   across all instances of CLyman for any given object.  This guarantees that
-   updates will be processed in the order they are received across the entire CLyman network.
+* transaction.security.ssl.ca.vault.role_name - the name of the role to use to generate the SSL Cert
+
+.. code-block:: properties
+
+   transaction.security.ssl.ca.vault.role_name=test-role
+
+* transaction.security.ssl.ca.vault.common_name - The Common-Name to use on the Certificate
+
+.. code-block:: properties
+
+   transaction.security.ssl.ca.vault.common_name=local
+
+Otherwise, SSL Certificate Generation can be configured from a file in the current working directory called 'ssl.properties'.
+
+HTTPS must be enabled with the following parameter:
+
+* transaction.security.ssl.enabled - 'true' or 'false'
+
+.. code-block:: properties
+
+   transaction.security.ssl.enabled=true
+
+Neo4j Connection
+----------------
+
+* Neo4j - A full connection string may be supplied here.
+
+.. code-block:: properties
+
+   neo4j=neo4j://username:password@localhost:7687
+
+In Production Scenarios it is recommended to use Neo4j Discovery.  If it is set
+to true, then Crazy Ivan will use Consul to find a Neo4j instance, and will
+dynamically find new instances when it encounters many consecutive failures.
+This is controlled by the property:
+
+* neo4j.discover - 'true' or 'false'.
+
+.. code-block:: properties
+
+   neo4j.discover=true
+
+When enabled, you will want to utilize the secure properties 'NEO4J_AUTH_UN' and
+'NEO4J_AUTH_PW' in Vault, in order to store the authorization info for Neo4j securely.
+
+Other Values
+------------
+
+There are a number of other options that Crazy Ivan can be provided on startup.
+Below is an overview of the remaining properties:
+
+* Log File - Path on disk to write logs to
+
+.. code-block:: properties
+
+   log.file=ivan.log
+
+* Log Level - Debug, Info, Warning, Error
+
+.. code-block:: properties
+
+   log.level=Debug
+
+* HTTP host to register with Consul
+
+.. code-block:: properties
+
+   http.host=127.0.0.1
+
+* HTTP Port
+
+.. code-block:: properties
+
+   http.port=8766
+
+* UDP Port
+
+.. code-block:: properties
+
+   udp.port=8764
+
+* Enable Event (UDP) Encryption
+
+.. code-block:: properties
+
+   event.security.aes.enabled=false
+
+* Transaction ID's active or inactive.  If active, Crazy Ivan will ensure a Transaction Id is stamped on each message.
+
+.. code-block:: properties
+
+   transaction.id.stamp=True
+
+* Format for transactions (HTTP traffic).  Currently only json is supported.
+
+.. code-block:: properties
+
+   transaction.format=json
+
+* Method for streaming events.  Currently only udp is supported.
+
+.. code-block:: properties
+
+   event.stream.method=udp
+
+* Format for streaming events.  Currently only json is supported
+
+.. code-block:: properties
+
+   event.format=json
 
 :ref:`Go Home <index>`

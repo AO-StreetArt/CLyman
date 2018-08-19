@@ -1,6 +1,6 @@
 *.o
 *.a
-clyman
+crazy_ivan
 *.log
 *.log.*
 *.cc
@@ -14,3 +14,11 @@ scripts/*pb2.py
 *.proto
 src/*.proto
 docs/_build/
+.vagrant/
+tests/tests
+tests/netcat/udp_message_upd.txt
+tests/netcat/scene_key.txt
+pid.txt
+*.pem
+*.key
+build.*

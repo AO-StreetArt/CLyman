@@ -1,69 +1,70 @@
-# Makefile Variables
-CC = g++
-CFLAGS  = -g -Wall
-STD = -std=c++11
-FULL_LIBS = -laossl -lcurl -lpthread -lzmq -llog4cpp -luuid -lmongoc-1.0 -lbson-1.0 -lrdkafka -lcppkafka `pkg-config --cflags --libs protobuf`
-INCL_DIRS = -I/usr/include/libbson-1.0 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0 -Isrc/api/include -Isrc/app/include -Isrc/model/include
-BASE_INCL_DIR = $(CURDIR)
+# define some Makefile variables for the compiler and compiler flags
+# to use Makefile variables later in the Makefile: $()
+#
+export CC = g++
+export CFLAGS  = -g -Wall
+export STD = -std=c++11
+export AOSSL_LIBS = -laossl -luuid -lcurl -lmongocxx -lbsoncxx
+export POCO_LIBS = -lPocoNetSSL -lPocoCrypto -lPocoNet -lPocoUtil -lPocoFoundation
+export LIBS = $(AOSSL_LIBS) $(POCO_LIBS) -lboost_system -lpthread
+INCL_DIRS = -I. -I$(CURDIR)/src/ -I/usr/local/include -I/usr/local/include/mongocxx/v_noabi -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/bsoncxx/v_noabi -I/usr/local/include/libbson-1.0
 LINK_DIRS = -L/usr/local/lib
-RM = rm -f
-PROTOC = protoc
-PROTO_OPTS = -I=/usr/local/include/dvs_interface
-PROTO_OUT = src/api/
-OBJS = src/app/app_log.o src/app/configuration_manager.o src/app/globals.o src/model/object_document.o src/api/Obj3.pb.cc src/api/json_object_list.o src/api/protobuf_object_list.o main.o
-TESTS = configuration_test log_test utils_test transform_test obj3_test object_list_test
+SUB_OBJECTS = src/model/object_document.o src/api/json_object_list.o
+INSTALL_CONFIG_DIR = /etc/clyman
+INSTALL_LOG_DIR = /var/log/clyman
+INSTALL_DIR = /usr/local/bin
 
-.PHONY: mksrc mktest
 
-# Central Targets
+.PHONY: mksrc test
 
-all: mksrc main.o main
+# -------------------------- Central Targets --------------------------------- #
 
-mksrc: src/Obj3.pb.cc
+build: clyman
+
+install: install_config install_controller install_service install_executable install_log
+
+	# ------------------------- Build Executable --------------------------------- #
+
+clyman: mksrc
+	$(CC) $(CFLAGS) -o $@ main.cpp $(SUB_OBJECTS) $(LIBS) $(STD) $(INCL_DIRS) $(LINK_DIRS)
+
+# ----------------------------- Submakes ------------------------------------- #
+
+mksrc:
 	@$(MAKE) -C src
 
-main.o: main.cpp src/app/include/app_utils.h
-	$(CC) $(CFLAGS) -o $@ -c main.cpp $(STD) $(INCL_DIRS)
-
-main:
-	$(CC) $(CFLAGS) -o clyman $(OBJS) $(FULL_LIBS) $(STD) $(INCL_DIRS) $(LINK_DIRS)
-
-src/Obj3.pb.cc: /usr/local/include/dvs_interface/Obj3.proto
-	$(PROTOC) $(PROTO_OPTS) --cpp_out=$(PROTO_OUT) /usr/local/include/dvs_interface/Obj3.proto
-	mv $(PROTO_OUT)/Obj3.pb.h src/api/include/
-
-# Tests
-
-test: mktest $(TESTS)
-	./configuration_test -config-file=tests/test.properties
-	./utils_test
-	./log_test
-	./transform_test
-	./obj3_test
-	./object_list_test
-
-mktest:
+test: mksrc
 	@$(MAKE) -C tests
 
-configuration_test:
-	$(CC) $(CFLAGS) -o $@ src/app/app_log.o src/app/configuration_manager.o tests/app/configuration_test.o $(FULL_LIBS) $(STD) $(INCL_DIRS)
+# -------------------------- Install Scripts --------------------------------- #
 
-log_test:
-	$(CC) $(CFLAGS) -o $@ src/app/app_log.o tests/app/log_test.o $(FULL_LIBS) $(STD) $(INCL_DIRS)
+install_config: mk_config_dir
+	cp release/app.properties $INSTALL_CONFIG_DIR/app.properties
 
-utils_test:
-	$(CC) $(CFLAGS) -o $@ tests/app/utils_test.o $(STD) $(INCL_DIRS)
+mk_config_dir:
+	mkdir -p $INSTALL_CONFIG_DIR
 
-transform_test:
-	$(CC) $(CFLAGS) -o $@ tests/model/transform_test.o $(STD) $(INCL_DIRS)
+install_controller:
+	cp scripts/linux/clyman_controller.sh $INSTALL_DIR/clyman_controller.sh
 
-obj3_test:
-	$(CC) $(CFLAGS) -o $@ tests/model/obj3_test.o src/model/object_document.o src/app/app_log.o $(FULL_LIBS) $(STD) $(INCL_DIRS)
+install_service:
+	cp clyman.service /etc/systemd/system/clyman.service
 
-object_list_test:
-	$(CC) $(CFLAGS) -o $@ tests/api/object_list_test.o src/api/protobuf_object_list.o src/api/json_object_list.o src/model/object_document.o src/app/app_log.o src/api/Obj3.pb.cc $(FULL_LIBS) $(STD) $(INCL_DIRS)
+install_executable:
+	cp clyman $INSTALL_DIR/clyman
 
-# Cleanup
+install_log:
+	mkdir /var/log/clyman
+
+# --------------------------- Clean Project ---------------------------------- #
 
 clean:
-	$(RM) app clyman *.o src/*.o *~ *.log *.log.* *_test tests/*.o src/*/*.pb.* src/*/*/*.pb.* src/*/*.o tests/*/*.o
+	rm clyman src/*/*.o src/*/*/*.o tests/tests
+
+reset: clean
+	rm tests/test_main.o
+
+# ------------------------- Uninstall Project -------------------------------- #
+
+uninstall:
+	rm $INSTALL_CONFIG_DIR/app.properties $INSTALL_DIR/clyman_controller.sh /etc/systemd/system/clyman.service $INSTALL_DIR/clyman

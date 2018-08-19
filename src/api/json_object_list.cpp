@@ -21,14 +21,12 @@ limitations under the License.
 // Not going to parse error code or message as we dont care about them coming
 // in, only going out
 JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
-  obj_logging->debug("Building ObjectList from JSON Document");
   // Initialize Empty String elements
   set_msg_type(-1);
   set_error_code(100);
   set_num_records(0);
   // Start parsing the JSON Object
   if (d.IsObject()) {
-    obj_logging->debug("Object-Format Message Detected");
 
     // Parse the base elements
     if (!(d.HasMember("msg_type"))) \
@@ -39,21 +37,18 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
       const rapidjson::Value *opid_val = &d["operation"];
       if (!(opid_val->IsNull())) {
         set_op_type(opid_val->GetInt());
-        obj_logging->debug("Operation Pulled");
       }
     }
     if (d.HasMember("transaction_id")) {
       const rapidjson::Value *tid_val = &d["transaction_id"];
       if (!(tid_val->IsNull())) {
         set_transaction_id(tid_val->GetString());
-        obj_logging->debug("Transaction ID Pulled");
       }
     }
     if (d.HasMember("num_records")) {
       const rapidjson::Value *nr_val = &d["num_records"];
       if (!(nr_val->IsNull())) {
         set_num_records(nr_val->GetInt());
-        obj_logging->debug("Num Records Pulled");
       }
     }
 
@@ -61,10 +56,8 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
     if (d.HasMember("objects")) {
       const rapidjson::Value *objs_val = &d["objects"];
       if (!(objs_val->IsNull())) {
-        obj_logging->debug("Objects Array pulled");
         if (objs_val->IsArray()) {
           for (auto& itr : objs_val->GetArray()) {
-            obj_logging->debug("Object Returned from objects array");
             // Create a new object
             ObjectInterface *new_obj = ofactory.build_object();
 
@@ -159,14 +152,11 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               }
             }
 
-            obj_logging->debug("Basic string values pulled");
-
             // Parse the transform elements
             Translation *trans = NULL;
             rapidjson::Value::ConstMemberIterator translation_iter = \
               itr.FindMember("translation");
             if (translation_iter != itr.MemberEnd()) {
-              obj_logging->debug("Translation pulled");
               const rapidjson::Value& translation_val = translation_iter->value;
               if (!(translation_val.IsNull() || translation_val.Size() == 0)) {
                 int i = 0;
@@ -193,7 +183,6 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             rapidjson::Value::ConstMemberIterator erot_iter = \
               itr.FindMember("euler_rotation");
             if (erot_iter != itr.MemberEnd()) {
-              obj_logging->debug("Euler Rotation pulled");
               const rapidjson::Value& erot_val = erot_iter->value;
               if (!(erot_val.IsNull() || erot_val.Size() == 0)) {
                 int i = 0;
@@ -220,7 +209,6 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             rapidjson::Value::ConstMemberIterator qrot_iter = \
               itr.FindMember("quaternion_rotation");
             if (qrot_iter != itr.MemberEnd()) {
-              obj_logging->debug("Quaternion Rotation pulled");
               const rapidjson::Value& qrot_val = qrot_iter->value;
               if (!(qrot_val.IsNull() || qrot_val.Size() == 0)) {
                 int i = 0;
@@ -251,7 +239,6 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             rapidjson::Value::ConstMemberIterator scale_iter = \
               itr.FindMember("scale");
             if (scale_iter != itr.MemberEnd()) {
-              obj_logging->debug("Scale pulled");
               const rapidjson::Value& scale_val = scale_iter->value;
               if (!(scale_val.IsNull() || scale_val.Size() == 0)) {
                 int i = 0;
@@ -274,21 +261,17 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               }
             }
             if (scl) {
-              obj_logging->debug(scl->to_string());
               new_obj->transform(scl);
               delete scl;
             }
             if (erot) {
-              obj_logging->debug(erot->to_string());
               new_obj->transform(erot);
               delete erot;
             } else if (qrot) {
-              obj_logging->debug(qrot->to_string());
               new_obj->transform(qrot);
               delete qrot;
             }
             if (trans) {
-              obj_logging->debug(trans->to_string());
               new_obj->transform(trans);
               delete trans;
             }
@@ -305,7 +288,6 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
 
 // write a JSON string from the object list
 void JsonObjectList::to_msg_string(std::string &out_string) {
-  obj_logging->debug("Writing Object to JSON");
 
   // Initialize the string buffer and writer
   rapidjson::StringBuffer s;
@@ -337,14 +319,11 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
       (rapidjson::SizeType)get_transaction_id().length());
   }
 
-  obj_logging->debug("Basic attributes written");
-
   // Write the object array
   writer.Key("objects");
   writer.StartArray();
 
   for (int a = 0; a < num_objects(); a++) {
-    obj_logging->debug("Writing Object into Objects Array");
 
     writer.StartObject();
 
@@ -393,10 +372,7 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
       writer.Uint(get_object(a)->get_timestamp());
     }
 
-    obj_logging->debug("Basic Object Attributes written");
-
     // Write transforms
-    obj_logging->debug("Writing Transform Matrix");
     writer.Key("transform");
     writer.StartArray();
     for (int i = 0; i < 4; i++) {
@@ -406,8 +382,6 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
       }
     }
     writer.EndArray();
-
-    obj_logging->debug("Writing Asset IDs");
     writer.Key("assets");
     writer.StartArray();
     for (int i = 0; i < get_object(a)->num_assets(); i++) {
@@ -425,6 +399,6 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
 
   // The Stringbuffer now contains a json message
   // of the object
-  json_cstr_val = s.GetString();
-  out_string.assign(json_cstr_val);
+  std::string return_string(s.GetString());
+  out_string.assign(return_string);
 }

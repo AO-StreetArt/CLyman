@@ -22,10 +22,7 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "Obj3.pb.h"
-
 #include "object_list_interface.h"
-#include "protobuf_object_list.h"
 #include "json_object_list.h"
 
 #ifndef SRC_API_INCLUDE_OBJECT_LIST_FACTORY_H_
@@ -35,16 +32,11 @@ limitations under the License.
 // ObjectListInterface
 class ObjectListFactory {
  public:
-  // Create an ObjectListInterface from a parsed Protocol Buffer Obj3List
-  ObjectListInterface* build_object_list(const protoObj3::Obj3List proto_list) \
-    {return new PbObjectList(proto_list);}
   // Create an ObjectListInterface from a parsed Rapidjson Document
   ObjectListInterface* build_object_list(const rapidjson::Document& d) \
     {return new JsonObjectList(d);}
   // Create an empty ObjectListInterface which converts to JSON
   ObjectListInterface* build_json_object_list() {return new JsonObjectList;}
-  // Create an empty ObjectListInterface which converts to Protocol Buffer
-  ObjectListInterface* build_proto_object_list() {return new PbObjectList;}
 };
 
 #endif  // SRC_API_INCLUDE_OBJECT_LIST_FACTORY_H_

@@ -2,18 +2,16 @@
 
 #Populate default configuration values into Consul
 
-curl -X PUT -d 'mongodb://document-db:27017/' http://localhost:8500/v1/kv/clyman/DB_ConnectionString
-
-curl -X PUT -d 'localhost:9092' http://localhost:8500/v1/kv/clyman/KafkaBrokerAddress
-
-curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/StampTransactionId
-
-curl -X PUT -d 'False' http://localhost:8500/v1/kv/clyman/AtomicTransactions
-
-curl -X PUT -d 'True' http://localhost:8500/v1/kv/clyman/ObjectLockingActive
-
-curl -X PUT -d 'Json' http://localhost:8500/v1/kv/clyman/DataFormatType
-
-curl -X PUT -d 'mydb' http://localhost:8500/v1/kv/clyman/Mongo_DbName
-
-curl -X PUT -d 'test' http://localhost:8500/v1/kv/clyman/Mongo_DbCollection
+curl -X PUT -d 'ivan.log' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_LOG_FILE
+curl -X PUT -d 'Debug' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_LOG_LEVEL
+curl -X PUT -d 'json' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_EVENT_FORMAT
+curl -X PUT -d 'udp' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_EVENT_STREAM_METHOD
+curl -X PUT -d 'json' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_TRANSACTION_FORMAT
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_NEO4J_DISCOVER
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_TRANSACTION_ID_STAMP
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_TRANSACTION_SECURITY_SSL_ENABLED
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_EVENT_SECURITY_AES_ENABLED
+curl -X PUT -d 'True' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_TRANSACTION_SECURITY_SSL_CA_VAULT_ACTIVE
+curl -X PUT -d 'test' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_TRANSACTION_SECURITY_SSL_CA_VAULT_ROLE_NAME
+curl -X PUT -d 'test' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_TRANSACTION_SECURITY_SSL_CA_VAULT_COMMON_NAME
+curl -X PUT -d 'single' http://localhost:8500/v1/kv/ivan/prod/IVAN_PROD_TRANSACTION_SECURITY_AUTH_TYPE

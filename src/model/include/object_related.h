@@ -19,7 +19,6 @@ limitations under the License.
 #include <vector>
 #include <exception>
 #include "object_3d.h"
-#include "app_log.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_RELATED_H_
 #define SRC_MODEL_INCLUDE_OBJECT_RELATED_H_

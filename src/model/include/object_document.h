@@ -20,15 +20,11 @@ limitations under the License.
 #include <exception>
 #include "object_related.h"
 #include "object_interface.h"
-#include "Obj3.pb.h"
-#include "app_log.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/error/en.h"
-
-#include "aossl/mongo/include/mongo_buffer_interface.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
 #define SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
@@ -63,56 +59,48 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   // Destructor
   ~ObjectDocument() {}
   // String Getters
-  std::string get_name() const {return name;}
-  std::string get_type() const {return type;}
-  std::string get_subtype() const {return subtype;}
-  std::string get_owner() const {return owner;}
+  std::string get_name() const override {return name;}
+  std::string get_type() const override {return type;}
+  std::string get_subtype() const override {return subtype;}
+  std::string get_owner() const override {return owner;}
   // String Setters
-  void set_name(std::string new_name) {name.assign(new_name);}
-  void set_type(std::string new_type) {type.assign(new_type);}
-  void set_subtype(std::string new_subtype) {subtype.assign(new_subtype);}
-  void set_owner(std::string new_owner) {owner.assign(new_owner);}
+  void set_name(std::string new_name) override {name.assign(new_name);}
+  void set_type(std::string new_type) override {type.assign(new_type);}
+  void set_subtype(std::string new_subtype) override {subtype.assign(new_subtype);}
+  void set_owner(std::string new_owner) override {owner.assign(new_owner);}
   void write_string_attributes(ObjectInterface *target);
   // Take a target object and apply it's fields as changes to this Object
-  void merge(ObjectInterface *target);
+  void merge(ObjectInterface *target) override;
   // Take a target object and overwrite this object's fields with it
-  void overwrite(ObjectInterface *target);
+  void overwrite(ObjectInterface *target) override;
   // to_json method to build an object to save to Mongo
-  std::string to_json(bool is_query);
-  std::string to_json();
-  // to_bson method to build an object to save to Mongo
-  void to_bson(bool is_query, AOSSL::MongoBufferInterface *bson);
-  void to_bson(AOSSL::MongoBufferInterface *bson);
-  // to_bson_update which outputs fields as update operators
-  // this method should get used for OVERWRITE type messages
-  void to_bson_update(bool is_query, bool is_append_operation, AOSSL::MongoBufferInterface *bson);
-  void to_bson_update(bool is_query, AOSSL::MongoBufferInterface *bson);
-  void to_bson_update(AOSSL::MongoBufferInterface *bson);
+  std::string to_json(bool is_query) override;
+  std::string to_json() override;
   // to_transform_message to build a JSON to send via UDP
-  std::string to_transform_json();
+  std::string to_transform_json() override;
   // Inherited Methods
   // Transform methods
-  void transform(Transformation *t) {Object3d::transform(t);}
-  bool has_transform() const {return Object3d::has_transform();}
-  Transformation* get_transform() const {return Object3d::get_transform();}
+  void transform(Transformation *t) override {Object3d::transform(t);}
+  bool has_transform() const override {return Object3d::has_transform();}
+  Transformation* get_transform() const override {return Object3d::get_transform();}
   // Frame/timestamp
-  int get_frame() const {return Object3d::get_frame();}
-  int get_timestamp() const {return Object3d::get_timestamp();}
-  void set_frame(int new_frame) {Object3d::set_frame(new_frame);}
-  void set_timestamp(int new_timestamp) {Object3d::set_timestamp(new_timestamp);}
+  int get_frame() const override {return Object3d::get_frame();}
+  int get_timestamp() const override {return Object3d::get_timestamp();}
+  void set_frame(int new_frame) override {Object3d::set_frame(new_frame);}
+  void set_timestamp(int new_timestamp) override {Object3d::set_timestamp(new_timestamp);}
   // String Getters
-  std::string get_key() const {return RelatedObject::get_key();}
-  std::string get_scene() const {return RelatedObject::get_scene();}
+  std::string get_key() const override {return RelatedObject::get_key();}
+  std::string get_scene() const override {return RelatedObject::get_scene();}
   // String Setters
-  void set_key(std::string new_key) {RelatedObject::set_key(new_key);}
-  void set_scene(std::string new_scene) {RelatedObject::set_scene(new_scene);}
+  void set_key(std::string new_key) override {RelatedObject::set_key(new_key);}
+  void set_scene(std::string new_scene) override {RelatedObject::set_scene(new_scene);}
   // Asset methods
-  int num_assets() const {return RelatedObject::num_assets();}
-  void add_asset(std::string id) {RelatedObject::add_asset(id);}
-  std::string get_asset(int index) const \
+  int num_assets() const override {return RelatedObject::num_assets();}
+  void add_asset(std::string id) override {RelatedObject::add_asset(id);}
+  std::string get_asset(int index) const override \
     {return RelatedObject::get_asset(index);}
-  void remove_asset(int index) {RelatedObject::remove_asset(index);}
-  void clear_assets() {RelatedObject::clear_assets();}
+  void remove_asset(int index) override {RelatedObject::remove_asset(index);}
+  void clear_assets() override {RelatedObject::clear_assets();}
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_

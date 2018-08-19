@@ -22,9 +22,7 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "Obj3.pb.h"
-
-#include "object_interface.h"
+#include "model/include/object_interface.h"
 
 #ifndef SRC_API_INCLUDE_OBJECT_LIST_INTERFACE_H_
 #define SRC_API_INCLUDE_OBJECT_LIST_INTERFACE_H_

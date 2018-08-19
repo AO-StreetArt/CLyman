@@ -22,10 +22,8 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "Obj3.pb.h"
-
-#include "object_document.h"
-#include "object_interface.h"
+#include "model/include/object_document.h"
+#include "model/include/object_interface.h"
 #include "object_list_interface.h"
 
 #ifndef SRC_API_INCLUDE_OBJECT_LIST_H_
@@ -65,7 +63,6 @@ class ObjectList : public ObjectListInterface {
   }
   // Copy Constructor
   inline ObjectList(const ObjectList &olist) {
-    obj_logging->debug("Copy Constructor Called");
     msg_type = olist.get_msg_type();
     err_code = olist.get_error_code();
     err_msg = olist.get_error_message();
@@ -79,25 +76,25 @@ class ObjectList : public ObjectListInterface {
     }
   }
   // Getters
-  int get_msg_type() const {return msg_type;}
-  int get_op_type() const {return op_type;}
-  int get_error_code() const {return err_code;}
-  std::string get_error_message() const {return err_msg;}
-  std::string get_transaction_id() const {return transaction_id;}
-  int get_num_records() const {return num_records;}
+  int get_msg_type() const override {return msg_type;}
+  int get_op_type() const override {return op_type;}
+  int get_error_code() const override {return err_code;}
+  std::string get_error_message() const override {return err_msg;}
+  std::string get_transaction_id() const override {return transaction_id;}
+  int get_num_records() const override {return num_records;}
   // Setters
-  void set_msg_type(int nt) {msg_type = nt;}
-  void set_op_type(int nt) {op_type = nt;}
-  void set_error_code(int nc) {err_code = nc;}
-  void set_error_message(std::string nm) {err_msg.assign(nm);}
-  void set_transaction_id(std::string nid) {transaction_id.assign(nid);}
-  void set_num_records(int nr) {num_records = nr;}
+  void set_msg_type(int nt) override {msg_type = nt;}
+  void set_op_type(int nt) override {op_type = nt;}
+  void set_error_code(int nc) override {err_code = nc;}
+  void set_error_message(std::string nm) override {err_msg.assign(nm);}
+  void set_transaction_id(std::string nid) override {transaction_id.assign(nid);}
+  void set_num_records(int nr) override {num_records = nr;}
   // Object list methods
-  int num_objects() const {return objects.size();}
-  void add_object(ObjectInterface *o) {objects.push_back(o);}
-  ObjectInterface* get_object(int index) const {return objects[index];}
-  void remove_object(int index) {objects.erase(objects.begin()+index);}
-  void clear_objects() {objects.clear();}
+  int num_objects() const override {return objects.size();}
+  void add_object(ObjectInterface *o) override {objects.push_back(o);}
+  ObjectInterface* get_object(int index) const override {return objects[index];}
+  void remove_object(int index) override {objects.erase(objects.begin()+index);}
+  void clear_objects() override {objects.clear();}
   // Message generation methods
   virtual void to_msg_string(std::string &out_string) = 0;
 };

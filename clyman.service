@@ -1,11 +1,11 @@
 [Unit]
-Description=CLyman Object Tracking Service
+Description=Crazy Ivan Scene Tracking Service
 
 [Service]
-User=clyman
-Group=clyman
-ExecStart=/usr/local/bin/clyman -consul-addr=localhost:8500 -config-file=/etc/clyman/app.properties -log-conf=/etc/clyman/log4cpp.properties
-ExecStop=./usr/local/bin/stop_clyman.py /etc/clyman/app.properties
+User=crazyivan
+Group=crazyivan
+ExecStart=/usr/local/bin/ivan_controller.sh start
+ExecStop=/usr/local/bin/ivan_controller.sh stop
 
 [Install]
 WantedBy=multi-user.target

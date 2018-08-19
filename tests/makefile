@@ -1,16 +1,17 @@
-BASE_INCL_DIR = $(CURDIR)
+API_TEST_FILES = unit/api/object_list_test.cpp
+MODEL_TEST_FILES = unit/model/transform_test.cpp
+USER_TEST_FILES = unit/user/account_manager_test.cpp
+TEST_FILES = $(API_TEST_FILES) $(MODEL_TEST_FILES) $(USER_TEST_FILES)
+INCL_DIRS = -I/usr/local/include -I. -I../src -I../src/model -I../src/api -I../src/user
+SRC_LOC = ../src/
+MODEL_LOC = $(SRC_LOC)/model
+API_LOC = $(SRC_LOC)/api
+MODEL_SUB_OBJECTS = $(MODEL_LOC)/object_document.o
+API_SUB_OBJECTS = $(API_LOC)/json_object_list.o
+SUB_OBJECTS = $(MODEL_SUB_OBJECTS) $(API_SUB_OBJECTS)
 
-# Makefile is defined to call make within the app, api, and model directories
+tests: test_main.o
+	$(CC) $(CFLAGS) test_main.o $(TEST_FILES) $(SUB_OBJECTS) -o $@ $(LIBS) $(STD) $(INCL_DIRS)
 
-.PHONY: mkapp mkapi mkmodel
-
-all: mkapp mkapi mkmodel
-
-mkapp:
-	@$(MAKE) -C app
-
-mkapi:
-	@$(MAKE) -C api
-
-mkmodel:
-	@$(MAKE) -C model
+test_main.o: test_main.cpp catch.hpp
+	$(CC) $(CFLAGS) test_main.cpp -c

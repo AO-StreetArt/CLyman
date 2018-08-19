@@ -1,0 +1,34 @@
+{
+  "builders": [
+    {
+      "type": "docker",
+      "image": "ubuntu:18.04",
+      "commit": "true",
+      "changes": [
+        "ENTRYPOINT [\"crazy_ivan\"]"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "apt-get update && apt-get install sudo"
+      ],
+      "only": ["docker"]
+    },
+    {
+      "type": "shell",
+      "script": "scripts/linux/container_install.sh"
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "repository": "aostreetart/crazyivan",
+        "tag": "v2"
+      }
+    ]
+  ]
+}
