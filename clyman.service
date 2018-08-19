@@ -2,10 +2,10 @@
 Description=Crazy Ivan Scene Tracking Service
 
 [Service]
-User=crazyivan
-Group=crazyivan
-ExecStart=/usr/local/bin/ivan_controller.sh start
-ExecStop=/usr/local/bin/ivan_controller.sh stop
+User=clyman
+Group=clyman
+ExecStart=/usr/local/bin/clyman_controller.sh start
+ExecStop=/usr/local/bin/clyman_controller.sh stop
 
 [Install]
 WantedBy=multi-user.target

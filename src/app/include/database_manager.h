@@ -96,10 +96,20 @@ class DatabaseManager {
       failures = 0;
     }
   }
+  inline void init_with_connection(std::string connection_string) {
+    if (!(connection_string.empty())) {
+      mongocxx::uri uri(connection_string);
+      internal_connection = new mongocxx::client(uri);
+      initialized = true;
+    }
+  }
  public:
   DatabaseManager(AOSSL::NetworkApplicationProfile *profile) : \
       logger(Poco::Logger::get("DatabaseManager")) \
       {internal_profile = profile;}
+  DatabaseManager(AOSSL::NetworkApplicationProfile *profile, std::string conn) : \
+      logger(Poco::Logger::get("DatabaseManager")) \
+      {internal_profile = profile;init_with_connection(conn);}
   ~DatabaseManager() {if (connected_service) delete connected_service;if (internal_connection) delete internal_connection;}
 
   //! Create an obj3 in the Mongo Database

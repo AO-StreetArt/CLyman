@@ -14,4 +14,4 @@ if [ $BRANCH_NAME != "master" ]; then
 fi
 
 cd $DIR && docker login -u $DOCKER_USER -p $DOCKER_PASS
-cd $DIR && docker push aostreetart/crazyivan:$TAG_NAME
+cd $DIR && docker push aostreetart/clyman:$TAG_NAME

@@ -59,7 +59,7 @@ install_log:
 # --------------------------- Clean Project ---------------------------------- #
 
 clean:
-	rm clyman src/*/*.o src/*/*/*.o tests/tests
+	rm clyman src/*/*.o tests/tests
 
 reset: clean
 	rm tests/test_main.o

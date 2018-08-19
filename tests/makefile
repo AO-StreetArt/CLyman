@@ -1,5 +1,5 @@
 API_TEST_FILES = unit/api/object_list_test.cpp
-MODEL_TEST_FILES = unit/model/transform_test.cpp
+MODEL_TEST_FILES = unit/model/transform_test.cpp unit/model/object_test.cpp
 USER_TEST_FILES = unit/user/account_manager_test.cpp
 TEST_FILES = $(API_TEST_FILES) $(MODEL_TEST_FILES) $(USER_TEST_FILES)
 INCL_DIRS = -I/usr/local/include -I. -I../src -I../src/model -I../src/api -I../src/user

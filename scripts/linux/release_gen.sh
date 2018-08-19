@@ -12,7 +12,7 @@ RELEASE_NAME=$1
 RELEASE_VERSION=$2
 DEPS_SCRIPT_LOC=$3
 
-printf "Generating CrazyIvan Release: $RELEASE_NAME - $RELEASE_VERSION\n"
+printf "Generating CLyman Release: $RELEASE_NAME - $RELEASE_VERSION\n"
 printf "Dependency Script Location: $DEPS_SCRIPT_LOC\n"
 
 printf "Building library\n"
@@ -44,13 +44,13 @@ cp scripts/linux/easy_install.sh ../$RELEASE_NAME
 cp scripts/linux/populate_consul.sh ../$RELEASE_NAME/scripts/linux
 
 #Copy the populate consul script into the release scripts folder
-cp scripts/linux/ivan_controller.sh ../$RELEASE_NAME/scripts/linux
+cp scripts/linux/clyman_controller.sh ../$RELEASE_NAME/scripts/linux
 
 #Copy the systemd unit file
-cp crazyivan.service ../$RELEASE_NAME
+cp clyman.service ../$RELEASE_NAME
 
 #Copy the executable
-cp crazy_ivan ../$RELEASE_NAME
+cp clyman ../$RELEASE_NAME
 
 #Copy the configuration file
 cp app.properties ../$RELEASE_NAME/app.properties

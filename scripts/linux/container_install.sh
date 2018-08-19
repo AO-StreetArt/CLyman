@@ -16,12 +16,12 @@ apt-get -y update
 apt-get -y install git g++-6
 export CXX=g++-6
 export CC=gcc-6
-git clone --depth=50 --branch=$BRANCH https://github.com/AO-StreetArt/CrazyIvan.git
-mkdir ivan_deps
-cp CrazyIvan/scripts/linux/deb/build_deps.sh ivan_deps
-cd ivan_deps && ./build_deps.sh
-export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
-cd ../CrazyIvan && make && make test
-cp crazy_ivan /usr/bin
-mkdir /etc/ivan
-cp app.properties /etc/ivan/
+git clone --depth=50 --branch=$BRANCH https://github.com/AO-StreetArt/CLyman.git
+mkdir clyman_deps
+cp CLyman/scripts/linux/deb/build_deps.sh clyman_deps
+cd clyman_deps && ./build_deps.sh
+export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH"
+cd ../CLyman && make && make test
+cp clyman /usr/bin
+mkdir /etc/clyman
+cp app.properties /etc/clyman/

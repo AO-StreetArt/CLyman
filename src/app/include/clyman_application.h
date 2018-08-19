@@ -149,6 +149,7 @@ protected:
       config.add_secure_opt(op);
     }
     // Set default values for configuration
+    config.add_opt(std::string("mongo"), std::string(""));
     config.add_opt(std::string("mongo.ssl.ca.file"), std::string(""));
     config.add_opt(std::string("mongo.ssl.ca.dir"), std::string(""));
     config.add_opt(std::string("transaction.format"), std::string("json"));
@@ -261,7 +262,9 @@ protected:
     }
 
     // Set up the Mongo Connection
-    DatabaseManager db_manager(&config);
+    AOSSL::StringBuffer initial_db_conn;
+    config.get_opt(std::string("mongo"), initial_db_conn);
+    DatabaseManager db_manager(&config, initial_db_conn.val);
 
     // Start the User Account Manager
     AOSSL::StringBuffer auth_type_buffer;
