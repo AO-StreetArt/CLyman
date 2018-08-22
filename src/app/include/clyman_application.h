@@ -34,8 +34,11 @@ limitations under the License.
 
 #include "config_loader_process.h"
 #include "event_stream_process.h"
+#include "cluster_loader_process.h"
 #include "thread_error_handler.h"
 #include "database_manager.h"
+#include "cluster_manager.h"
+#include "event_sender.h"
 
 #include "aossl/core/include/buffers.h"
 #include "aossl/profile/include/network_app_profile.h"
@@ -88,6 +91,7 @@ limitations under the License.
 // thread to handle each request.
 class Clyman: public Poco::Util::ServerApplication {
   AccountManagerInterface *acct_manager = NULL;
+  EventStreamPublisher *publisher = nullptr;
   AOSSL::ServiceInterface *my_app = NULL;
 public:
  Clyman() {}
@@ -104,6 +108,7 @@ protected:
   void uninitialize() {
     Poco::Util::ServerApplication::uninitialize();
     if (acct_manager) delete acct_manager;
+    if (publisher) delete publisher;
   }
 
   // Define basic CLI Opts
@@ -150,6 +155,8 @@ protected:
     }
     // Set default values for configuration
     config.add_opt(std::string("mongo"), std::string(""));
+    config.add_opt(std::string("mongo.db"), std::string("clyman"));
+    config.add_opt(std::string("mongo.collection"), std::string("obj3"));
     config.add_opt(std::string("mongo.ssl.ca.file"), std::string(""));
     config.add_opt(std::string("mongo.ssl.ca.dir"), std::string(""));
     config.add_opt(std::string("transaction.format"), std::string("json"));
@@ -264,7 +271,11 @@ protected:
     // Set up the Mongo Connection
     AOSSL::StringBuffer initial_db_conn;
     config.get_opt(std::string("mongo"), initial_db_conn);
-    DatabaseManager db_manager(&config, initial_db_conn.val);
+    AOSSL::StringBuffer database_name;
+    config.get_opt(std::string("mongo.db"), database_name);
+    AOSSL::StringBuffer database_collection;
+    config.get_opt(std::string("mongo.collection"), database_collection);
+    DatabaseManager db_manager(&config, initial_db_conn.val, database_name.val, database_collection.val);
 
     // Start the User Account Manager
     AOSSL::StringBuffer auth_type_buffer;
@@ -284,16 +295,37 @@ protected:
       acct_manager = NULL;
     }
 
+    // Start the Publisher to send events
+    AOSSL::StringBuffer aesout_key_buffer;
+    AOSSL::StringBuffer aesout_salt_buffer;
+    config.get_opt(config.get_cluster_name() + \
+        std::string(".event.security.out.aes.key"), aesout_key_buffer);
+    config.get_opt(config.get_cluster_name() + \
+        std::string(".event.security.out.aes.salt"), aesout_salt_buffer);
+    if (!(aesout_key_buffer.val.empty()) && !(aesout_salt_buffer.val.empty())) {
+      publisher = new EventStreamPublisher(aesout_key_buffer.val, aesout_salt_buffer.val);
+    } else {
+      publisher = new EventStreamPublisher;
+    }
+
+    // Start the Cluster Manager
+    ClusterManager cluster(&config);
+    cluster.update_cluster_info();
+
     // Start the background thread error handler
     ClymanErrorHandler eh;
     Poco::ErrorHandler* pOldEH = Poco::ErrorHandler::set(&eh);
+
+    // Kick off the Cluster Update background thread
+    std::thread cluster_thread(update_cluster, &cluster, 30000000);
+    cluster_thread.detach();
 
     // Kick off the Configuration Update background thread
     std::thread config_thread(update_config, &config, 300000000);
     config_thread.detach();
 
     // Kick off the Event Stream background thread
-    std::thread es_thread(event_stream, &config, &db_manager);
+    std::thread es_thread(event_stream, &config, &db_manager, publisher, &cluster);
     es_thread.detach();
 
     AOSSL::StringBuffer ssl_enabled_buf;
@@ -357,7 +389,7 @@ protected:
     if (ssl_enabled_buf.val == "true") {
       main_logger.information("Opening Secure HTTP Socket");
       Poco::Net::SecureServerSocket svs(saddr, 64);
-      Poco::Net::HTTPServer srv(new ObjectHandlerFactory(&config, acct_manager, &db_manager), svs, \
+      Poco::Net::HTTPServer srv(new ObjectHandlerFactory(&config, acct_manager, &db_manager, publisher, &cluster), svs, \
         new Poco::Net::HTTPServerParams);
       srv.start();
       waitForTerminationRequest();
@@ -365,7 +397,7 @@ protected:
     } else {
       main_logger.information("Opening HTTP Socket");
       Poco::Net::ServerSocket svs(saddr);
-      Poco::Net::HTTPServer srv(new ObjectHandlerFactory(&config, acct_manager, &db_manager), svs, \
+      Poco::Net::HTTPServer srv(new ObjectHandlerFactory(&config, acct_manager, &db_manager, publisher, &cluster), svs, \
         new Poco::Net::HTTPServerParams);
       srv.start();
       waitForTerminationRequest();

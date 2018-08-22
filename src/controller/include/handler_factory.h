@@ -27,6 +27,9 @@ limitations under the License.
 
 #include "heartbeat_handler.h"
 #include "object_base_handler.h"
+#include "app/include/event_sender.h"
+#include "app/include/database_manager.h"
+#include "app/include/cluster_manager.h"
 
 #include "aossl/profile/include/tiered_app_profile.h"
 
@@ -42,9 +45,11 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
   AOSSL::TieredApplicationProfile *config = NULL;
   DatabaseManager *db_manager = nullptr;
   AccountManagerInterface *accounts = NULL;
+  EventStreamPublisher *publisher = nullptr;
+  ClusterManager *cluster_info = nullptr;
  public:
-  ObjectHandlerFactory(AOSSL::TieredApplicationProfile *conf, AccountManagerInterface *accts, DatabaseManager *db) \
-    {config=conf;accounts = accts;db_manager=db;}
+  ObjectHandlerFactory(AOSSL::TieredApplicationProfile *conf, AccountManagerInterface *accts, DatabaseManager *db, EventStreamPublisher *pub, ClusterManager *cluster) \
+    {config=conf;accounts = accts;db_manager=db;publisher=pub;cluster_info=cluster;}
   Poco::Net::HTTPRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request) {
     // Authentication Routine
     char *buffer = NULL;
@@ -106,7 +111,7 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
     // Build a request handler for the message
     if (uri_path.size() > 1 && uri_path[0] == "v1" && request.getMethod() == "POST") {
       if (uri_path.size() == 2 && uri_path[1] == "object") {
-        return new ObjectBaseRequestHandler(config, db_manager, OBJ_CRT);
+        return new ObjectBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_CRT);
       }
     } else if (uri_path.size() == 1 && uri_path[0] == "health" && \
         request.getMethod() == "GET") {

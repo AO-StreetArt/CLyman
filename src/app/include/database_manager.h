@@ -26,6 +26,7 @@ limitations under the License.
 
 #include "model/include/object_factory.h"
 #include "model/include/object_interface.h"
+#include "model/include/transforms.h"
 
 #include "api/include/object_list_factory.h"
 #include "api/include/object_list_interface.h"
@@ -33,8 +34,14 @@ limitations under the License.
 #include "aossl/profile/include/network_app_profile.h"
 #include "aossl/consul/include/consul_interface.h"
 
+#include <bsoncxx/builder/stream/array.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/builder/stream/helpers.hpp>
+#include <bsoncxx/types.hpp>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
+#include <mongocxx/instance.hpp>
+#include <mongocxx/pool.hpp>
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
 
@@ -49,7 +56,10 @@ limitations under the License.
 //! Encapsulates the Mongocxx client, ensuring that
 //! we can safely update the connection on failure
 class DatabaseManager {
-  mongocxx::client *internal_connection;
+  mongocxx::instance inst{};
+  mongocxx::pool *pool = nullptr;
+  std::string db_name;
+  std::string coll_name;
   AOSSL::NetworkApplicationProfile *internal_profile = nullptr;
   Poco::Logger& logger;
   std::string last_connection_string;
@@ -83,38 +93,41 @@ class DatabaseManager {
     // Reset the internal connection
     logger.information("Connecting to Mongo instance: %s", mongo_conn_str);
     mongocxx::uri uri(mongo_conn_str);
-    if (internal_connection) delete internal_connection;
-    internal_connection = new mongocxx::client(uri);
+    if (pool) delete pool;
+    pool = new mongocxx::pool{uri};
   }
   inline void set_new_connection() {
     if (failures.load() > max_failures) {
       Poco::ScopedWriteRWLock scoped_lock(conn_usage_lock);
-      logger.debug("Max Neo4j Failures reached, identifying new instance");
+      logger.debug("Max Mongo Failures reached, identifying new instance");
       // Attempt to find a new Neo4j instance to use
       if (connected_service) delete connected_service;
       find_new_connection();
       failures = 0;
     }
   }
-  inline void init_with_connection(std::string connection_string) {
+  inline void init_with_connection(std::string connection_string, \
+      std::string db, std::string coll) {
+    db_name.assign(db);
+    coll_name.assign(coll);
     if (!(connection_string.empty())) {
       mongocxx::uri uri(connection_string);
-      internal_connection = new mongocxx::client(uri);
+      pool = new mongocxx::pool{uri};
       initialized = true;
     }
   }
  public:
-  DatabaseManager(AOSSL::NetworkApplicationProfile *profile) : \
-      logger(Poco::Logger::get("DatabaseManager")) \
-      {internal_profile = profile;}
-  DatabaseManager(AOSSL::NetworkApplicationProfile *profile, std::string conn) : \
-      logger(Poco::Logger::get("DatabaseManager")) \
-      {internal_profile = profile;init_with_connection(conn);}
-  ~DatabaseManager() {if (connected_service) delete connected_service;if (internal_connection) delete internal_connection;}
+  DatabaseManager(AOSSL::NetworkApplicationProfile *profile, std::string conn, \
+      std::string db, std::string collection) : logger(Poco::Logger::get("DatabaseManager")) \
+      {internal_profile = profile;init_with_connection(conn, db, collection);}
+  ~DatabaseManager() {if (connected_service) delete connected_service;if (pool) delete pool;}
 
   //! Create an obj3 in the Mongo Database
-  inline void create_object(ObjectInterface *obj) {
+  //! The newly generated key for the object will be populated
+  //! into the key parameter.
+  inline void create_object(ObjectInterface *obj, std::string& key) {
     int retries = 0;
+    logger.debug("Attempting to create object in Mongo");
     while (retries < max_retries) {
       // Initialize the connection for the first time
       bool expected_init_value = false;
@@ -124,9 +137,63 @@ class DatabaseManager {
       bool failure = false;
       try {
         Poco::ScopedReadRWLock scoped_lock(conn_usage_lock);
-        // TO-DO: Create and execute the Mongo Query
+        // Find the DB and Collection we're going to write into
+        auto client = pool->acquire();
+        mongocxx::database db = (*client)[db_name];
+        mongocxx::collection coll = db[coll_name];
+        // Use a BSON Builder to construct the document
+        auto builder = bsoncxx::builder::stream::document{};
+        builder << "key" << obj->get_key();
+        if (!(obj->get_name().empty())) {
+          builder << "name" << obj->get_name();
+        }
+        if (!(obj->get_type().empty())) {
+          builder << "type" << obj->get_type();
+        }
+        if (!(obj->get_subtype().empty())) {
+          builder << "subtype" << obj->get_subtype();
+        }
+        if (!(obj->get_owner().empty())) {
+          builder << "owner" << obj->get_owner();
+        }
+        if (!(obj->get_scene().empty())) {
+          builder << "scene" << obj->get_scene();
+        }
+        if (obj->get_frame() > -1) {
+          builder << "frame" << obj->get_frame();
+        }
+        if (obj->get_timestamp() > -1) {
+          builder << "timestamp" << obj->get_timestamp();
+        }
+        auto asset_array = bsoncxx::builder::stream::array{};
+        for (int i = 0; i < obj->num_assets(); i++) {
+          asset_array << obj->get_asset(i);
+        }
+        if (obj->num_assets() > 0) {
+          builder << "assets" << asset_array;
+        }
+        if (obj->has_transform()) {
+          auto transform_array = bsoncxx::builder::stream::array{};
+          for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 4; k++) {
+              if (j < 4 && k < 4) {
+                transform_array << std::to_string(obj->get_transform()->get_transform_element(j, k));
+              }
+            }
+          }
+          builder << "transform" << transform_array;
+        }
+        bsoncxx::document::value doc_value = \
+          builder << bsoncxx::builder::stream::finalize;
+        // Execute the insert
+        auto view = doc_value.view();
+        auto result = coll.insert_one(view);
+        // Pull the generated ID out of the response
+        if (result->result().inserted_count() > 0) {
+          key.assign(result->inserted_id().get_utf8().value.to_string());
+        }
       } catch (std::exception& e) {
-        logger.error("Exception executing Neo4j Query");
+        logger.error("Exception executing Mongo Query");
         logger.error(e.what());
         failures++;
         failure = true;

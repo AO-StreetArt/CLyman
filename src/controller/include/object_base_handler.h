@@ -26,6 +26,8 @@ limitations under the License.
 
 #include "app/include/clyman_utils.h"
 #include "app/include/database_manager.h"
+#include "app/include/event_sender.h"
+#include "app/include/cluster_manager.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -60,9 +62,11 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
   int msg_type = -1;
   ObjectListFactory object_list_factory;
   ObjectFactory object_factory;
+  EventStreamPublisher *publisher = nullptr;
+  ClusterManager *cluster_manager = nullptr;
  public:
-  ObjectBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, int mtype) \
-    {config=conf;msg_type=mtype;db_manager=db;}
+  ObjectBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, EventStreamPublisher *pub, ClusterManager *cluster, int mtype) \
+    {config=conf;msg_type=mtype;db_manager=db;publisher=pub;cluster_manager=cluster;}
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     Poco::Logger::get("Controller").debug("Responding to Object Request");
     response.setChunkedTransferEncoding(true);
@@ -72,6 +76,7 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
     char *tmpStr = clyman_request_body_to_json_document(request, doc);
     ObjectListInterface *response_body = object_list_factory.build_json_object_list();
     response_body->set_msg_type(msg_type);
+    response_body->set_error_code(NO_ERROR);
     if (doc.HasParseError()) {
       // Set up parse error response
       response.setStatus(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
@@ -88,37 +93,47 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
       ObjectListInterface *inp_doc = object_list_factory.build_object_list(doc);
       // update the message type and process the post input data
       inp_doc->set_msg_type(msg_type);
+
+      // Process the input objects
+      // send downstream updates, and persist the result
+      for (int i = 0; i < inp_doc->num_objects(); i++) {
+        // Add to the output message list
+        ObjectInterface *new_out_doc = object_factory.build_object();
+        // get the object out of the input message list
+        ObjectInterface* in_doc = inp_doc->get_object(i);
+        // Persist the creation message
+        std::string new_object_key;
+        try {
+          db_manager->create_object(in_doc, new_object_key);
+        } catch (std::exception& e) {
+          response_body->set_error_message(e.what());
+          response_body->set_error_code(PROCESSING_ERROR);
+          break;
+        }
+        new_out_doc->set_key(new_object_key);
+        response_body->add_object(new_out_doc);
+        // Send an update to downstream services
+        AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
+        if (downstream) {
+          std::string message = in_doc->get_scene() + \
+              std::string("\n") + in_doc->to_transform_json();
+          publisher->publish_event(message.c_str(), \
+              downstream->get_address(), stoi(downstream->get_port()));
+        }
+      }
+
       // Set up the response
       std::ostream& ostr = response.send();
 
-      // TO-DO: Process the input message and persist the result
-      bool result = true;
-
-      // TO-DO: Process the result
-      if (result) {
-        if (msg_type == OBJ_GET) {
-          // ostr << result->get_return_string();
-          ostr.flush();
-        } else {
-          ObjectInterface *key_obj = object_factory.build_object();
-          response_body->set_error_code(NO_ERROR);
-          // key_scn->set_key(result->get_return_string());
-          response_body->add_object(key_obj);
-          std::string response_body_string;
-          response_body->to_msg_string(response_body_string);
-          ostr << response_body_string;
-          ostr.flush();
-        }
-      } else {
-        // response_body->set_err_code(result->get_error_code());
-        // response_body->set_err_msg(result->get_error_description());
-        std::string response_body_string;
-        response_body->to_msg_string(response_body_string);
-        ostr << response_body_string;
-        ostr.flush();
+      // Process the result
+      std::string response_body_string;
+      response_body->to_msg_string(response_body_string);
+      ostr << response_body_string;
+      ostr.flush();
+      if (response_body->get_error_code() != NO_ERROR) {
+        response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
       }
       delete inp_doc;
-      // delete result;
     }
     delete response_body;
     delete[] tmpStr;

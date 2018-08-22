@@ -4,7 +4,7 @@
 export CC = g++
 export CFLAGS  = -g -Wall
 export STD = -std=c++11
-export AOSSL_LIBS = -laossl -luuid -lcurl -lmongocxx -lbsoncxx
+export AOSSL_LIBS = -laossl -luuid -lcurl -lbsoncxx -lmongocxx
 export POCO_LIBS = -lPocoNetSSL -lPocoCrypto -lPocoNet -lPocoUtil -lPocoFoundation
 export LIBS = $(AOSSL_LIBS) $(POCO_LIBS) -lboost_system -lpthread
 INCL_DIRS = -I. -I$(CURDIR)/src/ -I/usr/local/include -I/usr/local/include/mongocxx/v_noabi -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/bsoncxx/v_noabi -I/usr/local/include/libbson-1.0

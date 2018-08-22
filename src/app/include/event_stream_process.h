@@ -35,7 +35,12 @@ limitations under the License.
 #include "boost/asio.hpp"
 
 #include "clyman_utils.h"
+#include "cluster_manager.h"
 #include "database_manager.h"
+#include "event_sender.h"
+
+#include "model/include/object_interface.h"
+#include "model/include/object_factory.h"
 
 #ifndef SRC_APP_INCLUDE_EVENT_STREAM_PROCESS_H_
 #define SRC_APP_INCLUDE_EVENT_STREAM_PROCESS_H_
@@ -53,79 +58,59 @@ std::atomic<bool> is_sender_running(false);
 
 // Send UDP updates to downstream services
 // also responsible for cleaning up the event memory
-// TO-DO: Socket Pool Implementation
 class EventSender : public Poco::Runnable {
   char *event = NULL;
   boost::asio::io_service *io_service = nullptr;
+  EventStreamPublisher *publisher = nullptr;
   DatabaseManager *db_manager = nullptr;
-  bool encrypted = false;
-  bool decrypted = false;
-  std::string encrypt_key;
-  std::string encrypt_salt;
-  std::string decrypt_key;
-  std::string decrypt_salt;
+  ClusterManager *cluster_manager = nullptr;
   Poco::Logger& logger;
+  ObjectFactory object_factory;
 public:
-  EventSender(char *evt, boost::asio::io_service &ios, DatabaseManager *db) : logger(Poco::Logger::get("Event")) {
+  EventSender(char *evt, boost::asio::io_service &ios, DatabaseManager *db, EventStreamPublisher *pub, ClusterManager *cluster) : logger(Poco::Logger::get("Event")) {
     event = evt;
     io_service = &ios;
     db_manager = db;
-  }
-  EventSender(char *evt, boost::asio::io_service &ios, DatabaseManager *db, std::string& epasswd, std::string& esalt, std::string& dpasswd, std::string& dsalt) : logger(Poco::Logger::get("Event"))  {
-    event = evt;
-    io_service = &ios;
-    db_manager = db;
-    encrypted = true;
-    decrypted = true;
-    encrypt_key.assign(epasswd);
-    encrypt_salt.assign(esalt);
-    decrypt_key.assign(dpasswd);
-    decrypt_salt.assign(dsalt);
+    publisher = pub;
+    cluster_manager = cluster;
   }
   virtual void run() {
-    logger.debug("Sending Object Updates");
-    Poco::Crypto::CipherFactory& factory = Poco::Crypto::CipherFactory::defaultFactory();
-    // Creates a 256-bit AES cipher (one for encryption, one for decryption)
-    Poco::Crypto::Cipher* eCipher = factory.createCipher(Poco::Crypto::CipherKey("aes-256-cbc", encrypt_key, encrypt_salt));
-    Poco::Crypto::Cipher* dCipher = factory.createCipher(Poco::Crypto::CipherKey("aes-256-cbc", decrypt_key, decrypt_salt));
-    // Build the event string
-    std::string event_string(event);
-    // Build a UDP Socket to send our messages
-    boost::asio::ip::udp::socket socket(*io_service);
-    socket.open(boost::asio::ip::udp::v4());
-
-    // TO-DO: Construct the outgoing change stream message
-    std::string outgoing_event;
-    //TO-DO: Get the address of the downstream service
-    std::string service_host;
-    int service_port;
-
-    // Send the message to a downstream service
-    try {
-      boost::asio::ip::udp::endpoint remote_endpoint;
-      remote_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(service_host), service_port);
-      boost::system::error_code err;
-      if (encrypted) {
-        std::string encrypted = eCipher->encryptString(outgoing_event, Poco::Crypto::Cipher::ENC_BASE64);
-        socket.send_to(boost::asio::buffer(encrypted, encrypted.size()), remote_endpoint, 0, err);
-      } else {
-        socket.send_to(boost::asio::buffer(outgoing_event, outgoing_event.size()), remote_endpoint, 0, err);
+    // Convert the input event to an Object
+    rapidjson::Document doc;
+    doc.Parse<rapidjson::kParseStopWhenDoneFlag>(event);
+    if (doc.HasParseError()) {
+      logger.error("Error Parsing inbound Event:");
+      logger.error(event);
+    } else {
+      ObjectInterface* in_doc = object_factory.build_object(doc);
+      // Persist the creation message
+      std::string new_object_key;
+      try {
+        db_manager->create_object(in_doc, new_object_key);
+      } catch (std::exception& e) {
+        logger.error("Error Persisting Object: ");
+        logger.error(e.what());
       }
-    } catch (std::exception& e) {
-      logger.error(e.what());
+      if (!(new_object_key.empty())) {
+        in_doc->set_key(new_object_key);
+        // Send an update to downstream services
+        AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
+        if (downstream) {
+          std::string message = in_doc->get_scene() + \
+              std::string("\n") + in_doc->to_transform_json();
+          publisher->publish_event(message.c_str(), \
+              downstream->get_address(), stoi(downstream->get_port()));
+        }
+      }
     }
-
-    // TO-DO: Persist the update to the DB
 
     // Memory cleanup
     delete[] event;
-    delete eCipher;
-    delete dCipher;
   }
 };
 
 // Central Event Stream Process, which listens on a UDP port
-void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db) {
+void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, EventStreamPublisher *publisher, ClusterManager *cluster) {
   Poco::Logger& logger = Poco::Logger::get("Event");
   logger.information("Starting Event Stream");
   is_sender_running = true;
@@ -135,15 +120,9 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db) 
     AOSSL::StringBuffer aes_enabled_buffer;
     AOSSL::StringBuffer aesin_key_buffer;
     AOSSL::StringBuffer aesin_salt_buffer;
-    AOSSL::StringBuffer aesout_key_buffer;
-    AOSSL::StringBuffer aesout_salt_buffer;
     AOSSL::StringBuffer udp_port;
     config->get_opt(std::string("udp.port"), udp_port);
     config->get_opt(std::string("event.security.aes.enabled"), aes_enabled_buffer);
-    config->get_opt(config->get_cluster_name() + \
-        std::string(".event.security.out.aes.key"), aesout_key_buffer);
-    config->get_opt(config->get_cluster_name() + \
-        std::string(".event.security.out.aes.salt"), aesout_salt_buffer);
     config->get_opt(config->get_cluster_name() + \
         std::string(".event.security.in.aes.key"), aesin_key_buffer);
     config->get_opt(config->get_cluster_name() + \
@@ -170,16 +149,23 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db) 
         // Copy the message buffer into dynamic memory
         char *event_msg = new char[EVENT_LENGTH+1]();
         memcpy(event_msg, event_data_ptr, bytes_transferred);
+        // If necessary, decrypt the message
+        if (aes_enabled) {
+          std::string event_string(event_msg);
+          Poco::Crypto::CipherFactory& factory = Poco::Crypto::CipherFactory::defaultFactory();
+          Poco::Crypto::Cipher* dCipher = \
+              factory.createCipher(Poco::Crypto::CipherKey("aes-256-cbc", \
+              aesin_key_buffer.val, aesin_salt_buffer.val));
+          std::string decrypted = dCipher->decryptString(event_string, \
+              Poco::Crypto::Cipher::ENC_BASE64);
+          memcpy(event_msg, decrypted.c_str(), decrypted.size());
+        }
         logger.debug(event_msg);
         // Clear out any left-over event sender
         if (evt_senders[sender_index]) delete evt_senders[sender_index];
         // Build the new event sender
-        if (aes_enabled) {
-          evt_senders[sender_index] = new EventSender(event_msg, io_service, db, aesout_key_buffer.val, aesout_salt_buffer.val, aesin_key_buffer.val, aesin_salt_buffer.val);
-        } else {
-          evt_senders[sender_index] = new EventSender(event_msg, io_service, db);
-        }
-        // Fire off another thread to actually send UDP messages
+        evt_senders[sender_index] = new EventSender(event_msg, io_service, db, publisher, cluster);
+        // Fire off another thread to actually process events
         try {
           Poco::ThreadPool::defaultPool().start(*(evt_senders[sender_index]));
           sender_index = sender_index + 1;
