@@ -29,10 +29,12 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
   if (d.IsObject()) {
 
     // Parse the base elements
-    if (!(d.HasMember("msg_type"))) \
-      {throw Object3dException("No Msg Type Found");}
-    const rapidjson::Value *mtype_val = &d["msg_type"];
-    set_msg_type(mtype_val->GetInt());
+    if (d.HasMember("msg_type")) {
+      const rapidjson::Value *mtype_val = &d["msg_type"];
+      if (!(mtype_val->IsNull())) {
+        set_msg_type(mtype_val->GetInt());
+      }
+    }
     if (d.HasMember("operation")) {
       const rapidjson::Value *opid_val = &d["operation"];
       if (!(opid_val->IsNull())) {

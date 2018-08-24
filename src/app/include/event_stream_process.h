@@ -85,13 +85,14 @@ public:
       ObjectInterface* in_doc = object_factory.build_object(doc);
       // Persist the creation message
       std::string new_object_key;
+      DatabaseResponse response;
       try {
-        db_manager->create_object(in_doc, new_object_key);
+        db_manager->create_object(response, in_doc, new_object_key);
       } catch (std::exception& e) {
         logger.error("Error Persisting Object: ");
         logger.error(e.what());
       }
-      if (!(new_object_key.empty())) {
+      if (response.success && !(new_object_key.empty())) {
         in_doc->set_key(new_object_key);
         // Send an update to downstream services
         AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();

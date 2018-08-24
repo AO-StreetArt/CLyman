@@ -31,102 +31,118 @@ class ClusterManager {
   AOSSL::TieredApplicationProfile *profile = nullptr;
   std::atomic<int> current_vector{1};
   std::atomic<int> current_return_index{0};
-  std::string service_registration_name = "CrazyIvan_Udp";
+  std::string service_registration_name;
   AOSSL::ConsulComponentFactory consul_factory;
+  bool discover_ivan = true;
+  AOSSL::ServiceInterface *fixed_ivan_addr = nullptr;
+  inline void set_fixed_address(std::string host, std::string port) {
+    fixed_ivan_addr = consul_factory.get_service_interface("Ivan", "Ivan", host, port);
+    discover_ivan = false;
+  }
 public:
-  ClusterManager(AOSSL::TieredApplicationProfile *prof) {profile=prof;}
+  ClusterManager(AOSSL::TieredApplicationProfile *prof, std::string service_name) \
+      {profile=prof;service_registration_name.assign(service_name);}
+  ClusterManager(std::string ivan_host, std::string ivan_port) \
+      {set_fixed_address(ivan_host, ivan_port);}
   ~ClusterManager() {for (auto service : cluster_members1) {delete service;}\
-      for (auto service : cluster_members2) {delete service;}}
+      for (auto service : cluster_members2) {delete service;}\
+      if (fixed_ivan_addr) delete fixed_ivan_addr;}
   inline AOSSL::ServiceInterface* get_ivan() {
-    // Return a Service from the in-memory cluster information
-    if (current_vector == 1) {
-      if (cluster_members1.size() == 0) return nullptr;
-      if (current_return_index > cluster_members1.size()) {
-        current_return_index = 0;
+    if (discover_ivan) {
+      // Return a Service from the in-memory cluster information
+      if (current_vector == 1) {
+        if (cluster_members1.size() == 0) return nullptr;
+        if (current_return_index > cluster_members1.size()) {
+          current_return_index = 0;
+        }
+        return cluster_members1[current_return_index];
+      } else {
+        if (cluster_members2.size() == 0) return nullptr;
+        if (current_return_index > cluster_members2.size()) {
+          current_return_index = 0;
+        }
+        return cluster_members2[current_return_index];
       }
-      return cluster_members1[current_return_index];
+      current_return_index++;
     } else {
-      if (cluster_members2.size() == 0) return nullptr;
-      if (current_return_index > cluster_members2.size()) {
-        current_return_index = 0;
-      }
-      return cluster_members2[current_return_index];
+      return fixed_ivan_addr;
     }
-    current_return_index++;
   }
   // Should only be called by one thread at a time,
   // with atleast a few seconds in between
   inline void update_cluster_info() {
-    // Update the cluster information from Consul
-    // Delete then update the vector not currently in use
-    // with information from Consul, then update the
-    // current_vector variable
-    AOSSL::StringBuffer *services_buf = \
-        profile->get_consul()->services();
+    if (discover_ivan) {
+      // Update the cluster information from Consul
+      // Delete then update the vector not currently in use
+      // with information from Consul, then update the
+      // current_vector variable
+      AOSSL::StringBuffer *services_buf = \
+          profile->get_consul()->services();
 
-    // Parse the Services List that we get back from the agent
-    rapidjson::Document doc;
-    doc.Parse<rapidjson::kParseStopWhenDoneFlag>(services_buf->val.c_str());
-    if (doc.HasParseError()) {
-      if (services_buf) delete services_buf;
-      throw std::invalid_argument(GetParseError_En(doc.GetParseError()));
-    } else if (doc.IsObject()) {
-      // Clear out the previous cluster members in memory
-      if (current_vector == 1) {
-        for (auto member : cluster_members2) {
-          delete member;
+      // Parse the Services List that we get back from the agent
+      rapidjson::Document doc;
+      doc.Parse<rapidjson::kParseStopWhenDoneFlag>(services_buf->val.c_str());
+      if (doc.HasParseError()) {
+        if (services_buf) delete services_buf;
+        throw std::invalid_argument(GetParseError_En(doc.GetParseError()));
+      } else if (doc.IsObject()) {
+        // Clear out the previous cluster members in memory
+        if (current_vector == 1) {
+          for (auto member : cluster_members2) {
+            delete member;
+          }
+          cluster_members2.clear();
+        } else {
+          for (auto member : cluster_members1) {
+            delete member;
+          }
+          cluster_members1.clear();
         }
-        cluster_members2.clear();
-      } else {
-        for (auto member : cluster_members1) {
-          delete member;
-        }
-        cluster_members1.clear();
-      }
-      // We now have a parsed JSON Object which contains
-      // a list of known services to our local Consul Agent
-      for (auto& itr : doc.GetObject()) {
-        std::vector<std::string> current_obj_tags;
-        rapidjson::Value::ConstMemberIterator service_itr = \
-            itr.value.FindMember("Service");
-        if (service_itr != itr.value.MemberEnd()) {
-          if (!(service_itr->value.IsNull())) {
-            std::string service_name(service_itr->value.GetString());
-            if ((service_name == service_registration_name)) {
-              AOSSL::ServiceInterface *return_service = consul_factory.get_service_interface();
-              bool cluster_tag_found = false;
-              for (auto& tag : current_obj_tags) {
-                return_service->add_tag(tag);
-                if (tag == profile->get_cluster_name()) cluster_tag_found = true;
-              }
-              rapidjson::Value::ConstMemberIterator address_itr = \
-                  itr.value.FindMember("Address");
-              rapidjson::Value::ConstMemberIterator port_itr = \
-                  itr.value.FindMember("Port");
-              rapidjson::Value::ConstMemberIterator id_itr = \
-                  itr.value.FindMember("ID");
-              return_service->set_address(address_itr->value.GetString());
-              return_service->set_port(std::to_string(port_itr->value.GetInt()));
-              return_service->set_id(id_itr->value.GetString());
-              return_service->set_name(service_registration_name);
-              if (cluster_tag_found) {
-                if (current_vector == 1) {
-                  cluster_members2.push_back(return_service);
-                } else {
-                  cluster_members1.push_back(return_service);
+        // We now have a parsed JSON Object which contains
+        // a list of known services to our local Consul Agent
+        for (auto& itr : doc.GetObject()) {
+          std::vector<std::string> current_obj_tags;
+          rapidjson::Value::ConstMemberIterator service_itr = \
+              itr.value.FindMember("Service");
+          if (service_itr != itr.value.MemberEnd()) {
+            if (!(service_itr->value.IsNull())) {
+              std::string service_name(service_itr->value.GetString());
+              if ((service_name == service_registration_name)) {
+                AOSSL::ServiceInterface *return_service = consul_factory.get_service_interface();
+                bool cluster_tag_found = false;
+                for (auto& tag : current_obj_tags) {
+                  return_service->add_tag(tag);
+                  if (tag == profile->get_cluster_name()) cluster_tag_found = true;
+                }
+                rapidjson::Value::ConstMemberIterator address_itr = \
+                    itr.value.FindMember("Address");
+                rapidjson::Value::ConstMemberIterator port_itr = \
+                    itr.value.FindMember("Port");
+                rapidjson::Value::ConstMemberIterator id_itr = \
+                    itr.value.FindMember("ID");
+                return_service->set_address(address_itr->value.GetString());
+                return_service->set_port(std::to_string(port_itr->value.GetInt()));
+                return_service->set_id(id_itr->value.GetString());
+                return_service->set_name(service_registration_name);
+                if (cluster_tag_found) {
+                  if (current_vector == 1) {
+                    cluster_members2.push_back(return_service);
+                  } else {
+                    cluster_members1.push_back(return_service);
+                  }
                 }
               }
             }
           }
         }
+        if (current_vector == 1) {
+          current_vector = 2;
+        } else {
+          current_vector = 1;
+        }
       }
-      if (current_vector == 1) {
-        current_vector = 2;
-      } else {
-        current_vector = 1;
-      }
+      if (services_buf) delete services_buf;
     }
-    if (services_buf) delete services_buf;
   }
 };
 

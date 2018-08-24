@@ -93,6 +93,7 @@ class Clyman: public Poco::Util::ServerApplication {
   AccountManagerInterface *acct_manager = NULL;
   EventStreamPublisher *publisher = nullptr;
   AOSSL::ServiceInterface *my_app = NULL;
+  ClusterManager *cluster = nullptr;
 public:
  Clyman() {}
  ~Clyman() {}
@@ -109,6 +110,7 @@ protected:
     Poco::Util::ServerApplication::uninitialize();
     if (acct_manager) delete acct_manager;
     if (publisher) delete publisher;
+    if (cluster) delete cluster;
   }
 
   // Define basic CLI Opts
@@ -163,9 +165,11 @@ protected:
     config.add_opt(std::string("transaction.id.stamp"), std::string("true"));
     config.add_opt(std::string("event.stream.method"), std::string("kafka"));
     config.add_opt(std::string("event.format"), std::string("json"));
+    config.add_opt(std::string("event.destination.host"), std::string("localhost"));
+    config.add_opt(std::string("event.destination.port"), std::string("8764"));
     config.add_opt(std::string("http.host"), std::string("localhost"));
-    config.add_opt(std::string("http.port"), std::string("8765"));
-    config.add_opt(std::string("udp.port"), std::string("8764"));
+    config.add_opt(std::string("http.port"), std::string("8768"));
+    config.add_opt(std::string("udp.port"), std::string("8762"));
     config.add_opt(std::string("log.file"), std::string("clyman.log"));
     config.add_opt(std::string("log.level"), std::string("Info"));
     config.add_opt(std::string("transaction.security.ssl.ca.vault.active"), std::string("false"));
@@ -308,16 +312,27 @@ protected:
       publisher = new EventStreamPublisher;
     }
 
+    // Get the Event Destination Config
+    AOSSL::StringBuffer ed_name_buf;
+    AOSSL::StringBuffer ed_host_buf;
+    AOSSL::StringBuffer ed_port_buf;
+    config.get_opt(std::string("event.destination.name"), ed_name_buf);
+    config.get_opt(std::string("event.destination.host"), ed_host_buf);
+    config.get_opt(std::string("event.destination.port"), ed_port_buf);
     // Start the Cluster Manager
-    ClusterManager cluster(&config);
-    cluster.update_cluster_info();
+    if (ed_host_buf.val.empty() && ed_port_buf.val.empty()) {
+      cluster = new ClusterManager(&config, ed_name_buf.val);
+    } else {
+      cluster = new ClusterManager(ed_host_buf.val, ed_port_buf.val);
+    }
+    cluster->update_cluster_info();
 
     // Start the background thread error handler
     ClymanErrorHandler eh;
     Poco::ErrorHandler* pOldEH = Poco::ErrorHandler::set(&eh);
 
     // Kick off the Cluster Update background thread
-    std::thread cluster_thread(update_cluster, &cluster, 30000000);
+    std::thread cluster_thread(update_cluster, cluster, 30000000);
     cluster_thread.detach();
 
     // Kick off the Configuration Update background thread
@@ -325,7 +340,7 @@ protected:
     config_thread.detach();
 
     // Kick off the Event Stream background thread
-    std::thread es_thread(event_stream, &config, &db_manager, publisher, &cluster);
+    std::thread es_thread(event_stream, &config, &db_manager, publisher, cluster);
     es_thread.detach();
 
     AOSSL::StringBuffer ssl_enabled_buf;
@@ -389,7 +404,7 @@ protected:
     if (ssl_enabled_buf.val == "true") {
       main_logger.information("Opening Secure HTTP Socket");
       Poco::Net::SecureServerSocket svs(saddr, 64);
-      Poco::Net::HTTPServer srv(new ObjectHandlerFactory(&config, acct_manager, &db_manager, publisher, &cluster), svs, \
+      Poco::Net::HTTPServer srv(new ObjectHandlerFactory(&config, acct_manager, &db_manager, publisher, cluster), svs, \
         new Poco::Net::HTTPServerParams);
       srv.start();
       waitForTerminationRequest();
@@ -397,7 +412,7 @@ protected:
     } else {
       main_logger.information("Opening HTTP Socket");
       Poco::Net::ServerSocket svs(saddr);
-      Poco::Net::HTTPServer srv(new ObjectHandlerFactory(&config, acct_manager, &db_manager, publisher, &cluster), svs, \
+      Poco::Net::HTTPServer srv(new ObjectHandlerFactory(&config, acct_manager, &db_manager, publisher, cluster), svs, \
         new Poco::Net::HTTPServerParams);
       srv.start();
       waitForTerminationRequest();

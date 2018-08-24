@@ -36,8 +36,8 @@ limitations under the License.
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-#ifndef SRC_CONTROLLER_INCLUDE_SCENE_BASE_HANDLER_H_
-#define SRC_CONTROLLER_INCLUDE_SCENE_BASE_HANDLER_H_
+#ifndef SRC_CONTROLLER_INCLUDE_OBJECT_BASE_HANDLER_H_
+#define SRC_CONTROLLER_INCLUDE_OBJECT_BASE_HANDLER_H_
 
 // Convert Request Contents into a Rapidjson Document
 // Returns a char* which must be deleted only after using the Rapidjson Doc
@@ -64,11 +64,55 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
   ObjectFactory object_factory;
   EventStreamPublisher *publisher = nullptr;
   ClusterManager *cluster_manager = nullptr;
+  Poco::Logger& logger;
+  std::string object_id;
+  void process_create_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
+    logger.information("Processing Creation Message");
+    // Persist the creation message
+    std::string new_object_key;
+    logger.information("Creating Object with Name: " + in_doc->get_name());
+    DatabaseResponse response;
+    db_manager->create_object(response, in_doc, new_object_key);
+    if (response.success) {
+      out_doc->set_key(new_object_key);
+    } else {
+      response_body->set_error_code(PROCESSING_ERROR);
+      response_body->set_error_message(response.error_message);
+    }
+  }
+  void process_update_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
+    logger.information("Processing Update Message");
+    // Persist the update message
+    logger.information("Updating Object with Name: " + in_doc->get_name());
+    DatabaseResponse response;
+    std::string key = in_doc->get_key();
+    db_manager->update_object(response, in_doc, key);
+    if (!(response.success)) {
+      response_body->set_error_code(PROCESSING_ERROR);
+      response_body->set_error_message(response.error_message);
+    }
+  }
+  void process_get_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
+    logger.information("Processing Get Message");
+    // TO-DO: Execute the get message and build a result
+  }
+  void process_query_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
+    logger.information("Processing Query Message");
+    // TO-DO: Execute the query message and build a result
+  }
+  void process_delete_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
+    logger.information("Processing Delete Message");
+    // TO-DO: Persist the delete message
+  }
  public:
-  ObjectBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, EventStreamPublisher *pub, ClusterManager *cluster, int mtype) \
-    {config=conf;msg_type=mtype;db_manager=db;publisher=pub;cluster_manager=cluster;}
+  ObjectBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, \
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype) : logger(Poco::Logger::get("Data")) \
+      {config=conf;msg_type=mtype;db_manager=db;publisher=pub;cluster_manager=cluster;}
+  ObjectBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, \
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype, std::string id) : logger(Poco::Logger::get("Data")) \
+      {config=conf;msg_type=mtype;db_manager=db;publisher=pub;cluster_manager=cluster;object_id.assign(id);}
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
-    Poco::Logger::get("Controller").debug("Responding to Object Request");
+    logger.debug("Responding to Object Request");
     response.setChunkedTransferEncoding(true);
     response.setContentType("application/json");
     // parse the post input data into a Scene List
@@ -78,6 +122,7 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
     response_body->set_msg_type(msg_type);
     response_body->set_error_code(NO_ERROR);
     if (doc.HasParseError()) {
+      logger.debug("Parsing Error Detected");
       // Set up parse error response
       response.setStatus(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
       response_body->set_error_code(TRANSLATION_ERROR);
@@ -90,49 +135,72 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
     } else {
       // Convert the rapidjson doc to a scene list
       response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
-      ObjectListInterface *inp_doc = object_list_factory.build_object_list(doc);
-      // update the message type and process the post input data
-      inp_doc->set_msg_type(msg_type);
+      ObjectListInterface *inp_doc = nullptr;
+      try {
+        inp_doc = object_list_factory.build_object_list(doc);
+      } catch (std::exception& e) {
+        logger.error("Exception encountered building Object List");
+        logger.error(e.what());
+        response_body->set_error_code(TRANSLATION_ERROR);
+        response_body->set_error_message(e.what());
+      }
+      if (inp_doc) {
+        // update the message type and process the post input data
+        inp_doc->set_msg_type(msg_type);
 
-      // Process the input objects
-      // send downstream updates, and persist the result
-      for (int i = 0; i < inp_doc->num_objects(); i++) {
-        // Add to the output message list
-        ObjectInterface *new_out_doc = object_factory.build_object();
-        // get the object out of the input message list
-        ObjectInterface* in_doc = inp_doc->get_object(i);
-        // Persist the creation message
-        std::string new_object_key;
-        try {
-          db_manager->create_object(in_doc, new_object_key);
-        } catch (std::exception& e) {
-          response_body->set_error_message(e.what());
-          response_body->set_error_code(PROCESSING_ERROR);
-          break;
+        // Process the input objects
+        // send downstream updates, and persist the result
+        for (int i = 0; i < inp_doc->num_objects(); i++) {
+          // Add to the output message list
+          ObjectInterface *new_out_doc = object_factory.build_object();
+          // get the object out of the input message list
+          ObjectInterface* in_doc = inp_doc->get_object(i);
+          if (!(object_id.empty())) in_doc->set_key(object_id);
+          // Execute the Mongo Queries
+          try {
+            if (msg_type == OBJ_CRT) {
+              process_create_message(in_doc, new_out_doc, response_body);
+            } else if (msg_type == OBJ_UPD) {
+              process_update_message(in_doc, new_out_doc, response_body);
+            } else if (msg_type == OBJ_GET) {
+              process_get_message(in_doc, new_out_doc, response_body);
+            } else if (msg_type == OBJ_DEL) {
+              process_delete_message(in_doc, new_out_doc, response_body);
+            } else if (msg_type == OBJ_QUERY) {
+              process_query_message(in_doc, new_out_doc, response_body);
+            }
+          } catch (std::exception& e) {
+            logger.error("Exception encountered during DB Operation");
+            response_body->set_error_message(e.what());
+            logger.error(response_body->get_error_message());
+            response_body->set_error_code(PROCESSING_ERROR);
+            break;
+          }
+          response_body->add_object(new_out_doc);
+          // Send an update to downstream services
+          AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
+          if (downstream) {
+            std::string message = in_doc->get_scene() + \
+                std::string("\n") + in_doc->to_transform_json();
+            logger.debug("Sending Event: " + message);
+            publisher->publish_event(message.c_str(), \
+                downstream->get_address(), stoi(downstream->get_port()));
+          }
         }
-        new_out_doc->set_key(new_object_key);
-        response_body->add_object(new_out_doc);
-        // Send an update to downstream services
-        AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
-        if (downstream) {
-          std::string message = in_doc->get_scene() + \
-              std::string("\n") + in_doc->to_transform_json();
-          publisher->publish_event(message.c_str(), \
-              downstream->get_address(), stoi(downstream->get_port()));
-        }
+
       }
 
       // Set up the response
       std::ostream& ostr = response.send();
 
       // Process the result
+      if (response_body->get_error_code() != NO_ERROR) {
+        response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+      }
       std::string response_body_string;
       response_body->to_msg_string(response_body_string);
       ostr << response_body_string;
       ostr.flush();
-      if (response_body->get_error_code() != NO_ERROR) {
-        response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-      }
       delete inp_doc;
     }
     delete response_body;
@@ -140,4 +208,4 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
   }
 };
 
-#endif  // SRC_CONTROLLER_INCLUDE_SCENE_BASE_HANDLER_H_
+#endif  // SRC_CONTROLLER_INCLUDE_OBJECT_BASE_HANDLER_H_
