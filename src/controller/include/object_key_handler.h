@@ -36,10 +36,10 @@ limitations under the License.
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-#ifndef SRC_CONTROLLER_INCLUDE_OBJECT_LOCK_HANDLER_H_
-#define SRC_CONTROLLER_INCLUDE_OBJECT_LOCK_HANDLER_H_
+#ifndef SRC_CONTROLLER_INCLUDE_OBJECT_KEY_HANDLER_H_
+#define SRC_CONTROLLER_INCLUDE_OBJECT_KEY_HANDLER_H_
 
-class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
+class ObjectKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
   AOSSL::KeyValueStoreInterface *config = nullptr;
   DatabaseManager *db_manager = nullptr;
   int msg_type = -1;
@@ -48,53 +48,53 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
   ClusterManager *cluster_manager = nullptr;
   Poco::Logger& logger;
   std::string object_id;
-  std::string device_id;
-  void process_lock_message(std::string obj_key, std::string dev_key, ObjectInterface* out_doc, ObjectListInterface *response_body) {
-    logger.information("Processing Lock Message");
-    // Persist the lock message
-    DatabaseResponse db_response;
-    db_manager->lock_object(db_response, obj_key, dev_key);
-    if (!(response.success)) {
-      response_body->set_error_code(PROCESSING_ERROR);
-      response_body->set_error_message(response.error_message);
-    }
+  void process_get_message(std::string key, ObjectListInterface *response_body) {
+    logger.information("Processing Get Message");
+    // Execute the get message and build a result
+    db_manager->get_object(response_body, key);
   }
-  void process_unlock_message(std::string obj_key, std::string dev_key, ObjectInterface* out_doc, ObjectListInterface *response_body) {
-    logger.information("Processing Unlock Message");
-    // Persist the unlock message
+  void process_delete_message(std::string key, ObjectListInterface *response_body) {
+    logger.information("Processing Delete Message");
+    // Persist the delete message
     DatabaseResponse db_response;
-    db_manager->unlock_object(db_response, obj_key, dev_key);
-    if (!(response.success)) {
-      response_body->set_error_code(PROCESSING_ERROR);
-      response_body->set_error_message(response.error_message);
+    db_manager->delete_object(response, key);
+    if (!(db_response.success)) {
+      response->set_error_code(PROCESSING_ERROR);
+      response->set_error_message(db_response.error_message);
     }
   }
  public:
-  ObjectLockRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, \
-      ClusterManager *cluster, int mtype, std::string id, std::string dev_id) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;object_id.assign(id);device_id.assign(dev_id);}
+  ObjectKeyRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, \
+      ClusterManager *cluster, int mtype) : logger(Poco::Logger::get("Data")) \
+      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;}
+  ObjectKeyRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, \
+      ClusterManager *cluster, int mtype, std::string id) : logger(Poco::Logger::get("Data")) \
+      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;object_id.assign(id);}
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     logger.debug("Responding to Object Request");
     response.setChunkedTransferEncoding(true);
     response.setContentType("application/json");
+    // parse the post input data into a Scene List
+    rapidjson::Document doc;
     ObjectListInterface *response_body = object_list_factory.build_json_object_list();
-    ObjectInterface *new_out_doc = object_factory.build_object();
     response_body->set_msg_type(msg_type);
     response_body->set_error_code(NO_ERROR);
+    response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
 
+    // Add to the output message list
     try {
-      if (msg_type == OBJ_LOCK) {
-        process_lock_message(object_id, device_id, new_out_doc, response_body);
-      } else if (msg_type == OBJ_UNLOCK) {
-        process_unlock_message(object_id, device_id, new_out_doc, response_body);
+      if (msg_type == OBJ_GET) {
+        process_get_message(object_id, response_body);
+      } else if (msg_type == OBJ_DEL) {
+        process_delete_message(object_id, response_body);
       }
     } catch (std::exception& e) {
       logger.error("Exception encountered during DB Operation");
       response_body->set_error_message(e.what());
       logger.error(response_body->get_error_message());
       response_body->set_error_code(PROCESSING_ERROR);
+      break;
     }
-    response_body->add_object(new_out_doc);
 
     // Set up the response
     std::ostream& ostr = response.send();
@@ -111,4 +111,4 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
   }
 };
 
-#endif  // SRC_CONTROLLER_INCLUDE_OBJECT_LOCK_HANDLER_H_
+#endif  // SRC_CONTROLLER_INCLUDE_OBJECT_KEY_HANDLER_H_

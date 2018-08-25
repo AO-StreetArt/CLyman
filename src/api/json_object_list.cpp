@@ -24,7 +24,7 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
   // Initialize Empty String elements
   set_msg_type(-1);
   set_error_code(100);
-  set_num_records(0);
+  set_num_records(10);
   // Start parsing the JSON Object
   if (d.IsObject()) {
 

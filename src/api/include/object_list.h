@@ -38,7 +38,7 @@ class ObjectList : public ObjectListInterface {
   int err_code;
   std::string err_msg;
   std::string transaction_id;
-  int num_records;
+  int num_records = 10;
   std::vector<ObjectInterface*> objects;
   // String Return Value
   const char* json_cstr_val;

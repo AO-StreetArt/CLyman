@@ -92,17 +92,10 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
       response_body->set_error_message(response.error_message);
     }
   }
-  void process_get_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
-    logger.information("Processing Get Message");
-    // TO-DO: Execute the get message and build a result
-  }
-  void process_query_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
+  void process_query_message(ObjectInterface* in_doc, ObjectListInterface *response_body, int max_results) {
     logger.information("Processing Query Message");
-    // TO-DO: Execute the query message and build a result
-  }
-  void process_delete_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
-    logger.information("Processing Delete Message");
-    // TO-DO: Persist the delete message
+    // Execute the query message and build a result
+    db_manager->query(response_body, in_doc, max_results);
   }
  public:
   ObjectBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, \
@@ -160,14 +153,12 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
           try {
             if (msg_type == OBJ_CRT) {
               process_create_message(in_doc, new_out_doc, response_body);
+              response_body->add_object(new_out_doc);
             } else if (msg_type == OBJ_UPD) {
               process_update_message(in_doc, new_out_doc, response_body);
-            } else if (msg_type == OBJ_GET) {
-              process_get_message(in_doc, new_out_doc, response_body);
-            } else if (msg_type == OBJ_DEL) {
-              process_delete_message(in_doc, new_out_doc, response_body);
+              response_body->add_object(new_out_doc);
             } else if (msg_type == OBJ_QUERY) {
-              process_query_message(in_doc, new_out_doc, response_body);
+              process_query_message(in_doc, response_body, inp_doc->get_num_records());
             }
           } catch (std::exception& e) {
             logger.error("Exception encountered during DB Operation");
@@ -176,15 +167,16 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
             response_body->set_error_code(PROCESSING_ERROR);
             break;
           }
-          response_body->add_object(new_out_doc);
           // Send an update to downstream services
-          AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
-          if (downstream) {
-            std::string message = in_doc->get_scene() + \
-                std::string("\n") + in_doc->to_transform_json();
-            logger.debug("Sending Event: " + message);
-            publisher->publish_event(message.c_str(), \
-                downstream->get_address(), stoi(downstream->get_port()));
+          if (msg_type == OBJ_CRT || msg_type == OBJ_UPD) {
+            AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
+            if (downstream) {
+              std::string message = in_doc->get_scene() + \
+                  std::string("\n") + in_doc->to_transform_json();
+              logger.debug("Sending Event: " + message);
+              publisher->publish_event(message.c_str(), \
+                  downstream->get_address(), stoi(downstream->get_port()));
+            }
           }
         }
 

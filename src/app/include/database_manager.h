@@ -44,6 +44,7 @@ limitations under the License.
 #include <mongocxx/pool.hpp>
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
+#include <mongocxx/exception/exception.hpp>
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -87,6 +88,8 @@ class DatabaseManager {
   Poco::RWLock conn_usage_lock;
   int max_failures = 5;
   int max_retries = 11;
+  // Factories
+  ObjectFactory object_factory;
 
   // Discover a new Mongo connection from Consul
   inline void find_new_connection() {
@@ -164,45 +167,27 @@ class DatabaseManager {
   inline void build_create_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
     // Creation Document
     builder << "key" << obj->get_key();
-    if (!(obj->get_name().empty())) {
-      builder << "name" << obj->get_name();
-    }
-    if (!(obj->get_type().empty())) {
-      builder << "type" << obj->get_type();
-    }
-    if (!(obj->get_subtype().empty())) {
-      builder << "subtype" << obj->get_subtype();
-    }
-    if (!(obj->get_owner().empty())) {
-      builder << "owner" << obj->get_owner();
-    }
-    if (!(obj->get_scene().empty())) {
-      builder << "scene" << obj->get_scene();
-    }
-    if (obj->get_frame() > -1) {
-      builder << "frame" << obj->get_frame();
-    }
-    if (obj->get_timestamp() > -1) {
-      builder << "timestamp" << obj->get_timestamp();
-    }
+    builder << "name" << obj->get_name();
+    builder << "type" << obj->get_type();
+    builder << "subtype" << obj->get_subtype();
+    builder << "owner" << obj->get_owner();
+    builder << "scene" << obj->get_scene();
+    builder << "frame" << obj->get_frame();
+    builder << "timestamp" << obj->get_timestamp();
     auto asset_array = bsoncxx::builder::stream::array{};
     for (int i = 0; i < obj->num_assets(); i++) {
       asset_array << obj->get_asset(i);
     }
-    if (obj->num_assets() > 0) {
-      builder << "assets" << asset_array;
-    }
-    if (obj->has_transform()) {
-      auto transform_array = bsoncxx::builder::stream::array{};
-      for (int j = 0; j < 4; j++) {
-        for (int k = 0; k < 4; k++) {
-          if (j < 4 && k < 4) {
-            transform_array << std::to_string(obj->get_transform()->get_transform_element(j, k));
-          }
+    builder << "assets" << asset_array;
+    auto transform_array = bsoncxx::builder::stream::array{};
+    for (int j = 0; j < 4; j++) {
+      for (int k = 0; k < 4; k++) {
+        if (j < 4 && k < 4) {
+          transform_array << std::to_string(obj->get_transform()->get_transform_element(j, k));
         }
       }
-      builder << "transform" << transform_array;
     }
+    builder << "transform" << transform_array;
   }
 
   // Build a Bson document to use for updates
@@ -274,8 +259,12 @@ class DatabaseManager {
         auto builder = bsoncxx::builder::stream::document{};
         if (transaction_type == _DB_MONGO_INSERT_) {
           build_create_doc(builder, obj);
-        } else {
+        } else if (transaction_typ _DB_MONGO_UPDATE_ || transaction_type == _DB_MONGO_LOCK_) {
           build_update_doc(builder, obj, is_append_operation);
+        } else if (transaction_type == _DB_MONGO_UNLOCK_) {
+          auto set_doc = bsoncxx::builder::stream::document{};
+          set_doc << "owner" << "";
+          builder << "$set" << set_doc;
         }
         // Execute an Insert Transaction
         if (transaction_type == _DB_MONGO_INSERT_) {
@@ -283,9 +272,16 @@ class DatabaseManager {
             builder << bsoncxx::builder::stream::finalize;
           insert_doc(coll, doc_value, key, response);
         // Execute an Update Transaction
-        } else if (transaction_type == _DB_MONGO_UPDATE_) {
+        } else if (transaction_type == _DB_MONGO_UPDATE_ \
+            || transaction_type == _DB_MONGO_LOCK_ \
+            || transaction_type == _DB_MONGO_UNLOCK_) {
           auto query_builder = bsoncxx::builder::stream::document{};
           query_builder << "key" << key;
+          if (transaction_type == _DB_MONGO_LOCK_) {
+            query_builder << "owner" << "";
+          } else if (transaction_type == _DB_MONGO_UNLOCK_) {
+            query_builder << "owner" << obj->get_owner()''
+          }
           auto result = coll.update_one(query_builder << bsoncxx::builder::stream::finalize, \
               builder << bsoncxx::builder::stream::finalize);
           if (result) {
@@ -299,6 +295,11 @@ class DatabaseManager {
             response.error_message = std::string("Null Result returned from DB");
           }
         }
+      } catch (mongocxx::exception& me) {
+        logger.error("Mongo Exception Encountered");
+        logger.error(me.what());
+        response.error_message = std::string(me.what());
+        break;
       } catch (std::exception& e) {
         logger.error("Exception executing Mongo Query");
         logger.error(e.what());
@@ -309,8 +310,46 @@ class DatabaseManager {
       retries++;
     }
   }
+
+  // Execute a transaction, with default value for is_append_operation
   inline void transaction(DatabaseResponse &response, ObjectInterface *obj, std::string& key, int transaction_type) {
     transaction(response, obj, key, transaction_type, true);
+  }
+
+  // Convert a BSON Document View to an Object Interface
+  inline void bson_to_obj3(bsoncxx::document::view& result, ObjectInterface *obj) {
+    // Parse basic values
+    bsoncxx::document::element name_element = result["name"];
+    obj->set_name(name_element.get_utf8().value.to_string());
+    bsoncxx::document::element type_element = result["type"];
+    obj->set_type(type_element.get_utf8().value.to_string());
+    bsoncxx::document::element subtype_element = result["subtype"];
+    obj->set_subtype(subtype_element.get_utf8().value.to_string());
+    bsoncxx::document::element scene_element = result["scene"];
+    obj->set_scene(scene_element.get_utf8().value.to_string());
+    bsoncxx::document::element owner_element = result["owner"];
+    obj->set_owner(owner_element.get_utf8().value.to_string());
+    bsoncxx::document::element frame_element = result["frame"];
+    obj->set_frame(frame_element.get_int32().value);
+    bsoncxx::document::element timestamp_element = result["timestamp"];
+    obj->set_timestamp(timestamp_element.get_int32().value);
+    // Parse the assets array
+    bsoncxx::document::element assets_element = result["assets"];
+    bsoncxx::array::view assets_view = assets_element.get_array().value;
+    for (unsigned int i = 0; i < assets_view.length(); i++) {
+      bsoncxx::array::element asset_elt = assets_view[i];
+      obj->add_asset(asset_elt.get_utf8().value.to_string());
+    }
+    // Parse the transform array
+    bsoncxx::document::element transform_element = result["transform"];
+    bsoncxx::array::view transform_view = transform_element.get_array().value;
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        int index = (4 * i) + j;
+        bsoncxx::array::element transform_elt = transform_view[index];
+        obj->get_transform()->set_transform_element(i, j, transform_elt.get_double().value);
+      }
+    }
   }
  public:
   DatabaseManager(AOSSL::NetworkApplicationProfile *profile, std::string conn, \
@@ -333,7 +372,148 @@ class DatabaseManager {
     transaction(response, obj, key, _DB_MONGO_UPDATE_);
   }
 
-  // TO-DO: Get, Update, Delete, Query operations
+  //! Update an existing obj3 in the Mongo Database
+  //! The supplied key will be used as the key to update in the DB
+  inline void update_object(DatabaseResponse &response, ObjectInterface *obj, std::string& key, bool is_append_operation) {
+    logger.debug("Attempting to update object in Mongo");
+    transaction(response, obj, key, _DB_MONGO_UPDATE_, is_append_operation);
+  }
+
+  inline void get_object(ObjectListInterface *response, std::string& key) {
+    logger.debug("Attempting to retrieve object from Mongo");
+    int retries = 0;
+    while (retries < max_retries) {
+      // Initialize the connection for the first time
+      init();
+      bool failure = false;
+      try {
+        Poco::ScopedReadRWLock scoped_lock(conn_usage_lock);
+        // Find the DB and Collection we're going to write into
+        auto client = pool->acquire();
+        mongocxx::database db = (*client)[db_name];
+        mongocxx::collection coll = db[coll_name];
+        auto query_builder = bsoncxx::builder::stream::document{};
+        query_builder << "key" << key;
+        auto result = coll.find_one(query_builder << bsoncxx::builder::stream::finalize);
+        if (result) {
+          auto view = result->view();
+          ObjectInterface *obj = object_factory.build_object();
+          bson_to_obj3(view, obj);
+          response->add_object(obj);
+        } else {
+          response->set_error_code(PROCESSING_ERROR);
+          response->set_error_message(std::string("No results returned from query"));
+        }
+      } catch (mongocxx::exception& me) {
+        logger.error("Mongo Exception Encountered");
+        logger.error(me.what());
+        response->set_error_message(std::string(me.what()));
+        break;
+      } catch (std::exception& e) {
+        logger.error("Exception executing Mongo Query");
+        logger.error(e.what());
+        failures++;
+        failure = true;
+      }
+      if (failure) set_new_connection();
+      retries++;
+    }
+  }
+
+  //! Query for Obj3 documents matching the input
+  inline void query(ObjectListInterface *response, ObjectInterface *obj, int max_results) {
+    logger.debug("Attempting to query Mongo");
+    int retries = 0;
+    while (retries < max_retries) {
+      // Initialize the connection for the first time
+      init();
+      bool failure = false;
+      try {
+        Poco::ScopedReadRWLock scoped_lock(conn_usage_lock);
+        // Find the DB and Collection we're going to write into
+        auto client = pool->acquire();
+        mongocxx::database db = (*client)[db_name];
+        mongocxx::collection coll = db[coll_name];
+        auto query_builder = bsoncxx::builder::stream::document{};
+        build_create_doc(query_builder, obj);
+        auto results = coll.find(query_builder << bsoncxx::builder::stream::finalize);
+        int results_processed = 0;
+        for (auto result : results) {
+          if (results_processed > max_results) break;
+          ObjectInterface *obj = object_factory.build_object();
+          bson_to_obj3(result, obj);
+          response->add_object(obj);
+          results_processed++;
+        }
+      } catch (mongocxx::exception& me) {
+        logger.error("Mongo Exception Encountered");
+        logger.error(me.what());
+        response->set_error_message(std::string(me.what()));
+        break;
+      } catch (std::exception& e) {
+        logger.error("Exception executing Mongo Query");
+        logger.error(e.what());
+        failures++;
+        failure = true;
+      }
+      if (failure) set_new_connection();
+      retries++;
+    }
+  }
+
+  //! Delete an Object in Mongo
+  inline void delete_object(DatabaseResponse& response, std::string& key) {
+    int retries = 0;
+    while (retries < max_retries) {
+      // Initialize the connection for the first time
+      init();
+      bool failure = false;
+      try {
+        Poco::ScopedReadRWLock scoped_lock(conn_usage_lock);
+        // Find the DB and Collection we're going to write into
+        auto client = pool->acquire();
+        mongocxx::database db = (*client)[db_name];
+        mongocxx::collection coll = db[coll_name];
+        auto query_builder = bsoncxx::builder::stream::document{};
+        query_builder << "key" << key;
+        auto result = coll.delete_one(query_builder << bsoncxx::builder::stream::finalize);
+        if (result) {
+          if (result->deleted_count() > 0) {
+            logger.debug("Document Successfully removed from DB");
+            response.success = true;
+          } else {
+            response.error_message = std::string("No Documents Modified in DB");
+          }
+        } else {
+          response.error_message = std::string("Null Result returned from DB");
+        }
+      } catch (mongocxx::exception& me) {
+        logger.error("Mongo Exception Encountered");
+        logger.error(me.what());
+        response.error_message = std::string(me.what());
+        break;
+      } catch (std::exception& e) {
+        logger.error("Exception executing Mongo Query");
+        logger.error(e.what());
+        failures++;
+        failure = true;
+      }
+      if (failure) set_new_connection();
+      retries++;
+    }
+  }
+
+  inline void lock_object(DatabaseResponse& response, std::string& object_id, std::string& device_id) {
+    ObjectInterface *query_obj = object_factory.build_object();
+    query_obj->set_owner(device_id);
+    transaction(response, query_obj, object_id, _DB_MONGO_LOCK_);
+  }
+
+  inline void unlock_object(DatabaseResponse& response, std::string& object_id, std::string& device_id) {
+    ObjectInterface *query_obj = object_factory.build_object();
+    query_obj->set_owner(device_id);
+    transaction(response, query_obj, object_id, _DB_MONGO_UNLOCK_);
+  }
 };
 
 #endif  // SRC_APPLICATION_INCLUDE_DATABASE_MANAGER_H_

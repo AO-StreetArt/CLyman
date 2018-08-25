@@ -83,25 +83,26 @@ public:
       logger.error(event);
     } else {
       ObjectInterface* in_doc = object_factory.build_object(doc);
-      // Persist the creation message
-      std::string new_object_key;
+      // Send an update to downstream services
+      AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
+      if (downstream) {
+        std::string message = in_doc->get_scene() + \
+            std::string("\n") + in_doc->to_transform_json();
+        publisher->publish_event(message.c_str(), \
+            downstream->get_address(), stoi(downstream->get_port()));
+      }
+      // Persist the update message
+      std::string new_object_key = in_doc->get_key();
       DatabaseResponse response;
       try {
-        db_manager->create_object(response, in_doc, new_object_key);
+        db_manager->update_object(response, in_doc, new_object_key);
       } catch (std::exception& e) {
-        logger.error("Error Persisting Object: ");
+        logger.error("Error Persisting Update: ");
         logger.error(e.what());
       }
-      if (response.success && !(new_object_key.empty())) {
-        in_doc->set_key(new_object_key);
-        // Send an update to downstream services
-        AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
-        if (downstream) {
-          std::string message = in_doc->get_scene() + \
-              std::string("\n") + in_doc->to_transform_json();
-          publisher->publish_event(message.c_str(), \
-              downstream->get_address(), stoi(downstream->get_port()));
-        }
+      if (!(response.success)) {
+        logger.error("Error Persisting Update: ");
+        logger.error(response.error_message);
       }
     }
 

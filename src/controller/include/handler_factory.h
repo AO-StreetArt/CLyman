@@ -106,17 +106,6 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
     Poco::URI request_uri(request.getURI());
     std::vector<std::string> uri_path;
     request_uri.getPathSegments(uri_path);
-    // split(request.getURI(), uri_path, '/');
-    // Parse the Query Parameters
-    // std::vector<std::string> query_params;
-    // std::vector<std::string> last_element_list;
-    // split(uri_path[uri_path.size()-1], last_element_list, '?');
-    // if (last_element_list.size() > 1) {
-    //   // Correct the last value of the URI path
-    //   // as it will include the query params
-    //   uri_path[uri_path.size()-1] = last_element_list[1];
-    //   split(last_element_list[1], query_params, '&');
-    // }
 
     for (std::string elt : uri_path) {
       Poco::Logger::get("Controller").debug("URI Element: %s", elt);
@@ -136,7 +125,7 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
         // Lock
         for (auto param : query_params) {
           if (param.first == "device") {
-            return new ObjectLockRequestHandler(config, db_manager, publisher, cluster_info, OBJ_LOCK, uri_path[2], param.second);
+            return new ObjectLockRequestHandler(config, db_manager, cluster_info, OBJ_LOCK, uri_path[2], param.second);
           }
         }
       } else if (uri_path.size() == 3 && uri_path[1] == "object") {
@@ -146,19 +135,19 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
     } else if (uri_path.size() > 1 && uri_path[0] == "v1" && request.getMethod() == "GET") {
       if (uri_path.size() == 3 && uri_path[1] == "object") {
         // Get
-        return new ObjectBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_GET, uri_path[2]);
+        return new ObjectKeyRequestHandler(config, db_manager, cluster_info, OBJ_GET, uri_path[2]);
       }
     } else if (uri_path.size() > 1 && uri_path[0] == "v1" && request.getMethod() == "DELETE") {
       if (uri_path.size() > 3 && uri_path[1] == "object" && uri_path[3] == "lock") {
         // Unlock
         for (auto param : query_params) {
           if (param.first == "device") {
-            return new ObjectLockRequestHandler(config, db_manager, publisher, cluster_info, OBJ_UNLOCK, uri_path[2], param.second);
+            return new ObjectLockRequestHandler(config, db_manager, cluster_info, OBJ_UNLOCK, uri_path[2], param.second);
           }
         }
       } else if (uri_path.size() == 3 && uri_path[1] == "object") {
         // Delete
-        return new ObjectBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_DEL);
+        return new ObjectKeyRequestHandler(config, db_manager, cluster_info, OBJ_DEL);
       }
     } else if (uri_path.size() == 1 && uri_path[0] == "health" && \
         request.getMethod() == "GET") {
