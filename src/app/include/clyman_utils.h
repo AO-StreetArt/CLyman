@@ -73,35 +73,4 @@ inline void split(const std::string& input, std::vector<std::string>& output, ch
   split_from_index(input, output, delim, 1);
 }
 
-// remove non-ascii characters
-inline bool invalidChar(char c) {
-    return !(c >= 0 && c < 128);
-}
-inline void stripUnicode(std::string &str) {
-    str.erase(std::remove_if(str.begin(), str.end(), invalidChar), str.end());
-}
-
-// trim from start
-static inline std::string &ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-            std::not1(std::ptr_fun<int, int>(std::isspace))));
-    return s;
-}
-
-// trim from end
-static inline std::string &rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(),
-            std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-    return s;
-}
-
-// trim from both ends
-static inline std::string &trim(std::string &s) {
-    return ltrim(rtrim(s));
-}
-
-// Reliable To String Method
-#define SSTR(x) static_cast< std::ostringstream & >(\
-        (std::ostringstream() << std::dec << x)).str()
-
 #endif  // SRC_APP_INCLUDE_IVAN_UTILS_H_

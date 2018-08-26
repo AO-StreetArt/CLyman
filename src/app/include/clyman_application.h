@@ -29,6 +29,8 @@ limitations under the License.
 
 #include "controller/include/handler_factory.h"
 
+#include "db/include/database_manager.h"
+
 #include "user/include/account_manager_interface.h"
 #include "user/include/account_manager.h"
 
@@ -36,7 +38,6 @@ limitations under the License.
 #include "event_stream_process.h"
 #include "cluster_loader_process.h"
 #include "thread_error_handler.h"
-#include "database_manager.h"
 #include "cluster_manager.h"
 #include "event_sender.h"
 

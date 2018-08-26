@@ -35,7 +35,7 @@ limitations under the License.
 #include "boost/asio.hpp"
 
 #include "clyman_utils.h"
-#include "database_manager.h"
+#include "db/include/database_manager.h"
 
 #ifndef SRC_APP_INCLUDE_EVENT_SENDER_H_
 #define SRC_APP_INCLUDE_EVENT_SENDER_H_

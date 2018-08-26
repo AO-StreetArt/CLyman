@@ -2,10 +2,13 @@
 
 .PHONY: mkapi mkmodel mkproc
 
-all: mkmodel mkapi mkproc
+all: mkmodel mkapi mkproc mkdb
 
 mkapi:
 	@$(MAKE) -C api
 
 mkmodel:
 	@$(MAKE) -C model
+
+mkdb:
+	@$(MAKE) -C db

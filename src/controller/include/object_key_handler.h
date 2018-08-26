@@ -25,7 +25,7 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "app/include/database_manager.h"
+#include "db/include/database_manager.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
 
@@ -57,10 +57,10 @@ class ObjectKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
     logger.information("Processing Delete Message");
     // Persist the delete message
     DatabaseResponse db_response;
-    db_manager->delete_object(response, key);
+    db_manager->delete_object(db_response, key);
     if (!(db_response.success)) {
-      response->set_error_code(PROCESSING_ERROR);
-      response->set_error_message(db_response.error_message);
+      response_body->set_error_code(PROCESSING_ERROR);
+      response_body->set_error_message(db_response.error_message);
     }
   }
  public:
@@ -93,7 +93,6 @@ class ObjectKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
       response_body->set_error_message(e.what());
       logger.error(response_body->get_error_message());
       response_body->set_error_code(PROCESSING_ERROR);
-      break;
     }
 
     // Set up the response

@@ -27,9 +27,10 @@ limitations under the License.
 
 #include "heartbeat_handler.h"
 #include "object_base_handler.h"
+#include "object_key_handler.h"
 #include "object_lock_handler.h"
 #include "app/include/event_sender.h"
-#include "app/include/database_manager.h"
+#include "db/include/database_manager.h"
 #include "app/include/cluster_manager.h"
 
 #include "aossl/profile/include/tiered_app_profile.h"

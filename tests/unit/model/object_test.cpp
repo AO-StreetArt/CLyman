@@ -22,7 +22,7 @@ limitations under the License.
 
 #include "catch.hpp"
 
-TEST_CASE( "Test Transform Data Structure", "[unit]" ) {
+TEST_CASE( "Test Object Data Structure", "[unit]" ) {
   //Tolerance
   const float TOLERANCE = 0.1f;
   const int PI = 3.1415f;
@@ -132,7 +132,7 @@ TEST_CASE( "Test Transform Data Structure", "[unit]" ) {
   ObjectFactory ofactory;
   ObjectInterface *translated_object = ofactory.build_object(d);
 
-  REQUIRE(translated_object->get_key() == "");
+  REQUIRE(translated_object->get_key() == "abcdefg");
   REQUIRE(translated_object->get_name() == "abcdefgh");
   REQUIRE(translated_object->get_scene() == "abcdefghi");
   REQUIRE(translated_object->get_type() == "abcdefghij");

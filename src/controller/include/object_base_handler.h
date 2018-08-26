@@ -25,7 +25,7 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "app/include/database_manager.h"
+#include "db/include/database_manager.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
 

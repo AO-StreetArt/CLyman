@@ -36,8 +36,9 @@ limitations under the License.
 
 #include "clyman_utils.h"
 #include "cluster_manager.h"
-#include "database_manager.h"
 #include "event_sender.h"
+
+#include "db/include/database_manager.h"
 
 #include "model/include/object_interface.h"
 #include "model/include/object_factory.h"

@@ -25,7 +25,7 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "app/include/database_manager.h"
+#include "db/include/database_manager.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
 
@@ -54,9 +54,9 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
     // Persist the lock message
     DatabaseResponse db_response;
     db_manager->lock_object(db_response, obj_key, dev_key);
-    if (!(response.success)) {
+    if (!(db_response.success)) {
       response_body->set_error_code(PROCESSING_ERROR);
-      response_body->set_error_message(response.error_message);
+      response_body->set_error_message(db_response.error_message);
     }
   }
   void process_unlock_message(std::string obj_key, std::string dev_key, ObjectInterface* out_doc, ObjectListInterface *response_body) {
@@ -64,9 +64,9 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
     // Persist the unlock message
     DatabaseResponse db_response;
     db_manager->unlock_object(db_response, obj_key, dev_key);
-    if (!(response.success)) {
+    if (!(db_response.success)) {
       response_body->set_error_code(PROCESSING_ERROR);
-      response_body->set_error_message(response.error_message);
+      response_body->set_error_message(db_response.error_message);
     }
   }
  public:
