@@ -18,8 +18,11 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <exception>
-#include "object_related.h"
+#include "object_3d.h"
 #include "object_interface.h"
+#include "data_related.h"
+#include "data_frameable.h"
+#include "animation_property.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -35,7 +38,7 @@ limitations under the License.
 //     to and from JSON.  These methods are meant for
 //     use in communicating with the database ONLY,
 //     external clients should communicate using the object_list API
-class ObjectDocument : public RelatedObject, public ObjectInterface {
+class ObjectDocument : public FrameableData, public RelatedData, public Object3d, public ObjectInterface {
   // String attributes
   std::string name;
   std::string type;
@@ -47,17 +50,17 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   // String Return Value
   const char* transform_cstr_val = NULL;
   std::string transform_str_val;
-
+  std::vector<AnimationProperty*> properties;
  public:
   // Constructors
-  ObjectDocument() : RelatedObject() {}
-  // Parse a JSON document from Mongo
+  ObjectDocument() : RelatedData(), FrameableData(), Object3d() {}
+  // Parse a JSON document
   ObjectDocument(const rapidjson::Document &d);
   // Copy Constructor
   ObjectDocument(const ObjectDocument &o);
   ObjectDocument(const ObjectInterface &o);
   // Destructor
-  ~ObjectDocument() {}
+  ~ObjectDocument() {clear_props();}
   // String Getters
   std::string get_name() const override {return name;}
   std::string get_type() const override {return type;}
@@ -73,9 +76,6 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   void merge(ObjectInterface *target) override;
   // Take a target object and overwrite this object's fields with it
   void overwrite(ObjectInterface *target) override;
-  // to_json method to build an object to save to Mongo
-  std::string to_json(bool is_query) override;
-  std::string to_json() override;
   // to_transform_message to build a JSON to send via UDP
   std::string to_transform_json() override;
   // Inherited Methods
@@ -84,23 +84,40 @@ class ObjectDocument : public RelatedObject, public ObjectInterface {
   bool has_transform() const override {return Object3d::has_transform();}
   Transformation* get_transform() const override {return Object3d::get_transform();}
   // Frame/timestamp
-  int get_frame() const override {return Object3d::get_frame();}
-  int get_timestamp() const override {return Object3d::get_timestamp();}
-  void set_frame(int new_frame) override {Object3d::set_frame(new_frame);}
-  void set_timestamp(int new_timestamp) override {Object3d::set_timestamp(new_timestamp);}
+  int get_frame() const override {return FrameableData::get_frame();}
+  int get_timestamp() const override {return FrameableData::get_timestamp();}
+  void set_frame(int new_frame) override {FrameableData::set_frame(new_frame);}
+  void set_timestamp(int new_timestamp) override {FrameableData::set_timestamp(new_timestamp);}
   // String Getters
-  std::string get_key() const override {return RelatedObject::get_key();}
-  std::string get_scene() const override {return RelatedObject::get_scene();}
+  std::string get_key() const override {return RelatedData::get_key();}
+  std::string get_asset_sub_id() const override {return RelatedData::get_asset_sub_id();}
+  std::string get_scene() const override {return RelatedData::get_scene();}
+  std::string get_parent() const override {return RelatedData::get_parent();}
   // String Setters
-  void set_key(std::string new_key) override {RelatedObject::set_key(new_key);}
-  void set_scene(std::string new_scene) override {RelatedObject::set_scene(new_scene);}
+  void set_key(std::string new_key) override {RelatedData::set_key(new_key);}
+  void set_asset_sub_id(std::string new_key) override {RelatedData::set_asset_sub_id(new_key);}
+  void set_scene(std::string new_scene) override {RelatedData::set_scene(new_scene);}
+  void set_parent(std::string new_parent) override {RelatedData::set_parent(new_parent);}
   // Asset methods
-  int num_assets() const override {return RelatedObject::num_assets();}
-  void add_asset(std::string id) override {RelatedObject::add_asset(id);}
-  std::string get_asset(int index) const override \
-    {return RelatedObject::get_asset(index);}
-  void remove_asset(int index) override {RelatedObject::remove_asset(index);}
-  void clear_assets() override {RelatedObject::clear_assets();}
+  int num_assets() const override {return RelatedData::num_assets();}
+  void add_asset(std::string id) override {RelatedData::add_asset(id);}
+  std::string get_asset(int index) const override {return RelatedData::get_asset(index);}
+  void remove_asset(int index) override {RelatedData::remove_asset(index);}
+  void clear_assets() override {RelatedData::clear_assets();}
+  // Object Properties
+  int num_props() const {return properties.size();}
+  void add_prop(AnimationProperty *new_prop) {properties.push_back(new_prop);}
+  AnimationProperty* get_prop(int index) const {return properties[index];}
+  void remove_prop(int index) {properties.erase(properties.begin()+index);}
+  void clear_props() {
+    for (int i = 0; i < properties.size(); i++) {
+      delete properties[i];
+    }
+    properties.clear();
+  }
+  // Animation Frame
+  AnimationFrameInterface* get_animation_frame() {return FrameableData::get_animation_frame();}
+  void set_animation_frame(AnimationFrameInterface *new_aframe) {FrameableData::set_animation_frame(new_aframe);}
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_

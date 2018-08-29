@@ -118,6 +118,9 @@ class DatabaseManager {
   void build_update_doc(bsoncxx::builder::stream::document &builder, \
       ObjectInterface *obj, bool is_append_operation);
 
+  void build_query_doc(bsoncxx::builder::stream::document &builder, \
+      ObjectInterface *obj);
+
   // Execute a Creation or Update Transaction
   void transaction(DatabaseResponse &response, ObjectInterface *obj, \
       std::string& key, int transaction_type, bool is_append_operation);

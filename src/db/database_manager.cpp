@@ -115,6 +115,44 @@ void DatabaseManager::build_create_doc(bsoncxx::builder::stream::document &build
   builder << "transform" << transform_array;
 }
 
+void DatabaseManager::build_query_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
+  // Creation Document
+  if (!(obj->get_name().empty())) {
+    builder << "name" << obj->get_name();
+  }
+  if (!(obj->get_type().empty())) {
+    builder << "type" << obj->get_type();
+  }
+  if (!(obj->get_subtype().empty())) {
+    builder << "subtype" << obj->get_subtype();
+  }
+  if (!(obj->get_owner().empty())) {
+    builder << "owner" << obj->get_owner();
+  }
+  if (!(obj->get_scene().empty())) {
+    builder << "scene" << obj->get_scene();
+  }
+  if (obj->get_frame() > -1) {
+    builder << "frame" << obj->get_frame();
+  }
+  if (obj->get_timestamp() > -1) {
+    builder << "timestamp" << obj->get_timestamp();
+  }
+  if (obj->num_assets() == 1) {
+    // If we have only one element, then search for docs
+    // that contain the specified asset
+    builder << "assets" << obj->get_asset(0);
+  } else if (obj->num_assets() > 1) {
+    // If we have more than one element, then search for
+    // docs that match exactly the specified assets
+    auto asset_array = bsoncxx::builder::stream::array{};
+    for (int i = 0; i < obj->num_assets(); i++) {
+      asset_array << obj->get_asset(i);
+    }
+    builder << "assets" << asset_array;
+  }
+}
+
 void DatabaseManager::build_update_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj, bool is_append_operation) {
   // Update Document
   auto set_doc = bsoncxx::builder::stream::document{};
@@ -152,11 +190,13 @@ void DatabaseManager::build_update_doc(bsoncxx::builder::stream::document &build
   }
   builder << "$set" << set_doc;
   auto push_doc = bsoncxx::builder::stream::document{};
+  auto each_doc = bsoncxx::builder::stream::document{};
   auto asset_array = bsoncxx::builder::stream::array{};
   for (int i = 0; i < obj->num_assets(); i++) {
     asset_array << obj->get_asset(i);
   }
-  push_doc << "assets" << asset_array;
+  each_doc << "$each" << asset_array;
+  push_doc << "assets" << each_doc;
   std::string update_opt_key;
   if (is_append_operation) {
     update_opt_key = "$push";
@@ -200,7 +240,8 @@ void DatabaseManager::transaction(DatabaseResponse &response, ObjectInterface *o
           || transaction_type == _DB_MONGO_LOCK_ \
           || transaction_type == _DB_MONGO_UNLOCK_) {
         auto query_builder = bsoncxx::builder::stream::document{};
-        query_builder << "_id" << bsoncxx::oid(key.c_str(), key.length());
+        bsoncxx::oid db_id(key);
+        query_builder << "_id" << db_id;
         if (transaction_type == _DB_MONGO_LOCK_) {
           query_builder << "owner" << "";
         } else if (transaction_type == _DB_MONGO_UNLOCK_) {
@@ -257,7 +298,8 @@ void DatabaseManager::bson_to_obj3(bsoncxx::document::view& result, ObjectInterf
   // Parse the assets array
   bsoncxx::document::element assets_element = result["assets"];
   bsoncxx::array::view assets_view = assets_element.get_array().value;
-  for (unsigned int i = 0; i < assets_view.length(); i++) {
+  int assets_array_size = std::distance(assets_view.begin(), assets_view.end());
+  for (int i = 0; i < assets_array_size; i++) {
     bsoncxx::array::element asset_elt = assets_view[i];
     obj->add_asset(asset_elt.get_utf8().value.to_string());
   }
@@ -268,7 +310,9 @@ void DatabaseManager::bson_to_obj3(bsoncxx::document::view& result, ObjectInterf
     for (int j = 0; j < 4; j++) {
       int index = (4 * i) + j;
       bsoncxx::array::element transform_elt = transform_view[index];
-      obj->get_transform()->set_transform_element(i, j, transform_elt.get_double().value);
+      std::string transform_elt_string = transform_elt.get_utf8().value.to_string();
+      obj->get_transform()->set_transform_element(i, j, \
+          std::stof(transform_elt_string));
     }
   }
 }
@@ -333,7 +377,7 @@ void DatabaseManager::query(ObjectListInterface *response, ObjectInterface *obj,
       mongocxx::database db = (*client)[db_name];
       mongocxx::collection coll = db[coll_name];
       auto query_builder = bsoncxx::builder::stream::document{};
-      build_create_doc(query_builder, obj);
+      build_query_doc(query_builder, obj);
       auto results = coll.find(query_builder << bsoncxx::builder::stream::finalize);
       int results_processed = 0;
       for (auto result : results) {
@@ -373,7 +417,8 @@ void DatabaseManager::delete_object(DatabaseResponse& response, std::string& key
       mongocxx::database db = (*client)[db_name];
       mongocxx::collection coll = db[coll_name];
       auto query_builder = bsoncxx::builder::stream::document{};
-      query_builder << "_id" << bsoncxx::oid(key.c_str(), key.length());
+      bsoncxx::oid db_id(key);
+      query_builder << "_id" << db_id;
       auto result = coll.delete_one(query_builder << bsoncxx::builder::stream::finalize);
       if (result) {
         if (result->deleted_count() > 0) {

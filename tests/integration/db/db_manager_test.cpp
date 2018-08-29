@@ -68,18 +68,6 @@ TEST_CASE( "Test Database Manager", "[integration]" ) {
   cli_args.push_back(std::string(app_name));
   AOSSL::NetworkApplicationProfile prof(cli_args);
 
-  // Build the test app and logger
-  // Poco::Util::Application& app = Poco::Util::Application::instance();
-  // Poco::AutoPtr<Poco::ConsoleChannel> pCons(new Poco::ConsoleChannel);
-  // Poco::AutoPtr<Poco::AsyncChannel> pAsync(new Poco::AsyncChannel(pCons));
-  // Poco::FormattingChannel* console_channel = \
-  //   new Poco::FormattingChannel(new Poco::PatternFormatter("%Y-%m-%d %H:%M:%S.%c %N[%P]:%s:%q:%t"));
-  // console_channel->setChannel(pAsync);
-  // console_channel->open();
-  // int log_priority = Poco::Message::PRIO_DEBUG;
-  // Poco::Logger& database_manager_logger = Poco::Logger::create("DatabaseManager", \
-  //   console_channel, log_priority);
-
   // Build the DB Manager
   DatabaseManager db(&prof, std::string("mongodb://localhost:27017"), \
       std::string("test"), std::string("test"));
@@ -88,18 +76,18 @@ TEST_CASE( "Test Database Manager", "[integration]" ) {
   ObjectFactory object_factory;
 
   // Setup test objects
-  std::string key1 = "zabcdef";
-  std::string key2 = "zabcdefg";
-  std::string name1 = "zabcdefgh";
-  std::string name2 = "zabcdefghi";
-  std::string scene1 = "zabcdefghij";
-  std::string scene2 = "zabcdefghijk";
-  std::string type1 = "zabcdefghijkl";
-  std::string type2 = "zabcdefghijklm";
-  std::string subtype1 = "zabcdefghijklmn";
-  std::string subtype2 = "zabcdefghijklmno";
-  std::string owner1 = "z1234567";
-  std::string owner2 = "z123456789";
+  std::string key1 = "vwxyzabcd";
+  std::string key2 = "vwxyzabcde";
+  std::string name1 = "vwxyzabcdef";
+  std::string name2 = "vwxyzabcdefg";
+  std::string scene1 = "vwxyzabcdefgh";
+  std::string scene2 = "vwxyzabcdefghi";
+  std::string type1 = "vwxyzabcdefghij";
+  std::string type2 = "vwxyzabcdefghijk";
+  std::string subtype1 = "vwxyzabcdefghijkl";
+  std::string subtype2 = "vwxyzabcdefghijklm";
+  std::string owner1 = "vwxyz12345";
+  std::string owner2 = "vwxyz1234567";
 
   ObjectInterface *test_object = build_test_document(std::string(""), name1, scene1, \
     type1, subtype1, std::string(""), 0, 12345678);
@@ -153,7 +141,7 @@ TEST_CASE( "Test Database Manager", "[integration]" ) {
   ObjectInterface *query_object = object_factory.build_object();
   query_object->set_name(name2);
   db.query(query_response, query_object, 2);
-  std::cout << get_response->get_error_message() << std::endl;
+  std::cout << query_response->get_error_message() << std::endl;
   // Test that we found a return object from the DB
   REQUIRE(query_response->num_objects() > 0);
   // Validate that the object saved is what is returned
@@ -191,7 +179,7 @@ TEST_CASE( "Test Database Manager", "[integration]" ) {
   DatabaseResponse second_lock_response;
   db.lock_object(second_lock_response, new_key, owner2);
   std::cout << second_lock_response.error_message << std::endl;
-  REQUIRE(!(second_lock_response.success));
+  REQUIRE(second_lock_response.success);
 
   // Delete Test
   DatabaseResponse del_response;
@@ -207,7 +195,7 @@ TEST_CASE( "Test Database Manager", "[integration]" ) {
   // Test that we found a return object from the DB
   REQUIRE(get2_response->num_objects() == 0);
   // Test that we have a success error code
-  REQUIRE(get2_response->get_error_code() == NO_ERROR);
+  REQUIRE(get2_response->get_error_code() > NO_ERROR);
   delete get2_response;
 
   delete test_object;

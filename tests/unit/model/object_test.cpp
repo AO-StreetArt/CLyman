@@ -19,6 +19,9 @@ limitations under the License.
 #include "include/transforms.h"
 #include "include/object_interface.h"
 #include "include/object_factory.h"
+#include "include/animation_frame_interface.h"
+#include "include/animation_frame.h"
+#include "include/animation_graph_handle.h"
 
 #include "catch.hpp"
 
@@ -124,7 +127,14 @@ TEST_CASE( "Test Object Data Structure", "[unit]" ) {
   REQUIRE(test_object.get_transform()->get_transform_element(2, 3) + 1.0f \
     < TOLERANCE);
 
-  std::string obj_json = test_object.to_json();
+  // Animation Frame Tests
+  AnimationFrame *aframe = new AnimationFrame;
+  test_object.set_animation_frame(aframe);
+  REQUIRE(test_object.get_animation_frame()->get_translation(0)->get_lh_type().empty());
+  std::string aftype("test");
+  test_object.get_animation_frame()->get_translation(0)->set_lh_type(aftype);
+
+  std::string obj_json = test_object.to_transform_json();
   std::cout << obj_json << std::endl;
   rapidjson::Document d;
   d.Parse<rapidjson::kParseStopWhenDoneFlag>(obj_json.c_str());
@@ -135,15 +145,8 @@ TEST_CASE( "Test Object Data Structure", "[unit]" ) {
   REQUIRE(translated_object->get_key() == "abcdefg");
   REQUIRE(translated_object->get_name() == "abcdefgh");
   REQUIRE(translated_object->get_scene() == "abcdefghi");
-  REQUIRE(translated_object->get_type() == "abcdefghij");
-  REQUIRE(translated_object->get_subtype() == "abcdefghijk");
-  REQUIRE(translated_object->get_owner() == "abcdefghijkl");
   REQUIRE(translated_object->get_frame() == 0);
-  //REQUIRE(translated_object->get_timestamp() == 123456789);
-
-  REQUIRE(translated_object->num_assets() == 2);
-  REQUIRE(translated_object->get_asset(0) == "12345");
-  REQUIRE(translated_object->get_asset(1) == "12346");
+  REQUIRE(translated_object->get_animation_frame()->get_translation(0)->get_lh_type() == "test");
 
   std::cout << translated_object->get_transform()->to_string() << std::endl;
   REQUIRE(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
@@ -183,14 +186,10 @@ TEST_CASE( "Test Object Data Structure", "[unit]" ) {
   REQUIRE(translated_object->get_key() == "new_key");
   REQUIRE(translated_object->get_name() == "new_name");
   REQUIRE(translated_object->get_scene() == "abcdefghi");
-  REQUIRE(translated_object->get_type() == "abcdefghij");
-  REQUIRE(translated_object->get_subtype() == "abcdefghijk");
   REQUIRE(translated_object->get_owner() == "new_owner");
 
-  REQUIRE(translated_object->num_assets() == 3);
-  REQUIRE(translated_object->get_asset(0) == "12345");
-  REQUIRE(translated_object->get_asset(1) == "12346");
-  REQUIRE(translated_object->get_asset(2) == "another_asset");
+  REQUIRE(translated_object->num_assets() == 1);
+  REQUIRE(translated_object->get_asset(0) == "another_asset");
 
   std::cout << translated_object->get_transform()->to_string() << std::endl;
   REQUIRE(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \

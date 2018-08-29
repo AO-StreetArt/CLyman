@@ -16,67 +16,274 @@ limitations under the License.
 */
 
 #include "include/object_document.h"
+#include "include/animation_frame_interface.h"
+#include "include/animation_frame.h"
+#include "include/animation_graph_handle.h"
 
 // Constructor to parse a JSON from Mongo
 ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
   // Message Transforms
   // Start parsing the JSON Object
   if (d.IsObject()) {
+    // Basic elements
+    auto key_itr = d.FindMember("key");
+    if (key_itr != d.MemberEnd()) {
+      if (key_itr->value.IsString()) {
+        RelatedObject::set_key(key_itr->value.GetString());
+      }
+    }
+    auto parent_itr = d.FindMember("parent");
+    if (parent_itr != d.MemberEnd()) {
+      if (parent_itr->value.IsString()) {
+        RelatedObject::set_parent(parent_itr->value.GetString());
+      }
+    }
+    auto asi_itr = d.FindMember("asset_sub_id");
+    if (asi_itr != d.MemberEnd()) {
+      if (asi_itr->value.IsString()) {
+        RelatedObject::set_asset_sub_id(asi_itr->value.GetString());
+      }
+    }
+    auto name_itr = d.FindMember("name");
+    if (name_itr != d.MemberEnd()) {
+      if (name_itr->value.IsString()) {
+        name = name_itr->value.GetString();
+      }
+    }
+    auto scene_itr = d.FindMember("scene");
+    if (scene_itr != d.MemberEnd()) {
+      if (scene_itr->value.IsString()) {
+        RelatedObject::set_scene(scene_itr->value.GetString());
+      }
+    }
+    auto owner_itr = d.FindMember("owner");
+    if (owner_itr != d.MemberEnd()) {
+      if (owner_itr->value.IsString()) {
+        owner = owner_itr->value.GetString();
+      }
+    }
+    auto type_itr = d.FindMember("type");
+    if (type_itr != d.MemberEnd()) {
+      if (type_itr->value.IsString()) {
+        type = type_itr->value.GetString();
+      }
+    }
+    auto subtype_itr = d.FindMember("subtype");
+    if (subtype_itr != d.MemberEnd()) {
+      if (subtype_itr->value.IsString()) {
+        subtype = subtype_itr->value.GetString();
+      }
+    }
+    auto frame_itr = d.FindMember("frame");
+    if (frame_itr != d.MemberEnd()) {
+      if (frame_itr->value.IsNumber()) {
+        Object3d::set_frame(frame_itr->value.GetInt());
+      }
+    }
+    auto timestamp_itr = d.FindMember("timestamp");
+    if (timestamp_itr != d.MemberEnd()) {
+      if (timestamp_itr->value.IsNumber()) {
+        Object3d::set_timestamp(timestamp_itr->value.GetInt());
+      }
+    }
 
-    if (d.HasMember("_id")) {
-      const rapidjson::Value *id_val = &d["_id"]["$oid"];
-      RelatedObject::set_key(id_val->GetString());
-    }
-    if (d.HasMember("key")) {
-      const rapidjson::Value *key_val = &d["key"];
-      RelatedObject::set_key(key_val->GetString());
-    }
-    if (d.HasMember("name")) {
-      const rapidjson::Value *name_val = &d["name"];
-      name = name_val->GetString();
-    }
-    if (d.HasMember("scene")) {
-      const rapidjson::Value *scene_val = &d["scene"];
-      RelatedObject::set_scene(scene_val->GetString());
-    }
-    if (d.HasMember("owner")) {
-      const rapidjson::Value *owner_val = &d["owner"];
-      owner = owner_val->GetString();
-    }
-    if (d.HasMember("type")) {
-      const rapidjson::Value *type_val = &d["type"];
-      type = type_val->GetString();
-    }
-    if (d.HasMember("subtype")) {
-      const rapidjson::Value *subtype_val = &d["subtype"];
-      subtype = subtype_val->GetString();
-    }
-    if (d.HasMember("frame")) {
-      const rapidjson::Value *frame_val = &d["frame"];
-      Object3d::set_frame(frame_val->GetInt());
-    }
-
-    // Transformations
-    if (d.HasMember("transform")) {
-      const rapidjson::Value& trans_val = d["transform"];
-      if (trans_val.IsArray()) {
-        // Update the transformation elements
-        for (int i = 0; i < 4; i++) {
-          for (int j = 0; j < 4; j++) {
-            int index = (4 * i) + j;
-            double tran_elt = trans_val[index].GetDouble();
-            Object3d::get_transform()->set_transform_element(i, j, tran_elt);
+    // Transformation Array
+    auto transform_itr = d.FindMember("transform");
+    if (transform_itr != d.MemberEnd()) {
+      if (transform_itr->value.IsArray()) {
+        int index = 0;
+        for (auto& elt_itr : transform_itr->value.GetArray()) {
+          int i = index / 4;
+          int j = index % 4;
+          if (elt_itr.IsNumber()) {
+            Object3d::get_transform()->set_transform_element(i, j, elt_itr.GetDouble());
           }
+          index++;
+        }
+      }
+    }
+
+    // Animation Graph Handles - Translation
+    auto th_itr = d.FindMember("translation_handle");
+    if (th_itr != d.MemberEnd()) {
+      if (th_itr->value.IsArray()) {
+        if (!FrameableData::get_animation_frame()) FrameableData::get_animation_frame() = new AnimationFrame;
+        int elt_indx = 0;
+        for (auto& handle_elt_itr : th_itr->value.GetArray()) {
+          // Here we iterate over each object in the translation handle
+          // there should be three, 0 for x, 1 for y, and 2 for z
+
+          // Left Handle
+
+          // Get the type of handle
+          auto lhtype_itr = handle_elt_itr.FindMember("left_type");
+          if (lhtype_itr != handle_elt_itr.MemberEnd()) {
+            if (lhtype_itr->value.IsString()) {
+              FrameableData::get_animation_frame()->get_translation(elt_indx)->set_lh_type(lhtype_itr->value.GetString());
+            }
+          }
+          auto lhx_itr = handle_elt_itr.FindMember("left_x");
+          if (lhx_itr != handle_elt_itr.MemberEnd()) {
+            if (lhx_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_translation(elt_indx)->set_lh_x(lhx_itr->value.GetDouble());
+            }
+          }
+          auto lhy_itr = handle_elt_itr.FindMember("left_y");
+          if (lhy_itr != handle_elt_itr.MemberEnd()) {
+            if (lhy_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_translation(elt_indx)->set_lh_y(lhy_itr->value.GetDouble());
+            }
+          }
+
+          // Right Handle
+
+          // Get the type of handle
+          auto rhtype_itr = handle_elt_itr.FindMember("right_type");
+          if (rhtype_itr != handle_elt_itr.MemberEnd()) {
+            if (rhtype_itr->value.IsString()) {
+              FrameableData::get_animation_frame()->get_translation(elt_indx)->set_rh_type(rhtype_itr->value.GetString());
+            }
+          }
+          auto rhx_itr = handle_elt_itr.FindMember("right_x");
+          if (rhx_itr != handle_elt_itr.MemberEnd()) {
+            if (rhx_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_translation(elt_indx)->set_rh_x(rhx_itr->value.GetDouble());
+            }
+          }
+          auto rhy_itr = handle_elt_itr.FindMember("right_y");
+          if (rhy_itr != handle_elt_itr.MemberEnd()) {
+            if (rhy_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_translation(elt_indx)->set_rh_y(rhy_itr->value.GetDouble());
+            }
+          }
+
+          elt_indx++;
+        }
+      }
+    }
+
+    auto rh_itr = d.FindMember("rotation_handle");
+    if (rh_itr != d.MemberEnd()) {
+      if (rh_itr->value.IsArray()) {
+        if (!FrameableData::get_animation_frame()) FrameableData::get_animation_frame() = new AnimationFrame;
+        int elt_indx = 0;
+        for (auto& handle_elt_itr : rh_itr->value.GetArray()) {
+          // Here we iterate over each object in the translation handle
+          // there should be three, 0 for w, 1 for x, and 2 for y, and 3 for z
+
+          // Left Handle
+
+          // Get the type of handle
+          auto lhtype_itr = handle_elt_itr.FindMember("left_type");
+          if (lhtype_itr != handle_elt_itr.MemberEnd()) {
+            if (lhtype_itr->value.IsString()) {
+              FrameableData::get_animation_frame()->get_rotation(elt_indx)->set_lh_type(lhtype_itr->value.GetString());
+            }
+          }
+          auto lhx_itr = handle_elt_itr.FindMember("left_x");
+          if (lhx_itr != handle_elt_itr.MemberEnd()) {
+            if (lhx_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_rotation(elt_indx)->set_lh_x(lhx_itr->value.GetDouble());
+            }
+          }
+          auto lhy_itr = handle_elt_itr.FindMember("left_y");
+          if (lhy_itr != handle_elt_itr.MemberEnd()) {
+            if (lhy_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_rotation(elt_indx)->set_lh_y(lhy_itr->value.GetDouble());
+            }
+          }
+
+          // Right Handle
+
+          // Get the type of handle
+          auto rhtype_itr = handle_elt_itr.FindMember("right_type");
+          if (rhtype_itr != handle_elt_itr.MemberEnd()) {
+            if (rhtype_itr->value.IsString()) {
+              FrameableData::get_animation_frame()->get_rotation(elt_indx)->set_rh_type(rhtype_itr->value.GetString());
+            }
+          }
+          auto rhx_itr = handle_elt_itr.FindMember("right_x");
+          if (rhx_itr != handle_elt_itr.MemberEnd()) {
+            if (rhx_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_rotation(elt_indx)->set_rh_x(rhx_itr->value.GetDouble());
+            }
+          }
+          auto rhy_itr = handle_elt_itr.FindMember("right_y");
+          if (rhy_itr != handle_elt_itr.MemberEnd()) {
+            if (rhy_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_rotation(elt_indx)->set_rh_y(rhy_itr->value.GetDouble());
+            }
+          }
+
+          elt_indx++;
+        }
+      }
+    }
+
+    // Animation Graph Handles - Scale
+    auto sh_itr = d.FindMember("scale_handle");
+    if (sh_itr != d.MemberEnd()) {
+      if (sh_itr->value.IsArray()) {
+        if (!FrameableData::get_animation_frame()) FrameableData::get_animation_frame() = new AnimationFrame;
+        int elt_indx = 0;
+        for (auto& handle_elt_itr : sh_itr->value.GetArray()) {
+          // Here we iterate over each object in the translation handle
+          // there should be three, 0 for x, 1 for y, and 2 for z
+
+          // Left Handle
+
+          // Get the type of handle
+          auto lhtype_itr = handle_elt_itr.FindMember("left_type");
+          if (lhtype_itr != handle_elt_itr.MemberEnd()) {
+            if (lhtype_itr->value.IsString()) {
+              FrameableData::get_animation_frame()->get_scale(elt_indx)->set_lh_type(lhtype_itr->value.GetString());
+            }
+          }
+          auto lhx_itr = handle_elt_itr.FindMember("left_x");
+          if (lhx_itr != handle_elt_itr.MemberEnd()) {
+            if (lhx_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_scale(elt_indx)->set_lh_x(lhx_itr->value.GetDouble());
+            }
+          }
+          auto lhy_itr = handle_elt_itr.FindMember("left_y");
+          if (lhy_itr != handle_elt_itr.MemberEnd()) {
+            if (lhy_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_scale(elt_indx)->set_lh_y(lhy_itr->value.GetDouble());
+            }
+          }
+
+          // Right Handle
+
+          // Get the type of handle
+          auto rhtype_itr = handle_elt_itr.FindMember("right_type");
+          if (rhtype_itr != handle_elt_itr.MemberEnd()) {
+            if (rhtype_itr->value.IsString()) {
+              FrameableData::get_animation_frame()->get_scale(elt_indx)->set_rh_type(rhtype_itr->value.GetString());
+            }
+          }
+          auto rhx_itr = handle_elt_itr.FindMember("right_x");
+          if (rhx_itr != handle_elt_itr.MemberEnd()) {
+            if (rhx_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_scale(elt_indx)->set_rh_x(rhx_itr->value.GetDouble());
+            }
+          }
+          auto rhy_itr = handle_elt_itr.FindMember("right_y");
+          if (rhy_itr != handle_elt_itr.MemberEnd()) {
+            if (rhy_itr->value.IsNumber()) {
+              FrameableData::get_animation_frame()->get_scale(elt_indx)->set_rh_y(rhy_itr->value.GetDouble());
+            }
+          }
+
+          elt_indx++;
         }
       }
     }
 
     // Assets
-    if (d.HasMember("assets")) {
-      // Read the array values and stuff them into new_location
-      const rapidjson::Value& sc = d["assets"];
-      if (sc.IsArray()) {
-        for (auto& asset_itr : sc.GetArray()) {
+    auto assets_itr = d.FindMember("assets");
+    if (assets_itr != d.MemberEnd()) {
+      if (assets_itr->value.IsArray()) {
+        for (auto& asset_itr : assets_itr->value.GetArray()) {
           RelatedObject::add_asset(asset_itr.GetString());
         }
       }
@@ -167,95 +374,6 @@ void ObjectDocument::overwrite(ObjectInterface *target) {
   }
 }
 
-// Write the Object to JSON
-std::string ObjectDocument::to_json() {
-  return to_json(false);
-}
-
-// Write the Object to JSON
-// is_query flag used to control whether we are writing a full document
-// or a query string.  We can only query on specific fields, so we don't want
-// to write out things like transform matrix if we are sending a query to mongo
-std::string ObjectDocument::to_json(bool is_query) {
-  // Initialize the string buffer and writer
-  rapidjson::StringBuffer s;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-
-  // Start writing the object
-  // Syntax taken directly from
-  // simplewriter.cpp in rapidjson examples
-  writer.StartObject();
-
-  // Write string attributes
-
-  if (!(name.empty())) {
-    writer.Key("key");
-    writer.String(RelatedObject::get_key().c_str(), \
-      (rapidjson::SizeType)RelatedObject::get_key().length());
-  }
-
-  if (!(name.empty())) {
-    writer.Key("name");
-    writer.String(name.c_str(), (rapidjson::SizeType)name.length());
-  }
-
-  if (!(RelatedObject::get_scene().empty())) {
-    writer.Key("scene");
-    writer.String(RelatedObject::get_scene().c_str(), \
-      (rapidjson::SizeType)RelatedObject::get_scene().length());
-  }
-
-  if (!(type.empty())) {
-    writer.Key("type");
-    writer.String(type.c_str(), (rapidjson::SizeType)type.length());
-  }
-
-  if (!(subtype.empty())) {
-    writer.Key("subtype");
-    writer.String(subtype.c_str(), (rapidjson::SizeType)subtype.length());
-  }
-
-  if (!(owner.empty())) {
-    writer.Key("owner");
-    writer.String(owner.c_str(), (rapidjson::SizeType)owner.length());
-  }
-
-  if (Object3d::get_frame() > -9999) {
-    writer.Key("frame");
-    writer.Uint(Object3d::get_frame());
-  }
-
-  // Write Transform
-  if (Object3d::has_transform() && (!is_query)) {
-    writer.Key("transform");
-    writer.StartArray();
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        writer.Double(Object3d::get_transform()->get_transform_element(i, j));
-      }
-    }
-    writer.EndArray();
-  }
-
-  if ((is_query && num_assets() > 0) || (!is_query)) {
-    writer.Key("assets");
-    writer.StartArray();
-    for (int i = 0; i < RelatedObject::num_assets(); i++) {
-      std::string ast = RelatedObject::get_asset(i);
-      writer.String(ast.c_str(), (rapidjson::SizeType)ast.length());
-    }
-    writer.EndArray();
-  }
-
-  writer.EndObject();
-
-  // The Stringbuffer now contains a json message
-  // of the object
-  json_cstr_val = s.GetString();
-  json_str_val.assign(json_cstr_val);
-  return json_str_val;
-}
-
 std::string ObjectDocument::to_transform_json() {
   // Initialize the string buffer and writer
   rapidjson::StringBuffer s;
@@ -285,9 +403,14 @@ std::string ObjectDocument::to_transform_json() {
       (rapidjson::SizeType)RelatedObject::get_scene().length());
   }
 
-  if (Object3d::get_frame() > -9999.1) {
+  if (Object3d::get_frame() > -1) {
     writer.Key("frame");
     writer.Uint(Object3d::get_frame());
+  }
+
+  if (Object3d::get_timestamp() > 0) {
+    writer.Key("timestamp");
+    writer.Uint(Object3d::get_timestamp());
   }
 
   // Write Transform
@@ -302,14 +425,84 @@ std::string ObjectDocument::to_transform_json() {
     writer.EndArray();
   }
 
+  // Write Animation Graph Handles
+  if (FrameableData::get_animation_frame()) {
+    // Translation
+    writer.Key("translation_handle");
+    writer.StartArray();
+    for (int i = 0; i < 3; i++) {
+      writer.StartObject();
+      writer.Key("left_type");
+      writer.String(FrameableData::get_animation_frame()->get_translation(i)->get_lh_type().c_str(), \
+          (rapidjson::SizeType)(FrameableData::get_animation_frame()->get_translation(i)->get_lh_type().length()));
+      writer.Key("left_x");
+      writer.Double(FrameableData::get_animation_frame()->get_translation(i)->get_lh_x());
+      writer.Key("left_y");
+      writer.Double(FrameableData::get_animation_frame()->get_translation(i)->get_lh_y());
+      writer.Key("right_type");
+      writer.String(FrameableData::get_animation_frame()->get_translation(i)->get_rh_type().c_str(), \
+          (rapidjson::SizeType)(FrameableData::get_animation_frame()->get_translation(i)->get_rh_type().length()));
+      writer.Key("right_x");
+      writer.Double(FrameableData::get_animation_frame()->get_translation(i)->get_rh_x());
+      writer.Key("right_y");
+      writer.Double(FrameableData::get_animation_frame()->get_translation(i)->get_rh_y());
+      writer.EndObject();
+    }
+    writer.EndArray();
+
+    // Rotation
+    writer.Key("rotation_handle");
+    writer.StartArray();
+    for (int i = 0; i < 4; i++) {
+      writer.StartObject();
+      writer.Key("left_type");
+      writer.String(FrameableData::get_animation_frame()->get_rotation(i)->get_lh_type().c_str(), \
+          (rapidjson::SizeType)(FrameableData::get_animation_frame()->get_rotation(i)->get_lh_type().length()));
+      writer.Key("left_x");
+      writer.Double(FrameableData::get_animation_frame()->get_rotation(i)->get_lh_x());
+      writer.Key("left_y");
+      writer.Double(FrameableData::get_animation_frame()->get_rotation(i)->get_lh_y());
+      writer.Key("right_type");
+      writer.String(FrameableData::get_animation_frame()->get_rotation(i)->get_rh_type().c_str(), \
+          (rapidjson::SizeType)(FrameableData::get_animation_frame()->get_rotation(i)->get_rh_type().length()));
+      writer.Key("right_x");
+      writer.Double(FrameableData::get_animation_frame()->get_rotation(i)->get_rh_x());
+      writer.Key("right_y");
+      writer.Double(FrameableData::get_animation_frame()->get_rotation(i)->get_rh_y());
+      writer.EndObject();
+    }
+    writer.EndArray();
+
+    // Scale
+    writer.Key("scale_handle");
+    writer.StartArray();
+    for (int i = 0; i < 3; i++) {
+      writer.StartObject();
+      writer.Key("left_type");
+      writer.String(FrameableData::get_animation_frame()->get_scale(i)->get_lh_type().c_str(), \
+          (rapidjson::SizeType)(FrameableData::get_animation_frame()->get_scale(i)->get_lh_type().length()));
+      writer.Key("left_x");
+      writer.Double(FrameableData::get_animation_frame()->get_scale(i)->get_lh_x());
+      writer.Key("left_y");
+      writer.Double(FrameableData::get_animation_frame()->get_scale(i)->get_lh_y());
+      writer.Key("right_type");
+      writer.String(FrameableData::get_animation_frame()->get_scale(i)->get_rh_type().c_str(), \
+          (rapidjson::SizeType)(FrameableData::get_animation_frame()->get_scale(i)->get_rh_type().length()));
+      writer.Key("right_x");
+      writer.Double(FrameableData::get_animation_frame()->get_scale(i)->get_rh_x());
+      writer.Key("right_y");
+      writer.Double(FrameableData::get_animation_frame()->get_scale(i)->get_rh_y());
+      writer.EndObject();
+    }
+    writer.EndArray();
+  }
+
   writer.EndObject();
 
   // The Stringbuffer now contains a json message
   // of the object
   transform_cstr_val = s.GetString();
   // Build the expected format for an Object Change Stream
-  transform_str_val.assign(RelatedObject::get_scene());
-  transform_str_val.append("\n");
-  transform_str_val.append(transform_cstr_val);
+  transform_str_val.assign(transform_cstr_val);
   return transform_str_val;
 }

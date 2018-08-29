@@ -18,16 +18,20 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <exception>
-#include "object_3d.h"
 
-#ifndef SRC_MODEL_INCLUDE_OBJECT_RELATED_H_
-#define SRC_MODEL_INCLUDE_OBJECT_RELATED_H_
+#ifndef SRC_MODEL_INCLUDE_DATA_RELATED_H_
+#define SRC_MODEL_INCLUDE_DATA_RELATED_H_
 
-// A RelatedObject is an object in 3-space which is related to the other
-// attributes needed to actually create such an object (scene, assets, etc)
-class RelatedObject : public Object3d {
+// A RelatedData is anything which is related to other Data Components
+class RelatedData {
   // Local key for CLyman DB
   std::string key;
+  // Parent key for Clyman DB
+  std::string parent;
+  // Identifier for the piece of an asset corresponding to this object.
+  // This identifier lets us associate an object to a piece of an asset
+  // from a parent object.
+  std::string asset_sub_id;
   // Remote key for a Scene ID
   std::string scene_id;
   // Remote keys for assets (meshes, textures, etc)
@@ -35,17 +39,21 @@ class RelatedObject : public Object3d {
 
  public:
   // Constructors
-  RelatedObject() : Object3d() {key.assign(""); scene_id.assign("");}
+  RelatedData() {}
   // Copy Constructor
-  RelatedObject(const RelatedObject &o) : Object3d(o) {}
+  RelatedData(const RelatedObject &o) {}
   // Destructor
-  virtual ~RelatedObject() {}
+  virtual ~RelatedData() {}
   // String Getters
   std::string get_key() const {return key;}
   std::string get_scene() const {return scene_id;}
+  std::string get_parent() const {return parent;}
+  std::string get_asset_sub_id() const {return asset_sub_id;}
   // String Setters
   void set_key(std::string new_key) {key.assign(new_key);}
   void set_scene(std::string new_scene) {scene_id.assign(new_scene);}
+  void set_parent(std::string new_parent) {parent.assign(new_parent);}
+  void set_asset_sub_id(std::string new_asset_sub_id) {asset_sub_id.assign(new_asset_sub_id);}
   // Asset methods
   int num_assets() const {return asset_ids.size();}
   void add_asset(std::string id) {asset_ids.push_back(id);}
@@ -54,4 +62,4 @@ class RelatedObject : public Object3d {
   void clear_assets() {asset_ids.clear();}
 };
 
-#endif  // SRC_MODEL_INCLUDE_OBJECT_RELATED_H_
+#endif  // SRC_MODEL_INCLUDE_DATA_RELATED_H_

@@ -1,0 +1,87 @@
+/*
+Apache2 License Notice
+Copyright 2017 Alex Barry
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+#include <string>
+#include <vector>
+#include <exception>
+#include "animation_graph_handle.h"
+#include "property_interface.h"
+#include "data_frameable.h"
+#include "data_related.h"
+
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/error/en.h"
+
+#ifndef SRC_MODEL_INCLUDE_ANIMATION_PROPERTY_H_
+#define SRC_MODEL_INCLUDE_ANIMATION_PROPERTY_H_
+
+// A Property defines the data model for object
+// and scene-level values that are frameable but not associated
+// to the transform of an object
+// Represents a single document in Mongo
+class AnimationProperty : public FrameableData, public RelatedData, public PropertyInterface {
+  std::vector<std::string> values;
+  AnimationGraphHandle* handle = nullptr;
+ public:
+  AnimationProperty() {handle = new AnimationGraphHandle;}
+  // Parse a JSON document
+  AnimationProperty(const rapidjson::Document &d);
+  // Copy Constructor
+  AnimationProperty(const AnimationProperty &o) = delete;
+  AnimationProperty(const PropertyInterface &o) = delete;
+  ~AnimationProperty() {if (handle) delete handle;}
+  // Property Key
+  // The OID of the property in Mongo
+  std::string get_key() const {return RelatedData::get_key();}
+  void set_key(std::string new_key) {RelatedData::set_key(new_key);}
+  // Parent Key
+  // The OID of the original object in Mongo
+  std::string get_parent() const {return RelatedData::get_parent();}
+  void set_parent(std::string new_key) {RelatedData::set_parent(new_key);}
+  // Property Name
+  // The name of the property
+  std::string get_name() const {return RelatedData::get_name();}
+  void set_name(std::string new_name) {RelatedData::set_name(new_name);}
+  // Property Value
+  // The values of the property
+  std::string get_value(int index) const {return values[index];}
+  void set_value(int index, std::string new_value) {values[index] = new_value;}
+  void add_value(std::string new_value) {values.push_back(new_value);}
+  int num_values() const {return values.size();}
+  // Scene ID
+  // The Unique Identifier of the scene to which the object is associated
+  std::string get_scene() const {return RelatedData::get_scene();}
+  void set_scene(std::string new_scene) {RelatedData::set_scene(new_scene);}
+  // Identifier for the piece of an asset corresponding to this object.
+  // This identifier lets us associate an object to a piece of an asset
+  // from a parent object.
+  std::string get_asset_sub_id() const {return RelatedData::get_asset_sub_id();}
+  void set_asset_sub_id(std::string new_asset_sub_id) {RelatedData::set_asset_sub_id(new_asset_sub_id);}
+  // Convert to an Event JSON
+  void to_json(std::string& json_str) const;
+  // Frame/Timestamp
+  int get_frame() const {return FrameableData::get_frame();}
+  int get_timestamp() const {return FrameableData::get_timestamp();}
+  void set_frame(int new_frame) {FrameableData::set_frame(new_key);}
+  void set_timestamp(int new_timestamp) {FrameableData::set_timestamp(new_key);}
+  AnimationGraphHandle* get_handle() {return handle;}
+  void set_handle(AnimationGraphHandle *new_handle) {handle = new_handle;}
+};
+
+#endif  // SRC_MODEL_INCLUDE_ANIMATION_PROPERTY_H_

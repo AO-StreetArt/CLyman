@@ -22,26 +22,25 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "model/include/object_interface.h"
-#include "data_list_interface.h"
+#include "model/include/animation_property.h"
+#include "data_list.h"
 
-#ifndef SRC_API_INCLUDE_OBJECT_LIST_INTERFACE_H_
-#define SRC_API_INCLUDE_OBJECT_LIST_INTERFACE_H_
+#ifndef SRC_API_INCLUDE_PROPERTY_LIST_H_
+#define SRC_API_INCLUDE_PROPERTY_LIST_H_
+
+using PropertyDataList = DataList<AnimationProperty*>;
 
 // An ObjectList stores a vector of pointers to ObjectDocuments
 // It is responsible for parsing requests from external clients,
 // and writing the responses to go back to those external clients.
-class ObjectListInterface : public DataListInterface {
+class PropertyList : public PropertyDataList {
  public:
+  // Constructor
+  PropertyList() : PropertyDataList() {}
   // Destructor
-  virtual ~ObjectListInterface() {}
-  // Object List
-  // An array of Object Interfaces
-  virtual int num_objects() const = 0;
-  virtual void add_object(ObjectInterface *o) = 0;
-  virtual ObjectInterface* get_object(int index) const = 0;
-  virtual void remove_object(int index) = 0;
-  virtual void clear_objects() = 0;
+  virtual ~PropertyList() {}
+  // Copy Constructor
+  PropertyList(const PropertyList &olist) : PropertyDataList() {}
 };
 
-#endif  // SRC_API_INCLUDE_OBJECT_LIST_INTERFACE_H_
+#endif  // SRC_API_INCLUDE_PROPERTY_LIST_H_

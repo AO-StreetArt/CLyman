@@ -29,8 +29,8 @@ class ClusterManager {
   std::vector<AOSSL::ServiceInterface*> cluster_members1;
   std::vector<AOSSL::ServiceInterface*> cluster_members2;
   AOSSL::TieredApplicationProfile *profile = nullptr;
-  std::atomic<int> current_vector{1};
-  std::atomic<int> current_return_index{0};
+  std::atomic<unsigned int> current_vector{1};
+  std::atomic<unsigned int> current_return_index{0};
   std::string service_registration_name;
   AOSSL::ConsulComponentFactory consul_factory;
   bool discover_ivan = true;

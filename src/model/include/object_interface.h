@@ -18,14 +18,15 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <exception>
-#include "object_related.h"
+#include "object_frame_interface.h"
+#include "animation_property.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
 #define SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
 
 // An Object Interface defines the functions for the Object-3D Data Model
 // Represents a single document in Mongo
-class ObjectInterface {
+class ObjectInterface : public ObjectFrameInterface {
  public:
   virtual ~ObjectInterface() {}
   // Object Name
@@ -46,14 +47,15 @@ class ObjectInterface {
   // The device which owns the object, informational
   virtual std::string get_owner() const = 0;
   virtual void set_owner(std::string new_owner) = 0;
-  // Object Key
-  // The OID of the object in Mongo
-  virtual std::string get_key() const = 0;
-  virtual void set_key(std::string new_key) = 0;
   // Scene ID
   // The Unique Identifier of the scene to which the object is associated
   virtual std::string get_scene() const = 0;
   virtual void set_scene(std::string new_scene) = 0;
+  // Identifier for the piece of an asset corresponding to this object.
+  // This identifier lets us associate an object to a piece of an asset
+  // from a parent object.
+  virtual std::string get_asset_sub_id() const = 0;
+  virtual void set_asset_sub_id(std::string new_asset_sub_id) = 0;
   // Object Assets
   // A Unique ID corresponding to a record in the asset module
   // Represents mesh files, texture files, shader scripts, etc
@@ -62,23 +64,17 @@ class ObjectInterface {
   virtual std::string get_asset(int index) const = 0;
   virtual void remove_asset(int index) = 0;
   virtual void clear_assets() = 0;
-  // Object Transform
-  // The transform holds the objects position, rotation, and scaling in 3-space
-  virtual void transform(Transformation *t) = 0;
-  virtual bool has_transform() const = 0;
-  virtual Transformation* get_transform() const = 0;
-  // Frame/Timestamp
-  virtual int get_frame() const = 0;
-  virtual int get_timestamp() const = 0;
-  virtual void set_frame(int new_frame) = 0;
-  virtual void set_timestamp(int new_timestamp) = 0;
+  // Object Properties
+  // Named sets of values that can be keyframed seperately
+  virtual int num_props() const = 0;
+  virtual void add_prop(AnimationProperty *new_prop) = 0;
+  virtual AnimationProperty* get_prop(int index) const = 0;
+  virtual void remove_prop(int index) = 0;
+  virtual void clear_props() = 0;
   // Take a target object and apply it's fields as changes to this Object
   virtual void merge(ObjectInterface *target) = 0;
   // Take a target object and overwrite this object's fields with it
   virtual void overwrite(ObjectInterface *target) = 0;
-  // to_json method to build an object to save to Mongo
-  virtual std::string to_json() = 0;
-  virtual std::string to_json(bool is_query) = 0;
   virtual std::string to_transform_json() = 0;
 };
 
