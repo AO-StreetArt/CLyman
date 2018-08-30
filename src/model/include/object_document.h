@@ -23,6 +23,10 @@ limitations under the License.
 #include "data_related.h"
 #include "data_frameable.h"
 #include "animation_property.h"
+#include "animation_frame_interface.h"
+#include "animation_frame.h"
+#include "animation_graph_handle.h"
+#include "app/include/clyman_utils.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -38,7 +42,7 @@ limitations under the License.
 //     to and from JSON.  These methods are meant for
 //     use in communicating with the database ONLY,
 //     external clients should communicate using the object_list API
-class ObjectDocument : public FrameableData, public RelatedData, public Object3d, public ObjectInterface {
+class ObjectDocument : public RelatedData, public Object3d, public ObjectInterface {
   // String attributes
   std::string name;
   std::string type;
@@ -53,7 +57,7 @@ class ObjectDocument : public FrameableData, public RelatedData, public Object3d
   std::vector<AnimationProperty*> properties;
  public:
   // Constructors
-  ObjectDocument() : RelatedData(), FrameableData(), Object3d() {}
+  ObjectDocument() : RelatedData(), Object3d() {}
   // Parse a JSON document
   ObjectDocument(const rapidjson::Document &d);
   // Copy Constructor
@@ -110,7 +114,7 @@ class ObjectDocument : public FrameableData, public RelatedData, public Object3d
   AnimationProperty* get_prop(int index) const {return properties[index];}
   void remove_prop(int index) {properties.erase(properties.begin()+index);}
   void clear_props() {
-    for (int i = 0; i < properties.size(); i++) {
+    for (unsigned int i = 0; i < properties.size(); i++) {
       delete properties[i];
     }
     properties.clear();

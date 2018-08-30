@@ -47,7 +47,6 @@ class PropertyInterface {
   virtual std::string get_value(int index) const = 0;
   virtual void set_value(int index, std::string new_value) = 0;
   virtual void add_value(std::string new_value) = 0;
-  virtual void delete_value(int index) = 0;
   virtual int num_values() const = 0;
   // Scene ID
   // The Unique Identifier of the scene to which the object is associated
@@ -65,8 +64,8 @@ class PropertyInterface {
   virtual int get_timestamp() const = 0;
   virtual void set_frame(int new_frame) = 0;
   virtual void set_timestamp(int new_timestamp) = 0;
-  virtual AnimationGraphHandle* get_handle() = 0;
-  virtual void set_handle(AnimationGraphHandle *new_handle) = 0;
+  virtual AnimationGraphHandle* get_handle(int index) = 0;
+  virtual void set_handle(AnimationGraphHandle *new_handle, int index) = 0;
 };
 
 #endif  // SRC_MODEL_INCLUDE_PROPERTY_INTERFACE_H_

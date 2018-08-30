@@ -41,7 +41,7 @@ class RelatedData {
   // Constructors
   RelatedData() {}
   // Copy Constructor
-  RelatedData(const RelatedObject &o) {}
+  RelatedData(const RelatedData &o) {}
   // Destructor
   virtual ~RelatedData() {}
   // String Getters

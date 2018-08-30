@@ -34,18 +34,15 @@ using PropertiesDataList = DataList<PropertyInterface*>;
 // An ObjectList stores a vector of pointers to ObjectDocuments
 // It is responsible for parsing requests from external clients,
 // and writing the responses to go back to those external clients.
-class JsonPropertiesList : public PropertiesDataList, public PropertyListInterface {
-  // Object Factory
-  ObjectFactory ofactory;
-
+class JsonPropertyList : public PropertiesDataList, public PropertyListInterface {
  public:
   // Constructor
-  JsonPropertiesList() : PropertiesDataList() {}
-  ~JsonPropertiesList() {}
+  JsonPropertyList() : PropertiesDataList() {}
+  ~JsonPropertyList() {}
   // Inbound Message Translation methods
-  JsonPropertiesList(const rapidjson::Document& d);
+  JsonPropertyList(const rapidjson::Document& d);
   // Copy Constructor
-  JsonPropertiesList(const ObjectList &olist) : PropertiesDataList(olist) {}
+  JsonPropertyList(const JsonPropertyList &olist) : PropertiesDataList(olist) {}
   // Message Type
   // Integer constant representing the acion type
   // Defined in app_utils.h
@@ -81,7 +78,7 @@ class JsonPropertiesList : public PropertiesDataList, public PropertyListInterfa
   int num_objects() const override {return PropertiesDataList::num_objects();}
   void add_object(PropertyInterface *o) override {PropertiesDataList::add_object(o);}
   PropertyInterface* get_object(int index) const override {return PropertiesDataList::get_object(index);}
-  void remove_object(int index) override {PropertiesDataList::remove_object(nc);}
+  void remove_object(int index) override {PropertiesDataList::remove_object(index);}
   void clear_objects() override {PropertiesDataList::clear_objects();}
   // Message generation methods
   void to_msg_string(std::string &out_string) override;

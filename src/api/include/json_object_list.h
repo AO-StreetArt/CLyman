@@ -25,6 +25,7 @@ limitations under the License.
 #include "model/include/object_document.h"
 #include "model/include/object_interface.h"
 #include "model/include/object_factory.h"
+#include "app/include/clyman_utils.h"
 #include "data_list.h"
 #include "object_list_interface.h"
 
@@ -47,7 +48,7 @@ class JsonObjectList : public ObjectDataList, public ObjectListInterface {
   // Inbound Message Translation methods
   JsonObjectList(const rapidjson::Document& d);
   // Copy Constructor
-  JsonObjectList(const ObjectList &olist) : ObjectDataList(olist) {}
+  JsonObjectList(const JsonObjectList &olist) : ObjectDataList(olist) {}
   // Message Type
   // Integer constant representing the acion type
   // Defined in app_utils.h
@@ -83,7 +84,7 @@ class JsonObjectList : public ObjectDataList, public ObjectListInterface {
   int num_objects() const override {return ObjectDataList::num_objects();}
   void add_object(ObjectInterface *o) override {ObjectDataList::add_object(o);}
   ObjectInterface* get_object(int index) const override {return ObjectDataList::get_object(index);}
-  void remove_object(int index) override {ObjectDataList::remove_object(nc);}
+  void remove_object(int index) override {ObjectDataList::remove_object(index);}
   void clear_objects() override {ObjectDataList::clear_objects();}
   // Message generation methods
   void to_msg_string(std::string &out_string) override;

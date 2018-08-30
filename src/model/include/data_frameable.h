@@ -30,7 +30,7 @@ class FrameableData {
   int timestamp = -9999;
   AnimationFrameInterface *aframe = nullptr;
  public:
-  virtual ~FrameableEntity() {if (aframe) delete aframe;}
+  virtual ~FrameableData() {if (aframe) delete aframe;}
   // Frame/Timestamp
   int get_frame() const {return frame;}
   int get_timestamp() const {return timestamp;}

@@ -5,7 +5,7 @@ CC = g++
 CFLAGS  = -g -Wall
 STD = -std=c++11
 OBJS = object_document.o animation_property.o
-INCL_DIRS = -Iinclude
+INCL_DIRS = -Iinclude -I../
 
 default: $(OBJS)
 

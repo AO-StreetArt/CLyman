@@ -29,30 +29,12 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
   if (d.IsObject()) {
 
     // Parse the base elements
-    if (d.HasMember("msg_type")) {
-      const rapidjson::Value *mtype_val = &d["msg_type"];
-      if (!(mtype_val->IsNull())) {
-        set_msg_type(mtype_val->GetInt());
-      }
-    }
-    if (d.HasMember("operation")) {
-      const rapidjson::Value *opid_val = &d["operation"];
-      if (!(opid_val->IsNull())) {
-        set_op_type(opid_val->GetInt());
-      }
-    }
-    if (d.HasMember("transaction_id")) {
-      const rapidjson::Value *tid_val = &d["transaction_id"];
-      if (!(tid_val->IsNull())) {
-        set_transaction_id(tid_val->GetString());
-      }
-    }
-    if (d.HasMember("num_records")) {
-      const rapidjson::Value *nr_val = &d["num_records"];
-      if (!(nr_val->IsNull())) {
-        set_num_records(nr_val->GetInt());
-      }
-    }
+    set_msg_type(find_json_int_elt_in_doc(d, "msg_type"));
+    set_op_type(find_json_int_elt_in_doc(d, "operation"));
+    set_num_records(find_json_int_elt_in_doc(d, "num_records"));
+    std::string tid_value;
+    find_json_string_elt_in_doc(d, "transaction_id", tid_value);
+    set_transaction_id(tid_value);
 
     // Parse the object list
     if (d.HasMember("objects")) {
@@ -73,60 +55,60 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             auto parent_itr = itr.FindMember("parent");
             if (parent_itr != itr.MemberEnd()) {
               if (parent_itr->value.IsString()) {
-                RelatedObject::set_parent(parent_itr->value.GetString());
+                new_obj->set_parent(parent_itr->value.GetString());
               }
             }
             auto asi_itr = itr.FindMember("asset_sub_id");
             if (asi_itr != itr.MemberEnd()) {
               if (asi_itr->value.IsString()) {
-                RelatedObject::set_asset_sub_id(asi_itr->value.GetString());
+                new_obj->set_asset_sub_id(asi_itr->value.GetString());
               }
             }
             auto name_itr = itr.FindMember("name");
             if (name_itr != itr.MemberEnd()) {
               if (name_itr->value.IsString()) {
-                name = name_itr->value.GetString();
+                new_obj->set_name(name_itr->value.GetString());
               }
             }
             auto scene_itr = itr.FindMember("scene");
             if (scene_itr != itr.MemberEnd()) {
               if (scene_itr->value.IsString()) {
-                RelatedObject::set_scene(scene_itr->value.GetString());
+                new_obj->set_scene(scene_itr->value.GetString());
               }
             }
             auto owner_itr = itr.FindMember("owner");
             if (owner_itr != itr.MemberEnd()) {
               if (owner_itr->value.IsString()) {
-                owner = owner_itr->value.GetString();
+                new_obj->set_owner(owner_itr->value.GetString());
               }
             }
             auto type_itr = itr.FindMember("type");
             if (type_itr != itr.MemberEnd()) {
               if (type_itr->value.IsString()) {
-                type = type_itr->value.GetString();
+                new_obj->set_type(type_itr->value.GetString());
               }
             }
             auto subtype_itr = itr.FindMember("subtype");
             if (subtype_itr != itr.MemberEnd()) {
               if (subtype_itr->value.IsString()) {
-                subtype = subtype_itr->value.GetString();
+                new_obj->set_subtype(subtype_itr->value.GetString());
               }
             }
             auto frame_itr = itr.FindMember("frame");
             if (frame_itr != itr.MemberEnd()) {
               if (frame_itr->value.IsNumber()) {
-                Object3d::set_frame(frame_itr->value.GetInt());
+                new_obj->set_frame(frame_itr->value.GetInt());
               }
             }
             auto timestamp_itr = itr.FindMember("timestamp");
             if (timestamp_itr != itr.MemberEnd()) {
               if (timestamp_itr->value.IsNumber()) {
-                Object3d::set_timestamp(timestamp_itr->value.GetInt());
+                new_obj->set_timestamp(timestamp_itr->value.GetInt());
               }
             }
 
             // Parse the Animation Graph Handles
-            AnimationFrame aframe = nullptr;
+            AnimationFrame *aframe = nullptr;
             // Animation Graph Handles - Translation
             auto th_itr = itr.FindMember("translation_handle");
             if (th_itr != itr.MemberEnd()) {
