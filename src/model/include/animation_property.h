@@ -37,7 +37,7 @@ limitations under the License.
 // to the transform of an object
 // Represents a single document in Mongo
 class AnimationProperty : public FrameableData, public RelatedData, public PropertyInterface {
-  std::vector<std::string> values;
+  std::vector<double> values;
   std::vector<AnimationGraphHandle*> handle;
   std::string name;
  public:
@@ -62,9 +62,9 @@ class AnimationProperty : public FrameableData, public RelatedData, public Prope
   void set_name(std::string new_name) override {name.assign(new_name);}
   // Property Value
   // The values of the property
-  std::string get_value(int index) const override {return values[index];}
-  void set_value(int index, std::string new_value) override {values[index] = new_value;}
-  void add_value(std::string new_value) override {
+  double get_value(int index) const override {return values[index];}
+  void set_value(int index, double new_value) override {values[index] = new_value;}
+  void add_value(double new_value) override {
     values.push_back(new_value);
     handle.push_back(new AnimationGraphHandle);
   }

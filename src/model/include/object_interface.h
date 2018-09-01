@@ -76,6 +76,9 @@ class ObjectInterface : public ObjectFrameInterface {
   // Take a target object and overwrite this object's fields with it
   virtual void overwrite(ObjectInterface *target) = 0;
   virtual std::string to_transform_json() = 0;
+  // Get the animation frame
+  virtual AnimationFrameInterface* get_animation_frame() = 0;
+  virtual void set_animation_frame(AnimationFrameInterface *new_aframe) = 0;
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_

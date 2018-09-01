@@ -21,6 +21,8 @@ limitations under the License.
 
 #include "object_interface.h"
 #include "object_document.h"
+#include "property_interface.h"
+#include "animation_property.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_FACTORY_H_
 #define SRC_MODEL_INCLUDE_OBJECT_FACTORY_H_
@@ -33,6 +35,9 @@ class ObjectFactory {
     {return new ObjectDocument(d);}
   // Create an ObjectInterface with the default settings
   ObjectInterface* build_object() {return new ObjectDocument;}
+  PropertyInterface* build_property() {return new AnimationProperty;}
+  PropertyInterface* build_property(const rapidjson::Document& d) \
+      {return new AnimationProperty(d);}
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_FACTORY_H_

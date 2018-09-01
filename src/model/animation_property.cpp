@@ -45,8 +45,8 @@ AnimationProperty::AnimationProperty(const rapidjson::Document &d) {
           std::string value;
           auto val_itr = prop_elt_itr.FindMember("value");
           if (val_itr != prop_elt_itr.MemberEnd()) {
-            if (val_itr->value.IsString()) {
-              add_value(val_itr->value.GetString());
+            if (val_itr->value.IsDouble()) {
+              add_value(val_itr->value.GetDouble());
             }
           }
           parse_json_graph_handle(prop_elt_itr, handle[handle.size() - 1]);
@@ -81,10 +81,9 @@ void AnimationProperty::to_json(std::string& json_str) const {
     writer.Key("values");
     writer.StartArray();
     for (unsigned int i = 0; i < values.size(); i++) {
-      auto val = values[i];
       writer.StartObject();
       writer.Key("value");
-      writer.String(val.c_str(), (rapidjson::SizeType)val.length());
+      writer.Double(values[i]);
       write_json_graph_handle(writer, handle[i]);
       writer.EndObject();
     }

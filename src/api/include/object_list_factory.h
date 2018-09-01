@@ -24,6 +24,8 @@ limitations under the License.
 
 #include "object_list_interface.h"
 #include "json_object_list.h"
+#include "property_list_interface.h"
+#include "json_property_list.h"
 
 #ifndef SRC_API_INCLUDE_OBJECT_LIST_FACTORY_H_
 #define SRC_API_INCLUDE_OBJECT_LIST_FACTORY_H_
@@ -37,6 +39,11 @@ class ObjectListFactory {
     {return new JsonObjectList(d);}
   // Create an empty ObjectListInterface which converts to JSON
   ObjectListInterface* build_json_object_list() {return new JsonObjectList;}
+  // Create an ObjectListInterface from a parsed Rapidjson Document
+  PropertyListInterface* build_property_list(const rapidjson::Document& d) \
+    {return new JsonPropertyList(d);}
+  // Create an empty ObjectListInterface which converts to JSON
+  PropertyListInterface* build_json_property_list() {return new JsonPropertyList;}
 };
 
 #endif  // SRC_API_INCLUDE_OBJECT_LIST_FACTORY_H_

@@ -100,8 +100,8 @@ ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
                 // Add a new property value
                 auto val_itr = prop_elt_itr.FindMember("value");
                 if (val_itr != prop_elt_itr.MemberEnd()) {
-                  if (val_itr->value.IsString()) {
-                    new_prop->add_value(val_itr->value.GetString());
+                  if (val_itr->value.IsDouble()) {
+                    new_prop->add_value(val_itr->value.GetDouble());
                   }
                 }
                 parse_json_graph_handle(prop_elt_itr, new_prop->get_handle(new_prop->num_values() - 1));
@@ -306,7 +306,7 @@ std::string ObjectDocument::to_transform_json() {
           AnimationGraphHandle* hnd = prop->get_handle(i);
           writer.StartObject();
           writer.Key("value");
-          writer.String(val.c_str(), (rapidjson::SizeType)val.length());
+          writer.Double(val);
           write_json_graph_handle(writer, hnd);
           writer.EndObject();
         }

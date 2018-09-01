@@ -22,6 +22,8 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+#include "app/include/clyman_utils.h"
+#include "model/include/object_factory.h"
 #include "model/include/property_interface.h"
 #include "data_list.h"
 #include "property_list_interface.h"
@@ -35,6 +37,8 @@ using PropertiesDataList = DataList<PropertyInterface*>;
 // It is responsible for parsing requests from external clients,
 // and writing the responses to go back to those external clients.
 class JsonPropertyList : public PropertiesDataList, public PropertyListInterface {
+  // Object Factory
+  ObjectFactory ofactory;
  public:
   // Constructor
   JsonPropertyList() : PropertiesDataList() {}

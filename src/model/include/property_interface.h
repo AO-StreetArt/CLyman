@@ -44,9 +44,9 @@ class PropertyInterface {
   virtual void set_name(std::string new_name) = 0;
   // Property Value
   // The values of the property
-  virtual std::string get_value(int index) const = 0;
-  virtual void set_value(int index, std::string new_value) = 0;
-  virtual void add_value(std::string new_value) = 0;
+  virtual double get_value(int index) const = 0;
+  virtual void set_value(int index, double new_value) = 0;
+  virtual void add_value(double new_value) = 0;
   virtual int num_values() const = 0;
   // Scene ID
   // The Unique Identifier of the scene to which the object is associated

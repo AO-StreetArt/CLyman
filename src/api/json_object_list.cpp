@@ -45,65 +45,89 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             // Create a new object
             ObjectInterface *new_obj = ofactory.build_object();
 
-            // Parse the string attributes
-            auto key_iter = itr.FindMember("key");
-            if (key_iter != itr.MemberEnd()) {
-              if (key_iter->value.IsString()) {
-                new_obj->set_key(key_iter->value.GetString());
+            // Basic elements
+            std::string key_value;
+            find_json_string_elt_in_array(itr, "key", key_value);
+            new_obj->set_key(key_value);
+            std::string parent_value;
+            find_json_string_elt_in_array(itr, "parent", parent_value);
+            new_obj->set_parent(parent_value);
+            std::string asi_value;
+            find_json_string_elt_in_array(itr, "asset_sub_id", asi_value);
+            new_obj->set_asset_sub_id(asi_value);
+            std::string scene_value;
+            find_json_string_elt_in_array(itr, "scene", scene_value);
+            new_obj->set_scene(scene_value);
+            std::string name_value;
+            find_json_string_elt_in_array(itr, "name", name_value);
+            new_obj->set_name(name_value);
+            std::string owner_value;
+            find_json_string_elt_in_array(itr, "owner", owner_value);
+            new_obj->set_owner(owner_value);
+            std::string type_value;
+            find_json_string_elt_in_array(itr, "type", type_value);
+            new_obj->set_type(type_value);
+            std::string subtype_value;
+            find_json_string_elt_in_array(itr, "subtype", subtype_value);
+            new_obj->set_subtype(subtype_value);
+            new_obj->set_frame(find_json_int_elt_in_array(itr, "frame"));
+            new_obj->set_timestamp(find_json_int_elt_in_array(itr, "timestamp"));
+
+            // Assets
+            auto assets_itr = itr.FindMember("assets");
+            if (assets_itr != itr.MemberEnd()) {
+              if (assets_itr->value.IsArray()) {
+                for (auto& asset_itr : assets_itr->value.GetArray()) {
+                  new_obj->add_asset(asset_itr.GetString());
+                }
               }
             }
-            auto parent_itr = itr.FindMember("parent");
-            if (parent_itr != itr.MemberEnd()) {
-              if (parent_itr->value.IsString()) {
-                new_obj->set_parent(parent_itr->value.GetString());
-              }
-            }
-            auto asi_itr = itr.FindMember("asset_sub_id");
-            if (asi_itr != itr.MemberEnd()) {
-              if (asi_itr->value.IsString()) {
-                new_obj->set_asset_sub_id(asi_itr->value.GetString());
-              }
-            }
-            auto name_itr = itr.FindMember("name");
-            if (name_itr != itr.MemberEnd()) {
-              if (name_itr->value.IsString()) {
-                new_obj->set_name(name_itr->value.GetString());
-              }
-            }
-            auto scene_itr = itr.FindMember("scene");
-            if (scene_itr != itr.MemberEnd()) {
-              if (scene_itr->value.IsString()) {
-                new_obj->set_scene(scene_itr->value.GetString());
-              }
-            }
-            auto owner_itr = itr.FindMember("owner");
-            if (owner_itr != itr.MemberEnd()) {
-              if (owner_itr->value.IsString()) {
-                new_obj->set_owner(owner_itr->value.GetString());
-              }
-            }
-            auto type_itr = itr.FindMember("type");
-            if (type_itr != itr.MemberEnd()) {
-              if (type_itr->value.IsString()) {
-                new_obj->set_type(type_itr->value.GetString());
-              }
-            }
-            auto subtype_itr = itr.FindMember("subtype");
-            if (subtype_itr != itr.MemberEnd()) {
-              if (subtype_itr->value.IsString()) {
-                new_obj->set_subtype(subtype_itr->value.GetString());
-              }
-            }
-            auto frame_itr = itr.FindMember("frame");
-            if (frame_itr != itr.MemberEnd()) {
-              if (frame_itr->value.IsNumber()) {
-                new_obj->set_frame(frame_itr->value.GetInt());
-              }
-            }
-            auto timestamp_itr = itr.FindMember("timestamp");
-            if (timestamp_itr != itr.MemberEnd()) {
-              if (timestamp_itr->value.IsNumber()) {
-                new_obj->set_timestamp(timestamp_itr->value.GetInt());
+
+            // Properties Array
+            auto props_itr = itr.FindMember("properties");
+            if (props_itr != itr.MemberEnd()) {
+              if (props_itr->value.IsArray()) {
+                for (auto& itr : props_itr->value.GetArray()) {
+                  AnimationProperty *new_prop = new AnimationProperty;
+
+                  // Basic Property Values
+                  std::string key_val;
+                  find_json_string_elt_in_array(itr, "key", key_val);
+                  new_prop->set_key(key_val);
+                  std::string parent_val;
+                  find_json_string_elt_in_array(itr, "parent", parent_val);
+                  new_prop->set_parent(parent_val);
+                  std::string name_val;
+                  find_json_string_elt_in_array(itr, "name", name_val);
+                  new_prop->set_name(name_val);
+                  std::string scene_val;
+                  find_json_string_elt_in_array(itr, "scene", scene_val);
+                  new_prop->set_scene(scene_val);
+                  std::string asi_val;
+                  find_json_string_elt_in_array(itr, "asset_sub_id", asi_val);
+                  new_prop->set_asset_sub_id(asi_val);
+                  new_prop->set_frame(find_json_int_elt_in_array(itr, "frame"));
+                  new_prop->set_timestamp(find_json_int_elt_in_array(itr, "timestamp"));
+
+                  // Values Array
+                  auto props_itr = itr.FindMember("values");
+                  if (props_itr != itr.MemberEnd()) {
+                    if (props_itr->value.IsArray()) {
+                      for (auto& prop_elt_itr : props_itr->value.GetArray()) {
+                        // Add a new property value
+                        auto val_itr = prop_elt_itr.FindMember("value");
+                        if (val_itr != prop_elt_itr.MemberEnd()) {
+                          if (val_itr->value.IsDouble()) {
+                            new_prop->add_value(val_itr->value.GetDouble());
+                          }
+                        }
+                        parse_json_graph_handle(prop_elt_itr, new_prop->get_handle(new_prop->num_values() - 1));
+                      }
+                    }
+                  }
+
+                  new_obj->add_prop(new_prop);
+                }
               }
             }
 
@@ -117,52 +141,7 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                 int elt_indx = 0;
                 for (auto& handle_elt_itr : th_itr->value.GetArray()) {
                   // Here we iterate over each object in the translation handle
-                  // there should be three, 0 for x, 1 for y, and 2 for z
-
-                  // Left Handle
-
-                  // Get the type of handle
-                  auto lhtype_itr = handle_elt_itr.FindMember("left_type");
-                  if (lhtype_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhtype_itr->value.IsString()) {
-                      aframe->get_translation(elt_indx)->set_lh_type(lhtype_itr->value.GetString());
-                    }
-                  }
-                  auto lhx_itr = handle_elt_itr.FindMember("left_x");
-                  if (lhx_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhx_itr->value.IsNumber()) {
-                      aframe->get_translation(elt_indx)->set_lh_x(lhx_itr->value.GetDouble());
-                    }
-                  }
-                  auto lhy_itr = handle_elt_itr.FindMember("left_y");
-                  if (lhy_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhy_itr->value.IsNumber()) {
-                      aframe->get_translation(elt_indx)->set_lh_y(lhy_itr->value.GetDouble());
-                    }
-                  }
-
-                  // Right Handle
-
-                  // Get the type of handle
-                  auto rhtype_itr = handle_elt_itr.FindMember("right_type");
-                  if (rhtype_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhtype_itr->value.IsString()) {
-                      aframe->get_translation(elt_indx)->set_rh_type(rhtype_itr->value.GetString());
-                    }
-                  }
-                  auto rhx_itr = handle_elt_itr.FindMember("right_x");
-                  if (rhx_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhx_itr->value.IsNumber()) {
-                      aframe->get_translation(elt_indx)->set_rh_x(rhx_itr->value.GetDouble());
-                    }
-                  }
-                  auto rhy_itr = handle_elt_itr.FindMember("right_y");
-                  if (rhy_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhy_itr->value.IsNumber()) {
-                      aframe->get_translation(elt_indx)->set_rh_y(rhy_itr->value.GetDouble());
-                    }
-                  }
-
+                  parse_json_graph_handle(handle_elt_itr, aframe->get_translation(elt_indx));
                   elt_indx++;
                 }
               }
@@ -175,52 +154,7 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                 int elt_indx = 0;
                 for (auto& handle_elt_itr : rh_itr->value.GetArray()) {
                   // Here we iterate over each object in the translation handle
-                  // there should be three, 0 for w, 1 for x, and 2 for y, and 3 for z
-
-                  // Left Handle
-
-                  // Get the type of handle
-                  auto lhtype_itr = handle_elt_itr.FindMember("left_type");
-                  if (lhtype_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhtype_itr->value.IsString()) {
-                      aframe->get_rotation(elt_indx)->set_lh_type(lhtype_itr->value.GetString());
-                    }
-                  }
-                  auto lhx_itr = handle_elt_itr.FindMember("left_x");
-                  if (lhx_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhx_itr->value.IsNumber()) {
-                      aframe->get_rotation(elt_indx)->set_lh_x(lhx_itr->value.GetDouble());
-                    }
-                  }
-                  auto lhy_itr = handle_elt_itr.FindMember("left_y");
-                  if (lhy_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhy_itr->value.IsNumber()) {
-                      aframe->get_rotation(elt_indx)->set_lh_y(lhy_itr->value.GetDouble());
-                    }
-                  }
-
-                  // Right Handle
-
-                  // Get the type of handle
-                  auto rhtype_itr = handle_elt_itr.FindMember("right_type");
-                  if (rhtype_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhtype_itr->value.IsString()) {
-                      aframe->get_rotation(elt_indx)->set_rh_type(rhtype_itr->value.GetString());
-                    }
-                  }
-                  auto rhx_itr = handle_elt_itr.FindMember("right_x");
-                  if (rhx_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhx_itr->value.IsNumber()) {
-                      aframe->get_rotation(elt_indx)->set_rh_x(rhx_itr->value.GetDouble());
-                    }
-                  }
-                  auto rhy_itr = handle_elt_itr.FindMember("right_y");
-                  if (rhy_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhy_itr->value.IsNumber()) {
-                      aframe->get_rotation(elt_indx)->set_rh_y(rhy_itr->value.GetDouble());
-                    }
-                  }
-
+                  parse_json_graph_handle(handle_elt_itr, aframe->get_rotation(elt_indx));
                   elt_indx++;
                 }
               }
@@ -234,52 +168,7 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                 int elt_indx = 0;
                 for (auto& handle_elt_itr : sh_itr->value.GetArray()) {
                   // Here we iterate over each object in the translation handle
-                  // there should be three, 0 for x, 1 for y, and 2 for z
-
-                  // Left Handle
-
-                  // Get the type of handle
-                  auto lhtype_itr = handle_elt_itr.FindMember("left_type");
-                  if (lhtype_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhtype_itr->value.IsString()) {
-                      aframe->get_scale(elt_indx)->set_lh_type(lhtype_itr->value.GetString());
-                    }
-                  }
-                  auto lhx_itr = handle_elt_itr.FindMember("left_x");
-                  if (lhx_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhx_itr->value.IsNumber()) {
-                      aframe->get_scale(elt_indx)->set_lh_x(lhx_itr->value.GetDouble());
-                    }
-                  }
-                  auto lhy_itr = handle_elt_itr.FindMember("left_y");
-                  if (lhy_itr != handle_elt_itr.MemberEnd()) {
-                    if (lhy_itr->value.IsNumber()) {
-                      aframe->get_scale(elt_indx)->set_lh_y(lhy_itr->value.GetDouble());
-                    }
-                  }
-
-                  // Right Handle
-
-                  // Get the type of handle
-                  auto rhtype_itr = handle_elt_itr.FindMember("right_type");
-                  if (rhtype_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhtype_itr->value.IsString()) {
-                      aframe->get_scale(elt_indx)->set_rh_type(rhtype_itr->value.GetString());
-                    }
-                  }
-                  auto rhx_itr = handle_elt_itr.FindMember("right_x");
-                  if (rhx_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhx_itr->value.IsNumber()) {
-                      aframe->get_scale(elt_indx)->set_rh_x(rhx_itr->value.GetDouble());
-                    }
-                  }
-                  auto rhy_itr = handle_elt_itr.FindMember("right_y");
-                  if (rhy_itr != handle_elt_itr.MemberEnd()) {
-                    if (rhy_itr->value.IsNumber()) {
-                      aframe->get_scale(elt_indx)->set_rh_y(rhy_itr->value.GetDouble());
-                    }
-                  }
-
+                  parse_json_graph_handle(handle_elt_itr, aframe->get_scale(elt_indx));
                   elt_indx++;
                 }
               }
@@ -462,48 +351,78 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
     writer.StartObject();
 
     // Write string attributes
-    if (!(get_object(a)->get_key().empty())) {
-      writer.Key("key");
-      writer.String(get_object(a)->get_key().c_str(), \
-        (rapidjson::SizeType)get_object(a)->get_key().length());
+    write_json_string_elt(writer, "key", get_object(a)->get_key());
+    write_json_string_elt(writer, "name", get_object(a)->get_name());
+    write_json_string_elt(writer, "scene", get_object(a)->get_scene());
+    write_json_string_elt(writer, "parent", get_object(a)->get_parent());
+    write_json_string_elt(writer, "asset_sub_id", get_object(a)->get_asset_sub_id());
+    write_json_string_elt(writer, "owner", get_object(a)->get_owner());
+    write_json_string_elt(writer, "type", get_object(a)->get_type());
+    write_json_string_elt(writer, "subtype", get_object(a)->get_subtype());
+    write_json_int_elt(writer, "frame", get_object(a)->get_frame());
+    write_json_int_elt(writer, "timestamp", get_object(a)->get_timestamp());
+
+    // Write Properties array
+    if (get_object(a)->num_props() > 0) {
+      writer.Key("properties");
+      writer.StartArray();
+      for (int p = 0; p < get_object(a)->num_props(); p++) {
+        AnimationProperty *prop = get_object(a)->get_prop(p);
+        writer.StartObject();
+        // Write basic attributes
+        write_json_string_elt(writer, "key", prop->get_key());
+        write_json_string_elt(writer, "name", prop->get_name());
+        write_json_string_elt(writer, "parent", prop->get_parent());
+        write_json_string_elt(writer, "asset_sub_id", prop->get_asset_sub_id());
+        write_json_string_elt(writer, "scene", prop->get_scene());
+        write_json_int_elt(writer, "frame", prop->get_frame());
+        write_json_int_elt(writer, "timestamp", prop->get_timestamp());
+
+        // Write values array
+        if (prop->num_values() > 0) {
+          writer.Key("values");
+          writer.StartArray();
+          for (int i = 0; i < prop->num_values(); i++) {
+            auto val = prop->get_value(i);
+            AnimationGraphHandle* hnd = prop->get_handle(i);
+            writer.StartObject();
+            writer.Key("value");
+            writer.Double(val);
+            write_json_graph_handle(writer, hnd);
+            writer.EndObject();
+          }
+          writer.EndArray();
+        }
+        writer.EndObject();
+      }
+      writer.EndArray();
     }
 
-    if (!(get_object(a)->get_name().empty())) {
-      writer.Key("name");
-      writer.String(get_object(a)->get_name().c_str(), \
-        (rapidjson::SizeType)get_object(a)->get_name().length());
-    }
+    // Write Animation Graph Handles
+    if (get_object(a)->get_animation_frame()) {
+      // Translation
+      writer.Key("translation_handle");
+      writer.StartArray();
+      for (int i = 0; i < 3; i++) {
+        write_json_graph_handle(writer, get_object(a)->get_animation_frame()->get_translation(i));
+      }
+      writer.EndArray();
 
-    if (!(get_object(a)->get_scene().empty())) {
-      writer.Key("scene");
-      writer.String(get_object(a)->get_scene().c_str(), \
-        (rapidjson::SizeType)get_object(a)->get_scene().length());
-    }
+      // Rotation
+      writer.Key("rotation_handle");
+      writer.StartArray();
+      for (int i = 0; i < 4; i++) {
+        write_json_graph_handle(writer, get_object(a)->get_animation_frame()->get_rotation(i));
+      }
+      writer.EndArray();
 
-    if (!(get_object(a)->get_type().empty())) {
-      writer.Key("type");
-      writer.String(get_object(a)->get_type().c_str(), \
-        (rapidjson::SizeType)get_object(a)->get_type().length());
-    }
-
-    if (!(get_object(a)->get_subtype().empty())) {
-      writer.Key("subtype");
-      writer.String(get_object(a)->get_subtype().c_str(), \
-        (rapidjson::SizeType)get_object(a)->get_subtype().length());
-    }
-
-    writer.Key("owner");
-    writer.String(get_object(a)->get_owner().c_str(), \
-      (rapidjson::SizeType)get_object(a)->get_owner().length());
-
-    if (get_object(a)->get_frame() > -9999) {
-      writer.Key("frame");
-      writer.Uint(get_object(a)->get_frame());
-    }
-
-    if (get_object(a)->get_timestamp() > -9999) {
-      writer.Key("timestamp");
-      writer.Uint(get_object(a)->get_timestamp());
+      // Scale
+      writer.Key("scale_handle");
+      writer.StartArray();
+      for (int i = 0; i < 3; i++) {
+        write_json_graph_handle(writer, get_object(a)->get_animation_frame()->get_scale(i));
+      }
+      writer.EndArray();
     }
 
     // Write transforms
