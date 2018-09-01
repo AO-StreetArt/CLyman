@@ -31,25 +31,25 @@ JsonPropertyList::JsonPropertyList(const rapidjson::Document& d) {
     // Parse the base elements
     if (d.HasMember("msg_type")) {
       const rapidjson::Value *mtype_val = &d["msg_type"];
-      if (!(mtype_val->IsNull())) {
+      if (mtype_val->IsInt()) {
         set_msg_type(mtype_val->GetInt());
       }
     }
     if (d.HasMember("operation")) {
       const rapidjson::Value *opid_val = &d["operation"];
-      if (!(opid_val->IsNull())) {
+      if (opid_val->IsInt()) {
         set_op_type(opid_val->GetInt());
       }
     }
     if (d.HasMember("transaction_id")) {
       const rapidjson::Value *tid_val = &d["transaction_id"];
-      if (!(tid_val->IsNull())) {
+      if (tid_val->IsString()) {
         set_transaction_id(tid_val->GetString());
       }
     }
     if (d.HasMember("num_records")) {
       const rapidjson::Value *nr_val = &d["num_records"];
-      if (!(nr_val->IsNull())) {
+      if (nr_val->IsInt()) {
         set_num_records(nr_val->GetInt());
       }
     }

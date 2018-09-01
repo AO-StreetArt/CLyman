@@ -404,7 +404,9 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
       writer.Key("translation_handle");
       writer.StartArray();
       for (int i = 0; i < 3; i++) {
+        writer.StartObject();
         write_json_graph_handle(writer, get_object(a)->get_animation_frame()->get_translation(i));
+        writer.EndObject();
       }
       writer.EndArray();
 
@@ -412,7 +414,9 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
       writer.Key("rotation_handle");
       writer.StartArray();
       for (int i = 0; i < 4; i++) {
+        writer.StartObject();
         write_json_graph_handle(writer, get_object(a)->get_animation_frame()->get_rotation(i));
+        writer.EndObject();
       }
       writer.EndArray();
 
@@ -420,7 +424,9 @@ void JsonObjectList::to_msg_string(std::string &out_string) {
       writer.Key("scale_handle");
       writer.StartArray();
       for (int i = 0; i < 3; i++) {
+        writer.StartObject();
         write_json_graph_handle(writer, get_object(a)->get_animation_frame()->get_scale(i));
+        writer.EndObject();
       }
       writer.EndArray();
     }

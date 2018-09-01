@@ -323,7 +323,9 @@ std::string ObjectDocument::to_transform_json() {
     writer.Key("translation_handle");
     writer.StartArray();
     for (int i = 0; i < 3; i++) {
+      writer.StartObject();
       write_json_graph_handle(writer, FrameableData::get_animation_frame()->get_translation(i));
+      writer.EndObject();
     }
     writer.EndArray();
 
@@ -331,7 +333,9 @@ std::string ObjectDocument::to_transform_json() {
     writer.Key("rotation_handle");
     writer.StartArray();
     for (int i = 0; i < 4; i++) {
+      writer.StartObject();
       write_json_graph_handle(writer, FrameableData::get_animation_frame()->get_rotation(i));
+      writer.EndObject();
     }
     writer.EndArray();
 
@@ -339,7 +343,9 @@ std::string ObjectDocument::to_transform_json() {
     writer.Key("scale_handle");
     writer.StartArray();
     for (int i = 0; i < 3; i++) {
+      writer.StartObject();
       write_json_graph_handle(writer, FrameableData::get_animation_frame()->get_scale(i));
+      writer.EndObject();
     }
     writer.EndArray();
   }

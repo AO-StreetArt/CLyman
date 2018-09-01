@@ -79,11 +79,11 @@ class JsonPropertyList : public PropertiesDataList, public PropertyListInterface
   void set_num_records(int nr) override {PropertiesDataList::set_num_records(nr);}
   // Object List
   // An array of Object Interfaces
-  int num_objects() const override {return PropertiesDataList::num_objects();}
-  void add_object(PropertyInterface *o) override {PropertiesDataList::add_object(o);}
-  PropertyInterface* get_object(int index) const override {return PropertiesDataList::get_object(index);}
-  void remove_object(int index) override {PropertiesDataList::remove_object(index);}
-  void clear_objects() override {PropertiesDataList::clear_objects();}
+  int num_props() const override {return PropertiesDataList::num_objects();}
+  void add_prop(PropertyInterface *o) override {PropertiesDataList::add_object(o);}
+  PropertyInterface* get_prop(int index) const override {return PropertiesDataList::get_object(index);}
+  void remove_prop(int index) override {PropertiesDataList::remove_object(index);}
+  void clear_props() override {PropertiesDataList::clear_objects();}
   // Message generation methods
   void to_msg_string(std::string &out_string) override;
 };

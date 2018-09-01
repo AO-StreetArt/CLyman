@@ -37,11 +37,11 @@ class PropertyListInterface : public DataListInterface {
   virtual ~PropertyListInterface() {}
   // Object List
   // An array of Object Interfaces
-  virtual int num_objects() const = 0;
-  virtual void add_object(PropertyInterface *o) = 0;
-  virtual PropertyInterface* get_object(int index) const = 0;
-  virtual void remove_object(int index) = 0;
-  virtual void clear_objects() = 0;
+  virtual int num_props() const = 0;
+  virtual void add_prop(PropertyInterface *o) = 0;
+  virtual PropertyInterface* get_prop(int index) const = 0;
+  virtual void remove_prop(int index) = 0;
+  virtual void clear_props() = 0;
 };
 
 #endif  // SRC_API_INCLUDE_PROPERTY_LIST_INTERFACE_H_
