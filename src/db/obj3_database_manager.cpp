@@ -15,95 +15,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "include/database_manager.h"
+#include "include/obj3_database_manager.h"
 
-void DatabaseManager::find_new_connection() {
-  logger.information("Discovering Mongo Connection");
-  if (internal_profile->get_consul()) {
-    connected_service = internal_profile->get_service(service_name);
-    AOSSL::StringBuffer mongo_un_buf;
-    AOSSL::StringBuffer mongo_pw_buf;
-    AOSSL::StringBuffer mongo_ssl_ca_buf;
-    AOSSL::StringBuffer mongo_ssl_ca_dir_buf;
-    internal_profile->get_opt(std::string("mongo.auth.un"), mongo_un_buf);
-    internal_profile->get_opt(std::string("mongo.auth.pw"), mongo_pw_buf);
-    std::string mongo_conn_str = std::string("mongodb://") + mongo_un_buf.val\
-        + std::string(":") + mongo_pw_buf.val + std::string("@")\
-        + connected_service->get_address() + std::string(":")\
-        + connected_service->get_port();
-    // Check for TLS Configuration
-    internal_profile->get_opt(std::string("mongo.ssl.ca.file"), mongo_ssl_ca_buf);
-    internal_profile->get_opt(std::string("mongo.ssl.ca.dir"), mongo_ssl_ca_dir_buf);
-    // TO-DO: Add TLS configuration to Mongo Driver
-    // Reset the internal connection
-    logger.information("Connecting to Mongo instance: %s", mongo_conn_str);
-    mongocxx::uri uri(mongo_conn_str);
-    if (pool) delete pool;
-    pool = new mongocxx::pool{uri};
-  } else {
-    logger.error("No Consul instance found, unable to discover Mongo instances");
-  }
-}
-
-void DatabaseManager::set_new_connection() {
-  if (failures.load() > max_failures) {
-    Poco::ScopedWriteRWLock scoped_lock(conn_usage_lock);
-    logger.debug("Max Mongo Failures reached, identifying new instance");
-    // Attempt to find a new Neo4j instance to use
-    if (connected_service) delete connected_service;
-    find_new_connection();
-    failures = 0;
-  }
-}
-
-void DatabaseManager::init_with_connection(std::string connection_string, \
-    std::string db, std::string coll) {
-  db_name.assign(db);
-  coll_name.assign(coll);
-  if (!(connection_string.empty())) {
-    mongocxx::uri uri(connection_string);
-    pool = new mongocxx::pool{uri};
-    initialized = true;
-  }
-}
-
-void DatabaseManager::init() {
-  bool expected_init_value = false;
-  if (initialized.compare_exchange_strong(expected_init_value, true)) {
-    find_new_connection();
-  }
-}
-
-void DatabaseManager::insert_doc(mongocxx::collection &coll, bsoncxx::document::value &doc_value, \
-    std::string& key, DatabaseResponse &response) {
-  // Execute the insert
-  auto view = doc_value.view();
-  auto result = coll.insert_one(view);
-  // Pull the generated ID out of the response
-  if (result->result().inserted_count() > 0) {
-    bsoncxx::oid oid = result->inserted_id().get_oid().value;
-    key.assign(oid.to_string());
-    logger.debug(key);
-    response.success = true;
-  } else {
-    response.error_message = std::string("No Documents Inserted into DB");
-  }
-}
-
-void DatabaseManager::build_create_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
+void ObjectDatabaseManager::build_create_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
   // Creation Document
   builder << "name" << obj->get_name();
+  builder << "parent" << obj->get_parent();
+  builder << "asset_sub_id" << obj->get_asset_sub_id();
   builder << "type" << obj->get_type();
   builder << "subtype" << obj->get_subtype();
   builder << "owner" << obj->get_owner();
   builder << "scene" << obj->get_scene();
   builder << "frame" << obj->get_frame();
   builder << "timestamp" << obj->get_timestamp();
+
+  // Add the Assets
   auto asset_array = bsoncxx::builder::stream::array{};
   for (int i = 0; i < obj->num_assets(); i++) {
     asset_array << obj->get_asset(i);
   }
   builder << "assets" << asset_array;
+
+  // Add the Transform
   auto transform_array = bsoncxx::builder::stream::array{};
   for (int j = 0; j < 4; j++) {
     for (int k = 0; k < 4; k++) {
@@ -113,9 +46,44 @@ void DatabaseManager::build_create_doc(bsoncxx::builder::stream::document &build
     }
   }
   builder << "transform" << transform_array;
+
+  // Add the Properties Array
+  auto props_array = bsoncxx::builder::stream::array{};
+  for (int i = 0; i < obj->num_props(); i++) {
+      auto prop_doc = bsoncxx::builder::stream::document{};
+      PropertyDatabaseManager::build_create_prop_doc(prop_doc, obj->get_prop(i));
+      props_array << prop_doc;
+  }
+  builder << "properties" << props_array;
+
+  // Add the AnimationFrame
+  auto trans_handle_array = bsoncxx::builder::stream::array{};
+  for (int k = 0; k < 3; k++) {
+    auto trans_handle_doc = bsoncxx::builder::stream::document{};
+    CoreDatabaseManager::add_graph_handle_to_document(trans_handle_doc, \
+        obj->get_animation_frame()->get_translation(k);
+    trans_handle_array << trans_handle_doc;
+  }
+  builder << "translation_handle" << trans_handle_array;
+  auto rot_handle_array = bsoncxx::builder::stream::array{};
+  for (int m = 0; m < 4; m++) {
+    auto rot_handle_doc = bsoncxx::builder::stream::document{};
+    CoreDatabaseManager::add_graph_handle_to_document(rot_handle_doc, \
+        obj->get_animation_frame()->get_translation(m);
+    rot_handle_array << rot_handle_doc;
+  }
+  builder << "rotation_handle" << rot_handle_array;
+  auto scale_handle_array = bsoncxx::builder::stream::array{};
+  for (int n = 0; n < 3; n++) {
+    auto scale_handle_doc = bsoncxx::builder::stream::document{};
+    CoreDatabaseManager::add_graph_handle_to_document(scale_handle_doc, \
+        obj->get_animation_frame()->get_scale(n);
+    scale_handle_array << scale_handle_doc;
+  }
+  builder << "scale_handle" << scale_handle_array;
 }
 
-void DatabaseManager::build_query_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
+void ObjectDatabaseManager::build_query_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
   // Creation Document
   if (!(obj->get_name().empty())) {
     builder << "name" << obj->get_name();
@@ -153,7 +121,7 @@ void DatabaseManager::build_query_doc(bsoncxx::builder::stream::document &builde
   }
 }
 
-void DatabaseManager::build_update_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj, bool is_append_operation) {
+void ObjectDatabaseManager::build_update_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj, bool is_append_operation) {
   // Update Document
   auto set_doc = bsoncxx::builder::stream::document{};
   if (!(obj->get_name().empty())) {
@@ -206,16 +174,16 @@ void DatabaseManager::build_update_doc(bsoncxx::builder::stream::document &build
   builder << update_opt_key << push_doc;
 }
 
-void DatabaseManager::transaction(DatabaseResponse &response, ObjectInterface *obj, std::string& key, int transaction_type, bool is_append_operation) {
+void ObjectDatabaseManager::transaction(DatabaseResponse &response, ObjectInterface *obj, std::string& key, int transaction_type, bool is_append_operation) {
   int retries = 0;
   while (retries < max_retries) {
     // Initialize the connection for the first time
     init();
     bool failure = false;
     try {
-      Poco::ScopedReadRWLock scoped_lock(conn_usage_lock);
+      Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
       // Find the DB and Collection we're going to write into
-      auto client = pool->acquire();
+      auto client = CoreDatabaseManager::get_connection_pool()->acquire();
       mongocxx::database db = (*client)[db_name];
       mongocxx::collection coll = db[coll_name];
       // Use a BSON Builder to construct the main document
@@ -234,7 +202,7 @@ void DatabaseManager::transaction(DatabaseResponse &response, ObjectInterface *o
       if (transaction_type == _DB_MONGO_INSERT_) {
         bsoncxx::document::value doc_value = \
           builder << bsoncxx::builder::stream::finalize;
-        insert_doc(coll, doc_value, key, response);
+        CoreDatabaseManager::insert_doc(coll, doc_value, key, response);
       // Execute an Update Transaction
       } else if (transaction_type == _DB_MONGO_UPDATE_ \
           || transaction_type == _DB_MONGO_LOCK_ \
@@ -268,10 +236,10 @@ void DatabaseManager::transaction(DatabaseResponse &response, ObjectInterface *o
     } catch (std::exception& e) {
       logger.error("Exception executing Mongo Query");
       logger.error(e.what());
-      failures++;
+      CoreDatabaseManager::add_failure();
       failure = true;
     }
-    if (failure) set_new_connection();
+    if (failure) CoreDatabaseManager::set_new_connection();
     retries++;
     if (response.success && !(failure)) {
       break;
@@ -279,7 +247,7 @@ void DatabaseManager::transaction(DatabaseResponse &response, ObjectInterface *o
   }
 }
 
-void DatabaseManager::bson_to_obj3(bsoncxx::document::view& result, ObjectInterface *obj) {
+void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, ObjectInterface *obj) {
   // Parse basic values
   bsoncxx::document::element name_element = result["name"];
   obj->set_name(name_element.get_utf8().value.to_string());
@@ -317,7 +285,7 @@ void DatabaseManager::bson_to_obj3(bsoncxx::document::view& result, ObjectInterf
   }
 }
 
-void DatabaseManager::get_object(ObjectListInterface *response, std::string& key) {
+void ObjectDatabaseManager::get_object(ObjectListInterface *response, std::string& key) {
   logger.debug("Attempting to retrieve object from Mongo");
   int retries = 0;
   while (retries < max_retries) {
@@ -325,9 +293,9 @@ void DatabaseManager::get_object(ObjectListInterface *response, std::string& key
     init();
     bool failure = false;
     try {
-      Poco::ScopedReadRWLock scoped_lock(conn_usage_lock);
+      Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
       // Find the DB and Collection we're going to write into
-      auto client = pool->acquire();
+      auto client = CoreDatabaseManager::get_connection_pool()->acquire();
       mongocxx::database db = (*client)[db_name];
       mongocxx::collection coll = db[coll_name];
       auto query_builder = bsoncxx::builder::stream::document{};
@@ -354,16 +322,16 @@ void DatabaseManager::get_object(ObjectListInterface *response, std::string& key
     } catch (std::exception& e) {
       logger.error("Exception executing Mongo Query");
       logger.error(e.what());
-      failures++;
+      CoreDatabaseManager::add_failure();
       failure = true;
     }
-    if (failure) set_new_connection();
+    if (failure) CoreDatabaseManager::set_new_connection();
     retries++;
     if (!failure) break;
   }
 }
 
-void DatabaseManager::query(ObjectListInterface *response, ObjectInterface *obj, int max_results) {
+void ObjectDatabaseManager::query(ObjectListInterface *response, ObjectInterface *obj, int max_results) {
   logger.debug("Attempting to query Mongo");
   int retries = 0;
   while (retries < max_retries) {
@@ -371,9 +339,9 @@ void DatabaseManager::query(ObjectListInterface *response, ObjectInterface *obj,
     init();
     bool failure = false;
     try {
-      Poco::ScopedReadRWLock scoped_lock(conn_usage_lock);
+      Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
       // Find the DB and Collection we're going to write into
-      auto client = pool->acquire();
+      auto client = CoreDatabaseManager::get_connection_pool()->acquire();
       mongocxx::database db = (*client)[db_name];
       mongocxx::collection coll = db[coll_name];
       auto query_builder = bsoncxx::builder::stream::document{};
@@ -395,25 +363,25 @@ void DatabaseManager::query(ObjectListInterface *response, ObjectInterface *obj,
     } catch (std::exception& e) {
       logger.error("Exception executing Mongo Query");
       logger.error(e.what());
-      failures++;
+      CoreDatabaseManager::add_failure();
       failure = true;
     }
-    if (failure) set_new_connection();
+    if (failure) CoreDatabaseManager::set_new_connection();
     retries++;
     if (!failure) break;
   }
 }
 
-void DatabaseManager::delete_object(DatabaseResponse& response, std::string& key) {
+void ObjectDatabaseManager::delete_object(DatabaseResponse& response, std::string& key) {
   int retries = 0;
   while (retries < max_retries) {
     // Initialize the connection for the first time
     init();
     bool failure = false;
     try {
-      Poco::ScopedReadRWLock scoped_lock(conn_usage_lock);
+      Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
       // Find the DB and Collection we're going to write into
-      auto client = pool->acquire();
+      auto client = CoreDatabaseManager::get_connection_pool()->acquire();
       mongocxx::database db = (*client)[db_name];
       mongocxx::collection coll = db[coll_name];
       auto query_builder = bsoncxx::builder::stream::document{};
@@ -438,10 +406,10 @@ void DatabaseManager::delete_object(DatabaseResponse& response, std::string& key
     } catch (std::exception& e) {
       logger.error("Exception executing Mongo Query");
       logger.error(e.what());
-      failures++;
+      CoreDatabaseManager::add_failure();
       failure = true;
     }
-    if (failure) set_new_connection();
+    if (failure) CoreDatabaseManager::set_new_connection();
     retries++;
     if (!failure) break;
   }

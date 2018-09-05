@@ -25,7 +25,7 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "db/include/database_manager.h"
+#include "db/include/db_manager_interface.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
 
@@ -41,7 +41,7 @@ limitations under the License.
 
 class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
   AOSSL::KeyValueStoreInterface *config = nullptr;
-  DatabaseManager *db_manager = nullptr;
+  DatabaseManagerInterface *db_manager = nullptr;
   int msg_type = -1;
   ObjectListFactory object_list_factory;
   ObjectFactory object_factory;
@@ -70,7 +70,7 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
     }
   }
  public:
-  ObjectLockRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManager *db, \
+  ObjectLockRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
       ClusterManager *cluster, int mtype, std::string id, std::string dev_id) : logger(Poco::Logger::get("Data")) \
       {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;object_id.assign(id);device_id.assign(dev_id);}
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
