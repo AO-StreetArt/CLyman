@@ -12,7 +12,7 @@ API_LOC = $(SRC_LOC)/api
 DB_LOC = $(SRC_LOC)/db
 MODEL_SUB_OBJECTS = $(MODEL_LOC)/object_document.o $(MODEL_LOC)/animation_property.o
 API_SUB_OBJECTS = $(API_LOC)/json_object_list.o $(API_LOC)/json_property_list.o
-DB_SUB_OBJECTS = $(DB_LOC)/database_manager.o
+DB_SUB_OBJECTS = $(DB_LOC)/core_database_manager.o $(DB_LOC)/property_database_manager.o $(DB_LOC)/obj3_database_manager.o
 SUB_OBJECTS = $(MODEL_SUB_OBJECTS) $(API_SUB_OBJECTS) $(DB_SUB_OBJECTS)
 
 tests: test_main.o $(TEST_FILES)

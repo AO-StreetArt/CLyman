@@ -17,6 +17,39 @@ limitations under the License.
 
 #include "include/obj3_database_manager.h"
 
+void ObjectDatabaseManager::add_handles_to_doc(bsoncxx::builder::stream::document &builder, AnimationFrameInterface *aframe) {
+    auto trans_handle_array = bsoncxx::builder::stream::array{};
+    if (aframe) {
+      for (int k = 0; k < 3; k++) {
+        auto trans_handle_doc = bsoncxx::builder::stream::document{};
+        CoreDatabaseManager::add_graph_handle_to_document(trans_handle_doc, \
+            aframe->get_translation(k));
+        trans_handle_array << trans_handle_doc;
+      }
+    }
+    builder << "translation_handle" << trans_handle_array;
+    auto rot_handle_array = bsoncxx::builder::stream::array{};
+    if (aframe) {
+      for (int m = 0; m < 4; m++) {
+        auto rot_handle_doc = bsoncxx::builder::stream::document{};
+        CoreDatabaseManager::add_graph_handle_to_document(rot_handle_doc, \
+            aframe->get_translation(m));
+        rot_handle_array << rot_handle_doc;
+      }
+    }
+    builder << "rotation_handle" << rot_handle_array;
+    auto scale_handle_array = bsoncxx::builder::stream::array{};
+    if (aframe) {
+      for (int n = 0; n < 3; n++) {
+        auto scale_handle_doc = bsoncxx::builder::stream::document{};
+        CoreDatabaseManager::add_graph_handle_to_document(scale_handle_doc, \
+            aframe->get_scale(n));
+        scale_handle_array << scale_handle_doc;
+      }
+    }
+    builder << "scale_handle" << scale_handle_array;
+}
+
 void ObjectDatabaseManager::build_create_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
   // Creation Document
   builder << "name" << obj->get_name();
@@ -47,40 +80,8 @@ void ObjectDatabaseManager::build_create_doc(bsoncxx::builder::stream::document 
   }
   builder << "transform" << transform_array;
 
-  // Add the Properties Array
-  auto props_array = bsoncxx::builder::stream::array{};
-  for (int i = 0; i < obj->num_props(); i++) {
-      auto prop_doc = bsoncxx::builder::stream::document{};
-      PropertyDatabaseManager::build_create_prop_doc(prop_doc, obj->get_prop(i));
-      props_array << prop_doc;
-  }
-  builder << "properties" << props_array;
-
   // Add the AnimationFrame
-  auto trans_handle_array = bsoncxx::builder::stream::array{};
-  for (int k = 0; k < 3; k++) {
-    auto trans_handle_doc = bsoncxx::builder::stream::document{};
-    CoreDatabaseManager::add_graph_handle_to_document(trans_handle_doc, \
-        obj->get_animation_frame()->get_translation(k);
-    trans_handle_array << trans_handle_doc;
-  }
-  builder << "translation_handle" << trans_handle_array;
-  auto rot_handle_array = bsoncxx::builder::stream::array{};
-  for (int m = 0; m < 4; m++) {
-    auto rot_handle_doc = bsoncxx::builder::stream::document{};
-    CoreDatabaseManager::add_graph_handle_to_document(rot_handle_doc, \
-        obj->get_animation_frame()->get_translation(m);
-    rot_handle_array << rot_handle_doc;
-  }
-  builder << "rotation_handle" << rot_handle_array;
-  auto scale_handle_array = bsoncxx::builder::stream::array{};
-  for (int n = 0; n < 3; n++) {
-    auto scale_handle_doc = bsoncxx::builder::stream::document{};
-    CoreDatabaseManager::add_graph_handle_to_document(scale_handle_doc, \
-        obj->get_animation_frame()->get_scale(n);
-    scale_handle_array << scale_handle_doc;
-  }
-  builder << "scale_handle" << scale_handle_array;
+  add_handles_to_doc(builder, obj->get_animation_frame());
 }
 
 void ObjectDatabaseManager::build_query_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
@@ -90,6 +91,12 @@ void ObjectDatabaseManager::build_query_doc(bsoncxx::builder::stream::document &
   }
   if (!(obj->get_type().empty())) {
     builder << "type" << obj->get_type();
+  }
+  if (!(obj->get_parent().empty())) {
+    builder << "parent" << obj->get_parent();
+  }
+  if (!(obj->get_asset_sub_id().empty())) {
+    builder << "asset_sub_id" << obj->get_asset_sub_id();
   }
   if (!(obj->get_subtype().empty())) {
     builder << "subtype" << obj->get_subtype();
@@ -127,6 +134,12 @@ void ObjectDatabaseManager::build_update_doc(bsoncxx::builder::stream::document 
   if (!(obj->get_name().empty())) {
     set_doc << "name" << obj->get_name();
   }
+  if (!(obj->get_parent().empty())) {
+    set_doc << "parent" << obj->get_parent();
+  }
+  if (!(obj->get_asset_sub_id().empty())) {
+    set_doc << "asset_sub_id" << obj->get_asset_sub_id();
+  }
   if (!(obj->get_type().empty())) {
     set_doc << "type" << obj->get_type();
   }
@@ -155,6 +168,11 @@ void ObjectDatabaseManager::build_update_doc(bsoncxx::builder::stream::document 
       }
     }
     set_doc << "transform" << transform_array;
+  }
+
+  // Add the AnimationFrame
+  if (obj->get_animation_frame()) {
+    add_handles_to_doc(set_doc, obj->get_animation_frame());
   }
   builder << "$set" << set_doc;
   auto push_doc = bsoncxx::builder::stream::document{};
@@ -251,6 +269,10 @@ void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, Object
   // Parse basic values
   bsoncxx::document::element name_element = result["name"];
   obj->set_name(name_element.get_utf8().value.to_string());
+  bsoncxx::document::element parent_element = result["parent"];
+  obj->set_parent(parent_element.get_utf8().value.to_string());
+  bsoncxx::document::element asset_sub_id_element = result["asset_sub_id"];
+  obj->set_asset_sub_id(asset_sub_id_element.get_utf8().value.to_string());
   bsoncxx::document::element type_element = result["type"];
   obj->set_type(type_element.get_utf8().value.to_string());
   bsoncxx::document::element subtype_element = result["subtype"];
@@ -282,6 +304,37 @@ void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, Object
       obj->get_transform()->set_transform_element(i, j, \
           std::stof(transform_elt_string));
     }
+  }
+  // Parse the Animation Frame
+  bsoncxx::document::element aft_element = result["translation_frame"];
+  bsoncxx::array::view tframe_array_view = aft_element.get_array().value;
+  int tframe_array_size = std::distance(tframe_array_view.begin(), tframe_array_view.end());
+  if (tframe_array_size > 0 && (!obj->get_animation_frame())) {
+      obj->set_animation_frame(new AnimationFrame);
+  }
+  for (int i = 0; i < tframe_array_size; i++) {
+      auto tframe_elt = tframe_array_view[i];
+      CoreDatabaseManager::get_handle_from_element(tframe_elt, obj->get_animation_frame()->get_translation(i));
+  }
+  bsoncxx::document::element afr_element = result["rotation_frame"];
+  bsoncxx::array::view rframe_array_view = afr_element.get_array().value;
+  int rframe_array_size = std::distance(rframe_array_view.begin(), rframe_array_view.end());
+  if (rframe_array_size > 0 && (!obj->get_animation_frame())) {
+      obj->set_animation_frame(new AnimationFrame);
+  }
+  for (int i = 0; i < rframe_array_size; i++) {
+      auto rframe_elt = rframe_array_view[i];
+      CoreDatabaseManager::get_handle_from_element(rframe_elt, obj->get_animation_frame()->get_translation(i));
+  }
+  bsoncxx::document::element afs_element = result["scale_frame"];
+  bsoncxx::array::view sframe_array_view = afs_element.get_array().value;
+  int sframe_array_size = std::distance(sframe_array_view.begin(), sframe_array_view.end());
+  if (sframe_array_size > 0 && (!obj->get_animation_frame())) {
+      obj->set_animation_frame(new AnimationFrame);
+  }
+  for (int i = 0; i < sframe_array_size; i++) {
+      auto sframe_elt = sframe_array_view[i];
+      CoreDatabaseManager::get_handle_from_element(sframe_elt, obj->get_animation_frame()->get_translation(i));
   }
 }
 

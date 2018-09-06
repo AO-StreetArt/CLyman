@@ -57,7 +57,7 @@ limitations under the License.
 
 //! Encapsulates the Mongocxx client, ensuring that
 //! we can safely update the connection on failure
-class PropertyDatabaseManager : public PropertyDatabaseManager {
+class PropertyDatabaseManager : public CoreDatabaseManager {
   Poco::Logger& logger = Poco::Logger::get("DatabaseManager");
   std::string db_name;
   std::string coll_name;
@@ -72,7 +72,7 @@ class PropertyDatabaseManager : public PropertyDatabaseManager {
   // Execute a transaction, with default value for is_append_operation
   void prop_transaction(DatabaseResponse &response, PropertyInterface *obj, \
       std::string& key, int transaction_type) {
-    transaction(response, obj, key, transaction_type, true);
+    prop_transaction(response, obj, key, transaction_type, true);
   }
 
   // Convert a BSON Document View to an Object Interface

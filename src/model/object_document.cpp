@@ -66,54 +66,6 @@ ObjectDocument::ObjectDocument(const rapidjson::Document &d) {
       }
     }
 
-    // Properties Array
-    auto props_itr = d.FindMember("properties");
-    if (props_itr != d.MemberEnd()) {
-      if (props_itr->value.IsArray()) {
-        for (auto& itr : props_itr->value.GetArray()) {
-          AnimationProperty *new_prop = new AnimationProperty;
-
-          // Basic Property Values
-          std::string key_val;
-          find_json_string_elt_in_array(itr, "key", key_val);
-          new_prop->set_key(key_val);
-          std::string parent_val;
-          find_json_string_elt_in_array(itr, "parent", parent_val);
-          new_prop->set_parent(parent_val);
-          std::string name_val;
-          find_json_string_elt_in_array(itr, "name", name_val);
-          new_prop->set_name(name_val);
-          std::string scene_val;
-          find_json_string_elt_in_array(itr, "scene", scene_val);
-          new_prop->set_scene(scene_val);
-          std::string asi_val;
-          find_json_string_elt_in_array(itr, "asset_sub_id", asi_val);
-          new_prop->set_asset_sub_id(asi_val);
-          new_prop->set_frame(find_json_int_elt_in_array(itr, "frame"));
-          new_prop->set_timestamp(find_json_int_elt_in_array(itr, "timestamp"));
-
-          // Values Array
-          auto props_itr = itr.FindMember("values");
-          if (props_itr != itr.MemberEnd()) {
-            if (props_itr->value.IsArray()) {
-              for (auto& prop_elt_itr : props_itr->value.GetArray()) {
-                // Add a new property value
-                auto val_itr = prop_elt_itr.FindMember("value");
-                if (val_itr != prop_elt_itr.MemberEnd()) {
-                  if (val_itr->value.IsDouble()) {
-                    new_prop->add_value(val_itr->value.GetDouble());
-                  }
-                }
-                parse_json_graph_handle(prop_elt_itr, new_prop->get_handle(new_prop->num_values() - 1));
-              }
-            }
-          }
-
-          add_prop(new_prop);
-        }
-      }
-    }
-
     // Animation Graph Handles - Translation
     auto th_itr = d.FindMember("translation_handle");
     if (th_itr != d.MemberEnd()) {
@@ -263,7 +215,7 @@ std::string ObjectDocument::to_transform_json() {
   writer.StartObject();
 
   // Write string attributes
-  write_json_string_elt(writer, "msg_type", std::string("object"));
+  write_json_int_elt(writer, "msg_type", OBJ_UPD);
   write_json_string_elt(writer, "key", RelatedData::get_key());
   write_json_string_elt(writer, "name", name);
   write_json_string_elt(writer, "scene", RelatedData::get_scene());
@@ -278,41 +230,6 @@ std::string ObjectDocument::to_transform_json() {
       for (int j = 0; j < 4; j++) {
         writer.Double(Object3d::get_transform()->get_transform_element(i, j));
       }
-    }
-    writer.EndArray();
-  }
-
-  // Write Properties array
-  if (properties.size() > 0) {
-    writer.Key("properties");
-    writer.StartArray();
-    for (AnimationProperty* prop : properties) {
-      writer.StartObject();
-      // Write basic attributes
-      write_json_string_elt(writer, "key", prop->get_key());
-      write_json_string_elt(writer, "name", prop->get_name());
-      write_json_string_elt(writer, "parent", prop->get_parent());
-      write_json_string_elt(writer, "asset_sub_id", prop->get_asset_sub_id());
-      write_json_string_elt(writer, "scene", prop->get_scene());
-      write_json_int_elt(writer, "frame", prop->get_frame());
-      write_json_int_elt(writer, "timestamp", prop->get_timestamp());
-
-      // Write values array
-      if (properties.size() > 0) {
-        writer.Key("values");
-        writer.StartArray();
-        for (int i = 0; i < prop->num_values(); i++) {
-          auto val = prop->get_value(i);
-          AnimationGraphHandle* hnd = prop->get_handle(i);
-          writer.StartObject();
-          writer.Key("value");
-          writer.Double(val);
-          write_json_graph_handle(writer, hnd);
-          writer.EndObject();
-        }
-        writer.EndArray();
-      }
-      writer.EndObject();
     }
     writer.EndArray();
   }

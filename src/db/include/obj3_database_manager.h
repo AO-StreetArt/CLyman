@@ -67,6 +67,8 @@ class ObjectDatabaseManager : public PropertyDatabaseManager {
   // Factories
   ObjectFactory object_factory;
 
+  void add_handles_to_doc(bsoncxx::builder::stream::document &builder, AnimationFrameInterface *aframe);
+
   // Build a Bson document to use for creation
   void build_create_doc(bsoncxx::builder::stream::document &builder, \
       ObjectInterface *obj);

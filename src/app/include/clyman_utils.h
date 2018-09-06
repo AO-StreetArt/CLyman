@@ -31,6 +31,8 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/error/en.h"
 
+#include "Poco/Net/HTTPServerRequest.h"
+
 #include "model/include/animation_graph_handle.h"
 
 #ifndef SRC_APP_INCLUDE_IVAN_UTILS_H_
@@ -45,6 +47,11 @@ const int OBJ_QUERY = 4;
 const int OBJ_LOCK = 5;
 const int OBJ_UNLOCK = 6;
 const int OBJ_OVERWRITE = 7;
+const int PROP_CRT = 8;
+const int PROP_UPD = 9;
+const int PROP_GET = 10;
+const int PROP_DEL = 11;
+const int PROP_QUERY = 12;
 const int KILL = 999;
 const int PING = 555;
 
@@ -67,6 +74,23 @@ const int CREATE_QUERY_TYPE = 0;
 const int GET_QUERY_TYPE = 1;
 const int UPDATE_QUERY_TYPE = 2;
 const int DELETE_QUERY_TYPE = 3;
+
+// Convert Request Contents into a Rapidjson Document
+// Returns a char* which must be deleted only after using the Rapidjson Doc
+static inline char* clyman_request_body_to_json_document(Poco::Net::HTTPServerRequest& request, \
+    rapidjson::Document& doc) {
+  // Pull the request body out of a stream and into a character buffer
+  int length = request.getContentLength();
+  std::istream &request_stream = request.stream();
+  char *buffer = new char[length];
+  request_stream.read(buffer, length);
+
+  // Parse the buffer containing the request body into the rapidjson document
+  doc.Parse<rapidjson::kParseStopWhenDoneFlag>(buffer);
+
+  // Return the buffer, as it needs to be valid while we're using the document
+  return buffer;
+};
 
 // JSON Writing
 inline void write_json_string_elt(rapidjson::Writer<rapidjson::StringBuffer>& writer, \

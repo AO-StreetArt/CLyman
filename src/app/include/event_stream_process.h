@@ -83,27 +83,52 @@ public:
       logger.error("Error Parsing inbound Event:");
       logger.error(event);
     } else {
-      ObjectInterface* in_doc = object_factory.build_object(doc);
-      // Send an update to downstream services
-      AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
-      if (downstream) {
-        std::string message = in_doc->get_scene() + \
-            std::string("\n") + in_doc->to_transform_json();
-        publisher->publish_event(message.c_str(), \
-            downstream->get_address(), stoi(downstream->get_port()));
+      // Get the message type
+      int msg_type = -9999;
+      if (doc.IsObject()) {
+        msg_type = find_json_int_elt_in_doc(doc, "msg_type");
       }
-      // Persist the update message
-      std::string new_object_key = in_doc->get_key();
-      DatabaseResponse response;
-      try {
-        db_manager->update_object(response, in_doc, new_object_key);
-      } catch (std::exception& e) {
-        logger.error("Error Persisting Update: ");
-        logger.error(e.what());
-      }
-      if (!(response.success)) {
-        logger.error("Error Persisting Update: ");
-        logger.error(response.error_message);
+      if (msg_type > -9999) {
+        std::string message;
+        ObjectInterface* in_doc = nullptr;
+        PropertyInterface* in_prop = nullptr;
+        // Build the input and output documents
+        if (msg_type == OBJ_UPD) {
+          in_doc = object_factory.build_object(doc);
+          message.assign(in_doc->get_scene() + \
+              std::string("\n") + in_doc->to_transform_json());
+        } else if (msg_type == PROP_UPD) {
+          in_prop = object_factory.build_property(doc);
+          in_prop->to_json(message);
+          message.assign(in_prop->get_scene() + std::string("\n") + message);
+        }
+        // Send an update to downstream services
+        AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
+        if (downstream) {
+          publisher->publish_event(message.c_str(), \
+              downstream->get_address(), stoi(downstream->get_port()));
+        }
+        // Persist the update message
+        std::string new_object_key;
+        DatabaseResponse response;
+        try {
+          if (msg_type == OBJ_UPD) {
+            new_object_key = in_doc->get_key();
+            db_manager->update_object(response, in_doc, new_object_key);
+          } else if (msg_type == PROP_UPD) {
+            new_object_key = in_prop->get_key();
+            db_manager->update_property(response, in_prop, new_object_key);
+          }
+        } catch (std::exception& e) {
+          logger.error("Error Persisting Update: ");
+          logger.error(e.what());
+        }
+        if (!(response.success)) {
+          logger.error("Error Persisting Update: ");
+          logger.error(response.error_message);
+        }
+      } else {
+          logger.error("Input recieved without message type");
       }
     }
 
@@ -115,9 +140,10 @@ public:
 // Central Event Stream Process, which listens on a UDP port
 void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, EventStreamPublisher *publisher, ClusterManager *cluster) {
   Poco::Logger& logger = Poco::Logger::get("Event");
+  Poco::ThreadPool tpool(2, 13, 60, 0);
   logger.information("Starting Event Stream");
   is_sender_running = true;
-  std::vector<EventSender*> evt_senders {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+  std::vector<EventSender*> evt_senders {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
   try {
     // Get the configuration values out of the configuration profile
     AOSSL::StringBuffer aes_enabled_buffer;
@@ -168,17 +194,27 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
         if (evt_senders[sender_index]) delete evt_senders[sender_index];
         // Build the new event sender
         evt_senders[sender_index] = new EventSender(event_msg, io_service, db, publisher, cluster);
-        // Fire off another thread to actually process events
-        try {
-          Poco::ThreadPool::defaultPool().start(*(evt_senders[sender_index]));
-          sender_index = sender_index + 1;
-        } catch (Poco::NoThreadAvailableException& e) {
-          // If no more threads are available, then execute the updates on the
-          // main thread, and wait for other threads to complete before pulling
-          // the next message.
-          evt_senders[sender_index]->run();
-          Poco::ThreadPool::defaultPool().joinAll();
-          sender_index = 0;
+        // Send the event
+        if (sender_index == 12) {
+            // If we have used up all the space in our array of senders,
+            // then we should use the main event thread to send and wait
+            // for other threads to complete before pulling the next message.
+            evt_senders[sender_index]->run();
+            tpool.joinAll();
+            sender_index = 0;
+        } else {
+          try {
+            // Fire off another thread to actually process events
+            tpool.start(*(evt_senders[sender_index]));
+            sender_index = sender_index + 1;
+          } catch (Poco::NoThreadAvailableException& e) {
+            // If no more threads are available, then execute the updates on the
+            // main event thread, and wait for other threads to complete before
+            // pulling the next message.
+            evt_senders[sender_index]->run();
+            tpool.joinAll();
+            sender_index = 0;
+          }
         }
       }
     }

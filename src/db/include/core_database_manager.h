@@ -100,6 +100,8 @@ public:
   void add_graph_handle_to_document(bsoncxx::builder::stream::document &builder, \
         AnimationGraphHandle *handle);
 
+  void get_handle_from_element(bsoncxx::array::element elt, AnimationGraphHandle *handle);
+
   CoreDatabaseManager(AOSSL::NetworkApplicationProfile *profile, \
       std::string conn) : logger(Poco::Logger::get("DatabaseManager")) {
     internal_profile = profile;

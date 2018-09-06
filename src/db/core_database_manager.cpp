@@ -71,6 +71,21 @@ void CoreDatabaseManager::init() {
   }
 }
 
+void CoreDatabaseManager::get_handle_from_element(bsoncxx::array::element value_elt, AnimationGraphHandle *handle) {
+    auto val_ltype_elt = value_elt["left_type"];
+    auto val_rtype_elt = value_elt["right_type"];
+    handle->set_lh_type(val_ltype_elt.get_utf8().value.to_string());
+    handle->set_rh_type(val_rtype_elt.get_utf8().value.to_string());
+    auto val_lx_elt = value_elt["left_x"];
+    handle->set_lh_x(val_lx_elt.get_double().value);
+    auto val_ly_elt = value_elt["left_y"];
+    handle->set_lh_y(val_ly_elt.get_double().value);
+    auto val_rx_elt = value_elt["right_x"];
+    handle->set_rh_x(val_rx_elt.get_double().value);
+    auto val_ry_elt = value_elt["right_y"];
+    handle->set_rh_y(val_ry_elt.get_double().value);
+}
+
 void CoreDatabaseManager::add_graph_handle_to_document(\
         bsoncxx::builder::stream::document &builder, AnimationGraphHandle *handle) {
     builder << "left_type" << handle->get_lh_type();

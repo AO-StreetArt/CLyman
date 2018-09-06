@@ -66,11 +66,11 @@ void PropertyDatabaseManager::build_update_prop_doc(bsoncxx::builder::stream::do
   if (!(obj->get_name().empty())) {
     set_doc << "name" << obj->get_name();
   }
-  if (!(obj->get_type().empty())) {
-    set_doc << "parent" << obj->get_type();
+  if (!(obj->get_parent().empty())) {
+    set_doc << "parent" << obj->get_parent();
   }
-  if (!(obj->get_subtype().empty())) {
-    set_doc << "asset_sub_id" << obj->get_subtype();
+  if (!(obj->get_asset_sub_id().empty())) {
+    set_doc << "asset_sub_id" << obj->get_asset_sub_id();
   }
   if (!(obj->get_scene().empty())) {
     set_doc << "scene" << obj->get_scene();
@@ -172,7 +172,7 @@ void PropertyDatabaseManager::bson_to_prop(bsoncxx::document::view& result, Prop
   obj->set_frame(frame_element.get_int32().value);
   bsoncxx::document::element timestamp_element = result["timestamp"];
   obj->set_timestamp(timestamp_element.get_int32().value);
-  // Parse the assets array
+  // Parse the values array
   bsoncxx::document::element values_element = result["values"];
   bsoncxx::array::view values_view = values_element.get_array().value;
   int values_array_size = std::distance(values_view.begin(), values_view.end());
@@ -180,18 +180,7 @@ void PropertyDatabaseManager::bson_to_prop(bsoncxx::document::view& result, Prop
     auto value_elt = values_view[i];
     auto val_value_elt = value_elt["value"];
     obj->add_value(val_value_elt.get_double().value);
-    auto val_ltype_elt = value_elt["left_type"];
-    auto val_rtype_elt = value_elt["right_type"];
-    obj->get_handle(i)->set_lh_type(val_ltype_elt.get_utf8().value.to_string());
-    obj->get_handle(i)->set_rh_type(val_rtype_elt.get_utf8().value.to_string());
-    auto val_lx_elt = value_elt["left_x"];
-    obj->get_handle(i)->set_lh_x(val_lx_elt.get_double().value);
-    auto val_ly_elt = value_elt["left_y"];
-    obj->get_handle(i)->set_lh_y(val_ly_elt.get_double().value);
-    auto val_rx_elt = value_elt["right_x"];
-    obj->get_handle(i)->set_rh_x(val_rx_elt.get_double().value);
-    auto val_ry_elt = value_elt["right_y"];
-    obj->get_handle(i)->set_rh_y(val_ry_elt.get_double().value);
+    CoreDatabaseManager::get_handle_from_element(value_elt, obj->get_handle(i));
   }
 }
 
@@ -216,7 +205,7 @@ void PropertyDatabaseManager::get_property(PropertyListInterface *response, std:
         auto view = result->view();
         PropertyInterface *obj = object_factory.build_property();
         bson_to_prop(view, obj);
-        response->add_object(obj);
+        response->add_prop(obj);
       } else {
         response->set_error_code(PROCESSING_ERROR);
         response->set_error_message(std::string("No results returned from query"));
@@ -259,7 +248,7 @@ void PropertyDatabaseManager::property_query(PropertyListInterface *response, Pr
         if (results_processed > max_results) break;
         PropertyInterface *obj = object_factory.build_property();
         bson_to_prop(result, obj);
-        response->add_object(obj);
+        response->add_prop(obj);
         results_processed++;
       }
     } catch (mongocxx::exception& me) {

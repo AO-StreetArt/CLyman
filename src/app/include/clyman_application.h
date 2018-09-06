@@ -34,7 +34,6 @@ limitations under the License.
 #include "user/include/account_manager_interface.h"
 #include "user/include/account_manager.h"
 
-#include "config_loader_process.h"
 #include "event_stream_process.h"
 #include "cluster_loader_process.h"
 #include "thread_error_handler.h"
@@ -159,7 +158,8 @@ protected:
     // Set default values for configuration
     config.add_opt(std::string("mongo"), std::string(""));
     config.add_opt(std::string("mongo.db"), std::string("clyman"));
-    config.add_opt(std::string("mongo.collection"), std::string("obj3"));
+    config.add_opt(std::string("mongo.obj.collection"), std::string("obj3"));
+    config.add_opt(std::string("mongo.prop.collection"), std::string("property"));
     config.add_opt(std::string("mongo.ssl.ca.file"), std::string(""));
     config.add_opt(std::string("mongo.ssl.ca.dir"), std::string(""));
     config.add_opt(std::string("transaction.format"), std::string("json"));
@@ -278,9 +278,11 @@ protected:
     config.get_opt(std::string("mongo"), initial_db_conn);
     AOSSL::StringBuffer database_name;
     config.get_opt(std::string("mongo.db"), database_name);
-    AOSSL::StringBuffer database_collection;
-    config.get_opt(std::string("mongo.collection"), database_collection);
-    DatabaseManager db_manager(&config, initial_db_conn.val, database_name.val, database_collection.val);
+    AOSSL::StringBuffer db_obj_collection;
+    config.get_opt(std::string("mongo.obj.collection"), db_obj_collection);
+    AOSSL::StringBuffer db_prop_collection;
+    config.get_opt(std::string("mongo.prop.collection"), db_prop_collection);
+    DatabaseManager db_manager(&config, initial_db_conn.val, database_name.val, db_obj_collection.val, db_prop_collection.val);
 
     // Start the User Account Manager
     AOSSL::StringBuffer auth_type_buffer;
@@ -333,12 +335,8 @@ protected:
     Poco::ErrorHandler* pOldEH = Poco::ErrorHandler::set(&eh);
 
     // Kick off the Cluster Update background thread
-    std::thread cluster_thread(update_cluster, cluster, 30000000);
+    std::thread cluster_thread(update_cluster, &config, cluster, 30000000);
     cluster_thread.detach();
-
-    // Kick off the Configuration Update background thread
-    std::thread config_thread(update_config, &config, 300000000);
-    config_thread.detach();
 
     // Kick off the Event Stream background thread
     std::thread es_thread(event_stream, &config, &db_manager, publisher, cluster);

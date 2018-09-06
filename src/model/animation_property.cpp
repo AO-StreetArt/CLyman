@@ -67,7 +67,7 @@ void AnimationProperty::to_json(std::string& json_str) const {
   writer.StartObject();
 
   // Write basic attributes
-  write_json_string_elt(writer, "msg_type", std::string("property"));
+  write_json_int_elt(writer, "msg_type", PROP_UPD);
   write_json_string_elt(writer, "key", get_key());
   write_json_string_elt(writer, "name", get_name());
   write_json_string_elt(writer, "parent", get_parent());
