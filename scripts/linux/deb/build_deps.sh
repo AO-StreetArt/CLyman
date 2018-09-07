@@ -29,10 +29,12 @@ if [ ! -d /usr/local/include/mongocxx ]; then
   tar xzf mongo-c-driver-1.12.0.tar.gz
   mkdir mongo-c-driver-1.12.0/cmake-build
   cd mongo-c-driver-1.12.0/cmake-build && cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF .. && make && make install
+  cd ../../
 
   wget https://github.com/mongodb/mongo-cxx-driver/archive/r3.3.1.tar.gz
   tar -xzf r3.3.1.tar.gz
   cd mongo-cxx-driver-r3.3.1/build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBSONCXX_POLY_USE_MNMLSTC=1 .. && make EP_mnmlstc_core && make && make install
+  cd ../../
 
 fi
 
