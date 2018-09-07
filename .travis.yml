@@ -10,6 +10,8 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-6
+            - make
+            - cmake
             - nodejs
             - python
             - python-pip
@@ -22,6 +24,8 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
+            - make
+            - cmake
             - nodejs
             - python
             - python-pip
