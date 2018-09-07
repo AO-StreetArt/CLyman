@@ -25,17 +25,26 @@ void PropertyDatabaseManager::build_create_prop_doc(bsoncxx::builder::stream::do
   builder << "asset_sub_id" << obj->get_asset_sub_id();
   builder << "frame" << obj->get_frame();
   builder << "timestamp" << obj->get_timestamp();
-  auto value_array = bsoncxx::builder::stream::array{};
-  for (int i = 0; i < obj->num_values(); i++) {
+  auto value_outer_doc = bsoncxx::builder::stream::document{};
+  for (int i = 0; i < 4; i++) {
     auto val_doc = bsoncxx::builder::stream::document{};
     // Write the Value
-    val_doc << "value" << obj->get_value(i);
-    // Write the Graph Handle
-    CoreDatabaseManager::add_graph_handle_to_document(val_doc, obj->get_handle(i));
-    // Write the document into the array
-    value_array << val_doc;
+    if (i < obj->num_values()) {
+      val_doc << "active" << true;
+      val_doc << "value" << obj->get_value(i);
+      // Write the Graph Handle
+      CoreDatabaseManager::add_graph_handle_to_document(val_doc, obj->get_handle(i));
+    } else {
+      val_doc << "active" << false;
+      val_doc << "value" << 0.0;
+    }
+    // Write the document into the outer doc
+    if (i == 0) value_outer_doc << "w" << val_doc;
+    if (i == 1) value_outer_doc << "x" << val_doc;
+    if (i == 2) value_outer_doc << "y" << val_doc;
+    if (i == 3) value_outer_doc << "z" << val_doc;
   }
-  builder << "values" << value_array;
+  builder << "values" << value_outer_doc;
 }
 
 void PropertyDatabaseManager::build_query_prop_doc(bsoncxx::builder::stream::document &builder, PropertyInterface *obj) {
@@ -81,19 +90,26 @@ void PropertyDatabaseManager::build_update_prop_doc(bsoncxx::builder::stream::do
   if (obj->get_timestamp() > -1) {
     set_doc << "timestamp" << obj->get_timestamp();
   }
-  auto push_doc = bsoncxx::builder::stream::document{};
-  auto each_doc = bsoncxx::builder::stream::document{};
-  auto value_array = bsoncxx::builder::stream::array{};
-  for (int i = 0; i < obj->num_values(); i++) {
+  auto value_outer_doc = bsoncxx::builder::stream::document{};
+  for (int i = 0; i < 4; i++) {
     auto val_doc = bsoncxx::builder::stream::document{};
     // Write the Value
-    val_doc << "value" << obj->get_value(i);
-    // Write the Graph Handle
-    CoreDatabaseManager::add_graph_handle_to_document(builder, obj->get_handle(i));
-    // Write the document into the array
-    value_array << val_doc;
+    if (i < obj->num_values()) {
+      val_doc << "active" << true;
+      val_doc << "value" << obj->get_value(i);
+      // Write the Graph Handle
+      CoreDatabaseManager::add_graph_handle_to_document(val_doc, obj->get_handle(i));
+    } else {
+      val_doc << "active" << false;
+      val_doc << "value" << 0.0;
+    }
+    // Write the document into the outer doc
+    if (i == 0) value_outer_doc << "w" << val_doc;
+    if (i == 1) value_outer_doc << "x" << val_doc;
+    if (i == 2) value_outer_doc << "y" << val_doc;
+    if (i == 3) value_outer_doc << "z" << val_doc;
   }
-  set_doc << "values" << value_array;
+  set_doc << "values" << value_outer_doc;
   builder << "$set" << set_doc;
 }
 
@@ -173,14 +189,18 @@ void PropertyDatabaseManager::bson_to_prop(bsoncxx::document::view& result, Prop
   bsoncxx::document::element timestamp_element = result["timestamp"];
   obj->set_timestamp(timestamp_element.get_int32().value);
   // Parse the values array
-  bsoncxx::document::element values_element = result["values"];
-  bsoncxx::array::view values_view = values_element.get_array().value;
-  int values_array_size = std::distance(values_view.begin(), values_view.end());
-  for (int i = 0; i < values_array_size; i++) {
-    auto value_elt = values_view[i];
-    auto val_value_elt = value_elt["value"];
-    obj->add_value(val_value_elt.get_double().value);
-    CoreDatabaseManager::get_handle_from_element(value_elt, obj->get_handle(i));
+  auto values_element = result["values"];
+  char* key_values[4] = {"w", "x", "y", "z"};
+  for (int i = 0; i < 4; i++) {
+    // Get the inner value object
+    auto value_elt = values_element[key_values[i]];
+    auto active_elt = value_elt["active"];
+    if (active_elt.get_bool().value) {
+      // Get the actual double value associated
+      auto val_value_elt = value_elt["value"];
+      obj->add_value(val_value_elt.get_double().value);
+      CoreDatabaseManager::get_handle_from_element(value_elt, obj->get_handle(i));
+    }
   }
 }
 

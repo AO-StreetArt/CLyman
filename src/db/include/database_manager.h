@@ -86,43 +86,43 @@ class DatabaseManager : public ObjectDatabaseManager, public DatabaseManagerInte
   //! The newly generated key for the object will be populated
   //! into the key parameter.
   void create_object(DatabaseResponse &response, ObjectInterface *obj, std::string& key) {
-
+    ObjectDatabaseManager::create_object(response, obj, key);
   }
 
   //! Update an existing obj3 in the Mongo Database
   //! The supplied key will be used as the key to update in the DB
   void update_object(DatabaseResponse &response, ObjectInterface *obj, std::string& key) {
-
+    ObjectDatabaseManager::update_object(response, obj, key);
   }
 
   //! Update an existing obj3 in the Mongo Database
   //! The supplied key will be used as the key to update in the DB
   void update_object(DatabaseResponse &response, ObjectInterface *obj, std::string& key, bool is_append_operation) {
-
+    ObjectDatabaseManager::update_object(response, obj, key, is_append_operation);
   }
 
   void get_object(ObjectListInterface *response, std::string& key) {
-
+    ObjectDatabaseManager::get_object(response, key);
   }
 
   //! Query for Obj3 documents matching the input
   void object_query(ObjectListInterface *response, ObjectInterface *obj, int max_results) {
-
+    ObjectDatabaseManager::query(response, obj, max_results);
   }
 
   //! Delete an Object in Mongo
   void delete_object(DatabaseResponse& response, std::string& key) {
-
+    ObjectDatabaseManager::delete_object(response, key);
   }
 
   //! Lock an Object to a particular device
   void lock_object(DatabaseResponse& response, std::string& object_id, std::string& device_id) {
-
+    ObjectDatabaseManager::lock_object(response, object_id, device_id);
   }
 
   //! Unlock an object from a particular device
   void unlock_object(DatabaseResponse& response, std::string& object_id, std::string& device_id) {
-
+    ObjectDatabaseManager::unlock_object(response, object_id, device_id);
   }
 };
 

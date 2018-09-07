@@ -18,36 +18,44 @@ limitations under the License.
 #include "include/obj3_database_manager.h"
 
 void ObjectDatabaseManager::add_handles_to_doc(bsoncxx::builder::stream::document &builder, AnimationFrameInterface *aframe) {
-    auto trans_handle_array = bsoncxx::builder::stream::array{};
+    auto aframe_doc = bsoncxx::builder::stream::document{};
     if (aframe) {
+      aframe_doc << "active" << true;
+      auto trans_handle_outer_doc = bsoncxx::builder::stream::document{};
       for (int k = 0; k < 3; k++) {
         auto trans_handle_doc = bsoncxx::builder::stream::document{};
         CoreDatabaseManager::add_graph_handle_to_document(trans_handle_doc, \
             aframe->get_translation(k));
-        trans_handle_array << trans_handle_doc;
+        if (k == 0) trans_handle_outer_doc << "x" << trans_handle_doc;
+        if (k == 1) trans_handle_outer_doc << "y" << trans_handle_doc;
+        if (k == 2) trans_handle_outer_doc << "z" << trans_handle_doc;
       }
-    }
-    builder << "translation_handle" << trans_handle_array;
-    auto rot_handle_array = bsoncxx::builder::stream::array{};
-    if (aframe) {
+      aframe_doc << "translation_handle" << trans_handle_outer_doc;
+      auto rot_handle_outer_doc = bsoncxx::builder::stream::document{};
       for (int m = 0; m < 4; m++) {
         auto rot_handle_doc = bsoncxx::builder::stream::document{};
         CoreDatabaseManager::add_graph_handle_to_document(rot_handle_doc, \
             aframe->get_translation(m));
-        rot_handle_array << rot_handle_doc;
+        if (m == 0) rot_handle_outer_doc << "w" << rot_handle_doc;
+        if (m == 1) rot_handle_outer_doc << "x" << rot_handle_doc;
+        if (m == 2) rot_handle_outer_doc << "y" << rot_handle_doc;
+        if (m == 3) rot_handle_outer_doc << "z" << rot_handle_doc;
       }
-    }
-    builder << "rotation_handle" << rot_handle_array;
-    auto scale_handle_array = bsoncxx::builder::stream::array{};
-    if (aframe) {
+      aframe_doc << "rotation_handle" << rot_handle_outer_doc;
+      auto scale_handle_outer_doc = bsoncxx::builder::stream::document{};
       for (int n = 0; n < 3; n++) {
         auto scale_handle_doc = bsoncxx::builder::stream::document{};
         CoreDatabaseManager::add_graph_handle_to_document(scale_handle_doc, \
             aframe->get_scale(n));
-        scale_handle_array << scale_handle_doc;
+        if (n == 0) scale_handle_outer_doc << "x" << scale_handle_doc;
+        if (n == 1) scale_handle_outer_doc << "y" << scale_handle_doc;
+        if (n == 2) scale_handle_outer_doc << "z" << scale_handle_doc;
       }
+      aframe_doc << "scale_handle" << scale_handle_outer_doc;
+    } else {
+      aframe_doc << "active" << false;
     }
-    builder << "scale_handle" << scale_handle_array;
+    builder << "animation_frame" << aframe_doc;
 }
 
 void ObjectDatabaseManager::build_create_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
@@ -306,35 +314,38 @@ void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, Object
     }
   }
   // Parse the Animation Frame
-  bsoncxx::document::element aft_element = result["translation_frame"];
-  bsoncxx::array::view tframe_array_view = aft_element.get_array().value;
-  int tframe_array_size = std::distance(tframe_array_view.begin(), tframe_array_view.end());
-  if (tframe_array_size > 0 && (!obj->get_animation_frame())) {
-      obj->set_animation_frame(new AnimationFrame);
-  }
-  for (int i = 0; i < tframe_array_size; i++) {
-      auto tframe_elt = tframe_array_view[i];
-      CoreDatabaseManager::get_handle_from_element(tframe_elt, obj->get_animation_frame()->get_translation(i));
-  }
-  bsoncxx::document::element afr_element = result["rotation_frame"];
-  bsoncxx::array::view rframe_array_view = afr_element.get_array().value;
-  int rframe_array_size = std::distance(rframe_array_view.begin(), rframe_array_view.end());
-  if (rframe_array_size > 0 && (!obj->get_animation_frame())) {
-      obj->set_animation_frame(new AnimationFrame);
-  }
-  for (int i = 0; i < rframe_array_size; i++) {
-      auto rframe_elt = rframe_array_view[i];
-      CoreDatabaseManager::get_handle_from_element(rframe_elt, obj->get_animation_frame()->get_translation(i));
-  }
-  bsoncxx::document::element afs_element = result["scale_frame"];
-  bsoncxx::array::view sframe_array_view = afs_element.get_array().value;
-  int sframe_array_size = std::distance(sframe_array_view.begin(), sframe_array_view.end());
-  if (sframe_array_size > 0 && (!obj->get_animation_frame())) {
-      obj->set_animation_frame(new AnimationFrame);
-  }
-  for (int i = 0; i < sframe_array_size; i++) {
-      auto sframe_elt = sframe_array_view[i];
-      CoreDatabaseManager::get_handle_from_element(sframe_elt, obj->get_animation_frame()->get_translation(i));
+  bsoncxx::document::element aframe_elt = result["animation_frame"];
+  auto aframe_active_elt = aframe_elt["active"];
+  if (aframe_active_elt.get_bool().value) {
+    obj->set_animation_frame(new AnimationFrame);
+    auto aft_element = aframe_elt["translation_frame"];
+    for (int i = 0; i < 3; i++) {
+      bsoncxx::document::element aft_inner_elt;
+      if (i == 0) aft_inner_elt = aft_element["x"];
+      if (i == 1) aft_inner_elt = aft_element["y"];
+      if (i == 2) aft_inner_elt = aft_element["z"];
+      CoreDatabaseManager::get_handle_from_element(aft_inner_elt, \
+          obj->get_animation_frame()->get_translation(i));
+    }
+    auto afr_elt = aframe_elt["rotation_frame"];
+    for (int i = 0; i < 3; i++) {
+      bsoncxx::document::element afr_inner_elt;
+      if (i == 0) afr_inner_elt = afr_elt["w"];
+      if (i == 1) afr_inner_elt = afr_elt["x"];
+      if (i == 2) afr_inner_elt = afr_elt["y"];
+      if (i == 3) afr_inner_elt = afr_elt["z"];
+      CoreDatabaseManager::get_handle_from_element(afr_inner_elt, \
+          obj->get_animation_frame()->get_rotation(i));
+    }
+    auto afs_element = aframe_elt["scale_frame"];
+    for (int i = 0; i < 3; i++) {
+      bsoncxx::document::element afs_inner_elt;
+      if (i == 0) afs_inner_elt = afs_element["x"];
+      if (i == 1) afs_inner_elt = afs_element["y"];
+      if (i == 2) afs_inner_elt = afs_element["z"];
+      CoreDatabaseManager::get_handle_from_element(afs_inner_elt, \
+          obj->get_animation_frame()->get_scale(i));
+    }
   }
 }
 
@@ -355,9 +366,6 @@ void ObjectDatabaseManager::get_object(ObjectListInterface *response, std::strin
       bsoncxx::oid db_id(key);
       query_builder << "_id" << db_id;
       auto result = coll.find_one(query_builder << bsoncxx::builder::stream::finalize);
-      // TO-DO: Not returning any values
-      // TO-DO: result still resolves to true below, which causes an exception
-      //        when calling bson_to_obj3
       if (result) {
         auto view = result->view();
         ObjectInterface *obj = object_factory.build_object();
