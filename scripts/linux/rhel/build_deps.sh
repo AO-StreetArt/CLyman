@@ -11,7 +11,7 @@ RETURN=..
 mkdir $PRE
 
 # Set up a reasonably new version of gcc
-yum -y install openssl-devel boost-devel centos-release-scl wget git gcc gcc-c++ cmake3
+yum -y install openssl-devel boost-devel centos-release-scl wget git gcc gcc-c++ cmake3 zlib-devel
 yum -y update
 yum -y install devtoolset-6
 scl enable devtoolset-6 bash
