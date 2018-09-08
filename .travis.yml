@@ -37,9 +37,9 @@ before_install:
   - wget https://cmake.org/files/v3.12/cmake-3.12.2.tar.gz
   - tar -xvzf cmake-3.12.2.tar.gz
   - cd cmake-3.12.2 && ./bootstrap && make && sudo make install && cd ../
-  - mkdir ../clyman_deps
-  - sudo cp scripts/linux/deb/build_deps.sh ../clyman_deps
-  - cd $TRAVIS_BUILD_DIR/clyman_deps && sudo ./build_deps.sh $CXX > deps_log.txt
+  - mkdir $TRAVIS_BUILD_DIR/../clyman_deps
+  - sudo cp $TRAVIS_BUILD_DIR/scripts/linux/deb/build_deps.sh $TRAVIS_BUILD_DIR/../clyman_deps
+  - cd $TRAVIS_BUILD_DIR/../clyman_deps && sudo ./build_deps.sh $CXX > deps_log.txt
   - sudo ldconfig
   - npm install newman --global;
   - pip install --user requests
