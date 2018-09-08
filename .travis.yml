@@ -57,7 +57,7 @@ script:
   - sleep 5
   - kill $(cat $TRAVIS_BUILD_DIR/pid.txt)
   - sleep 1
-  - echo "kill" | nc -u -w 3 $(ip addr show eth0 | grep -Po 'inet \K[\d.]+') 8764
+  - echo "kill" | nc -u -w 3 $(ip addr show eth0 | grep -Po 'inet \K[\d.]+') 8762
   - docker logs udp-listener
 notifications:
   slack:
