@@ -160,8 +160,13 @@ protected:
     config.add_opt(std::string("mongo.db"), std::string("clyman"));
     config.add_opt(std::string("mongo.obj.collection"), std::string("obj3"));
     config.add_opt(std::string("mongo.prop.collection"), std::string("property"));
+    config.add_opt(std::string("mongo.ssl.pem.file"), std::string(""));
+    config.add_opt(std::string("mongo.ssl.pem.password"), std::string(""));
+    config.add_opt(std::string("mongo.ssl.crl.file"), std::string(""));
     config.add_opt(std::string("mongo.ssl.ca.file"), std::string(""));
     config.add_opt(std::string("mongo.ssl.ca.dir"), std::string(""));
+    config.add_opt(std::string("mongo.ssl.active"), std::string(""));
+    config.add_opt(std::string("mongo.ssl.validate_server_cert"), std::string("true"));
     config.add_opt(std::string("transaction.format"), std::string("json"));
     config.add_opt(std::string("transaction.id.stamp"), std::string("true"));
     config.add_opt(std::string("event.stream.method"), std::string("kafka"));
@@ -273,7 +278,7 @@ protected:
       config.get_consul()->register_service(*my_app);
     }
 
-    // Set up the Mongo Connection
+    // Get the Mongo Connection information
     AOSSL::StringBuffer initial_db_conn;
     config.get_opt(std::string("mongo"), initial_db_conn);
     AOSSL::StringBuffer database_name;
@@ -282,7 +287,30 @@ protected:
     config.get_opt(std::string("mongo.obj.collection"), db_obj_collection);
     AOSSL::StringBuffer db_prop_collection;
     config.get_opt(std::string("mongo.prop.collection"), db_prop_collection);
-    DatabaseManager db_manager(&config, initial_db_conn.val, database_name.val, db_obj_collection.val, db_prop_collection.val);
+    AOSSL::StringBuffer db_ssl_active;
+    config.get_opt(std::string("mongo.ssl.active"), db_ssl_active);
+    AOSSL::StringBuffer db_ssl_valserver_cert;
+    config.get_opt(std::string("mongo.ssl.validate_server_cert"), db_ssl_valserver_cert);
+    AOSSL::StringBuffer db_ssl_pem_file;
+    config.get_opt(std::string("mongo.ssl.pem.file"), db_ssl_pem_file);
+    AOSSL::StringBuffer db_ssl_pem_password;
+    config.get_opt(std::string("mongo.ssl.pem.password"), db_ssl_pem_password);
+    AOSSL::StringBuffer db_ssl_crl_file;
+    config.get_opt(std::string("mongo.ssl.crl.file"), db_ssl_crl_file);
+    AOSSL::StringBuffer db_ssl_ca_file;
+    config.get_opt(std::string("mongo.ssl.ca.file"), db_ssl_ca_file);
+    AOSSL::StringBuffer db_ssl_ca_dir;
+    config.get_opt(std::string("mongo.ssl.ca.dir"), db_ssl_ca_dir);
+
+    bool m_ssl_active = false;
+    bool m_validate_server_certificates = false;
+    if (db_ssl_active.val == "true") m_ssl_active = true;
+    if (db_ssl_valserver_cert.val == "true") m_validate_server_certificates = true;
+    // Start the DB Manager
+    DatabaseManager db_manager(&config, initial_db_conn.val, database_name.val, \
+        db_obj_collection.val, db_prop_collection.val, m_ssl_active, m_validate_server_certificates, \
+        db_ssl_pem_file.val, db_ssl_pem_password.val, db_ssl_ca_file.val, \
+        db_ssl_ca_dir.val, db_ssl_crl_file.val);
 
     // Start the User Account Manager
     AOSSL::StringBuffer auth_type_buffer;

@@ -84,6 +84,15 @@ class PropertyDatabaseManager : public CoreDatabaseManager {
     db_name.assign(db);
     coll_name.assign(collection);
   }
+  PropertyDatabaseManager(AOSSL::NetworkApplicationProfile *profile, std::string conn, \
+      std::string db, std::string collection, bool is_ssl_active, \
+      bool validate_server_cert, std::string ssl_pem_file, std::string ssl_pem_passwd, \
+      std::string ssl_ca_file, std::string ssl_ca_dir, std::string ssl_crl_file) : \
+      CoreDatabaseManager(profile, conn, is_ssl_active, validate_server_cert, \
+        ssl_pem_file, ssl_pem_passwd, ssl_ca_file, ssl_ca_dir, ssl_crl_file) {
+    db_name.assign(db);
+    coll_name.assign(collection);
+  }
   virtual ~PropertyDatabaseManager() {}
 
   // Build a Bson document to use for creation

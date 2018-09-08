@@ -34,12 +34,27 @@ void CoreDatabaseManager::find_new_connection() {
     // Check for TLS Configuration
     internal_profile->get_opt(std::string("mongo.ssl.ca.file"), mongo_ssl_ca_buf);
     internal_profile->get_opt(std::string("mongo.ssl.ca.dir"), mongo_ssl_ca_dir_buf);
-    // TO-DO: Add TLS configuration to Mongo Driver
     // Reset the internal connection
     logger.information("Connecting to Mongo instance: %s", mongo_conn_str);
-    mongocxx::uri uri(mongo_conn_str);
     if (pool) delete pool;
-    pool = new mongocxx::pool{uri};
+    if (ssl_active) {
+      mongocxx::uri uri(mongo_conn_str + "?ssl=true");
+      // Set up any SSL Ops
+      if (allow_invalid_certs) ssl_options.allow_invalid_certificates(true);
+      if (!(pem_file.empty())) ssl_options.pem_file(bsoncxx::string::view_or_value(pem_file));
+      if (!(pem_password.empty())) ssl_options.pem_password(bsoncxx::string::view_or_value(pem_password));
+      if (!(ca_file.empty())) ssl_options.ca_file(bsoncxx::string::view_or_value(ca_file));
+      if (!(ca_dir.empty())) ssl_options.pem_file(bsoncxx::string::view_or_value(ca_dir));
+      if (!(crl_file.empty())) ssl_options.pem_file(bsoncxx::string::view_or_value(crl_file));
+      client_options.ssl_opts(ssl_options);
+      // Initialize the connection pool
+      pool_options = new mongocxx::options::pool{client_options};
+      pool = new mongocxx::pool{uri, *(pool_options)};
+    } else {
+      mongocxx::uri uri(mongo_conn_str);
+      // Initialize the connection pool
+      pool = new mongocxx::pool{uri};
+    }
   } else {
     logger.error("No Consul instance found, unable to discover Mongo instances");
   }
@@ -58,8 +73,24 @@ void CoreDatabaseManager::set_new_connection() {
 
 void CoreDatabaseManager::init_with_connection(std::string connection_string) {
   if (!(connection_string.empty())) {
-    mongocxx::uri uri(connection_string);
-    pool = new mongocxx::pool{uri};
+    if (ssl_active) {
+      mongocxx::uri uri(connection_string + "?ssl=true");
+      // Set up any SSL Ops
+      if (allow_invalid_certs) ssl_options.allow_invalid_certificates(true);
+      if (!(pem_file.empty())) ssl_options.pem_file(bsoncxx::string::view_or_value(pem_file));
+      if (!(pem_password.empty())) ssl_options.pem_password(bsoncxx::string::view_or_value(pem_password));
+      if (!(ca_file.empty())) ssl_options.ca_file(bsoncxx::string::view_or_value(ca_file));
+      if (!(ca_dir.empty())) ssl_options.pem_file(bsoncxx::string::view_or_value(ca_dir));
+      if (!(crl_file.empty())) ssl_options.pem_file(bsoncxx::string::view_or_value(crl_file));
+      client_options.ssl_opts(ssl_options);
+      // Initialize the connection pool
+      pool_options = new mongocxx::options::pool{client_options};
+      pool = new mongocxx::pool{uri, *(pool_options)};
+    } else {
+      mongocxx::uri uri(connection_string);
+      // Initialize the connection pool
+      pool = new mongocxx::pool{uri};
+    }
     initialized = true;
   }
 }

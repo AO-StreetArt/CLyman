@@ -46,6 +46,12 @@ class DatabaseManager : public ObjectDatabaseManager, public DatabaseManagerInte
   DatabaseManager(AOSSL::NetworkApplicationProfile *profile, std::string conn, \
       std::string db, std::string obj_collection, std::string props_collection) \
       : ObjectDatabaseManager(profile, conn, db, obj_collection, props_collection) {}
+  DatabaseManager(AOSSL::NetworkApplicationProfile *profile, std::string conn, \
+      std::string db, std::string obj_collection, std::string props_collection, bool is_ssl_active, \
+      bool validate_server_cert, std::string ssl_pem_file, std::string ssl_pem_passwd, \
+      std::string ssl_ca_file, std::string ssl_ca_dir, std::string ssl_crl_file) \
+      : ObjectDatabaseManager(profile, conn, db, obj_collection, props_collection, is_ssl_active, validate_server_cert, \
+        ssl_pem_file, ssl_pem_passwd, ssl_ca_file, ssl_ca_dir, ssl_crl_file) {}
   ~DatabaseManager() {}
 
   //! Create a Property in the Mongo Database

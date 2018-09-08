@@ -64,6 +64,16 @@ class CoreDatabaseManager {
   std::atomic<int> failures{0};
   std::atomic<bool> initialized{false};
   std::string service_name = "mongo";
+  mongocxx::options::pool *pool_options = nullptr;
+  mongocxx::options::client client_options;
+  mongocxx::options::ssl ssl_options;
+  bool ssl_active = false;
+  bool allow_invalid_certs = false;
+  std::string pem_file;
+  std::string pem_password;
+  std::string ca_file;
+  std::string ca_dir;
+  std::string crl_file;
   // We use a RW lock to let any number of queries execute
   // simultaneously, XOR let a connection get updated
   Poco::RWLock conn_usage_lock;
@@ -108,8 +118,29 @@ public:
     internal_profile = profile;
     init_with_connection(conn);
   }
+  CoreDatabaseManager(AOSSL::NetworkApplicationProfile *profile, \
+      std::string conn, bool is_ssl_active) : logger(Poco::Logger::get("DatabaseManager")) {
+    internal_profile = profile;
+    ssl_active = is_ssl_active;
+    init_with_connection(conn);
+  }
+  CoreDatabaseManager(AOSSL::NetworkApplicationProfile *profile, \
+      std::string conn, bool is_ssl_active, bool validate_server_cert, \
+      std::string ssl_pem_file, std::string ssl_pem_passwd, std::string ssl_ca_file, \
+      std::string ssl_ca_dir, std::string ssl_crl_file) : logger(Poco::Logger::get("DatabaseManager")) {
+    internal_profile = profile;
+    ssl_active = is_ssl_active;
+    allow_invalid_certs = !validate_server_cert;
+    pem_file.assign(ssl_pem_file);
+    pem_password.assign(ssl_pem_passwd);
+    ca_file.assign(ssl_ca_file);
+    ca_dir.assign(ssl_ca_dir);
+    crl_file.assign(ssl_crl_file);
+    init_with_connection(conn);
+  }
   ~CoreDatabaseManager() {
     if (connected_service) delete connected_service;
+    if (pool_options) delete pool_options;
     if (pool) delete pool;
   }
 };
