@@ -36,7 +36,7 @@ before_install:
   - $CXX -v
   - wget https://cmake.org/files/v3.12/cmake-3.12.2.tar.gz
   - tar -xvzf cmake-3.12.2.tar.gz
-  - cd cmake-3.12.2 && ./bootstrap && make && make install
+  - cd cmake-3.12.2 && ./bootstrap && make && sudo make install
   - mkdir ../clyman_deps
   - sudo cp scripts/linux/deb/build_deps.sh ../clyman_deps
   - cd ../clyman_deps && sudo ./build_deps.sh $CXX > deps_log.txt
