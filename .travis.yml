@@ -36,7 +36,7 @@ before_install:
   - $CXX -v
   - wget https://cmake.org/files/v3.12/cmake-3.12.2.tar.gz
   - tar -xzf cmake-3.12.2.tar.gz
-  - cd cmake-3.12.2 && ./bootstrap && make && sudo make install && cd ../
+  - cd cmake-3.12.2 && ./bootstrap && make > cmake_build_log.txt && sudo make install && cd ../
   - mkdir $TRAVIS_BUILD_DIR/../clyman_deps
   - sudo cp $TRAVIS_BUILD_DIR/scripts/linux/deb/build_deps.sh $TRAVIS_BUILD_DIR/../clyman_deps
   - cd $TRAVIS_BUILD_DIR/../clyman_deps && sudo ./build_deps.sh $CXX > deps_log.txt
