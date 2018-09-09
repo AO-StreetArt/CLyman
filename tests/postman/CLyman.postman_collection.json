@@ -630,7 +630,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"objects\":[\n    {\n\t\t\"name\":\"anotherName\",\n    \t\"parent\":\"anotherParent\"\n\t}\n  ]\n}\n"
+					"raw": "{\n  \"properties\":[\n    {\n\t\t\"name\":\"anotherName\",\n    \t\"parent\":\"anotherParent\"\n\t}\n  ]\n}\n"
 				},
 				"url": {
 					"raw": "{{CLYMAN_URL}}/v1/property/{{PROPERTY_ID}}",
