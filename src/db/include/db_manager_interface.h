@@ -48,6 +48,7 @@ const int _DB_MONGO_UNLOCK_ = 6;
 struct DatabaseResponse {
   bool success = false;
   std::string error_message;
+  int error_code = 100;
 };
 
 //! Encapsulates the Mongocxx client, ensuring that

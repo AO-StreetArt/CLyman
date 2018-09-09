@@ -59,7 +59,11 @@ class PropertyKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
     DatabaseResponse db_response;
     db_manager->delete_property(db_response, key);
     if (!(db_response.success)) {
-      response_body->set_error_code(PROCESSING_ERROR);
+      if (db_response.error_code > NO_ERROR) {
+        response_body->set_error_code(db_response.error_code);
+      } else {
+        response_body->set_error_code(PROCESSING_ERROR);
+      }
       response_body->set_error_message(db_response.error_message);
     }
   }
@@ -95,7 +99,9 @@ class PropertyKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
       response_body->set_error_code(PROCESSING_ERROR);
     }
 
-    if (response_body->get_error_code() == TRANSLATION_ERROR) {
+    if (response_body->get_error_code() == NOT_FOUND) {
+      response.setStatus(Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
+    } else if (response_body->get_error_code() == TRANSLATION_ERROR) {
       response.setStatus(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
     } else if (response_body->get_error_code() != NO_ERROR) {
       response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);

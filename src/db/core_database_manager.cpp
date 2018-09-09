@@ -155,5 +155,6 @@ void CoreDatabaseManager::insert_doc(mongocxx::collection &coll, bsoncxx::docume
     response.success = true;
   } else {
     response.error_message = std::string("No Documents Inserted into DB");
+    response.error_code = PROCESSING_ERROR;
   }
 }

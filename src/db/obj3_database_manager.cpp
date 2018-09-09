@@ -253,9 +253,11 @@ void ObjectDatabaseManager::transaction(DatabaseResponse &response, ObjectInterf
             response.success = true;
           } else {
             response.error_message = std::string("No Documents Modified in DB");
+            response.error_code = NOT_FOUND;
           }
         } else {
           response.error_message = std::string("Null Result returned from DB");
+          response.error_code = PROCESSING_ERROR;
         }
       }
     } catch (mongocxx::exception& me) {
@@ -377,12 +379,13 @@ void ObjectDatabaseManager::get_object(ObjectListInterface *response, std::strin
         bson_to_obj3(view, obj);
         response->add_object(obj);
       } else {
-        response->set_error_code(PROCESSING_ERROR);
+        response->set_error_code(NOT_FOUND);
         response->set_error_message(std::string("No results returned from query"));
       }
     } catch (mongocxx::exception& me) {
       logger.error("Mongo Exception Encountered");
       logger.error(me.what());
+      response->set_error_code(PROCESSING_ERROR);
       response->set_error_message(std::string(me.what()));
       break;
     } catch (std::exception& e) {
@@ -460,9 +463,11 @@ void ObjectDatabaseManager::delete_object(DatabaseResponse& response, std::strin
           response.success = true;
         } else {
           response.error_message = std::string("No Documents Modified in DB");
+          response.error_code = NOT_FOUND;
         }
       } else {
         response.error_message = std::string("Null Result returned from DB");
+        response.error_code = PROCESSING_ERROR;
       }
     } catch (mongocxx::exception& me) {
       logger.error("Mongo Exception Encountered");

@@ -149,9 +149,11 @@ void PropertyDatabaseManager::prop_transaction(DatabaseResponse &response, Prope
             logger.debug("Document Successfully updated in DB");
             response.success = true;
           } else {
+            response.error_code = NOT_FOUND;
             response.error_message = std::string("No Documents Modified in DB");
           }
         } else {
+          response.error_code = PROCESSING_ERROR;
           response.error_message = std::string("Null Result returned from DB");
         }
       }
@@ -159,6 +161,7 @@ void PropertyDatabaseManager::prop_transaction(DatabaseResponse &response, Prope
       logger.error("Mongo Exception Encountered");
       logger.error(me.what());
       response.error_message = std::string(me.what());
+      response.error_code = PROCESSING_ERROR;
       break;
     } catch (std::exception& e) {
       logger.error("Exception executing Mongo Query");
@@ -310,14 +313,17 @@ void PropertyDatabaseManager::delete_property(DatabaseResponse& response, std::s
           response.success = true;
         } else {
           response.error_message = std::string("No Documents Modified in DB");
+          response.error_code = NOT_FOUND;
         }
       } else {
         response.error_message = std::string("Null Result returned from DB");
+        response.error_code = PROCESSING_ERROR;
       }
     } catch (mongocxx::exception& me) {
       logger.error("Mongo Exception Encountered");
       logger.error(me.what());
       response.error_message = std::string(me.what());
+      response.error_code = PROCESSING_ERROR;
       break;
     } catch (std::exception& e) {
       logger.error("Exception executing Mongo Query");
