@@ -63,7 +63,7 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
       response_body->set_error_message(response.error_message);
     }
   }
-  void process_update_message(PropertyInterface* in_doc, PropertyInterface* out_doc, PropertyListInterface *response_body) {
+  void process_update_message(PropertyInterface* in_doc, PropertyListInterface *response_body) {
     logger.information("Processing Update Message");
     // Persist the update message
     logger.information("Updating Property with Name: " + in_doc->get_name());
@@ -138,8 +138,7 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
               process_create_message(in_doc, new_out_doc, response_body);
               response_body->add_prop(new_out_doc);
             } else if (msg_type == PROP_UPD) {
-              process_update_message(in_doc, new_out_doc, response_body);
-              response_body->add_prop(new_out_doc);
+              process_update_message(in_doc, response_body);
             } else if (msg_type == PROP_QUERY) {
               process_query_message(in_doc, response_body, inp_doc->get_num_records());
             }

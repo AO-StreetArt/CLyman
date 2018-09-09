@@ -25,6 +25,7 @@ limitations under the License.
 
 #include "user/include/account_manager_interface.h"
 
+#include "asset_handler.h"
 #include "heartbeat_handler.h"
 #include "property_base_handler.h"
 #include "property_key_handler.h"
@@ -166,6 +167,12 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
       } else if (uri_path.size() == 3 && uri_path[1] == "property") {
         // Property Delete
         return new PropertyKeyRequestHandler(config, db_manager, cluster_info, PROP_DEL, uri_path[2]);
+      } else if (uri_path.size() == 5 && uri_path[1] == "object" && uri_path[3] == "asset") {
+        return new AssetRequestHandler(config, db_manager, cluster_info, ASSET_DEL, uri_path[2], uri_path[4]);
+      }
+    } else if (uri_path.size() > 1 && uri_path[0] == "v1" && request.getMethod() == "PUT") {
+      if (uri_path.size() == 5 && uri_path[1] == "object" && uri_path[3] == "asset") {
+        return new AssetRequestHandler(config, db_manager, cluster_info, ASSET_ADD, uri_path[2], uri_path[4]);
       }
     } else if (uri_path.size() == 1 && uri_path[0] == "health" && \
         request.getMethod() == "GET") {

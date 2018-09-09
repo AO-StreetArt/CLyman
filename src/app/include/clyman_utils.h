@@ -52,6 +52,8 @@ const int PROP_UPD = 9;
 const int PROP_GET = 10;
 const int PROP_DEL = 11;
 const int PROP_QUERY = 12;
+const int ASSET_ADD = 13;
+const int ASSET_DEL = 14;
 const int KILL = 999;
 const int PING = 555;
 

@@ -122,6 +122,66 @@
 			"response": []
 		},
 		{
+			"name": "Get Object",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0fbc662f-f78c-4e23-83a5-8fd4dc0e84e4",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Content-Type is present\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.err_code).to.eql(100);",
+							"    pm.expect(jsonData.num_records).to.eql(1);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"msg_type\": 0,\n  \"objects\":[\n    {\n\t\t\"name\": \"Test Object 123464\",\n\t\t\"type\": \"Curve\",\n\t\t\"subtype\": \"Sphere\",\n\t\t\"owner\": \"456\",\n\t\t\"frame\": 0,\n\t\t\"timestamp\": 123456789,\n\t\t\"translation\": [0, 0, 1],\n\t\t\"quaternion_rotation\": [0, 1, 0, 0],\n\t\t\"euler_rotation\": [0, 0, 0],\n\t\t\"scale\": [1, 1, 2],\n\t\t\"assets\": [\"Asset_5\"],\n\t\t\"translation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"rotation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"scale_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}]\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/{{OBJECT_ID}}",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"{{OBJECT_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Update Object",
 			"event": [
 				{
@@ -176,6 +236,68 @@
 						"v1",
 						"object",
 						"{{OBJECT_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Asset",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4d87ff4e-8f89-4694-94cf-59077b761784",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Content-Type is present\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.err_code).to.eql(100);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/{{OBJECT_ID}}/asset/12345",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"{{OBJECT_ID}}",
+						"asset",
+						"12345"
 					]
 				}
 			},
@@ -243,12 +365,12 @@
 			"response": []
 		},
 		{
-			"name": "Get Object",
+			"name": "Remove Asset",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "0fbc662f-f78c-4e23-83a5-8fd4dc0e84e4",
+						"id": "4d87ff4e-8f89-4694-94cf-59077b761784",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Response time is less than 200ms\", function () {",
@@ -267,7 +389,6 @@
 							"",
 							"pm.test(\"Check Response Body\", function () {",
 							"    pm.expect(jsonData.err_code).to.eql(100);",
-							"    pm.expect(jsonData.num_records).to.eql(1);",
 							"});"
 						]
 					}
@@ -277,26 +398,29 @@
 				"auth": {
 					"type": "noauth"
 				},
-				"method": "GET",
+				"method": "DELETE",
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/json",
+						"disabled": true
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"msg_type\": 0,\n  \"objects\":[\n    {\n\t\t\"name\": \"Test Object 123464\",\n\t\t\"type\": \"Curve\",\n\t\t\"subtype\": \"Sphere\",\n\t\t\"owner\": \"456\",\n\t\t\"frame\": 0,\n\t\t\"timestamp\": 123456789,\n\t\t\"translation\": [0, 0, 1],\n\t\t\"quaternion_rotation\": [0, 1, 0, 0],\n\t\t\"euler_rotation\": [0, 0, 0],\n\t\t\"scale\": [1, 1, 2],\n\t\t\"assets\": [\"Asset_5\"],\n\t\t\"translation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"rotation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"scale_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}]\n\t}\n  ]\n}\n"
+					"raw": ""
 				},
 				"url": {
-					"raw": "{{CLYMAN_URL}}/v1/object/{{OBJECT_ID}}",
+					"raw": "{{CLYMAN_URL}}/v1/object/{{OBJECT_ID}}/asset/12345",
 					"host": [
 						"{{CLYMAN_URL}}"
 					],
 					"path": [
 						"v1",
 						"object",
-						"{{OBJECT_ID}}"
+						"{{OBJECT_ID}}",
+						"asset",
+						"12345"
 					]
 				}
 			},
@@ -750,7 +874,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"num_records\": 1,\n  \"properties\":[\n    {\n\t\t\"name\": \"testName\"\n\t}\n  ]\n}\n"
+					"raw": "{\n  \"num_records\": 1,\n  \"properties\":[\n    {\n\t\t\"name\": \"anotherName\"\n\t}\n  ]\n}\n"
 				},
 				"url": {
 					"raw": "{{CLYMAN_URL}}/v1/property/query/",

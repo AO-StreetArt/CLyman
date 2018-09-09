@@ -183,21 +183,25 @@ void ObjectDatabaseManager::build_update_doc(bsoncxx::builder::stream::document 
     add_handles_to_doc(set_doc, obj->get_animation_frame());
   }
   builder << "$set" << set_doc;
-  auto push_doc = bsoncxx::builder::stream::document{};
-  auto each_doc = bsoncxx::builder::stream::document{};
+
+  // Add the Asset Array
   auto asset_array = bsoncxx::builder::stream::array{};
   for (int i = 0; i < obj->num_assets(); i++) {
     asset_array << obj->get_asset(i);
   }
-  each_doc << "$each" << asset_array;
-  push_doc << "assets" << each_doc;
-  std::string update_opt_key;
   if (is_append_operation) {
-    update_opt_key = "$push";
+    auto push_doc = bsoncxx::builder::stream::document{};
+    auto each_doc = bsoncxx::builder::stream::document{};
+    each_doc << "$each" << asset_array;
+    push_doc << "assets" << each_doc;
+    builder << "$push" << push_doc;
   } else {
-    update_opt_key = "$pull";
+    auto pull_doc = bsoncxx::builder::stream::document{};
+    auto in_doc = bsoncxx::builder::stream::document{};
+    pull_doc << "$in" << asset_array;
+    in_doc << "assets" << pull_doc;
+    builder << "$pull" << in_doc;
   }
-  builder << update_opt_key << push_doc;
 }
 
 void ObjectDatabaseManager::transaction(DatabaseResponse &response, ObjectInterface *obj, std::string& key, int transaction_type, bool is_append_operation) {

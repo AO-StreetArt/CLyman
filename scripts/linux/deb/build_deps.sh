@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
-#This script will attempt to build CrazyIvan dependencies
+#This script will attempt to build CLyman dependencies
 
-#Based on Ubuntu 14.04 LTS
+#Based on Ubuntu 18.04 LTS
 #Not intended for use with other OS (should function correctly with Debian 7, untested)
 
 COMPILER="g++"
