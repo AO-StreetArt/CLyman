@@ -46,6 +46,7 @@ class AnimationFrame : public AnimationFrameInterface {
       delete rotation[i];
       delete scale[i];
     }
+    delete rotation[3];
   }
 
   // Access and set the Translation Graph Handles

@@ -93,7 +93,9 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                 int elt_indx = 0;
                 for (auto& handle_elt_itr : th_itr->value.GetArray()) {
                   // Here we iterate over each object in the translation handle
-                  parse_json_graph_handle(handle_elt_itr, aframe->get_translation(elt_indx));
+                  if (elt_indx < 3) {
+                    parse_json_graph_handle(handle_elt_itr, aframe->get_translation(elt_indx));
+                  }
                   elt_indx++;
                 }
               }
@@ -106,7 +108,9 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                 int elt_indx = 0;
                 for (auto& handle_elt_itr : rh_itr->value.GetArray()) {
                   // Here we iterate over each object in the translation handle
-                  parse_json_graph_handle(handle_elt_itr, aframe->get_rotation(elt_indx));
+                  if (elt_indx < 4) {
+                    parse_json_graph_handle(handle_elt_itr, aframe->get_rotation(elt_indx));
+                  }
                   elt_indx++;
                 }
               }
@@ -120,7 +124,9 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
                 int elt_indx = 0;
                 for (auto& handle_elt_itr : sh_itr->value.GetArray()) {
                   // Here we iterate over each object in the translation handle
-                  parse_json_graph_handle(handle_elt_itr, aframe->get_scale(elt_indx));
+                  if (elt_indx < 3) {
+                    parse_json_graph_handle(handle_elt_itr, aframe->get_scale(elt_indx));
+                  }
                   elt_indx++;
                 }
               }

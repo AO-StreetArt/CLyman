@@ -95,13 +95,14 @@ class ObjectKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
       response_body->set_error_code(PROCESSING_ERROR);
     }
 
-    // Set up the response
-    std::ostream& ostr = response.send();
-
     // Process the result
     if (response_body->get_error_code() != NO_ERROR) {
       response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
+
+    // Set up the response
+    std::ostream& ostr = response.send();
+
     std::string response_body_string;
     response_body->to_msg_string(response_body_string);
     ostr << response_body_string;

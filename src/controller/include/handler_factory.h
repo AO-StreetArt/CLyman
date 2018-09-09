@@ -124,13 +124,6 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
       } else if (uri_path.size() == 3 && uri_path[1] == "object" && uri_path[2] == "query") {
         // Query
         return new ObjectBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_QUERY);
-      } else if (uri_path.size() > 3 && uri_path[1] == "object" && uri_path[3] == "lock") {
-        // Lock
-        for (auto param : query_params) {
-          if (param.first == "device") {
-            return new ObjectLockRequestHandler(config, db_manager, cluster_info, OBJ_LOCK, uri_path[2], param.second);
-          }
-        }
       } else if (uri_path.size() == 3 && uri_path[1] == "object") {
         // Update
         return new ObjectBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_UPD, uri_path[2]);
@@ -145,7 +138,14 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
         return new PropertyBaseRequestHandler(config, db_manager, publisher, cluster_info, PROP_UPD, uri_path[2]);
       }
     } else if (uri_path.size() > 1 && uri_path[0] == "v1" && request.getMethod() == "GET") {
-      if (uri_path.size() == 3 && uri_path[1] == "object") {
+      if (uri_path.size() > 3 && uri_path[1] == "object" && uri_path[3] == "lock") {
+       // Lock
+       for (auto param : query_params) {
+         if (param.first == "device") {
+           return new ObjectLockRequestHandler(config, db_manager, cluster_info, OBJ_LOCK, uri_path[2], param.second);
+         }
+       }
+     } else if (uri_path.size() == 3 && uri_path[1] == "object") {
         // Get
         return new ObjectKeyRequestHandler(config, db_manager, cluster_info, OBJ_GET, uri_path[2]);
       } else if ((uri_path.size() == 3) && (uri_path[1] == "property")) {
@@ -162,10 +162,10 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
         }
       } else if (uri_path.size() == 3 && uri_path[1] == "object") {
         // Delete
-        return new ObjectKeyRequestHandler(config, db_manager, cluster_info, OBJ_DEL);
+        return new ObjectKeyRequestHandler(config, db_manager, cluster_info, OBJ_DEL, uri_path[2]);
       } else if (uri_path.size() == 3 && uri_path[1] == "property") {
         // Property Delete
-        return new PropertyKeyRequestHandler(config, db_manager, cluster_info, PROP_DEL);
+        return new PropertyKeyRequestHandler(config, db_manager, cluster_info, PROP_DEL, uri_path[2]);
       }
     } else if (uri_path.size() == 1 && uri_path[0] == "health" && \
         request.getMethod() == "GET") {

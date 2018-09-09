@@ -26,6 +26,12 @@ TEST_CASE( "Test Animation Graph Handle Data Structure", "[unit]" ) {
 
   // Build test graph handle
   AnimationGraphHandle test_handle;
+  REQUIRE(test_handle.get_lh_type() == "");
+  REQUIRE(std::abs(test_handle.get_lh_x()) - 0.0 < TOLERANCE);
+  REQUIRE(std::abs(test_handle.get_lh_y()) - 0.0 < TOLERANCE);
+  REQUIRE(test_handle.get_rh_type() == "");
+  REQUIRE(std::abs(test_handle.get_rh_x()) - 0.0 < TOLERANCE);
+  REQUIRE(std::abs(test_handle.get_rh_y()) - 0.0 < TOLERANCE);
   test_handle.set_lh_type(std::string("vector"));
   test_handle.set_lh_x(10.0);
   test_handle.set_lh_y(5.0);

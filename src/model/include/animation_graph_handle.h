@@ -28,8 +28,8 @@ class AnimationGraphHandle {
   float lh_y = 0.0;
   float rh_x = 0.0;
   float rh_y = 0.0;
-  std::string lh_type;
-  std::string rh_type;
+  std::string lh_type = "";
+  std::string rh_type = "";
  public:
    AnimationGraphHandle() {}
   ~AnimationGraphHandle() {}

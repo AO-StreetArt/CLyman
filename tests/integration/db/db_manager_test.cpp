@@ -206,6 +206,8 @@ TEST_CASE( "Test Database Manager", "[integration]" ) {
     test_object2->add_asset(asset3);
     std::string new_key;
 
+    test_object->set_animation_frame(new AnimationFrame);
+
     // Create
     DatabaseResponse db_response;
     db.create_object(db_response, test_object, new_key);

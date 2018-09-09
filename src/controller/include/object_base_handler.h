@@ -100,7 +100,6 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
     if (doc.HasParseError()) {
       logger.debug("Parsing Error Detected");
       // Set up parse error response
-      response.setStatus(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
       response_body->set_error_code(TRANSLATION_ERROR);
       response_body->set_error_message(rapidjson::GetParseError_En(doc.GetParseError()));
       std::ostream& ostr = response.send();
@@ -165,13 +164,16 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
 
       }
 
+      if (response_body->get_error_code() == TRANSLATION_ERROR) {
+        response.setStatus(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+      } else if (response_body->get_error_code() != NO_ERROR) {
+        response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+      }
+
       // Set up the response
       std::ostream& ostr = response.send();
 
       // Process the result
-      if (response_body->get_error_code() != NO_ERROR) {
-        response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-      }
       std::string response_body_string;
       response_body->to_msg_string(response_body_string);
       ostr << response_body_string;

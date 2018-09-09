@@ -40,7 +40,7 @@ class DataList {
     err_code = 100;
     err_msg = "";
     transaction_id = "";
-    num_records = 0;
+    num_records = 10;
     op_type = 10;
   }
   // Destructor

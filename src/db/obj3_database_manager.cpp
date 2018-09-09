@@ -35,7 +35,7 @@ void ObjectDatabaseManager::add_handles_to_doc(bsoncxx::builder::stream::documen
       for (int m = 0; m < 4; m++) {
         auto rot_handle_doc = bsoncxx::builder::stream::document{};
         CoreDatabaseManager::add_graph_handle_to_document(rot_handle_doc, \
-            aframe->get_translation(m));
+            aframe->get_rotation(m));
         if (m == 0) rot_handle_outer_doc << "w" << rot_handle_doc;
         if (m == 1) rot_handle_outer_doc << "x" << rot_handle_doc;
         if (m == 2) rot_handle_outer_doc << "y" << rot_handle_doc;
@@ -202,9 +202,9 @@ void ObjectDatabaseManager::build_update_doc(bsoncxx::builder::stream::document 
 
 void ObjectDatabaseManager::transaction(DatabaseResponse &response, ObjectInterface *obj, std::string& key, int transaction_type, bool is_append_operation) {
   int retries = 0;
+  // Initialize the connection for the first time
+  init();
   while (retries < max_retries) {
-    // Initialize the connection for the first time
-    init();
     bool failure = false;
     try {
       Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
@@ -318,7 +318,7 @@ void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, Object
   auto aframe_active_elt = aframe_elt["active"];
   if (aframe_active_elt.get_bool().value) {
     obj->set_animation_frame(new AnimationFrame);
-    auto aft_element = aframe_elt["translation_frame"];
+    auto aft_element = aframe_elt["translation_handle"];
     for (int i = 0; i < 3; i++) {
       bsoncxx::document::element aft_inner_elt;
       if (i == 0) aft_inner_elt = aft_element["x"];
@@ -327,8 +327,8 @@ void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, Object
       CoreDatabaseManager::get_handle_from_element(aft_inner_elt, \
           obj->get_animation_frame()->get_translation(i));
     }
-    auto afr_elt = aframe_elt["rotation_frame"];
-    for (int i = 0; i < 3; i++) {
+    auto afr_elt = aframe_elt["rotation_handle"];
+    for (int i = 0; i < 4; i++) {
       bsoncxx::document::element afr_inner_elt;
       if (i == 0) afr_inner_elt = afr_elt["w"];
       if (i == 1) afr_inner_elt = afr_elt["x"];
@@ -337,7 +337,7 @@ void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, Object
       CoreDatabaseManager::get_handle_from_element(afr_inner_elt, \
           obj->get_animation_frame()->get_rotation(i));
     }
-    auto afs_element = aframe_elt["scale_frame"];
+    auto afs_element = aframe_elt["scale_handle"];
     for (int i = 0; i < 3; i++) {
       bsoncxx::document::element afs_inner_elt;
       if (i == 0) afs_inner_elt = afs_element["x"];
@@ -352,9 +352,10 @@ void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, Object
 void ObjectDatabaseManager::get_object(ObjectListInterface *response, std::string& key) {
   logger.debug("Attempting to retrieve object from Mongo");
   int retries = 0;
+  // Initialize the connection for the first time
+  init();
+  // Attempt to retrieve the object
   while (retries < max_retries) {
-    // Initialize the connection for the first time
-    init();
     bool failure = false;
     try {
       Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
@@ -395,9 +396,9 @@ void ObjectDatabaseManager::get_object(ObjectListInterface *response, std::strin
 void ObjectDatabaseManager::query(ObjectListInterface *response, ObjectInterface *obj, int max_results) {
   logger.debug("Attempting to query Mongo");
   int retries = 0;
+  // Initialize the connection for the first time
+  init();
   while (retries < max_retries) {
-    // Initialize the connection for the first time
-    init();
     bool failure = false;
     try {
       Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
@@ -435,9 +436,9 @@ void ObjectDatabaseManager::query(ObjectListInterface *response, ObjectInterface
 
 void ObjectDatabaseManager::delete_object(DatabaseResponse& response, std::string& key) {
   int retries = 0;
+  // Initialize the connection for the first time
+  init();
   while (retries < max_retries) {
-    // Initialize the connection for the first time
-    init();
     bool failure = false;
     try {
       Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());

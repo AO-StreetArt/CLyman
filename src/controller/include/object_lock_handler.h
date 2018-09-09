@@ -49,17 +49,17 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
   Poco::Logger& logger;
   std::string object_id;
   std::string device_id;
-  void process_lock_message(std::string obj_key, std::string dev_key, ObjectInterface* out_doc, ObjectListInterface *response_body) {
+  void process_lock_message(std::string obj_key, std::string dev_key, ObjectListInterface *response_body) {
     logger.information("Processing Lock Message");
     // Persist the lock message
     DatabaseResponse db_response;
     db_manager->lock_object(db_response, obj_key, dev_key);
     if (!(db_response.success)) {
-      response_body->set_error_code(PROCESSING_ERROR);
+      response_body->set_error_code(LOCK_EXISTS_ERROR);
       response_body->set_error_message(db_response.error_message);
     }
   }
-  void process_unlock_message(std::string obj_key, std::string dev_key, ObjectInterface* out_doc, ObjectListInterface *response_body) {
+  void process_unlock_message(std::string obj_key, std::string dev_key, ObjectListInterface *response_body) {
     logger.information("Processing Unlock Message");
     // Persist the unlock message
     DatabaseResponse db_response;
@@ -78,15 +78,14 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
     response.setChunkedTransferEncoding(true);
     response.setContentType("application/json");
     ObjectListInterface *response_body = object_list_factory.build_json_object_list();
-    ObjectInterface *new_out_doc = object_factory.build_object();
     response_body->set_msg_type(msg_type);
     response_body->set_error_code(NO_ERROR);
 
     try {
       if (msg_type == OBJ_LOCK) {
-        process_lock_message(object_id, device_id, new_out_doc, response_body);
+        process_lock_message(object_id, device_id, response_body);
       } else if (msg_type == OBJ_UNLOCK) {
-        process_unlock_message(object_id, device_id, new_out_doc, response_body);
+        process_unlock_message(object_id, device_id, response_body);
       }
     } catch (std::exception& e) {
       logger.error("Exception encountered during DB Operation");
@@ -94,15 +93,17 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
       logger.error(response_body->get_error_message());
       response_body->set_error_code(PROCESSING_ERROR);
     }
-    response_body->add_object(new_out_doc);
+
+    if (response_body->get_error_code() != NO_ERROR) {
+      response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+    } else {
+      response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+    }
 
     // Set up the response
     std::ostream& ostr = response.send();
 
     // Process the result
-    if (response_body->get_error_code() != NO_ERROR) {
-      response.setStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-    }
     std::string response_body_string;
     response_body->to_msg_string(response_body_string);
     ostr << response_body_string;
