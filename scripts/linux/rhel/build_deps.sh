@@ -5,6 +5,14 @@ set -e
 
 #Based on CentOS 7
 #Not intended for use with other OS (should function correctly with Red Hat Enterprise Linux 7, untested)
+COMPILER="g++"
+if [ "$#" -gt 0 ]; then
+  COMPILER=$1
+fi
+INSTALL_OPT="-none"
+if [ "$#" -gt 1 ]; then
+  INSTALL_OPT=$2
+fi
 
 PRE=./downloads
 RETURN=..
@@ -19,17 +27,17 @@ scl enable devtoolset-6 bash
 #Build & Install the Shared Service Library
 if [ ! -d /usr/local/include/aossl ]; then
 
-  wget https://github.com/AO-StreetArt/AOSharedServiceLibrary/releases/download/2.4.0/aossl-rhel-2.4.0.tar.gz
-  tar -xvzf aossl-rhel-2.4.0.tar.gz
+  wget https://github.com/AO-StreetArt/AOSharedServiceLibrary/releases/download/v2.4.1/aossl-rhel-2.4.1.tar.gz
+  tar -xvzf aossl-rhel-2.4.1.tar.gz
 
   #Build the dependencies for the shared service library
   mkdir $PRE/aossl_deps
   cp aossl-rhel/deps/build_deps.sh $PRE/aossl_deps/
-  cd $PRE/aossl_deps && ./build_deps.sh
+  cd $PRE/aossl_deps && ./build_deps.sh $INSTALL_OPT
   cd ../$RETURN
 
   #Build the shared service library
-  cd aossl-rhel && make clean && make && make install
+  cd aossl-rhel && make clean && make CC=$COMPILER && make install
   cd ../
 
 fi
