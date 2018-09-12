@@ -82,6 +82,7 @@ public:
     if (doc.HasParseError()) {
       logger.error("Error Parsing inbound Event:");
       logger.error(event);
+      logger.error(rapidjson::GetParseError_En(doc.GetParseError()));
     } else {
       // Get the message type
       int msg_type = -9999;

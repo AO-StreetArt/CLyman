@@ -193,7 +193,7 @@ void PropertyDatabaseManager::bson_to_prop(bsoncxx::document::view& result, Prop
   obj->set_timestamp(timestamp_element.get_int32().value);
   // Parse the values array
   auto values_element = result["values"];
-  char* key_values[4] = {"w", "x", "y", "z"};
+  const char* key_values[4] = {"w", "x", "y", "z"};
   for (int i = 0; i < 4; i++) {
     // Get the inner value object
     auto value_elt = values_element[key_values[i]];

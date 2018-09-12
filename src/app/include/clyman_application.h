@@ -275,7 +275,9 @@ protected:
       my_app = \
         consul_factory.get_service_interface(std::string("Clyman"), \
         std::string("Clyman"), http_host.val, http_port.val, tags);
-      config.get_consul()->register_service(*my_app);
+      if (!config.get_consul()->register_service(*my_app)) {
+        main_logger.error("Consul Registration Failed");
+      }
     }
 
     // Get the Mongo Connection information
@@ -331,13 +333,17 @@ protected:
     }
 
     // Start the Publisher to send events
+    AOSSL::StringBuffer aes_active_buffer;
     AOSSL::StringBuffer aesout_key_buffer;
     AOSSL::StringBuffer aesout_salt_buffer;
+    config.get_opt(config.get_cluster_name() + \
+        std::string(".event.security.aes.enabled"), aes_active_buffer);
     config.get_opt(config.get_cluster_name() + \
         std::string(".event.security.out.aes.key"), aesout_key_buffer);
     config.get_opt(config.get_cluster_name() + \
         std::string(".event.security.out.aes.salt"), aesout_salt_buffer);
-    if (!(aesout_key_buffer.val.empty()) && !(aesout_salt_buffer.val.empty())) {
+    if (aes_active_buffer.val && !(aesout_key_buffer.val.empty()) \
+        && !(aesout_salt_buffer.val.empty())) {
       publisher = new EventStreamPublisher(aesout_key_buffer.val, aesout_salt_buffer.val);
     } else {
       publisher = new EventStreamPublisher;

@@ -78,15 +78,17 @@ void ObjectDatabaseManager::build_create_doc(bsoncxx::builder::stream::document 
   builder << "assets" << asset_array;
 
   // Add the Transform
-  auto transform_array = bsoncxx::builder::stream::array{};
+  auto transform_doc = bsoncxx::builder::stream::document{};
+  std::string key_values[16] = {"r1_c1", "r1_c2", "r1_c3", "r1_c4", \
+      "r2_c1", "r2_c2", "r2_c3", "r2_c4", "r3_c1", "r3_c2", "r3_c3", "r3_c4", \
+      "r4_c1", "r4_c2", "r4_c3", "r4_c4"};
   for (int j = 0; j < 4; j++) {
     for (int k = 0; k < 4; k++) {
-      if (j < 4 && k < 4) {
-        transform_array << std::to_string(obj->get_transform()->get_transform_element(j, k));
-      }
+      int index = (4 * j) + k;
+      transform_doc << key_values[index] << obj->get_transform()->get_transform_element(j, k);
     }
   }
-  builder << "transform" << transform_array;
+  builder << "transform" << transform_doc;
 
   // Add the AnimationFrame
   add_handles_to_doc(builder, obj->get_animation_frame());
@@ -115,7 +117,7 @@ void ObjectDatabaseManager::build_query_doc(bsoncxx::builder::stream::document &
   if (!(obj->get_scene().empty())) {
     builder << "scene" << obj->get_scene();
   }
-  if (obj->get_frame() > -1) {
+  if ((obj->get_frame() == -9999) || (obj->get_frame() > -1)) {
     builder << "frame" << obj->get_frame();
   }
   if (obj->get_timestamp() > -1) {
@@ -167,15 +169,18 @@ void ObjectDatabaseManager::build_update_doc(bsoncxx::builder::stream::document 
     set_doc << "timestamp" << obj->get_timestamp();
   }
   if (obj->has_transform()) {
-    auto transform_array = bsoncxx::builder::stream::array{};
+    // Add the Transform
+    auto transform_doc = bsoncxx::builder::stream::document{};
+    std::string key_values[16] = {"r1_c1", "r1_c2", "r1_c3", "r1_c4", \
+        "r2_c1", "r2_c2", "r2_c3", "r2_c4", "r3_c1", "r3_c2", "r3_c3", "r3_c4", \
+        "r4_c1", "r4_c2", "r4_c3", "r4_c4"};
     for (int j = 0; j < 4; j++) {
       for (int k = 0; k < 4; k++) {
-        if (j < 4 && k < 4) {
-          transform_array << std::to_string(obj->get_transform()->get_transform_element(j, k));
-        }
+        int index = (4 * j) + k;
+        transform_doc << key_values[index] << obj->get_transform()->get_transform_element(j, k);
       }
     }
-    set_doc << "transform" << transform_array;
+    set_doc << "transform" << transform_doc;
   }
 
   // Add the AnimationFrame
@@ -308,15 +313,16 @@ void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, Object
     obj->add_asset(asset_elt.get_utf8().value.to_string());
   }
   // Parse the transform array
+  const char* key_values[16] = {"r1_c1", "r1_c2", "r1_c3", "r1_c4", \
+      "r2_c1", "r2_c2", "r2_c3", "r2_c4", "r3_c1", "r3_c2", "r3_c3", "r3_c4", \
+      "r4_c1", "r4_c2", "r4_c3", "r4_c4"};
   bsoncxx::document::element transform_element = result["transform"];
-  bsoncxx::array::view transform_view = transform_element.get_array().value;
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
       int index = (4 * i) + j;
-      bsoncxx::array::element transform_elt = transform_view[index];
-      std::string transform_elt_string = transform_elt.get_utf8().value.to_string();
+      bsoncxx::document::element transform_elt = transform_element[key_values[index]];
       obj->get_transform()->set_transform_element(i, j, \
-          std::stof(transform_elt_string));
+          transform_elt.get_double().value);
     }
   }
   // Parse the Animation Frame
