@@ -342,7 +342,7 @@ protected:
         std::string(".event.security.out.aes.key"), aesout_key_buffer);
     config.get_opt(config.get_cluster_name() + \
         std::string(".event.security.out.aes.salt"), aesout_salt_buffer);
-    if (aes_active_buffer.val && !(aesout_key_buffer.val.empty()) \
+    if ((aes_active_buffer.val == "true") && !(aesout_key_buffer.val.empty()) \
         && !(aesout_salt_buffer.val.empty())) {
       publisher = new EventStreamPublisher(aesout_key_buffer.val, aesout_salt_buffer.val);
     } else {
