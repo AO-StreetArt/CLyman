@@ -98,7 +98,7 @@ TEST_CASE( "Test Object List Data Structure", "[unit]" ) {
   REQUIRE(olist->get_error_code() == 100);
   REQUIRE(olist->get_error_message() == "");
   REQUIRE(olist->get_transaction_id() == "");
-  REQUIRE(olist->get_num_records() == 0);
+  REQUIRE(olist->get_num_records() == 10);
   REQUIRE(olist->num_objects() == 0);
 
   // Getter/Setter tests
