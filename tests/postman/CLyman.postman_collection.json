@@ -347,7 +347,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"num_records\": 1,\n  \"objects\":[\n    {\n\t\t\"name\": \"Test Object 123464\"\n\t}\n  ]\n}\n"
+					"raw": "{\n  \"num_records\": 1,\n  \"objects\":[\n    {\n\t\t\"name\": \"Test Object 123464\", \"frame\": 0\n\t}\n  ]\n}\n"
 				},
 				"url": {
 					"raw": "{{CLYMAN_URL}}/v1/object/query/",
@@ -735,7 +735,6 @@
 							"",
 							"pm.test(\"Check Response Body\", function () {",
 							"    pm.expect(jsonData.err_code).to.eql(100);",
-							"    pm.expect(jsonData.num_records).to.eql(1);",
 							"});"
 						]
 					}

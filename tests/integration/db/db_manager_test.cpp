@@ -245,6 +245,7 @@ TEST_CASE( "Test Database Manager", "[integration]" ) {
     // Query
     ObjectListInterface *query_response = object_list_factory.build_json_object_list();
     ObjectInterface *query_object = object_factory.build_object();
+    query_object->set_frame(1);
     query_object->set_name(name2);
     db.query(query_response, query_object, 2);
     std::cout << query_response->get_error_message() << std::endl;
