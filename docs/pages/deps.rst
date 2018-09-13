@@ -5,8 +5,8 @@ Dependencies
 
 :ref:`Go Home <index>`
 
-CrazyIvan is built on top of the work of many others, and here you will find information
-on all of the libraries and components that CrazyIvan uses to be successful.
+CLyman is built on top of the work of many others, and here you will find information
+on all of the libraries and components that CLyman uses to be successful.
 
 Licenses for all dependencies can be found in the licenses folder within the repository.
 
@@ -26,14 +26,12 @@ of C++ wrappers on many of the C libraries listed here.
 `AOSSL <https://github.com/AO-StreetArt/AOSharedServiceLibrary>`__ is released under an MIT License.
 
 
-NeoCpp
+MongoCxx
 --------
-`NeoCpp <https://github.com/AO-StreetArt/NeoCpp>`__ is a wrapper on
-`LibNeo4j <https://github.com/cleishm/libneo4j-client/>`__, which is used to
-communicate with Neo4j, a Graph Based Database.
+`MongoCxx <https://github.com/mongodb/mongo-cxx-driver>`__ is the official C++
+client for Mongodb, the database behind CLyman.
 
-`NeoCpp <https://github.com/AO-StreetArt/NeoCpp>`__ is released under an Apache 2 License.
-`LibNeo4j <https://github.com/cleishm/libneo4j-client/>`__ is released under an Apache 2 License.
+`MongoCxx <https://github.com/mongodb/mongo-cxx-driver>`__ is released under an Apache 2 License.
 
 
 LibUUID
@@ -55,13 +53,6 @@ Boost
 `The Boost Project <https://www.boost.org/>`__ is a set of C++ libraries, that are primarily used for UDP Processing.
 
 It is released under the Boost Software License.
-
-GLM
----
-`GLM <https://glm.g-truc.net/0.9.9/index.html>`__ is the OpenGL math library,
-and is used to perform transformation calculations between scenes and/or devices.
-
-This is licensed under an MIT license.
 
 Automatic Dependency Resolution
 -------------------------------

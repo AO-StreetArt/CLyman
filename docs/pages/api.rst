@@ -14,7 +14,6 @@ API Documentation
    :maxdepth: 1
    :caption: Contents:
 
-   Scene_API.rst
-   Scene_Registration_API.rst
-   Cache_API.rst
+   Object_API.rst
+   Property_API.rst
    Events_API.rst

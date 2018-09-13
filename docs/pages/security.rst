@@ -3,7 +3,7 @@
 Security
 ========
 
-Crazy Ivan has several forms of security, with one form for transactions (HTTP API),
+CLyman has several forms of security, with one form for transactions (HTTP API),
 and another form for events (UDP API).
 
 Transactions
@@ -31,7 +31,7 @@ UDP Events utilize AES encryption, with the key and salt set in the application 
 
 Keep in mind that AES encryption is symmetrical, meaning that the encryption keys
 must be distributed to the clients in order to encrypt traffic between them
-and Crazy Ivan.  The key and salt are delivered to end user devices after a
+and CLyman.  The key and salt are delivered to end user devices after a
 registration transaction, which is both authenticated and encrypted.
 
 Configuration

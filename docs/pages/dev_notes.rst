@@ -3,7 +3,7 @@
 Developer Notes
 ===============
 
-This page contains a series of notes intended to be beneficial for any contributors to Crazy Ivan.
+This page contains a series of notes intended to be beneficial for any contributors to CLyman.
 
 Vagrant
 -------
@@ -48,8 +48,8 @@ This will create a tagged image, which can then be pushed with
 Docker
 ------
 
-The `Crazy Ivan Docker Hub Repository <https://hub.docker.com/r/aostreetart/crazyivan/>`__
-contains the latest Docker images for Crazy Ivan.
+The `CLyman Docker Hub Repository <https://hub.docker.com/r/aostreetart/clyman/>`__
+contains the latest Docker images for CLyman.
 
 Running Test Cases
 ------------------
@@ -82,12 +82,12 @@ Run only the integration tests:
 Continuous Integration
 ----------------------
 
-Travis CI is used to run automated tests against Crazy Ivan each time a commit
+Travis CI is used to run automated tests against CLyman each time a commit
 or pull request is submitted against the main repository.  The configuration for
 this can be updated via the .travis.yml file in the main folder of the project
 repository.
 
-`Latest CI Runs <https://travis-ci.org/AO-StreetArt/CrazyIvan/>`__
+`Latest CI Runs <https://travis-ci.org/AO-StreetArt/CLyman/>`__
 
 Documentation
 -------------

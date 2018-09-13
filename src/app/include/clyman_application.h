@@ -93,6 +93,7 @@ class Clyman: public Poco::Util::ServerApplication {
   AccountManagerInterface *acct_manager = NULL;
   EventStreamPublisher *publisher = nullptr;
   AOSSL::ServiceInterface *my_app = NULL;
+  AOSSL::ServiceInterface *my_app_udp = NULL;
   ClusterManager *cluster = nullptr;
 public:
  Clyman() {}
@@ -275,8 +276,14 @@ protected:
       my_app = \
         consul_factory.get_service_interface(std::string("Clyman"), \
         std::string("Clyman"), http_host.val, http_port.val, tags);
+      my_app_udp = \
+        consul_factory.get_service_interface(std::string("Clyman_Udp"), \
+        std::string("Clyman_Udp"), http_host.val, udp_port.val, tags);
       if (!config.get_consul()->register_service(*my_app)) {
         main_logger.error("Consul Registration Failed");
+      }
+      if (!config.get_consul()->register_service(*my_app_udp)) {
+        main_logger.error("Consul UDP Registration Failed");
       }
     }
 
@@ -457,6 +464,10 @@ protected:
     if (my_app) {
       config.get_consul()->deregister_service(*my_app);
       delete my_app;
+    }
+    if (my_app_udp) {
+      config.get_consul()->deregister_service(*my_app_udp);
+      delete my_app_udp;
     }
     while(is_sender_running.load()) {usleep(1000000);}
     Poco::ErrorHandler::set(pOldEH);

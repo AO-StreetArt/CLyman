@@ -3,64 +3,56 @@
 Architecture
 ============
 
-In order to allow for real-time, distributed visualization, one of the
-key problems that needs to be solved is ensuring that coordinate systems
-between various user devices and objects are synchronized.  A key abstraction in
-this case is a 'Scene' which is an arbitrary collection of objects and devices.
-A device can register/de-register from any scene, as well as apply corrections
-to the coordinate system relationship between it and the scene it's registered to.
+CLyman serves two primary purposes within the Aesel architecture:
 
-This is done by storing relationships between scenes and devices, and then using
-these to build relationships between scenes themselves.  When devices move between
-these scenes, they will apply corrections.  As they apply corrections, we will
-build a set of known mappings between scenes which should allow users to move without
-needing any corrections by returning the pre-calculated differences.
+1. Serves as the system of reference for animation/game data which is updated by clients.
+2. Serves as the origin point for Events, high-speed updates streamed out to connected devices.
+
+In other words, CLyman takes input from clients moving objects and/or adjusting
+properties, streams that out to other devices, and maintains the current state
+of all objects and properties throughout all changes.  It is the core service
+which maintains the 3D objects that clients are expected to interact with.
 
 Technical Overview
 ------------------
 
-Crazy Ivan is designed to be used as a service within a larger
-architecture. It will take in CRUD messages for scenes, as well as
-track user device registrations (both over HTTP).
+CLyman is designed to be used as a service within a larger
+architecture. It will take in CRUD messages for 3D Objects and Properties
+(both over HTTP).
 
-Running Crazy Ivan requires an instance of `Neo4j <http://www.neo4j.com/>`__
-to connect to in order to perform most functions.  Neo4j serves as the
-back-end database for Crazy Ivan.
+Running CLyman requires an instance of `Mongo <https://www.mongodb.com/>`__
+to connect to in order to perform most functions.  Mongo serves as the
+back-end database for CLyman.
 
-Crazy Ivan can also be deployed with `Consul <https://www.consul.io/>`__
+CLyman can also be deployed with `Consul <https://www.consul.io/>`__
 as a Service Discovery and Distributed Configuration architecture. This
 requires the `Consul Agent <https://www.consul.io/downloads.html>`__ to
 be deployed that Crazy Ivan can connect to.
 
-Crazy Ivan can be deployed securely using `Vault <https://www.vaultproject.io>`__
+CLyman can be deployed securely using `Vault <https://www.vaultproject.io>`__
 as a secret store and/or intermediate CA.
 
 Object Change Streams (Events)
 ------------------------------
 
 Object Change Streams ensure that all registered User Devices remain up to date about
-objects within their scenes.  Crazy Ivan receives UDP updates from outside sources,
-with a specific format, and then forwards the message, once again via UDP, to all
-registered devices.
+objects within their scenes.  CLyman generates UDP messages to downstream services
+whenever updates are received (either over HTTP or UDP).
 
-The changes streams are designed to be high-speed and high-volume.  Crazy Ivan
-can process many messages in parallel, and registration information is kept up-to-date
-in a cache for immediate retrieval.  A separate background thread periodically loads
-updated values from Neo4j.
+The changes streams are designed to be high-speed and high-volume.  CLyman
+can process many messages in parallel, and database persistence is performed
+after streaming updates to downstream services.
 
 Clustering
 ----------
 
-Scene-specific clustering is a central idea in Crazy Ivan.  This is an idea
+Scene-specific clustering is a central idea in CLyman.  This is an idea
 borrowed from large-scale MMORPG's, in which large maps are broken apart and
 each piece is run by separate servers.  This allows for horizontal scaling of
 the system to cover additional real-estate, physical or digital.
 
-A cluster name can be provided by Crazy Ivan on startup, and other applications
-should use this cluster name to identify the appropriate Crazy Ivan to send
+A cluster name can be provided by CLyman on startup, and other applications
+should use this cluster name to identify the appropriate CLyman to send
 messages to.
-
-Note that Crazy Ivan clusters using different Neo4j clusters will not be able
-to store or calculate cross-scene transformations for coordinate systems.
 
 :ref:`Go Home <index>`

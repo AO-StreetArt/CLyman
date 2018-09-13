@@ -6,14 +6,14 @@ Secured Deployment Walkthrough
 Overview
 --------
 
-A full deployment of Crazy Ivan involves several steps:
+A full deployment of Clyman involves several steps:
 
 * Consul Setup
-* Neo4j Setup
+* Mongo Setup
 * Vault Setup
-* Deploy Crazy Ivan
+* Deploy Clyman
 
-Here, we'll go through each step and deploy a Crazy Ivan instance which uses
+Here, we'll go through each step and deploy a Clyman instance which uses
 encryption and authentication for all communications, and stores sensitive
 configuration values securely in vault.  We will focus on configuration and
 startup of the above applications, and it is assumed that you have either
@@ -149,55 +149,11 @@ We'll also go ahead and add our HTTPS information to enable encryption:
 Once the agent is restarted with the new configuration, both encryption and
 authentication fully enabled.
 
-Neo4j Setup
+Mongo Setup
 -----------
 
-Once again, we'll start by creating SSL Certificates for Neo4j.
-Create the directory /var/ssl/neo4j.  Then, run the below commands to
-generate a self-signed certificate (in production, you should use a certificate
-signed by a valid CA).
-
-.. code-block:: bash
-
-   sudo openssl genrsa -des3 -out /var/ssl/neo4j/serv.key 1024
-   sudo openssl req -new -key /var/ssl/neo4j/serv.key -out /var/ssl/neo4j/server.csr``
-   sudo openssl x509 -req -days 365 -in /var/ssl/neo4j/server.csr -CA /var/ssl/ca.crt -CAkey /var/ssl/ca.key -set_serial 01 -out /var/ssl/neo4j/server.crt``
-   sudo openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in /var/ssl/neo4j/serv.key -out /var/ssl/neo4j/server.key``
-
-Create the folder /var/ssl/trusted/neo4j, and copy the /var/ssl/neo4j/server.crt file into it.
-
-Then, update the following settings in your Neo4j configuration file:
-
-.. code-block:: properties
-
-  dbms.ssl.policy.default.trusted_dir=/var/ssl/trusted/neo4j
-  dbms.ssl.policy.default.public_certificate=/var/ssl/neo4j/server.crt
-  dbms.ssl.policy.default.private_key=/var/ssl/neo4j/server.key
-  dbms.ssl.policy.default.base_directory=/var/ssl/neo4j/
-  dbms.connector.https.enabled=true
-  dbms.connector.https.listen_address=:7473
-  dbms.connector.bolt.enabled=true
-  dbms.connector.bolt.tls_level=REQUIRED
-
-Neo4j uses a pre-set configuration location for SSL certs to be used by the Bolt
-connector.  In order to install our self-signed certs for use with Bolt, we need
-to copy them into the folder Neo4j is expecting, with the correct names.
-
-.. code-block:: bash
-
-   sudo cp /var/ssl/neo4j/server.crt /var/lib/neo4j/certificates/neo4j.cert
-   sudo cp /var/ssl/neo4j/server.key /var/lib/neo4j/certificates/neo4j.key
-
-Now, restart the Neo4j server.  Once the server is started,
-it will need to be registered for discovery with Consul.
-This can be done with curl, for example:
-
-.. code-block:: bash
-
-   curl -X PUT --header "X-Consul-Token: b1gs33cr3t" -d '{"ID": "neo4j", "Name": "neo4j", "Tags": ["Primary"], "Address": "local", "Port": 7687}' http://127.0.0.1:8500/v1/agent/service/register
-
-In addition, the username/password for the instance is normally set on startup in the UI.
-Be sure to take note of this, as we'll need it to configure Crazy Ivan.
+Full Documentation for Mongo TLS/SSL configuration can be found at
+https://docs.mongodb.com/manual/tutorial/configure-ssl/.
 
 Vault Setup
 -----------
@@ -328,14 +284,14 @@ Copy the resulting token, and pass it to Vault to use:
 
    vault write consul/config/access address=127.0.0.1:8500 token=your-token-here
 
-To complete the Consul Secrets Engine configuration, we can add a role which Crazy Ivan
+To complete the Consul Secrets Engine configuration, we can add a role which Clyman
 can use to generate consul ACL tokens.
 
 .. code-block:: bash
 
    vault write consul/roles/new-role policy=$(base64 <<< 'key "" {policy="read"} service "" {policy="write"}')
 
-Next, let's finish the PKI Secrets Engine configuration, which will allow Crazy Ivan
+Next, let's finish the PKI Secrets Engine configuration, which will allow Clyman
 to generate SSL Certificates from Vault on startup.
 
 First, we have Vault generate an internal CA certificate (Note that this is not advised
@@ -352,10 +308,10 @@ Finally, we'll set up another role that allows for generation of SSL Certificate
 
    vault write pki/roles/pki-role allowed_domains=local allow_subdomains=true max_ttl=72h
 
-Crazy Ivan Setup
+Clyman Setup
 ----------------
 
-Before starting Crazy Ivan, we'll want to populate some configuration values.
+Before starting Clyman, we'll want to populate some configuration values.
 
 Non-secure configuration options can be set in Consul.  Most of the defaults will
 work for us here, so we'll just go ahead and enable authentication in Crazy Ivan HTTPS requests:
