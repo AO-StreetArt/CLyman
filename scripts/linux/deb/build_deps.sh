@@ -23,7 +23,7 @@ printf "Calling apt-get update"
 
 #Update the Ubuntu Server
 apt-get -y update
-apt-get install -y git libboost-all-dev openssl libssl-dev wget libz-dev
+apt-get install -y git libboost-all-dev openssl libssl-dev wget libz-dev cmake
 
 # Build and install Mongocxx
 if [ ! -d /usr/local/include/mongocxx ]; then
