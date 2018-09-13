@@ -18,6 +18,7 @@ the :ref:`Property Update HTTP API<property_api>`
 Here is an example Object Update:
 
 .. code-block:: json
+
    {
      "msg_type": 1,
      "key": "5b98880a270698496c36e392",
@@ -36,6 +37,7 @@ that this particular update is for an Object and not a property.  We can,
 of course, update a property with an event as well:
 
 .. code-block:: json
+
    {
      "msg_type": 9,
      "key": "5b98880a270698496c36e392",
@@ -50,6 +52,7 @@ onto the objects that you are actually utilizing.  For a framed property using
 graph handles, this might look a bit more like:
 
 .. code-block:: json
+
    {
      "msg_type": 9,
      "key": "5b98880a270698496c36e392",

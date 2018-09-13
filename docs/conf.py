@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# CrazyIvan documentation build configuration file, created by
+# Clyman documentation build configuration file, created by
 # sphinx-quickstart on Sat Jul  1 19:51:56 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -48,7 +48,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'CrazyIvan'
+project = u'Clyman'
 copyright = u'2018, AO'
 author = u'AO'
 
@@ -92,7 +92,7 @@ http_index_ignore_prefixes = []
 http_index_shortname = 'api'
 
 # Full index name which is used on index page:
-http_index_localname = "Crazy Ivan"
+http_index_localname = "Clyman"
 
 # When True (default) emits build errors when status codes,
 # methods and headers look non-standard:
@@ -112,10 +112,10 @@ html_logo = "_static/images/Aesel_Icon_Alpha.png"
 # theme further.
 html_theme_options = {
     # Navigation bar title. (Default: ``project`` value)
-    'navbar_title': "CrazyIvan",
+    'navbar_title': "Clyman",
 
     # Tab name for entire site. (Default: "Site")
-    'navbar_site_name': "CrazyIvan",
+    'navbar_site_name': "Clyman",
 
     # A list of tuples containing pages or urls to link to.
     # Valid tuples should be in the following forms:
@@ -191,7 +191,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'CrazyIvandoc'
+htmlhelp_basename = 'Clymandoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -218,7 +218,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'CrazyIvan.tex', u'CrazyIvan Documentation',
+    (master_doc, 'Clyman.tex', u'Clyman Documentation',
      u'AO', 'manual'),
 ]
 
@@ -228,7 +228,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'crazyivan', u'CrazyIvan Documentation',
+    (master_doc, 'crazyivan', u'Clyman Documentation',
      [author], 1)
 ]
 
@@ -239,7 +239,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'CrazyIvan', u'CrazyIvan Documentation',
-     author, 'CrazyIvan', 'One line description of project.',
+    (master_doc, 'Clyman', u'Clyman Documentation',
+     author, 'Clyman', 'One line description of project.',
      'Miscellaneous'),
 ]
