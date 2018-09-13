@@ -1,7 +1,7 @@
-Crazy Ivan
-==========
+Clyman
+======
 
-.. figure:: https://travis-ci.org/AO-StreetArt/CrazyIvan.svg?branch=master
+.. figure:: https://travis-ci.org/AO-StreetArt/CLyman.svg?branch=master
    :alt:
 
 Overview

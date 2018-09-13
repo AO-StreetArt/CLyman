@@ -4,5 +4,5 @@ Content-Type: application/json
 
 {
   "num_records":1,
-  "scenes":[{"key":"jklmnop"}]
+  "objects":[{"key":"jklmnop"}]
 }
