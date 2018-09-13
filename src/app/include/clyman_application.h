@@ -267,6 +267,8 @@ protected:
     config.get_opt(std::string("http.host"), http_host);
     AOSSL::StringBuffer http_port;
     config.get_opt(std::string("http.port"), http_port);
+    AOSSL::StringBuffer udp_port;
+    config.get_opt(std::string("udp.port"), udp_port);
     if (config.get_consul()) {
       main_logger.information("Registering with Consul");
       std::vector<std::string> tags;
