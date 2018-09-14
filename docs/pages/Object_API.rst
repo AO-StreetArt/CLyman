@@ -94,7 +94,7 @@ Object Lock
 Object Unlock
 ~~~~~~~~~~~~~
 
-.. http:delete:: /v1/scene/(scene_name)/object/lock
+.. http:delete:: /v1/object/lock
 
    Unlocking allows a client to release 'ownership' of an object.  This is
    an atomic operation, and no additional locks will be granted on a locked
