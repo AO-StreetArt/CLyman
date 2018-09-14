@@ -1,5 +1,5 @@
 ..  http:example:: curl wget httpie python-requests
-    :response: scene_create_response.rst
+    :response: scene_update_response.rst
 
     POST /v1/object/key HTTP/1.1
     Host: localhost:8768
