@@ -77,7 +77,7 @@ Object Query
 Object Lock
 ~~~~~~~~~~~
 
-.. http:get:: /v1/object/lock
+.. http:get:: /v1/object/{key}/lock
 
    A lock allows a single client to obtain 'ownership' of an object.  This is
    an atomic operation, and is guaranteed to return a lock to one and only one
@@ -94,7 +94,7 @@ Object Lock
 Object Unlock
 ~~~~~~~~~~~~~
 
-.. http:delete:: /v1/object/lock
+.. http:delete:: /v1/object/{key}/lock
 
    Unlocking allows a client to release 'ownership' of an object.  This is
    an atomic operation, and no additional locks will be granted on a locked

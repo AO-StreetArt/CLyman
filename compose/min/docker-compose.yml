@@ -15,4 +15,4 @@ services:
     ports:
       - "8768:8768"
       - "8762:8762/udp"
-    command: clyman.prod.mongo=mongodb://localhost:27017 clyman.prod.http.host=clyman clyman.prod.http.port=8768 clyman.prod.udp.port=8762
+    command: clyman.prod.mongo=mongodb://root:admin@mongo:27017 clyman.prod.http.host=clyman clyman.prod.http.port=8768 clyman.prod.udp.port=8762

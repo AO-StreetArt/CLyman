@@ -12,12 +12,13 @@ Using the Clyman Docker image is as simple as:
 
 .. code-block:: bash
 
-   docker run --publish=8768:8768 --publish=8762:8762/udp aostreetart/clyman:v2
+   docker run --publish=8768:8768 --publish=8762:8762/udp aostreetart/clyman:v2 clyman.prod.mongo=mongodb://mongo:27017
 
-However, we also need a running instance of Mongo to do anything interesting.  To
-get you up and running quickly, a Docker Compose file is provided.  To start up
-a Mongo instance and a Clyman instance, simply run the following from the
-'compose/min' folder:
+However, we also need a running instance of Mongo to do anything interesting.  The
+above command assumes that you have an instance of Mongo running on the same
+node with the container name 'mongo'.  To get you up and running quickly,
+a Docker Compose file is provided.  To start up a Mongo instance and a Clyman
+instance, simply run the following from the 'compose/min' folder:
 
 .. code-block:: bash
 
@@ -50,7 +51,7 @@ You can send one with:
 
 .. code-block:: bash
 
-   echo "kill" | nc -u $(ip addr show eth0 | grep -Po 'inet \K[\d.]+') 8764
+   echo "kill" | nc -u $(ip addr show eth0 | grep -Po 'inet \K[\d.]+') 8762
 
 Replacing 'eth0' with your network device, if necessary.
 
