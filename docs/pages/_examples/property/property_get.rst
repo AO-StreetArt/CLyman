@@ -1,4 +1,5 @@
 ..  http:example:: curl wget httpie python-requests
+    :response: property_get_response.rst
 
-    DELETE /v1/object/{key}/lock?device=123 HTTP/1.1
+    GET /v1/property/{key} HTTP/1.1
     Host: localhost:8768

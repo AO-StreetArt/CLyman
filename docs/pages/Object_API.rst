@@ -28,7 +28,7 @@ Object Creation
 Object Update
 ~~~~~~~~~~~~~
 
-.. http:post:: /v1/object/{object_key}
+.. http:post:: /v1/object/{key}
 
    Update an existing object.
 
@@ -41,7 +41,7 @@ Object Update
 Object Retrieval
 ~~~~~~~~~~~~~~~~
 
-.. http:get:: /v1/object/(object_key)
+.. http:get:: /v1/object/(key)
 
    Get an object details in JSON Format.
 
@@ -53,7 +53,7 @@ Object Retrieval
 Object Deletion
 ~~~~~~~~~~~~~~~
 
-.. http:delete:: /v1/object/(object_key)
+.. http:delete:: /v1/object/(key)
 
    Delete an object.
 

@@ -1,15 +1,14 @@
 ..  http:example:: curl wget httpie python-requests
-    :response: object_query_response.rst
+    :response: property_query_response.rst
 
-    POST /v1/object/query HTTP/1.1
+    POST /v1/property/query HTTP/1.1
     Host: localhost:5885
     Content-Type: application/json
 
     {
-      "objects":[
+      "properties":[
         {
-          "name":"test",
-          "assets":["TestAsset10"]
+          "name":"test"
         }
       ]
     }
