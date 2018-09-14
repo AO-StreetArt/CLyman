@@ -19,12 +19,12 @@ by periods (ie. 'section.key=').  Environment Variables, Vault, and Consul keys
 are all upper case, and are separated by underscores (ie. 'SECTION_KEY=').
 
 All arguments are prefixed with the application name and profile name (ie.
-'section.key' becomes 'ivan.prod.section.key').  The profile name can be changed
+'section.key' becomes 'clyman.prod.section.key').  The profile name can be changed
 by providing the command line argument 'profile':
 
 .. code-block:: bash
 
-   ./crazy_ivan profile=dev
+   ./clyman profile=dev
 
 You can store multiple profiles in your configuration sources, and then specify
 which one to use on startup of each instance.
@@ -109,7 +109,7 @@ environment variable.
 
 .. code-block:: bash
 
-   ./crazy_ivan consul=http://127.0.0.1:8500
+   ./clyman consul=http://127.0.0.1:8500
 
 We may also include the arguments:
 
@@ -140,10 +140,10 @@ the `props` command line argument or the `AOSSL_PROPS_FILE` environment variable
 
 .. code-block:: bash
 
-   ./crazy_ivan props=app.properties
+   ./clyman props=app.properties
 
 If no properties file is specified, CLyman will look for one named `app.properties` in both the
-current working folder, and in /etc/ivan/.
+current working folder, and in /etc/clyman/.
 
 The consul address can also be specified within the properties file, with the key `consul`.
 
@@ -228,7 +228,7 @@ Below is an overview of the remaining properties:
 
 .. code-block:: properties
 
-   log.file=ivan.log
+   log.file=clyman.log
 
 * Log Level - Debug, Info, Warning, Error
 

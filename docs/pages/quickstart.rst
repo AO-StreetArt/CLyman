@@ -62,7 +62,7 @@ Download and unzip the latest release file from https://github.com/AO-StreetArt/
 Once you have done this, you can run the easy_install script with the -d option
 to install dependencies and the Clyman executable.  Alternatively, you can
 simply run the install_deps.sh script from the scripts/ folder, and then run
-the crazy_ivan executable from the main release folder.
+the clyman executable from the main release folder.
 
 .. code-block:: bash
 

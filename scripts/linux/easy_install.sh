@@ -50,12 +50,12 @@ else
   # Ensure that the clyman user has permission to access both the configuration and logging directories
   mkdir -p /etc/clyman
   mkdir -p /var/log/clyman
-  chown -R clyman:clyman /etc/ivan
+  chown -R clyman:clyman /etc/clyman
   chown -R clyman:clyman /var/log/clyman
   chown -R clyman:clyman /var/clyman
 
   sudo cp clyman /usr/bin/
-  sudo cp app.properties /etc/ivan
+  sudo cp app.properties /etc/clyman
 
   exit 0
 

@@ -1,7 +1,7 @@
 .. _property_api:
 
 Property API
-==========
+============
 
 A Property is a set of between 1 and 4 double values, which may
 or not be associated to properties.  Properties can also support frames and/or
@@ -13,7 +13,7 @@ In addition, Create and Update messages sent to the HTTP API are
 converted to events and streamed out to registered devices.
 
 Property Creation
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 .. http:post:: /v1/property/
 
@@ -25,7 +25,7 @@ Property Creation
 .. include:: _examples/property/property_create.rst
 
 Property Update
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 .. http:post:: /v1/property/{property_key}
 
@@ -38,7 +38,7 @@ Property Update
 .. include:: _examples/property/property_update.rst
 
 Property Retrieval
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 .. http:get:: /v1/property/(property_key)
 
@@ -50,7 +50,7 @@ Property Retrieval
 .. include:: _examples/property/property_get.rst
 
 Property Deletion
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 .. http:delete:: /v1/property/(property_key)
 
@@ -62,7 +62,7 @@ Property Deletion
 .. include:: _examples/property/property_delete.rst
 
 Property Query
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 .. http:get:: /v1/property/query
 

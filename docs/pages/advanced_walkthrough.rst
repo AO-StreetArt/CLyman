@@ -318,7 +318,7 @@ work for us here, so we'll just go ahead and enable authentication in Crazy Ivan
 
 .. code-block:: bash
 
-   curl --header "X-Consul-Token: b1gs33cr3t" --request PUT --data 'single' https://local:8500/v1/kv/ivan/prod/IVAN_PROD_TRANSACTION_SECURITY_AUTH_TYPE
+   curl --header "X-Consul-Token: b1gs33cr3t" --request PUT --data 'single' https://local:8500/v1/kv/clyman/prod/CLYMAN_PROD_TRANSACTION_SECURITY_AUTH_TYPE
 
 Secure configuration options can be set in Vault.  Let's setup our core
 encryption information in Vault.  First, we enter Event (UDP) encryption settings:
@@ -350,7 +350,7 @@ section of the documentation.  Finally, you can start Crazy Ivan with:
 
 .. code-block:: bash
 
-   ./crazy_ivan ivan.prod.vault=https://local:8200 ivan.prod.vault.cert= ivan.prod.vault.authtype=BASIC ivan.prod.vault.un=test ivan.prod.vault.pw=test ivan.prod.consul.token.role=new-role ivan.prod.consul=https://local:8289 ivan.prod.consul.cert= ivan.prod.cluster=test ivan.prod.neo4j.discover=true ivan.prod.neo4j.ssl.ca.file=/var/ssl/ca.crt ivan.prod.transaction.security.ssl.ca.vault.active=true ivan.prod.transaction.security.ssl.ca.vault.role_name=pki-role ivan.prod.transaction.security.ssl.ca.vault.common_name=local.local
+   ./clyman clyman.prod.vault=https://local:8200 clyman.prod.vault.cert= clyman.prod.vault.authtype=BASIC clyman.prod.vault.un=test clyman.prod.vault.pw=test clyman.prod.consul.token.role=new-role clyman.prod.consul=https://local:8289 clyman.prod.consul.cert= clyman.prod.cluster=test clyman.prod.mongo.ssl.active=true clyman.prod.transaction.security.ssl.ca.vault.active=true clyman.prod.transaction.security.ssl.ca.vault.role_name=pki-role clyman.prod.transaction.security.ssl.ca.vault.common_name=local.local
 
 Several files will be created on startup, with the extensions '.key' and '.pem'.
 These are all of the certificates and keys that Crazy Ivan is using to encrypt the

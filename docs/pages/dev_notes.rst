@@ -43,7 +43,7 @@ This will create a tagged image, which can then be pushed with
 
 .. code-block:: bash
 
-   docker push aostreetart/crazyivan:v2
+   docker push aostreetart/clyman:v2
 
 Docker
 ------
@@ -102,7 +102,7 @@ Generating Releases
 
 The release_gen.sh script is utilized to generate releases for various systems.
 It accepts three command line arguments:
-* the name of the release: crazyivan-*os_name*-*os_version*
+* the name of the release: clyman-*os_name*-*os_version*
 * the version of the release: we follow `semantic versioning <http://semver.org/>`__
 * the location of the dependency script: current valid paths are linux/deb (uses apt-get) and linux/rhel (uses yum)
 
