@@ -241,7 +241,11 @@ inline void split_from_index(const std::string& input, std::vector<std::string>&
   }
 }
 inline void split(const std::string& input, std::vector<std::string>& output, char delim) {
-  split_from_index(input, output, delim, 1);
+  if (input[0] == '/') {
+    split_from_index(input, output, delim, 1);
+  } else {
+    split_from_index(input, output, delim, 0);
+  }
 }
 
 #endif  // SRC_APP_INCLUDE_IVAN_UTILS_H_

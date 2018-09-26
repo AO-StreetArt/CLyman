@@ -20,7 +20,8 @@ limitations under the License.
 void CoreDatabaseManager::find_new_connection() {
   logger.information("Discovering Mongo Connection");
   if (internal_profile->get_consul()) {
-    connected_service = internal_profile->get_service(service_name);
+    connected_service = internal_profile->get_service_by_metadata(service_name, \
+        std::string("cluster"), internal_profile->get_cluster_name());
     AOSSL::StringBuffer mongo_un_buf;
     AOSSL::StringBuffer mongo_pw_buf;
     AOSSL::StringBuffer mongo_ssl_ca_buf;
