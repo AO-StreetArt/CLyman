@@ -53,7 +53,7 @@ script:
   - echo "kill" | nc -u -w 3 $(ip addr show eth0 | grep -Po 'inet \K[\d.]+') 8762
   - docker logs udp-listener
 after_success:
-  - packer build packer.json
+  - ./packer build packer.json
   - cd scripts/linux && ./push_docker_image.sh $DOCKER_MAIL $DOCKER_UN $DOCKER_PW $TRAVIS_BRANCH
 notifications:
   slack:
