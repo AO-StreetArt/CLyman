@@ -2,7 +2,7 @@
   "builders": [
     {
       "type": "docker",
-      "image": "ubuntu:18.04",
+      "image": "aostreetart/docker-poco-mongo-base:latest",
       "commit": "true",
       "changes": [
         "ENTRYPOINT [\"clyman\"]"

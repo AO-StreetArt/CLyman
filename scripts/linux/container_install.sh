@@ -19,7 +19,7 @@ export CC=gcc-6
 git clone --depth=50 --branch=$BRANCH https://github.com/AO-StreetArt/CLyman.git
 mkdir clyman_deps
 cp CLyman/scripts/linux/deb/build_deps.sh clyman_deps
-cd clyman_deps && ./build_deps.sh
+cd clyman_deps && ./build_deps.sh g++-6 -no-poco
 export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH"
 cd ../CLyman && make && make test
 cp clyman /usr/bin
