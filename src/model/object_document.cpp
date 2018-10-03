@@ -205,6 +205,10 @@ void ObjectDocument::overwrite(ObjectInterface *target) {
 }
 
 std::string ObjectDocument::to_transform_json() {
+  return to_transform_json(OBJ_UPD);
+}
+
+std::string ObjectDocument::to_transform_json(int mtype) {
   // Initialize the string buffer and writer
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
@@ -215,7 +219,7 @@ std::string ObjectDocument::to_transform_json() {
   writer.StartObject();
 
   // Write string attributes
-  write_json_int_elt(writer, "msg_type", OBJ_UPD);
+  write_json_int_elt(writer, "msg_type", mtype);
   write_json_string_elt(writer, "key", RelatedData::get_key());
   write_json_string_elt(writer, "name", name);
   write_json_string_elt(writer, "scene", RelatedData::get_scene());

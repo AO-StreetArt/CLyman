@@ -158,7 +158,7 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
             AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
             if (downstream) {
               std::string message = in_doc->get_scene() + \
-                  std::string("\n") + in_doc->to_transform_json();
+                  std::string("\n") + in_doc->to_transform_json(msg_type);
               logger.debug("Sending Event: " + message);
               publisher->publish_event(message.c_str(), \
                   downstream->get_address(), stoi(downstream->get_port()));

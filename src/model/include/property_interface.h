@@ -59,6 +59,7 @@ class PropertyInterface {
   virtual void set_asset_sub_id(std::string new_asset_sub_id) = 0;
   // Convert to an Event JSON
   virtual void to_json(std::string& json_str) const = 0;
+  virtual void to_json(std::string& json_str, int mtype) const = 0;
   // Frame/Timestamp
   virtual int get_frame() const = 0;
   virtual int get_timestamp() const = 0;

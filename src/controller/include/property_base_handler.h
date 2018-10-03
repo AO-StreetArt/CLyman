@@ -158,7 +158,7 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
             AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
             if (downstream) {
               std::string transform_str;
-              in_doc->to_json(transform_str);
+              in_doc->to_json(transform_str, msg_type);
               std::string message = in_doc->get_scene() + \
                   std::string("\n") + transform_str;
               logger.debug("Sending Event: " + message);

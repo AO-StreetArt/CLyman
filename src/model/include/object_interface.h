@@ -75,6 +75,7 @@ class ObjectInterface : public ObjectFrameInterface {
   virtual void merge(ObjectInterface *target) = 0;
   // Take a target object and overwrite this object's fields with it
   virtual void overwrite(ObjectInterface *target) = 0;
+  virtual std::string to_transform_json(int mtype) = 0;
   virtual std::string to_transform_json() = 0;
   // Get the animation frame
   virtual AnimationFrameInterface* get_animation_frame() = 0;

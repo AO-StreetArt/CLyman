@@ -57,6 +57,10 @@ AnimationProperty::AnimationProperty(const rapidjson::Document &d) {
 }
 
 void AnimationProperty::to_json(std::string& json_str) const {
+  to_json(json_str, PROP_UPD);
+}
+
+void AnimationProperty::to_json(std::string& json_str, int mtype) const {
   // Initialize the string buffer and writer
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);

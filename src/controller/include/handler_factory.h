@@ -148,10 +148,10 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
        }
      } else if (uri_path.size() == 3 && uri_path[1] == "object") {
         // Get
-        return new ObjectKeyRequestHandler(config, db_manager, cluster_info, OBJ_GET, uri_path[2]);
+        return new ObjectKeyRequestHandler(config, db_manager, publisher, cluster_info, OBJ_GET, uri_path[2]);
       } else if ((uri_path.size() == 3) && (uri_path[1] == "property")) {
         // Property Get
-        return new PropertyKeyRequestHandler(config, db_manager, cluster_info, PROP_GET, uri_path[2]);
+        return new PropertyKeyRequestHandler(config, db_manager, publisher, cluster_info, PROP_GET, uri_path[2]);
       }
     } else if (uri_path.size() > 1 && uri_path[0] == "v1" && request.getMethod() == "DELETE") {
       if (uri_path.size() > 3 && uri_path[1] == "object" && uri_path[3] == "lock") {
@@ -163,10 +163,10 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
         }
       } else if (uri_path.size() == 3 && uri_path[1] == "object") {
         // Delete
-        return new ObjectKeyRequestHandler(config, db_manager, cluster_info, OBJ_DEL, uri_path[2]);
+        return new ObjectKeyRequestHandler(config, db_manager, publisher, cluster_info, OBJ_DEL, uri_path[2]);
       } else if (uri_path.size() == 3 && uri_path[1] == "property") {
         // Property Delete
-        return new PropertyKeyRequestHandler(config, db_manager, cluster_info, PROP_DEL, uri_path[2]);
+        return new PropertyKeyRequestHandler(config, db_manager, publisher, cluster_info, PROP_DEL, uri_path[2]);
       } else if (uri_path.size() == 5 && uri_path[1] == "object" && uri_path[3] == "asset") {
         return new AssetRequestHandler(config, db_manager, cluster_info, ASSET_DEL, uri_path[2], uri_path[4]);
       }

@@ -46,6 +46,7 @@ class PropertyKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
   ObjectListFactory object_list_factory;
   ObjectFactory object_factory;
   ClusterManager *cluster_manager = nullptr;
+  EventStreamPublisher *publisher = nullptr;
   Poco::Logger& logger;
   std::string object_id;
   void process_get_message(std::string key, PropertyListInterface *response_body) {
@@ -69,11 +70,11 @@ class PropertyKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
   }
  public:
   PropertyKeyRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      ClusterManager *cluster, int mtype) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;}
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype) : logger(Poco::Logger::get("Data")) \
+      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;publisher=pub;}
   PropertyKeyRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      ClusterManager *cluster, int mtype, std::string id) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;object_id.assign(id);}
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype, std::string id) : logger(Poco::Logger::get("Data")) \
+      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;object_id.assign(id);publisher=pub;}
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     logger.debug("Responding to Property Request");
     response.setChunkedTransferEncoding(true);
@@ -97,6 +98,40 @@ class PropertyKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
       response_body->set_error_message(e.what());
       logger.error(response_body->get_error_message());
       response_body->set_error_code(PROCESSING_ERROR);
+    }
+
+    // Send an update to downstream services
+    if (msg_type == PROP_DEL) {
+      PropertyListInterface *in_doc_list = object_list_factory.build_json_property_list();
+      PropertyInterface *in_doc = object_factory.build_property();
+
+      try {
+        // Setup the Event Property
+        in_doc->set_key(object_id);
+        db_manager->get_property(in_doc_list, object_id);
+        if (in_doc_list->get_num_records() > 0) {
+          in_doc->set_scene(in_doc_list->get_prop(0)->get_scene());
+        }
+
+        // Build and send the event message
+        AOSSL::ServiceInterface *downstream = cluster_manager->get_ivan();
+        if (downstream) {
+          std::string transform_str;
+          in_doc->to_json(transform_str, msg_type);
+          std::string message = in_doc->get_scene() + \
+              std::string("\n") + transform_str;
+          logger.debug("Sending Event: " + message);
+          publisher->publish_event(message.c_str(), \
+              downstream->get_address(), stoi(downstream->get_port()));
+        }
+      } catch (std::exception& e) {
+        logger.error("Exception encountered sending delete event");
+        response_body->set_error_message(e.what());
+        response_body->set_error_code(PROCESSING_ERROR);
+      }
+
+      delete in_doc;
+      delete in_doc_list;
     }
 
     if (response_body->get_error_code() == NOT_FOUND) {

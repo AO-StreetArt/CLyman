@@ -82,6 +82,7 @@ class ObjectDocument : public RelatedData, public Object3d, public ObjectInterfa
   void overwrite(ObjectInterface *target) override;
   // to_transform_message to build a JSON to send via UDP
   std::string to_transform_json() override;
+  std::string to_transform_json(int mtype) override;
   // Inherited Methods
   // Transform methods
   void transform(Transformation *t) override {Object3d::transform(t);}

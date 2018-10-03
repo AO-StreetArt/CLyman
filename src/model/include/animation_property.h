@@ -80,6 +80,7 @@ class AnimationProperty : public FrameableData, public RelatedData, public Prope
   void set_asset_sub_id(std::string new_asset_sub_id) override {RelatedData::set_asset_sub_id(new_asset_sub_id);}
   // Convert to an Event JSON
   void to_json(std::string& json_str) const override;
+  void to_json(std::string& json_str, int mtype) const override;
   // Frame/Timestamp
   int get_frame() const override {return FrameableData::get_frame();}
   int get_timestamp() const override {return FrameableData::get_timestamp();}

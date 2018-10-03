@@ -31,6 +31,8 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
     // Parse the base elements
     set_msg_type(find_json_int_elt_in_doc(d, "msg_type"));
     set_op_type(find_json_int_elt_in_doc(d, "operation"));
+    int input_num_records = find_json_int_elt_in_doc(d, "num_records");
+    if (input_num_records > 0) set_num_records(input_num_records);
     set_num_records(find_json_int_elt_in_doc(d, "num_records"));
     std::string tid_value;
     find_json_string_elt_in_doc(d, "transaction_id", tid_value);
