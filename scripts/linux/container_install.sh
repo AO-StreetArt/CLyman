@@ -21,6 +21,7 @@ mkdir clyman_deps
 cp CLyman/scripts/linux/deb/build_deps.sh clyman_deps
 cd clyman_deps && ./build_deps.sh g++-6 -no-poco
 export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH"
+export CFLAGS=-O2
 cd ../CLyman && make && make test
 cp clyman /usr/bin
 mkdir /etc/clyman
