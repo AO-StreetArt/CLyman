@@ -121,6 +121,9 @@ class ObjectKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
     try {
       if (msg_type == OBJ_GET) {
         process_get_message(object_id, response_body);
+        if (response_body->get_num_records() == 0) {
+          response_body->set_error_code(NOT_FOUND);
+        }
       } else if (msg_type == OBJ_DEL) {
         process_delete_message(object_id, response_body);
       }

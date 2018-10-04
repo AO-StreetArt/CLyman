@@ -47,6 +47,7 @@ script:
   - echo $! > $TRAVIS_BUILD_DIR/pid.txt
   - sleep 5
   - cd $TRAVIS_BUILD_DIR/tests/postman && newman run CLyman.postman_collection.json -e ClymanTest.postman_environment.json
+  - cd $TRAVIS_BUILD_DIR/tests/postman && newman run CLymanFailureTests.postman_collection.json -e ClymanTest.postman_environment.json
   - cd $TRAVIS_BUILD_DIR/tests/netcat && python create_obj.py && ./udp_test.sh
   - kill $(cat $TRAVIS_BUILD_DIR/pid.txt)
   - sleep 1

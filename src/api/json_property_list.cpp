@@ -90,9 +90,9 @@ JsonPropertyList::JsonPropertyList(const rapidjson::Document& d) {
                   if (val_itr != prop_elt_itr.MemberEnd()) {
                     if (val_itr->value.IsDouble()) {
                       new_prop->add_value(val_itr->value.GetDouble());
+                      parse_json_graph_handle(prop_elt_itr, new_prop->get_handle(elt_indx));
                     }
                   }
-                  parse_json_graph_handle(prop_elt_itr, new_prop->get_handle(elt_indx));
                   elt_indx++;
                 }
               }

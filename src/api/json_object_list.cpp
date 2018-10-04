@@ -41,225 +41,223 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
     // Parse the object list
     if (d.HasMember("objects")) {
       const rapidjson::Value *objs_val = &d["objects"];
-      if (!(objs_val->IsNull())) {
-        if (objs_val->IsArray()) {
-          for (auto& itr : objs_val->GetArray()) {
-            // Create a new object
-            ObjectInterface *new_obj = ofactory.build_object();
+      if (objs_val->IsArray()) {
+        for (auto& itr : objs_val->GetArray()) {
+          // Create a new object
+          ObjectInterface *new_obj = ofactory.build_object();
 
-            // Basic elements
-            std::string key_value;
-            find_json_string_elt_in_array(itr, "key", key_value);
-            new_obj->set_key(key_value);
-            std::string parent_value;
-            find_json_string_elt_in_array(itr, "parent", parent_value);
-            new_obj->set_parent(parent_value);
-            std::string asi_value;
-            find_json_string_elt_in_array(itr, "asset_sub_id", asi_value);
-            new_obj->set_asset_sub_id(asi_value);
-            std::string scene_value;
-            find_json_string_elt_in_array(itr, "scene", scene_value);
-            new_obj->set_scene(scene_value);
-            std::string name_value;
-            find_json_string_elt_in_array(itr, "name", name_value);
-            new_obj->set_name(name_value);
-            std::string owner_value;
-            find_json_string_elt_in_array(itr, "owner", owner_value);
-            new_obj->set_owner(owner_value);
-            std::string type_value;
-            find_json_string_elt_in_array(itr, "type", type_value);
-            new_obj->set_type(type_value);
-            std::string subtype_value;
-            find_json_string_elt_in_array(itr, "subtype", subtype_value);
-            new_obj->set_subtype(subtype_value);
-            new_obj->set_frame(find_json_int_elt_in_array(itr, "frame"));
-            new_obj->set_timestamp(find_json_int_elt_in_array(itr, "timestamp"));
+          // Basic elements
+          std::string key_value;
+          find_json_string_elt_in_array(itr, "key", key_value);
+          new_obj->set_key(key_value);
+          std::string parent_value;
+          find_json_string_elt_in_array(itr, "parent", parent_value);
+          new_obj->set_parent(parent_value);
+          std::string asi_value;
+          find_json_string_elt_in_array(itr, "asset_sub_id", asi_value);
+          new_obj->set_asset_sub_id(asi_value);
+          std::string scene_value;
+          find_json_string_elt_in_array(itr, "scene", scene_value);
+          new_obj->set_scene(scene_value);
+          std::string name_value;
+          find_json_string_elt_in_array(itr, "name", name_value);
+          new_obj->set_name(name_value);
+          std::string owner_value;
+          find_json_string_elt_in_array(itr, "owner", owner_value);
+          new_obj->set_owner(owner_value);
+          std::string type_value;
+          find_json_string_elt_in_array(itr, "type", type_value);
+          new_obj->set_type(type_value);
+          std::string subtype_value;
+          find_json_string_elt_in_array(itr, "subtype", subtype_value);
+          new_obj->set_subtype(subtype_value);
+          new_obj->set_frame(find_json_int_elt_in_array(itr, "frame"));
+          new_obj->set_timestamp(find_json_int_elt_in_array(itr, "timestamp"));
 
-            // Assets
-            auto assets_itr = itr.FindMember("assets");
-            if (assets_itr != itr.MemberEnd()) {
-              if (assets_itr->value.IsArray()) {
-                for (auto& asset_itr : assets_itr->value.GetArray()) {
-                  new_obj->add_asset(asset_itr.GetString());
-                }
+          // Assets
+          auto assets_itr = itr.FindMember("assets");
+          if (assets_itr != itr.MemberEnd()) {
+            if (assets_itr->value.IsArray()) {
+              for (auto& asset_itr : assets_itr->value.GetArray()) {
+                new_obj->add_asset(asset_itr.GetString());
               }
             }
-
-            // Parse the Animation Graph Handles
-            AnimationFrame *aframe = nullptr;
-            // Animation Graph Handles - Translation
-            auto th_itr = itr.FindMember("translation_handle");
-            if (th_itr != itr.MemberEnd()) {
-              if (th_itr->value.IsArray()) {
-                if (!aframe) aframe = new AnimationFrame;
-                int elt_indx = 0;
-                for (auto& handle_elt_itr : th_itr->value.GetArray()) {
-                  // Here we iterate over each object in the translation handle
-                  if (elt_indx < 3) {
-                    parse_json_graph_handle(handle_elt_itr, aframe->get_translation(elt_indx));
-                  }
-                  elt_indx++;
-                }
-              }
-            }
-
-            auto rh_itr = itr.FindMember("rotation_handle");
-            if (rh_itr != itr.MemberEnd()) {
-              if (rh_itr->value.IsArray()) {
-                if (!aframe) aframe = new AnimationFrame;
-                int elt_indx = 0;
-                for (auto& handle_elt_itr : rh_itr->value.GetArray()) {
-                  // Here we iterate over each object in the translation handle
-                  if (elt_indx < 4) {
-                    parse_json_graph_handle(handle_elt_itr, aframe->get_rotation(elt_indx));
-                  }
-                  elt_indx++;
-                }
-              }
-            }
-
-            // Animation Graph Handles - Scale
-            auto sh_itr = itr.FindMember("scale_handle");
-            if (sh_itr != itr.MemberEnd()) {
-              if (sh_itr->value.IsArray()) {
-                if (!aframe) aframe = new AnimationFrame;
-                int elt_indx = 0;
-                for (auto& handle_elt_itr : sh_itr->value.GetArray()) {
-                  // Here we iterate over each object in the translation handle
-                  if (elt_indx < 3) {
-                    parse_json_graph_handle(handle_elt_itr, aframe->get_scale(elt_indx));
-                  }
-                  elt_indx++;
-                }
-              }
-            }
-            new_obj->set_animation_frame(aframe);
-
-            // Parse the transform elements
-            Translation *trans = NULL;
-            rapidjson::Value::ConstMemberIterator translation_iter = \
-              itr.FindMember("translation");
-            if (translation_iter != itr.MemberEnd()) {
-              const rapidjson::Value& translation_val = translation_iter->value;
-              if (!(translation_val.IsNull() || translation_val.Size() == 0)) {
-                int i = 0;
-                double x = 0.0;
-                double y = 0.0;
-                double z = 0.0;
-                for (auto& trans_itr : translation_val.GetArray()) {
-                  if (i == 0) {
-                    x = trans_itr.GetDouble();
-                  } else if (i == 1) {
-                    y = trans_itr.GetDouble();
-                  } else if (i == 2) {z = trans_itr.GetDouble();}
-                  i++;
-                }
-                if ((x > 0.001 || x < -0.001) || \
-                  (y > 0.001 || y < -0.001) || \
-                  (z > 0.001 || z < -0.001)) {
-                  trans = new Translation(x, y, z);
-                }
-              }
-            }
-
-            EulerRotation *erot = NULL;
-            rapidjson::Value::ConstMemberIterator erot_iter = \
-              itr.FindMember("euler_rotation");
-            if (erot_iter != itr.MemberEnd()) {
-              const rapidjson::Value& erot_val = erot_iter->value;
-              if (!(erot_val.IsNull() || erot_val.Size() == 0)) {
-                int i = 0;
-                double x = 0.0;
-                double y = 0.0;
-                double z = 0.0;
-                for (auto& erot_itr : erot_val.GetArray()) {
-                  if (i == 0) {
-                    x = erot_itr.GetDouble();
-                  } else if (i == 1) {
-                    y = erot_itr.GetDouble();
-                  } else {z = erot_itr.GetDouble();}
-                  i++;
-                }
-                if ((x > 0.001 || x < -0.001) || \
-                  (y > 0.001 || y < -0.001) || \
-                  (z > 0.001 || z < -0.001)) {
-                  erot = new EulerRotation(x, y, z);
-                }
-              }
-            }
-
-            QuaternionRotation *qrot = NULL;
-            rapidjson::Value::ConstMemberIterator qrot_iter = \
-              itr.FindMember("quaternion_rotation");
-            if (qrot_iter != itr.MemberEnd()) {
-              const rapidjson::Value& qrot_val = qrot_iter->value;
-              if (!(qrot_val.IsNull() || qrot_val.Size() == 0)) {
-                int i = 0;
-                double w = 0.0;
-                double x = 0.0;
-                double y = 0.0;
-                double z = 0.0;
-                for (auto& qrot_itr : qrot_val.GetArray()) {
-                  if (i == 0) {
-                    w = qrot_itr.GetDouble();
-                  } else if (i == 1) {
-                    x = qrot_itr.GetDouble();
-                  } else if (i == 2) {
-                    y = qrot_itr.GetDouble();
-                  } else {z = qrot_itr.GetDouble();}
-                  i++;
-                }
-                if ((w > 0.001 || w < -0.001) &&
-                  ((x > 0.001 || x < -0.001) || \
-                  (y > 0.001 || y < -0.001) || \
-                  (z > 0.001 || z < -0.001))) {
-                  qrot = new QuaternionRotation(w, x, y, z);
-                }
-              }
-            }
-
-            Scale *scl = NULL;
-            rapidjson::Value::ConstMemberIterator scale_iter = \
-              itr.FindMember("scale");
-            if (scale_iter != itr.MemberEnd()) {
-              const rapidjson::Value& scale_val = scale_iter->value;
-              if (!(scale_val.IsNull() || scale_val.Size() == 0)) {
-                int i = 0;
-                double x = 0.0;
-                double y = 0.0;
-                double z = 0.0;
-                for (auto& scale_itr : scale_val.GetArray()) {
-                  if (i == 0) {
-                    x = scale_itr.GetDouble();
-                  } else if (i == 1) {
-                    y = scale_itr.GetDouble();
-                  } else if (i == 2) {z = scale_itr.GetDouble();}
-                  i++;
-                }
-                if ((x > 1.001 || x < 0.999) || \
-                  (y > 1.001 || y < 0.999) || \
-                  (z > 1.001 || z < 0.999)) {
-                  scl = new Scale(x, y, z);
-                }
-              }
-            }
-            if (scl) {
-              new_obj->transform(scl);
-              delete scl;
-            }
-            if (erot) {
-              new_obj->transform(erot);
-              delete erot;
-            } else if (qrot) {
-              new_obj->transform(qrot);
-              delete qrot;
-            }
-            if (trans) {
-              new_obj->transform(trans);
-              delete trans;
-            }
-            add_object(new_obj);
           }
+
+          // Parse the Animation Graph Handles
+          AnimationFrame *aframe = nullptr;
+          // Animation Graph Handles - Translation
+          auto th_itr = itr.FindMember("translation_handle");
+          if (th_itr != itr.MemberEnd()) {
+            if (th_itr->value.IsArray()) {
+              if (!aframe) aframe = new AnimationFrame;
+              int elt_indx = 0;
+              for (auto& handle_elt_itr : th_itr->value.GetArray()) {
+                // Here we iterate over each object in the translation handle
+                if (elt_indx < 3) {
+                  parse_json_graph_handle(handle_elt_itr, aframe->get_translation(elt_indx));
+                }
+                elt_indx++;
+              }
+            }
+          }
+
+          auto rh_itr = itr.FindMember("rotation_handle");
+          if (rh_itr != itr.MemberEnd()) {
+            if (rh_itr->value.IsArray()) {
+              if (!aframe) aframe = new AnimationFrame;
+              int elt_indx = 0;
+              for (auto& handle_elt_itr : rh_itr->value.GetArray()) {
+                // Here we iterate over each object in the translation handle
+                if (elt_indx < 4) {
+                  parse_json_graph_handle(handle_elt_itr, aframe->get_rotation(elt_indx));
+                }
+                elt_indx++;
+              }
+            }
+          }
+
+          // Animation Graph Handles - Scale
+          auto sh_itr = itr.FindMember("scale_handle");
+          if (sh_itr != itr.MemberEnd()) {
+            if (sh_itr->value.IsArray()) {
+              if (!aframe) aframe = new AnimationFrame;
+              int elt_indx = 0;
+              for (auto& handle_elt_itr : sh_itr->value.GetArray()) {
+                // Here we iterate over each object in the translation handle
+                if (elt_indx < 3) {
+                  parse_json_graph_handle(handle_elt_itr, aframe->get_scale(elt_indx));
+                }
+                elt_indx++;
+              }
+            }
+          }
+          new_obj->set_animation_frame(aframe);
+
+          // Parse the transform elements
+          Translation *trans = NULL;
+          rapidjson::Value::ConstMemberIterator translation_iter = \
+            itr.FindMember("translation");
+          if (translation_iter != itr.MemberEnd()) {
+            const rapidjson::Value& translation_val = translation_iter->value;
+            if (translation_val.IsArray() && translation_val.Size() > 0) {
+              int i = 0;
+              double x = 0.0;
+              double y = 0.0;
+              double z = 0.0;
+              for (auto& trans_itr : translation_val.GetArray()) {
+                if (i == 0) {
+                  x = trans_itr.GetDouble();
+                } else if (i == 1) {
+                  y = trans_itr.GetDouble();
+                } else if (i == 2) {z = trans_itr.GetDouble();}
+                i++;
+              }
+              if ((x > 0.001 || x < -0.001) || \
+                (y > 0.001 || y < -0.001) || \
+                (z > 0.001 || z < -0.001)) {
+                trans = new Translation(x, y, z);
+              }
+            }
+          }
+
+          EulerRotation *erot = NULL;
+          rapidjson::Value::ConstMemberIterator erot_iter = \
+            itr.FindMember("euler_rotation");
+          if (erot_iter != itr.MemberEnd()) {
+            const rapidjson::Value& erot_val = erot_iter->value;
+            if (erot_val.IsArray() && erot_val.Size() > 0) {
+              int i = 0;
+              double x = 0.0;
+              double y = 0.0;
+              double z = 0.0;
+              for (auto& erot_itr : erot_val.GetArray()) {
+                if (i == 0) {
+                  x = erot_itr.GetDouble();
+                } else if (i == 1) {
+                  y = erot_itr.GetDouble();
+                } else {z = erot_itr.GetDouble();}
+                i++;
+              }
+              if ((x > 0.001 || x < -0.001) || \
+                (y > 0.001 || y < -0.001) || \
+                (z > 0.001 || z < -0.001)) {
+                erot = new EulerRotation(x, y, z);
+              }
+            }
+          }
+
+          QuaternionRotation *qrot = NULL;
+          rapidjson::Value::ConstMemberIterator qrot_iter = \
+            itr.FindMember("quaternion_rotation");
+          if (qrot_iter != itr.MemberEnd()) {
+            const rapidjson::Value& qrot_val = qrot_iter->value;
+            if (qrot_val.IsArray() && qrot_val.Size() > 0) {
+              int i = 0;
+              double w = 0.0;
+              double x = 0.0;
+              double y = 0.0;
+              double z = 0.0;
+              for (auto& qrot_itr : qrot_val.GetArray()) {
+                if (i == 0) {
+                  w = qrot_itr.GetDouble();
+                } else if (i == 1) {
+                  x = qrot_itr.GetDouble();
+                } else if (i == 2) {
+                  y = qrot_itr.GetDouble();
+                } else {z = qrot_itr.GetDouble();}
+                i++;
+              }
+              if ((w > 0.001 || w < -0.001) &&
+                ((x > 0.001 || x < -0.001) || \
+                (y > 0.001 || y < -0.001) || \
+                (z > 0.001 || z < -0.001))) {
+                qrot = new QuaternionRotation(w, x, y, z);
+              }
+            }
+          }
+
+          Scale *scl = NULL;
+          rapidjson::Value::ConstMemberIterator scale_iter = \
+            itr.FindMember("scale");
+          if (scale_iter != itr.MemberEnd()) {
+            const rapidjson::Value& scale_val = scale_iter->value;
+            if (scale_val.IsArray() && scale_val.Size() > 0) {
+              int i = 0;
+              double x = 0.0;
+              double y = 0.0;
+              double z = 0.0;
+              for (auto& scale_itr : scale_val.GetArray()) {
+                if (i == 0) {
+                  x = scale_itr.GetDouble();
+                } else if (i == 1) {
+                  y = scale_itr.GetDouble();
+                } else if (i == 2) {z = scale_itr.GetDouble();}
+                i++;
+              }
+              if ((x > 1.001 || x < 0.999) || \
+                (y > 1.001 || y < 0.999) || \
+                (z > 1.001 || z < 0.999)) {
+                scl = new Scale(x, y, z);
+              }
+            }
+          }
+          if (scl) {
+            new_obj->transform(scl);
+            delete scl;
+          }
+          if (erot) {
+            new_obj->transform(erot);
+            delete erot;
+          } else if (qrot) {
+            new_obj->transform(qrot);
+            delete qrot;
+          }
+          if (trans) {
+            new_obj->transform(trans);
+            delete trans;
+          }
+          add_object(new_obj);
         }
       }
     // d.HasMember(objects)

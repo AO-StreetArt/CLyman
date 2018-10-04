@@ -366,39 +366,49 @@ void ObjectDatabaseManager::get_object(ObjectListInterface *response, std::strin
   int retries = 0;
   // Initialize the connection for the first time
   init();
+  response->set_num_records(0);
   // Attempt to retrieve the object
   while (retries < max_retries) {
     bool failure = false;
     try {
-      Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
-      // Find the DB and Collection we're going to write into
-      auto client = CoreDatabaseManager::get_connection_pool()->acquire();
-      mongocxx::database db = (*client)[db_name];
-      mongocxx::collection coll = db[coll_name];
-      auto query_builder = bsoncxx::builder::stream::document{};
       bsoncxx::oid db_id(key);
-      query_builder << "_id" << db_id;
-      auto result = coll.find_one(query_builder << bsoncxx::builder::stream::finalize);
-      if (result) {
-        auto view = result->view();
-        ObjectInterface *obj = object_factory.build_object();
-        bson_to_obj3(view, obj);
-        response->add_object(obj);
-      } else {
-        response->set_error_code(NOT_FOUND);
-        response->set_error_message(std::string("No results returned from query"));
+      try {
+        Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
+        // Find the DB and Collection we're going to write into
+        auto client = CoreDatabaseManager::get_connection_pool()->acquire();
+        mongocxx::database db = (*client)[db_name];
+        mongocxx::collection coll = db[coll_name];
+        auto query_builder = bsoncxx::builder::stream::document{};
+        query_builder << "_id" << db_id;
+        auto result = coll.find_one(query_builder << bsoncxx::builder::stream::finalize);
+        if (result) {
+          auto view = result->view();
+          ObjectInterface *obj = object_factory.build_object();
+          bson_to_obj3(view, obj);
+          response->add_object(obj);
+          response->set_num_records(1);
+        } else {
+          response->set_error_code(NOT_FOUND);
+          response->set_error_message(std::string("No results returned from query"));
+        }
+      } catch (mongocxx::exception& me) {
+        logger.error("Mongo Exception Encountered");
+        logger.error(me.what());
+        response->set_error_code(PROCESSING_ERROR);
+        response->set_error_message(std::string(me.what()));
+        break;
+      } catch (std::exception& e) {
+        logger.error("Exception executing Mongo Query");
+        logger.error(e.what());
+        CoreDatabaseManager::add_failure();
+        failure = true;
       }
-    } catch (mongocxx::exception& me) {
-      logger.error("Mongo Exception Encountered");
-      logger.error(me.what());
-      response->set_error_code(PROCESSING_ERROR);
-      response->set_error_message(std::string(me.what()));
-      break;
     } catch (std::exception& e) {
       logger.error("Exception executing Mongo Query");
       logger.error(e.what());
       CoreDatabaseManager::add_failure();
       failure = true;
+      break;
     }
     if (failure) CoreDatabaseManager::set_new_connection();
     retries++;
@@ -454,40 +464,48 @@ void ObjectDatabaseManager::delete_object(DatabaseResponse& response, std::strin
   while (retries < max_retries) {
     bool failure = false;
     try {
-      Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
-      // Find the DB and Collection we're going to write into
-      auto client = CoreDatabaseManager::get_connection_pool()->acquire();
-      mongocxx::database db = (*client)[db_name];
-      mongocxx::collection coll = db[coll_name];
-      auto query_builder = bsoncxx::builder::stream::document{};
       bsoncxx::oid db_id(key);
-      query_builder << "_id" << db_id;
-      auto result = coll.delete_one(query_builder << bsoncxx::builder::stream::finalize);
-      if (result) {
-        if (result->deleted_count() > 0) {
-          logger.debug("Document Successfully removed from DB");
-          response.success = true;
+      try {
+        Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
+        // Find the DB and Collection we're going to write into
+        auto client = CoreDatabaseManager::get_connection_pool()->acquire();
+        mongocxx::database db = (*client)[db_name];
+        mongocxx::collection coll = db[coll_name];
+        auto query_builder = bsoncxx::builder::stream::document{};
+        query_builder << "_id" << db_id;
+        auto result = coll.delete_one(query_builder << bsoncxx::builder::stream::finalize);
+        if (result) {
+          if (result->deleted_count() > 0) {
+            logger.debug("Document Successfully removed from DB");
+            response.success = true;
+          } else {
+            response.error_message = std::string("No Documents Modified in DB");
+            response.error_code = NOT_FOUND;
+          }
         } else {
-          response.error_message = std::string("No Documents Modified in DB");
-          response.error_code = NOT_FOUND;
+          response.error_message = std::string("Null Result returned from DB");
+          response.error_code = PROCESSING_ERROR;
         }
-      } else {
-        response.error_message = std::string("Null Result returned from DB");
-        response.error_code = PROCESSING_ERROR;
+      } catch (mongocxx::exception& me) {
+        logger.error("Mongo Exception Encountered");
+        logger.error(me.what());
+        response.error_message = std::string(me.what());
+        break;
+      } catch (std::exception& e) {
+        logger.error("Exception executing Mongo Query");
+        logger.error(e.what());
+        CoreDatabaseManager::add_failure();
+        failure = true;
       }
-    } catch (mongocxx::exception& me) {
-      logger.error("Mongo Exception Encountered");
-      logger.error(me.what());
-      response.error_message = std::string(me.what());
-      break;
+      if (failure) CoreDatabaseManager::set_new_connection();
+      retries++;
+      if (!failure) break;
     } catch (std::exception& e) {
-      logger.error("Exception executing Mongo Query");
+      logger.error("Exception parsing Mongo OID");
       logger.error(e.what());
       CoreDatabaseManager::add_failure();
       failure = true;
+      break;
     }
-    if (failure) CoreDatabaseManager::set_new_connection();
-    retries++;
-    if (!failure) break;
   }
 }

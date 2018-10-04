@@ -104,6 +104,7 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
     if (doc.HasParseError()) {
       logger.debug("Parsing Error Detected");
       // Set up parse error response
+      response.setStatus(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
       response_body->set_error_code(TRANSLATION_ERROR);
       response_body->set_error_message(rapidjson::GetParseError_En(doc.GetParseError()));
       std::ostream& ostr = response.send();

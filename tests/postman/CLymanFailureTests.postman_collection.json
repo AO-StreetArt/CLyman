@@ -1,0 +1,1002 @@
+{
+	"info": {
+		"_postman_id": "359d863b-1323-4b89-9cd3-0cc3745da7c8",
+		"name": "CLyman Failure Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Post Object - Bad Values",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0b0b97b5-eeef-4b5a-a1e4-764cb99e8f9d",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Content-Type is present\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.err_code).to.eql(100);",
+							"    pm.expect(jsonData.num_records).to.eql(1);",
+							"});",
+							"",
+							"pm.environment.unset(\"OBJECT_ID\");",
+							"",
+							"pm.environment.set(\"OBJECT_ID\", jsonData.objects[0].key);"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"msg_type\": 0,\n  \"objects\":[\n    {\n\t\t\"name\": 0.00,\n\t\t\"type\": 1,\n\t\t\"subtype\": \"Sphere\",\n\t\t\"owner\": \"\",\n\t\t\"frame\": 0,\n\t\t\"timestamp\": [1,2],\n\t\t\"translation\": [0, 0, 1, 1],\n\t\t\"quaternion_rotation\": [0, 1],\n\t\t\"euler_rotation\": 0,\n\t\t\"scale\": [1, 1, 2, 5],\n\t\t\"assets\": \"Asset_5\"\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Object - Invalid JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7e780928-78d2-421f-bb7c-1b82ed858e0d",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"msg_type\": 0,\n  \"objects\":[\n    {\n\t\t\"name\": 0.00,\n\t\t\"type\": 1,\n\t\t\"subtype\": \"Sphere\",\n\t\t\"owner\": \"\",\n\t\t\"frame\": 0,\n\t\t\"timestamp\": [1,2],\n\t\t\"translation\": [0, 0, 1\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Object",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "57a5f568-994d-4013-a749-1709d9b410ee",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"msg_type\": 0,\n  \"objects\":[\n    {\n\t\t\"name\": \"Test Object 123464\",\n\t\t\"type\": \"Curve\",\n\t\t\"subtype\": \"Sphere\",\n\t\t\"owner\": \"456\",\n\t\t\"frame\": 0,\n\t\t\"timestamp\": 123456789,\n\t\t\"translation\": [0, 0, 1],\n\t\t\"quaternion_rotation\": [0, 1, 0, 0],\n\t\t\"euler_rotation\": [0, 0, 0],\n\t\t\"scale\": [1, 1, 2],\n\t\t\"assets\": [\"Asset_5\"],\n\t\t\"translation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"rotation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"scale_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}]\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/Nonexistent",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"Nonexistent"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Object",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4ac231d7-563f-4433-8474-ce7d82858609",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"objects\":[\n    {\n\t\t\"type\": \"Mesh\",\n\t\t\"subtype\": \"Cube\"\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/Nonexistent",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"Nonexistent"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Asset",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "02c79c59-1ba6-4f3f-9db4-047b6fd7a76f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/Nonexistent/asset/12345",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"Nonexistent",
+						"asset",
+						"12345"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query Object - Bad Values",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9ff0931d-150d-4d0e-9935-e04336c7461d",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Content-Type is present\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"num_records\": 1,\n  \"objects\":[\n    {\n\t\t\"name\": 1, \"frame\": \"1\"\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/query/",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"query",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query Object - Invalid JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5440ce73-4ecb-43ac-b1d4-003b75682860",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"num_records\"\": 1,\n  \"objects\":[\n    {\n\t\t\"name\": 1, \"frame\": \"1\"\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/query/",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"query",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove Asset",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ba1e4eba-bc41-4b0d-a40f-acdf02371de2",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/Nonexistent/asset/12345",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"Nonexistent",
+						"asset",
+						"12345"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Lock Object",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ef2bb174-5d2a-46a1-a733-07b7f6c34e26",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"msg_type\": 0,\n  \"objects\":[\n    {\n\t\t\"name\": \"Test Object 123464\",\n\t\t\"type\": \"Curve\",\n\t\t\"subtype\": \"Sphere\",\n\t\t\"owner\": \"456\",\n\t\t\"frame\": 0,\n\t\t\"timestamp\": 123456789,\n\t\t\"translation\": [0, 0, 1],\n\t\t\"quaternion_rotation\": [0, 1, 0, 0],\n\t\t\"euler_rotation\": [0, 0, 0],\n\t\t\"scale\": [1, 1, 2],\n\t\t\"assets\": [\"Asset_5\"],\n\t\t\"translation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"rotation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"scale_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}]\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/Nonexistent/lock?device=123",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"Nonexistent",
+						"lock"
+					],
+					"query": [
+						{
+							"key": "device",
+							"value": "123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Lock Object - No Device",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d0e3fe97-c4eb-4e30-b2dc-28d852db6202",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"msg_type\": 0,\n  \"objects\":[\n    {\n\t\t\"name\": \"Test Object 123464\",\n\t\t\"type\": \"Curve\",\n\t\t\"subtype\": \"Sphere\",\n\t\t\"owner\": \"456\",\n\t\t\"frame\": 0,\n\t\t\"timestamp\": 123456789,\n\t\t\"translation\": [0, 0, 1],\n\t\t\"quaternion_rotation\": [0, 1, 0, 0],\n\t\t\"euler_rotation\": [0, 0, 0],\n\t\t\"scale\": [1, 1, 2],\n\t\t\"assets\": [\"Asset_5\"],\n\t\t\"translation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"rotation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"scale_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}]\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/{{OBJECT_ID}}/lock",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"{{OBJECT_ID}}",
+						"lock"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Unlock Object - No Device",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7b83c282-6f21-4fc8-afc8-184fab7e2ed9",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/{{OBJECT_ID}}/lock",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"{{OBJECT_ID}}",
+						"lock"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Object",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c045142a-94f8-4edf-8bac-9ee8957a0b35",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/object/Nonexistent",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"object",
+						"Nonexistent"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Property - Bad Values",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "23a9edc3-0272-4caa-b5c7-432cafccf9d6",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Content-Type is present\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Check Response Body\", function () {",
+							"    pm.expect(jsonData.err_code).to.eql(100);",
+							"    pm.expect(jsonData.num_records).to.eql(1);",
+							"});",
+							"",
+							"pm.environment.unset(\"PROPERTY_ID\");",
+							"",
+							"pm.environment.set(\"PROPERTY_ID\", jsonData.properties[0].key);"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"properties\":[\n    {\n    \t\"key\":\"12345\",\n    \t\"name\":1,\n    \t\"parent\":[\"testParent\"],\n    \t\"asset_sub_id\":[\"testAssetSubId\"],\n    \t\"scene\":123,\n    \t\"frame\":\"1\",\n    \t\"timestamp\":[123456789,1],\n    \t\"wrongkey\":\"test\",\n    \t\"values\":[\n    \t\t{\n    \t\t\t\"value\":\"100.0\"\n    \t\t\t\n    \t\t}\n    \t]\n    }\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/property/",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"property",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Property - Invalid JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "64b3672c-5d4f-4e4f-b182-6994b6130dc6",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"properties\":[\n    {\n    \t\"key\":\"12345\",\n    \t\"name\":1,\n    \t\"parent\":[\"testParent\"],\n    \t\"asset_sub_id\":[\"testAssetSub\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/property/",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"property",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Property",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f4e10528-7dbd-49d4-805d-935ed0760377",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"properties\":[\n    {\n\t\t\"name\":\"anotherName\",\n    \t\"parent\":\"anotherParent\"\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/property/Nonexistent",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"property",
+						"Nonexistent"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Property",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9be5e5f9-3a79-4891-ac9d-d75d7e2f895f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"msg_type\": 0,\n  \"objects\":[\n    {\n\t\t\"name\": \"Test Object 123464\",\n\t\t\"type\": \"Curve\",\n\t\t\"subtype\": \"Sphere\",\n\t\t\"owner\": \"456\",\n\t\t\"frame\": 0,\n\t\t\"timestamp\": 123456789,\n\t\t\"translation\": [0, 0, 1],\n\t\t\"quaternion_rotation\": [0, 1, 0, 0],\n\t\t\"euler_rotation\": [0, 0, 0],\n\t\t\"scale\": [1, 1, 2],\n\t\t\"assets\": [\"Asset_5\"],\n\t\t\"translation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"rotation_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}],\n\t\t\"scale_handle\":[\n\t\t\t{\"left_type\":\"test\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0},\n\t\t\t{\"left_type\":\"\",\"left_x\":0.0,\"left_y\":0.0,\"right_type\":\"\",\"right_x\":0.0,\"right_y\":0.0}]\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/property/Nonexistent",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"property",
+						"Nonexistent"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query Property - Bad Value",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6cafa569-1aec-4555-b975-3eb58f14a517",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Content-Type is present\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"num_records\": 1,\n  \"properties\":[\n    {\n\t\t\"name\": 1\n\t}\n  ]\n}\n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/property/query/",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"property",
+						"query",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query Property - Invalid JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e2d5c212-7f06-4185-8560-c85965df5b02",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"num_records\": \n"
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/property/query/",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"property",
+						"query",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Property",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2d9f67c3-5fbc-431f-86da-12f6f476073c",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{CLYMAN_URL}}/v1/property/Nonexistent",
+					"host": [
+						"{{CLYMAN_URL}}"
+					],
+					"path": [
+						"v1",
+						"property",
+						"Nonexistent"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

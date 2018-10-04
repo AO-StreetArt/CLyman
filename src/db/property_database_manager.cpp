@@ -210,39 +210,48 @@ void PropertyDatabaseManager::bson_to_prop(bsoncxx::document::view& result, Prop
 void PropertyDatabaseManager::get_property(PropertyListInterface *response, std::string& key) {
   logger.debug("Attempting to retrieve object from Mongo");
   int retries = 0;
+  // Initialize the connection for the first time
+  init();
+  response->set_num_records(0);
   while (retries < max_retries) {
-    // Initialize the connection for the first time
-    init();
     bool failure = false;
     try {
-      Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
-      // Find the DB and Collection we're going to write into
-      auto client = CoreDatabaseManager::get_connection_pool()->acquire();
-      mongocxx::database db = (*client)[db_name];
-      mongocxx::collection coll = db[coll_name];
-      auto query_builder = bsoncxx::builder::stream::document{};
       bsoncxx::oid db_id(key);
-      query_builder << "_id" << db_id;
-      auto result = coll.find_one(query_builder << bsoncxx::builder::stream::finalize);
-      if (result) {
-        auto view = result->view();
-        PropertyInterface *obj = object_factory.build_property();
-        bson_to_prop(view, obj);
-        response->add_prop(obj);
-      } else {
-        response->set_error_code(PROCESSING_ERROR);
-        response->set_error_message(std::string("No results returned from query"));
+      try {
+        Poco::ScopedReadRWLock scoped_lock(CoreDatabaseManager::get_lock());
+        // Find the DB and Collection we're going to write into
+        auto client = CoreDatabaseManager::get_connection_pool()->acquire();
+        mongocxx::database db = (*client)[db_name];
+        mongocxx::collection coll = db[coll_name];
+        auto query_builder = bsoncxx::builder::stream::document{};
+        query_builder << "_id" << db_id;
+        auto result = coll.find_one(query_builder << bsoncxx::builder::stream::finalize);
+        if (result) {
+          auto view = result->view();
+          PropertyInterface *obj = object_factory.build_property();
+          bson_to_prop(view, obj);
+          response->add_prop(obj);
+          response->set_num_records(1);
+        } else {
+          response->set_error_code(PROCESSING_ERROR);
+          response->set_error_message(std::string("No results returned from query"));
+        }
+      } catch (mongocxx::exception& me) {
+        logger.error("Mongo Exception Encountered");
+        logger.error(me.what());
+        response->set_error_message(std::string(me.what()));
+        break;
+      } catch (std::exception& e) {
+        logger.error("Exception executing Mongo Query");
+        logger.error(e.what());
+        CoreDatabaseManager::add_failure();
+        failure = true;
       }
-    } catch (mongocxx::exception& me) {
-      logger.error("Mongo Exception Encountered");
-      logger.error(me.what());
-      response->set_error_message(std::string(me.what()));
-      break;
     } catch (std::exception& e) {
-      logger.error("Exception executing Mongo Query");
+      logger.error("Exception parsing Object ID");
       logger.error(e.what());
-      CoreDatabaseManager::add_failure();
-      failure = true;
+      response->set_error_message(std::string(e.what()));
+      break;
     }
     if (failure) CoreDatabaseManager::set_new_connection();
     retries++;
