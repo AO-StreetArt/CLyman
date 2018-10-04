@@ -140,8 +140,16 @@ void PropertyDatabaseManager::prop_transaction(DatabaseResponse &response, Prope
       // Execute an Update Transaction
       } else if (transaction_type == _DB_MONGO_UPDATE_) {
         auto query_builder = bsoncxx::builder::stream::document{};
-        bsoncxx::oid db_id(key);
-        query_builder << "_id" << db_id;
+        try {
+          bsoncxx::oid db_id(key);
+          query_builder << "_id" << db_id;
+        } catch (std::exception& e) {
+          logger.error("Exception parsing Mongo OID");
+          logger.error(e.what());
+          response.error_message = std::string(e.what());
+          response.error_code = PROCESSING_ERROR;
+          break;
+        }
         auto result = coll.update_one(query_builder << bsoncxx::builder::stream::finalize, \
             builder << bsoncxx::builder::stream::finalize);
         if (result) {

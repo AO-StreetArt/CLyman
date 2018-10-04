@@ -243,8 +243,15 @@ void ObjectDatabaseManager::transaction(DatabaseResponse &response, ObjectInterf
           || transaction_type == _DB_MONGO_LOCK_ \
           || transaction_type == _DB_MONGO_UNLOCK_) {
         auto query_builder = bsoncxx::builder::stream::document{};
-        bsoncxx::oid db_id(key);
-        query_builder << "_id" << db_id;
+        try {
+          bsoncxx::oid db_id(key);
+          query_builder << "_id" << db_id;
+        } catch (std::exception& e) {
+          logger.error("Exception parsing Mongo OID");
+          logger.error(e.what());
+          response.error_message = std::string(e.what());
+          break;
+        }
         if (transaction_type == _DB_MONGO_LOCK_) {
           query_builder << "owner" << "";
         } else if (transaction_type == _DB_MONGO_UNLOCK_) {
