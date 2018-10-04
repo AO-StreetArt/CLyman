@@ -86,20 +86,6 @@ class PropertyKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
     response_body->set_error_code(NO_ERROR);
     response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
 
-    // Add to the output message list
-    try {
-      if (msg_type == PROP_GET) {
-        process_get_message(object_id, response_body);
-      } else if (msg_type == PROP_DEL) {
-        process_delete_message(object_id, response_body);
-      }
-    } catch (std::exception& e) {
-      logger.error("Exception encountered during DB Operation");
-      response_body->set_error_message(e.what());
-      logger.error(response_body->get_error_message());
-      response_body->set_error_code(PROCESSING_ERROR);
-    }
-
     // Send an update to downstream services
     if (msg_type == PROP_DEL) {
       PropertyListInterface *in_doc_list = object_list_factory.build_json_property_list();
@@ -132,6 +118,20 @@ class PropertyKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
 
       delete in_doc;
       delete in_doc_list;
+    }
+
+    // Add to the output message list
+    try {
+      if (msg_type == PROP_GET) {
+        process_get_message(object_id, response_body);
+      } else if (msg_type == PROP_DEL) {
+        process_delete_message(object_id, response_body);
+      }
+    } catch (std::exception& e) {
+      logger.error("Exception encountered during DB Operation");
+      response_body->set_error_message(e.what());
+      logger.error(response_body->get_error_message());
+      response_body->set_error_code(PROCESSING_ERROR);
     }
 
     if (response_body->get_error_code() == NOT_FOUND) {
