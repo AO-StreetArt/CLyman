@@ -9,7 +9,12 @@ via UDP to an event forwarder (typically Crazy Ivan), whose job it is to
 pass along that event to any interested parties.
 
 If configured, the event may be encrypted with an AES-256 symmetric key and
-salt.  The event is a JSON message, which can take one of two formats but
+salt.
+
+Event Input
+-----------
+
+The event is a JSON message, which can take one of two formats but
 always includes the field "msg_type".  The first format is an Object Overwrite,
 which follows the same JSON-schema as the :ref:`Object Update HTTP API <object_api>`.
 The second format is a Property Overwrite, which follows the same JSON-schema as
@@ -65,3 +70,19 @@ graph handles, this might look a bit more like:
                 "right_x": 10.0,
                 "right_y":10.0}]
    }
+
+Event Output
+------------
+
+Event output follows the same basic format as the input, however there are
+multiple additional message types that may be received.
+
+While input events can only be Object or Property Updates, output events can
+include:
+
+* 0 - Object Create
+* 1 - Object Update
+* 3 - Object Delete
+* 8 - Property Create
+* 9 - Property Update
+* 11 - Property Delete
