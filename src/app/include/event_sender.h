@@ -51,15 +51,15 @@ class EventStreamPublisher {
   boost::asio::io_service io_service;
   bool encryption_active = false;
   std::string encrypt_key;
-  std::string encrypt_salt;
+  std::string encrypt_iv;
   Poco::Logger& logger;
   int sender_index = 0;
  public:
-  EventStreamPublisher(std::string& epasswd, std::string& esalt) \
+  EventStreamPublisher(std::string& ekey, std::string& eiv) \
       : logger(Poco::Logger::get("Event")) {
     encryption_active = true;
-    encrypt_key.assign(epasswd);
-    encrypt_salt.assign(esalt);
+    encrypt_key.assign(ekey);
+    encrypt_iv.assign(eiv);
   }
   EventStreamPublisher() : logger(Poco::Logger::get("Event")) {}
   ~EventStreamPublisher() {}
@@ -70,7 +70,9 @@ class EventStreamPublisher {
     logger.debug("Sending Object Updates");
     Poco::Crypto::CipherFactory& factory = Poco::Crypto::CipherFactory::defaultFactory();
     // Creates a 256-bit AES cipher (one for encryption, one for decryption)
-    Poco::Crypto::Cipher* eCipher = factory.createCipher(Poco::Crypto::CipherKey("aes-256-cbc", encrypt_key, encrypt_salt));
+    std::vector<unsigned char> encrypt_key_vect(encrypt_key.begin(), encrypt_key.end());
+    std::vector<unsigned char> encrypt_iv_vect(encrypt_iv.begin(), encrypt_iv.end());
+    Poco::Crypto::Cipher* eCipher = factory.createCipher(Poco::Crypto::CipherKey("aes-256-cbc", encrypt_key_vect, encrypt_iv_vect));
     // Build a UDP Socket to send our messages
     boost::asio::ip::udp::socket socket(io_service);
     socket.open(boost::asio::ip::udp::v4());

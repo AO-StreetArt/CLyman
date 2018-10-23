@@ -146,17 +146,9 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
   is_sender_running = true;
   std::vector<EventSender*> evt_senders {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
   try {
-    // Get the configuration values out of the configuration profile
-    AOSSL::StringBuffer aes_enabled_buffer;
-    AOSSL::StringBuffer aesin_key_buffer;
-    AOSSL::StringBuffer aesin_salt_buffer;
+    // Get the udp port out of the configuration profile
     AOSSL::StringBuffer udp_port;
     config->get_opt(std::string("udp.port"), udp_port);
-    config->get_opt(std::string("event.security.aes.enabled"), aes_enabled_buffer);
-    config->get_opt(config->get_cluster_name() + \
-        std::string(".event.security.in.aes.key"), aesin_key_buffer);
-    config->get_opt(config->get_cluster_name() + \
-        std::string(".event.security.in.aes.salt"), aesin_salt_buffer);
     int port = std::stoi(udp_port.val);
     bool aes_enabled = false;
     if (aes_enabled_buffer.val == "true") aes_enabled = true;
@@ -166,6 +158,16 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
     boost::asio::ip::udp::socket socket(io_service, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port));
     // Listen on the UDP Socket
     while (is_app_running.load()) {
+      // Get security config, having it inside the loop allows
+      // dynamic security updates
+      AOSSL::StringBuffer aes_enabled_buffer;
+      AOSSL::StringBuffer aesin_key_buffer;
+      AOSSL::StringBuffer aesin_iv_buffer;
+      config->get_opt(std::string("event.security.aes.enabled"), aes_enabled_buffer);
+      config->get_opt(config->get_cluster_name() + \
+          std::string(".event.security.in.aes.key"), aesin_key_buffer);
+      config->get_opt(config->get_cluster_name() + \
+          std::string(".event.security.in.aes.iv"), aesin_iv_buffer);
       // Build a buffer and recieve a message
       char recv_buf[EVENT_LENGTH];
       boost::asio::mutable_buffers_1 bbuffer = boost::asio::buffer(recv_buf);
@@ -183,9 +185,11 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
         if (aes_enabled) {
           std::string event_string(event_msg);
           Poco::Crypto::CipherFactory& factory = Poco::Crypto::CipherFactory::defaultFactory();
+          std::vector<unsigned char> decrypt_key_vect(aesin_key_buffer.val.begin(), aesin_key_buffer.val.end());
+          std::vector<unsigned char> decrypt_iv_vect(aesin_iv_buffer.val.begin(), aesin_iv_buffer.val.end());
           Poco::Crypto::Cipher* dCipher = \
               factory.createCipher(Poco::Crypto::CipherKey("aes-256-cbc", \
-              aesin_key_buffer.val, aesin_salt_buffer.val));
+              decrypt_key_vect, decrypt_iv_vect));
           std::string decrypted = dCipher->decryptString(event_string, \
               Poco::Crypto::Cipher::ENC_BASE64);
           memcpy(event_msg, decrypted.c_str(), decrypted.size());
@@ -200,22 +204,20 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
             // If we have used up all the space in our array of senders,
             // then we should use the main event thread to send and wait
             // for other threads to complete before pulling the next message.
-            evt_senders[sender_index]->run();
             tpool.joinAll();
             sender_index = 0;
-        } else {
-          try {
-            // Fire off another thread to actually process events
-            tpool.start(*(evt_senders[sender_index]));
-            sender_index = sender_index + 1;
-          } catch (Poco::NoThreadAvailableException& e) {
-            // If no more threads are available, then execute the updates on the
-            // main event thread, and wait for other threads to complete before
-            // pulling the next message.
-            evt_senders[sender_index]->run();
-            tpool.joinAll();
-            sender_index = 0;
-          }
+        }
+        try {
+          // Fire off another thread to actually process events
+          tpool.start(*(evt_senders[sender_index]));
+          sender_index = sender_index + 1;
+        } catch (Poco::NoThreadAvailableException& e) {
+          // If no more threads are available, then execute the updates on the
+          // main event thread, and wait for other threads to complete before
+          // pulling the next message.
+          evt_senders[sender_index]->run();
+          tpool.joinAll();
+          sender_index = 0;
         }
       }
     }
