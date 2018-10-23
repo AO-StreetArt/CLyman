@@ -151,7 +151,6 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
     config->get_opt(std::string("udp.port"), udp_port);
     int port = std::stoi(udp_port.val);
     bool aes_enabled = false;
-    if (aes_enabled_buffer.val == "true") aes_enabled = true;
     int sender_index = 0;
     // Open the UDP Socket
     boost::asio::io_service io_service;
@@ -168,6 +167,7 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
           std::string(".event.security.in.aes.key"), aesin_key_buffer);
       config->get_opt(config->get_cluster_name() + \
           std::string(".event.security.in.aes.iv"), aesin_iv_buffer);
+      if (aes_enabled_buffer.val == "true") aes_enabled = true;
       // Build a buffer and recieve a message
       char recv_buf[EVENT_LENGTH];
       boost::asio::mutable_buffers_1 bbuffer = boost::asio::buffer(recv_buf);
