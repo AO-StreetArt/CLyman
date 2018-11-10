@@ -187,6 +187,8 @@ void PropertyDatabaseManager::prop_transaction(DatabaseResponse &response, Prope
 
 void PropertyDatabaseManager::bson_to_prop(bsoncxx::document::view& result, PropertyInterface *obj) {
   // Parse basic values
+  bsoncxx::document::element key_element = result["_id"];
+  obj->set_key(key_element.get_oid().value.to_string());
   bsoncxx::document::element name_element = result["name"];
   obj->set_name(name_element.get_utf8().value.to_string());
   bsoncxx::document::element parent_element = result["parent"];

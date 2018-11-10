@@ -293,8 +293,8 @@ void ObjectDatabaseManager::transaction(DatabaseResponse &response, ObjectInterf
 
 void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, ObjectInterface *obj) {
   // Parse basic values
-  bsoncxx::document::element name_element = result["_id"];
-  obj->set_key(name_element.get_oid().value.to_string());
+  bsoncxx::document::element key_element = result["_id"];
+  obj->set_key(key_element.get_oid().value.to_string());
   bsoncxx::document::element name_element = result["name"];
   obj->set_name(name_element.get_utf8().value.to_string());
   bsoncxx::document::element parent_element = result["parent"];
