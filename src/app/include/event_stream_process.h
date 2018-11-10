@@ -46,13 +46,6 @@ limitations under the License.
 #ifndef SRC_APP_INCLUDE_EVENT_STREAM_PROCESS_H_
 #define SRC_APP_INCLUDE_EVENT_STREAM_PROCESS_H_
 
-// 24 bit salt value
-// 26 bit scene key
-// 1 bit for new line delimiter
-// 179 bits for object json
-// 1 bit for final new line
-const int EVENT_LENGTH = 550;
-
 // Global atomic booleans for shutting down
 std::atomic<bool> is_app_running(false);
 std::atomic<bool> is_sender_running(false);
@@ -168,19 +161,28 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
       config->get_opt(config->get_cluster_name() + \
           std::string(".event.security.in.aes.iv"), aesin_iv_buffer);
       if (aes_enabled_buffer.val == "true") aes_enabled = true;
-      // Build a buffer and recieve a message
-      char recv_buf[EVENT_LENGTH];
-      boost::asio::mutable_buffers_1 bbuffer = boost::asio::buffer(recv_buf);
       boost::asio::ip::udp::endpoint remote_endpoint;
       boost::system::error_code error;
+
+      // First, we call recieve_from on the socket with a null buffer,
+      // which returns when a message is on the recieve queue with the number
+      // of bytes in the message
+      socket.receive_from(boost::asio::null_buffers(), remote_endpoint, 0, error);
+      int available = socket.available();
+
+      // Build a buffer and recieve a message
+      char recv_buf[available];
+      boost::asio::mutable_buffers_1 bbuffer = boost::asio::buffer(recv_buf, available);
       int bytes_transferred = socket.receive_from(bbuffer, remote_endpoint, 0, error);
       char* event_data_ptr = boost::asio::buffer_cast<char*>(bbuffer);
       if (!(error && error != boost::asio::error::message_size && bytes_transferred > 0) \
           && is_app_running.load()) {
         logger.debug("Recieved UDP Update");
+
         // Copy the message buffer into dynamic memory
-        char *event_msg = new char[EVENT_LENGTH+1]();
+        char *event_msg = new char[available+1]();
         memcpy(event_msg, event_data_ptr, bytes_transferred);
+
         // If necessary, decrypt the message
         if (aes_enabled) {
           std::string event_string(event_msg);
@@ -195,10 +197,12 @@ void event_stream(AOSSL::TieredApplicationProfile *config, DatabaseManager *db, 
           memcpy(event_msg, decrypted.c_str(), decrypted.size());
         }
         logger.debug(event_msg);
+
         // Clear out any left-over event sender
         if (evt_senders[sender_index]) delete evt_senders[sender_index];
         // Build the new event sender
         evt_senders[sender_index] = new EventSender(event_msg, io_service, db, publisher, cluster);
+
         // Send the event
         if (sender_index == 12) {
             // If we have used up all the space in our array of senders,
