@@ -9,6 +9,7 @@ Content-Type: application/json
     "objects": [
         {
             "name": "Test Object 123464",
+            "parent": "1234",
             "type": "Curve",
             "subtype": "Sphere",
             "frame": 0,

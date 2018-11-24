@@ -88,8 +88,15 @@ JsonPropertyList::JsonPropertyList(const rapidjson::Document& d) {
                   std::string value;
                   auto val_itr = prop_elt_itr.FindMember("value");
                   if (val_itr != prop_elt_itr.MemberEnd()) {
+                    bool value_found = false;
                     if (val_itr->value.IsDouble()) {
                       new_prop->add_value(val_itr->value.GetDouble());
+                      value_found = true;
+                    } else if (val_itr->value.IsInt()) {
+                      new_prop->add_value(static_cast<double>(val_itr->value.GetDouble()));
+                      value_found = true;
+                    }
+                    if (value_found) {
                       parse_json_graph_handle(prop_elt_itr, new_prop->get_handle(elt_indx));
                     }
                   }

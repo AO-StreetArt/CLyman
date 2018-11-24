@@ -198,14 +198,18 @@ inline void parse_json_graph_handle(rapidjson::GenericArray<true, rapidjson::Gen
   }
   auto lx_itr = itr.FindMember("left_x");
   if (lx_itr != itr.MemberEnd()) {
-    if (lx_itr->value.IsNumber()) {
+    if (lx_itr->value.IsDouble()) {
       handle->set_lh_x(lx_itr->value.GetDouble());
+    } else if (lx_itr->value.IsInt()) {
+      handle->set_lh_x(static_cast<double>(lx_itr->value.GetInt()));
     }
   }
   auto ly_itr = itr.FindMember("left_y");
   if (ly_itr != itr.MemberEnd()) {
     if (ly_itr->value.IsNumber()) {
       handle->set_lh_y(ly_itr->value.GetDouble());
+    } else if (ly_itr->value.IsInt()) {
+      handle->set_lh_y(static_cast<double>(ly_itr->value.GetInt()));
     }
   }
 
@@ -222,12 +226,16 @@ inline void parse_json_graph_handle(rapidjson::GenericArray<true, rapidjson::Gen
   if (rx_itr != itr.MemberEnd()) {
     if (rx_itr->value.IsNumber()) {
       handle->set_rh_x(rx_itr->value.GetDouble());
+    } else if (rx_itr->value.IsInt()) {
+      handle->set_rh_x(static_cast<double>(rx_itr->value.GetInt()));
     }
   }
   auto ry_itr = itr.FindMember("right_y");
   if (ry_itr != itr.MemberEnd()) {
     if (ry_itr->value.IsNumber()) {
       handle->set_rh_y(ry_itr->value.GetDouble());
+    } else if (ry_itr->value.IsInt()) {
+      handle->set_rh_y(static_cast<double>(ry_itr->value.GetInt()));
     }
   }
 }

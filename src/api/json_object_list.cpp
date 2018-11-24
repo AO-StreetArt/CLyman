@@ -79,7 +79,9 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
           if (assets_itr != itr.MemberEnd()) {
             if (assets_itr->value.IsArray()) {
               for (auto& asset_itr : assets_itr->value.GetArray()) {
-                new_obj->add_asset(asset_itr.GetString());
+                if (asset_itr.IsString()) {
+                  new_obj->add_asset(asset_itr.GetString());
+                }
               }
             }
           }
@@ -146,11 +148,17 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               double y = 0.0;
               double z = 0.0;
               for (auto& trans_itr : translation_val.GetArray()) {
+                double value = 0.0;
+                if (trans_itr.IsDouble()) {
+                  value = trans_itr.GetDouble();
+                } else if (trans_itr.IsInt()) {
+                  value = static_cast<double>(trans_itr.GetInt());
+                }
                 if (i == 0) {
-                  x = trans_itr.GetDouble();
+                  x = value;
                 } else if (i == 1) {
-                  y = trans_itr.GetDouble();
-                } else if (i == 2) {z = trans_itr.GetDouble();}
+                  y = value;
+                } else if (i == 2) {z = value;}
                 i++;
               }
               if ((x > 0.001 || x < -0.001) || \
@@ -172,11 +180,17 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               double y = 0.0;
               double z = 0.0;
               for (auto& erot_itr : erot_val.GetArray()) {
+                double value = 0.0;
+                if (erot_itr.IsDouble()) {
+                  value = erot_itr.GetDouble();
+                } else if (erot_itr.IsInt()) {
+                  value = static_cast<double>(erot_itr.GetInt());
+                }
                 if (i == 0) {
-                  x = erot_itr.GetDouble();
+                  x = value;
                 } else if (i == 1) {
-                  y = erot_itr.GetDouble();
-                } else {z = erot_itr.GetDouble();}
+                  y = value;
+                } else {z = value;}
                 i++;
               }
               if ((x > 0.001 || x < -0.001) || \
@@ -199,13 +213,19 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
               double y = 0.0;
               double z = 0.0;
               for (auto& qrot_itr : qrot_val.GetArray()) {
+                double value = 0.0;
+                if (qrot_itr.IsDouble()) {
+                  value = qrot_itr.GetDouble();
+                } else if (qrot_itr.IsInt()) {
+                  value = static_cast<double>(qrot_itr.GetInt());
+                }
                 if (i == 0) {
-                  w = qrot_itr.GetDouble();
+                  w = value;
                 } else if (i == 1) {
-                  x = qrot_itr.GetDouble();
+                  x = value;
                 } else if (i == 2) {
-                  y = qrot_itr.GetDouble();
-                } else {z = qrot_itr.GetDouble();}
+                  y = value;
+                } else {z = value;}
                 i++;
               }
               if ((w > 0.001 || w < -0.001) &&
@@ -224,15 +244,21 @@ JsonObjectList::JsonObjectList(const rapidjson::Document& d) {
             const rapidjson::Value& scale_val = scale_iter->value;
             if (scale_val.IsArray() && scale_val.Size() > 0) {
               int i = 0;
-              double x = 0.0;
-              double y = 0.0;
-              double z = 0.0;
+              double x = 1.0;
+              double y = 1.0;
+              double z = 1.0;
               for (auto& scale_itr : scale_val.GetArray()) {
+                double value = 1.0;
+                if (scale_itr.IsDouble()) {
+                  value = scale_itr.GetDouble();
+                } else if (scale_itr.IsInt()) {
+                  value = static_cast<double>(scale_itr.GetInt());
+                }
                 if (i == 0) {
-                  x = scale_itr.GetDouble();
+                  x = value;
                 } else if (i == 1) {
-                  y = scale_itr.GetDouble();
-                } else if (i == 2) {z = scale_itr.GetDouble();}
+                  y = value;
+                } else if (i == 2) {z = value;}
                 i++;
               }
               if ((x > 1.001 || x < 0.999) || \
