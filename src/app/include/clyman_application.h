@@ -414,13 +414,13 @@ protected:
           ssl_properties_loaded = true;
         }
         // In the /etc folder (when running as a Linux Service)
-        if (file_exists("/etc/ivan/ssl.properties")) {
-          loadConfiguration("/etc/ivan/ssl.properties");
+        if (file_exists("/etc/clyman/ssl.properties")) {
+          loadConfiguration("/etc/clyman/ssl.properties");
           ssl_properties_loaded = true;
         }
         // In the /ssl folder (when running in a container)
-        if (file_exists("/ssl/ssl.properties")) {
-          loadConfiguration("/ssl/ssl.properties");
+        if (file_exists("/ssl/clyman/ssl.properties")) {
+          loadConfiguration("/ssl/clyman/ssl.properties");
           ssl_properties_loaded = true;
         }
         if (!ssl_properties_loaded) {
