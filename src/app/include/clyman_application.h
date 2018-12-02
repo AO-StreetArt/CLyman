@@ -127,14 +127,17 @@ protected:
     for (std::string elt : args) {
       app.logger().information(elt);
     }
+
     // Initialize the application profile
     AOSSL::NetworkApplicationProfile config(args, std::string("clyman"), std::string("prod"));
+
     // Print the configuration log
     app.logger().information("Profile Startup Log");
     std::vector<std::string> profile_startup_log = config.get_config_record();
     for (auto& log_line: profile_startup_log) {
       app.logger().information(log_line);
     }
+
     // Add secure opts
     std::vector<std::string> secure_ops;
     secure_ops.push_back(config.get_cluster_name() + \
@@ -156,6 +159,7 @@ protected:
     for (std::string op: secure_ops) {
       config.add_secure_opt(op);
     }
+
     // Set default values for configuration
     config.add_opt(std::string("mongo"), std::string(""));
     config.add_opt(std::string("mongo.db"), std::string("clyman"));
@@ -185,6 +189,7 @@ protected:
     config.add_opt(std::string("transaction.security.ssl.enabled"), std::string("false"));
     config.add_opt(std::string("transaction.security.auth.type"), std::string("none"));
     config.add_opt(std::string("event.security.aes.enabled"), std::string("false"));
+
     // Perform the initial config
     bool config_success = false;
     bool config_tried = false;
@@ -260,33 +265,6 @@ protected:
     std::vector<std::string> profile_config_log = config.get_config_record();
     for (auto& log_line: profile_config_log) {
       main_logger.information(log_line);
-    }
-
-    // Register the service with Consul
-    AOSSL::StringBuffer http_host;
-    config.get_opt(std::string("http.host"), http_host);
-    AOSSL::StringBuffer http_port;
-    config.get_opt(std::string("http.port"), http_port);
-    AOSSL::StringBuffer udp_port;
-    config.get_opt(std::string("udp.port"), udp_port);
-    if (config.get_consul()) {
-      main_logger.information("Registering with Consul");
-      std::vector<std::string> tags;
-      tags.push_back(std::string("cluster=") + config.get_cluster_name());
-      AOSSL::ConsulComponentFactory consul_factory;
-      // Create the actual Service to register
-      my_app = \
-        consul_factory.get_service_interface(std::string("Clyman"), \
-        std::string("Clyman"), http_host.val, http_port.val, tags);
-      my_app_udp = \
-        consul_factory.get_service_interface(std::string("Clyman_Udp"), \
-        std::string("Clyman_Udp"), http_host.val, udp_port.val, tags);
-      if (!config.get_consul()->register_service(*my_app)) {
-        main_logger.error("Consul Registration Failed");
-      }
-      if (!config.get_consul()->register_service(*my_app_udp)) {
-        main_logger.error("Consul UDP Registration Failed");
-      }
     }
 
     // Get the Mongo Connection information
@@ -373,18 +351,7 @@ protected:
     }
     cluster->update_cluster_info();
 
-    // Start the background thread error handler
-    ClymanErrorHandler eh;
-    Poco::ErrorHandler* pOldEH = Poco::ErrorHandler::set(&eh);
-
-    // Kick off the Cluster Update background thread
-    std::thread cluster_thread(update_cluster, &config, cluster, 30000000);
-    cluster_thread.detach();
-
-    // Kick off the Event Stream background thread
-    std::thread es_thread(event_stream, &config, &db_manager, publisher, cluster);
-    es_thread.detach();
-
+    // Is SSL Enabled?
     AOSSL::StringBuffer ssl_enabled_buf;
     config.get_opt(std::string("transaction.security.ssl.enabled"), ssl_enabled_buf);
 
@@ -398,7 +365,12 @@ protected:
     if (use_vault_ca_buf.val == "true") {
       // Generate a new SSL Cert from Vault
       AOSSL::SslCertificateBuffer ssl_cert_buf;
-      config.get_vault()->gen_ssl_cert(vault_role_buf.val, vault_common_name_buf.val, ssl_cert_buf);
+      try {
+        config.get_vault()->gen_ssl_cert(vault_role_buf.val, vault_common_name_buf.val, ssl_cert_buf);
+      } catch (std::exception& e) {
+        main_logger.error("Exception Generating SSL Cert from Vault, exiting");
+        return Poco::Util::Application::EXIT_CONFIG;
+      }
       if (ssl_cert_buf.success) {
         // We need to write the certificate, private key, and CA to files
         std::ofstream out_key("private.key");
@@ -433,11 +405,69 @@ protected:
       }
     } else {
       if (ssl_enabled_buf.val == "true") {
+        bool ssl_properties_loaded = false;
         // If we aren't generating ssl certs from Consul and we still need
         // to start an https endpoint, then look for an ssl.properties file
-        loadConfiguration("ssl.properties");
+        // In the application root folder
+        if (file_exists("ssl.properties")) {
+          loadConfiguration("ssl.properties");
+          ssl_properties_loaded = true;
+        }
+        // In the /etc folder (when running as a Linux Service)
+        if (file_exists("/etc/ivan/ssl.properties")) {
+          loadConfiguration("/etc/ivan/ssl.properties");
+          ssl_properties_loaded = true;
+        }
+        // In the /ssl folder (when running in a container)
+        if (file_exists("/ssl/ssl.properties")) {
+          loadConfiguration("/ssl/ssl.properties");
+          ssl_properties_loaded = true;
+        }
+        if (!ssl_properties_loaded) {
+          main_logger.error("Unable to find required SSL Configuration to load, exiting");
+          return Poco::Util::Application::EXIT_CONFIG;
+        }
       }
     }
+
+    // Register the service with Consul
+    AOSSL::StringBuffer http_host;
+    config.get_opt(std::string("http.host"), http_host);
+    AOSSL::StringBuffer http_port;
+    config.get_opt(std::string("http.port"), http_port);
+    AOSSL::StringBuffer udp_port;
+    config.get_opt(std::string("udp.port"), udp_port);
+    if (config.get_consul()) {
+      main_logger.information("Registering with Consul");
+      std::vector<std::string> tags;
+      tags.push_back(std::string("cluster=") + config.get_cluster_name());
+      AOSSL::ConsulComponentFactory consul_factory;
+      // Create the actual Service to register
+      my_app = \
+        consul_factory.get_service_interface(std::string("Clyman"), \
+        std::string("Clyman"), http_host.val, http_port.val, tags);
+      my_app_udp = \
+        consul_factory.get_service_interface(std::string("Clyman_Udp"), \
+        std::string("Clyman_Udp"), http_host.val, udp_port.val, tags);
+      if (!config.get_consul()->register_service(*my_app)) {
+        main_logger.error("Consul Registration Failed");
+      }
+      if (!config.get_consul()->register_service(*my_app_udp)) {
+        main_logger.error("Consul UDP Registration Failed");
+      }
+    }
+
+    // Start the background thread error handler
+    ClymanErrorHandler eh;
+    Poco::ErrorHandler* pOldEH = Poco::ErrorHandler::set(&eh);
+
+    // Kick off the Cluster Update background thread
+    std::thread cluster_thread(update_cluster, &config, cluster, 30000000);
+    cluster_thread.detach();
+
+    // Kick off the Event Stream background thread
+    std::thread es_thread(event_stream, &config, &db_manager, publisher, cluster);
+    es_thread.detach();
 
     // Main Application Loop (Serving HTTP API)
     std::string http_address = http_host.val + std::string(":") + http_port.val;

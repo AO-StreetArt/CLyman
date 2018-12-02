@@ -20,6 +20,7 @@ limitations under the License.
 #include <stdint.h>
 #include <sstream>
 #include <string>
+#include <fstream>
 #include <algorithm>
 #include <functional>
 #include <cctype>
@@ -76,6 +77,11 @@ const int CREATE_QUERY_TYPE = 0;
 const int GET_QUERY_TYPE = 1;
 const int UPDATE_QUERY_TYPE = 2;
 const int DELETE_QUERY_TYPE = 3;
+
+inline bool file_exists (const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
+}
 
 // Convert Request Contents into a Rapidjson Document
 // Returns a char* which must be deleted only after using the Rapidjson Doc
