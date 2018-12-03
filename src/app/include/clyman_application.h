@@ -139,26 +139,30 @@ protected:
     }
 
     // Add secure opts
-    std::vector<std::string> secure_ops;
-    secure_ops.push_back(config.get_cluster_name() + \
+    config.add_secure_opt(config.get_cluster_name() + \
         std::string(".transaction.security.auth.user"));
-    secure_ops.push_back(config.get_cluster_name() + \
+    config.add_secure_opt(config.get_cluster_name() + \
         std::string(".transaction.security.auth.password"));
-    secure_ops.push_back(config.get_cluster_name() + \
+    config.add_secure_opt(config.get_cluster_name() + \
         std::string(".transaction.security.hash.password"));
-    secure_ops.push_back(config.get_cluster_name() + \
+    config.add_secure_opt(config.get_cluster_name() + \
         std::string(".event.security.out.aes.key"));
-    secure_ops.push_back(config.get_cluster_name() + \
+    config.add_secure_opt(config.get_cluster_name() + \
+        std::string(".event.security.out.aes.iv"));
+    config.add_secure_opt(config.get_cluster_name() + \
         std::string(".event.security.out.aes.salt"));
-    secure_ops.push_back(config.get_cluster_name() + \
+    config.add_secure_opt(config.get_cluster_name() + \
+        std::string(".event.security.out.aes.password"));
+    config.add_secure_opt(config.get_cluster_name() + \
         std::string(".event.security.in.aes.key"));
-    secure_ops.push_back(config.get_cluster_name() + \
+    config.add_secure_opt(config.get_cluster_name() + \
+        std::string(".event.security.in.aes.iv"));
+    config.add_secure_opt(config.get_cluster_name() + \
         std::string(".event.security.in.aes.salt"));
-    secure_ops.push_back(std::string("mongo.auth.un"));
-    secure_ops.push_back(std::string("mongo.auth.pw"));
-    for (std::string op: secure_ops) {
-      config.add_secure_opt(op);
-    }
+    config.add_secure_opt(config.get_cluster_name() + \
+        std::string(".event.security.in.aes.password"));
+    config.add_secure_opt(std::string("mongo.auth.un"));
+    config.add_secure_opt(std::string("mongo.auth.pw"));
 
     // Set default values for configuration
     config.add_opt(std::string("mongo"), std::string(""));
@@ -322,16 +326,16 @@ protected:
     // Start the Publisher to send events
     AOSSL::StringBuffer aes_active_buffer;
     AOSSL::StringBuffer aesout_key_buffer;
-    AOSSL::StringBuffer aesout_salt_buffer;
+    AOSSL::StringBuffer aesout_iv_buffer;
     config.get_opt(config.get_cluster_name() + \
         std::string(".event.security.aes.enabled"), aes_active_buffer);
     config.get_opt(config.get_cluster_name() + \
         std::string(".event.security.out.aes.key"), aesout_key_buffer);
     config.get_opt(config.get_cluster_name() + \
-        std::string(".event.security.out.aes.salt"), aesout_salt_buffer);
+        std::string(".event.security.out.aes.iv"), aesout_iv_buffer);
     if ((aes_active_buffer.val == "true") && !(aesout_key_buffer.val.empty()) \
-        && !(aesout_salt_buffer.val.empty())) {
-      publisher = new EventStreamPublisher(aesout_key_buffer.val, aesout_salt_buffer.val);
+        && !(aesout_iv_buffer.val.empty())) {
+      publisher = new EventStreamPublisher(aesout_key_buffer.val, aesout_iv_buffer.val);
     } else {
       publisher = new EventStreamPublisher;
     }
