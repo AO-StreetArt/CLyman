@@ -75,24 +75,25 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
             Poco::Base64Decoder b64in(istr);
             std::string auth_info_str;
             getline(b64in, auth_info_str);
+            
             // Split the username and password string
             std::stringstream auth_info_stream(auth_info_str);
             std::getline(auth_info_stream, username, ':');
             std::getline(auth_info_stream, password);
+
+            // Actually authenticate against the Account Manager Interface
+            if (!(accounts->authenticate_user(username, password))) {
+              // User has failed authentication, return error
+              Poco::Logger::get("Controller").error("Authentication failed");
+              authentication_failure = true;
+            } else {
+              Poco::Logger::get("Controller").debug("Authentication success");
+            }
           } else {
             // invalid auth type
             Poco::Logger::get("Controller").error("Invalid authentication type");
             authentication_failure = true;
           }
-        }
-
-        // Actually authenticate against the Account Manager Interface
-        if (!(accounts->authenticate_user(username, password))) {
-          // User has failed authentication, return error
-          Poco::Logger::get("Controller").error("Authentication failed");
-          authentication_failure = true;
-        } else {
-          Poco::Logger::get("Controller").debug("Authentication success");
         }
       } else {
         // We require credentials but haven't been provided any
