@@ -73,10 +73,8 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
             // Pull and decode the authentication info
             std::istringstream istr(req_auth_info);
             Poco::Base64Decoder b64in(istr);
-            int length = 100;
-            buffer = new char[length];
-            b64in.read(buffer, length);
-            std::string auth_info_str(buffer);
+            std::string auth_info_str;
+            getline(b64in, auth_info_str);
             // Split the username and password string
             std::stringstream auth_info_stream(auth_info_str);
             std::getline(auth_info_stream, username, ':');
