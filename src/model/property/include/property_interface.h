@@ -18,7 +18,9 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <exception>
-#include "object_frame_interface.h"
+#include <iterator>
+#include "animation_action.h"
+#include "property_frame.h"
 
 #ifndef SRC_MODEL_INCLUDE_PROPERTY_INTERFACE_H_
 #define SRC_MODEL_INCLUDE_PROPERTY_INTERFACE_H_
@@ -47,7 +49,7 @@ class PropertyInterface {
   virtual double get_value(int index) const = 0;
   virtual void set_value(int index, double new_value) = 0;
   virtual void add_value(double new_value) = 0;
-  virtual int num_values() const = 0;
+  virtual unsigned int num_values() const = 0;
   // Scene ID
   // The Unique Identifier of the scene to which the object is associated
   virtual std::string get_scene() const = 0;
@@ -58,15 +60,12 @@ class PropertyInterface {
   virtual std::string get_asset_sub_id() const = 0;
   virtual void set_asset_sub_id(std::string new_asset_sub_id) = 0;
   // Convert to an Event JSON
-  virtual void to_json(std::string& json_str) const = 0;
-  virtual void to_json(std::string& json_str, int mtype) const = 0;
-  // Frame/Timestamp
-  virtual int get_frame() const = 0;
-  virtual int get_timestamp() const = 0;
-  virtual void set_frame(int new_frame) = 0;
-  virtual void set_timestamp(int new_timestamp) = 0;
-  virtual AnimationGraphHandle* get_handle(int index) = 0;
-  virtual void set_handle(AnimationGraphHandle *new_handle, int index) = 0;
+  virtual void to_json(std::string& json_str) = 0;
+  virtual void to_json(std::string& json_str, int mtype) = 0;
+  virtual void to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& writer, int mtype) = 0;
+  // Access actions
+  virtual void add_action(std::string name, AnimationAction<PropertyFrame> *new_action) = 0;
+  virtual AnimationAction<PropertyFrame>* get_action(std::string name) = 0;
 };
 
 #endif  // SRC_MODEL_INCLUDE_PROPERTY_INTERFACE_H_

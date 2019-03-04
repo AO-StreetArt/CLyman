@@ -22,11 +22,12 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "app/include/clyman_utils.h"
-#include "model/include/object_factory.h"
-#include "model/include/property_interface.h"
+#include "data_factory.h"
+#include "property_interface.h"
 #include "data_list.h"
 #include "property_list_interface.h"
+
+#include "app/include/clyman_utils.h"
 
 #ifndef SRC_API_INCLUDE_JSON_PROPERTY_LIST_H_
 #define SRC_API_INCLUDE_JSON_PROPERTY_LIST_H_
@@ -37,14 +38,12 @@ using PropertiesDataList = DataList<PropertyInterface*>;
 // It is responsible for parsing requests from external clients,
 // and writing the responses to go back to those external clients.
 class JsonPropertyList : public PropertiesDataList, public PropertyListInterface {
-  // Object Factory
-  ObjectFactory ofactory;
+  // Data Factory
+  DataFactory ofactory;
  public:
   // Constructor
   JsonPropertyList() : PropertiesDataList() {}
   ~JsonPropertyList() {}
-  // Inbound Message Translation methods
-  JsonPropertyList(const rapidjson::Document& d);
   // Copy Constructor
   JsonPropertyList(const JsonPropertyList &olist) : PropertiesDataList(olist) {}
   // Message Type

@@ -21,10 +21,9 @@ limitations under the License.
 #include "object_3d.h"
 #include "object_interface.h"
 #include "data_related.h"
-#include "data_frameable.h"
-#include "animation_property.h"
-#include "animation_frame_interface.h"
-#include "animation_frame.h"
+#include "property_interface.h"
+#include "object_frame.h"
+#include "object_document.h"
 #include "animation_graph_handle.h"
 #include "app/include/clyman_utils.h"
 
@@ -33,8 +32,8 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/error/en.h"
 
-#ifndef SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
-#define SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
+#ifndef SRC_MODEL_INCLUDE_JSON_OBJECT_H_
+#define SRC_MODEL_INCLUDE_JSON_OBJECT_H_
 
 // An Object Document extends a related object by:
 //  - Storing Database metadata
@@ -42,57 +41,41 @@ limitations under the License.
 //     to and from JSON.  These methods are meant for
 //     use in communicating with the database ONLY,
 //     external clients should communicate using the object_list API
-class ObjectDocument : public RelatedData, public Object3d, public ObjectInterface {
-  // String attributes
-  std::string name;
-  std::string type;
-  std::string subtype;
-  std::string owner;
+class JsonObject : public ObjectDocument, public ObjectInterface {
   // String Return Value
   const char* json_cstr_val = NULL;
   std::string json_str_val;
   // String Return Value
   const char* transform_cstr_val = NULL;
   std::string transform_str_val;
-  std::vector<AnimationProperty*> properties;
+
  public:
   // Constructors
-  ObjectDocument() : RelatedData(), Object3d() {}
-  // Parse a JSON document
-  ObjectDocument(const rapidjson::Document &d);
+  JsonObject() : ObjectDocument() {}
   // Copy Constructor
-  ObjectDocument(const ObjectDocument &o);
-  ObjectDocument(const ObjectInterface &o);
+  JsonObject(const ObjectDocument &o) = delete;
+  JsonObject(const ObjectInterface &o) = delete;
   // Destructor
-  ~ObjectDocument() {clear_props();}
+  ~JsonObject() {}
   // String Getters
-  std::string get_name() const override {return name;}
-  std::string get_type() const override {return type;}
-  std::string get_subtype() const override {return subtype;}
-  std::string get_owner() const override {return owner;}
+  std::string get_name() const override {return ObjectDocument::get_name();}
+  std::string get_type() const override {return ObjectDocument::get_type();}
+  std::string get_subtype() const override {return ObjectDocument::get_subtype();}
+  std::string get_owner() const override {return ObjectDocument::get_owner();}
   // String Setters
-  void set_name(std::string new_name) override {name.assign(new_name);}
-  void set_type(std::string new_type) override {type.assign(new_type);}
-  void set_subtype(std::string new_subtype) override {subtype.assign(new_subtype);}
-  void set_owner(std::string new_owner) override {owner.assign(new_owner);}
-  void write_string_attributes(ObjectInterface *target);
-  // Take a target object and apply it's fields as changes to this Object
-  void merge(ObjectInterface *target) override;
-  // Take a target object and overwrite this object's fields with it
-  void overwrite(ObjectInterface *target) override;
+  void set_name(std::string new_name) override {ObjectDocument::set_name(new_name);}
+  void set_type(std::string new_type) override {ObjectDocument::set_type(new_type);}
+  void set_subtype(std::string new_subtype) override {ObjectDocument::set_subtype(new_subtype);}
+  void set_owner(std::string new_owner) override {ObjectDocument::set_owner(new_owner);}
   // to_transform_message to build a JSON to send via UDP
   std::string to_transform_json() override;
   std::string to_transform_json(int mtype) override;
+  void to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& writer, int mtype) override;
   // Inherited Methods
   // Transform methods
   void transform(Transformation *t) override {Object3d::transform(t);}
   bool has_transform() const override {return Object3d::has_transform();}
   Transformation* get_transform() const override {return Object3d::get_transform();}
-  // Frame/timestamp
-  int get_frame() const override {return FrameableData::get_frame();}
-  int get_timestamp() const override {return FrameableData::get_timestamp();}
-  void set_frame(int new_frame) override {FrameableData::set_frame(new_frame);}
-  void set_timestamp(int new_timestamp) override {FrameableData::set_timestamp(new_timestamp);}
   // String Getters
   std::string get_key() const override {return RelatedData::get_key();}
   std::string get_asset_sub_id() const override {return RelatedData::get_asset_sub_id();}
@@ -110,19 +93,16 @@ class ObjectDocument : public RelatedData, public Object3d, public ObjectInterfa
   void remove_asset(int index) override {RelatedData::remove_asset(index);}
   void clear_assets() override {RelatedData::clear_assets();}
   // Object Properties
-  int num_props() const {return properties.size();}
-  void add_prop(AnimationProperty *new_prop) {properties.push_back(new_prop);}
-  AnimationProperty* get_prop(int index) const {return properties[index];}
-  void remove_prop(int index) {properties.erase(properties.begin()+index);}
-  void clear_props() {
-    for (unsigned int i = 0; i < properties.size(); i++) {
-      delete properties[i];
-    }
-    properties.clear();
-  }
-  // Animation Frame
-  AnimationFrameInterface* get_animation_frame() {return FrameableData::get_animation_frame();}
-  void set_animation_frame(AnimationFrameInterface *new_aframe) {FrameableData::set_animation_frame(new_aframe);}
+  int num_props() const override {return ObjectDocument::num_props();}
+  void add_prop(PropertyInterface *new_prop) override {ObjectDocument::add_prop(new_prop);}
+  PropertyInterface* get_prop(int index) const override {return ObjectDocument::get_prop(index);}
+  void remove_prop(int index) override {ObjectDocument::remove_prop(index);}
+  void clear_props() override {ObjectDocument::clear_props();}
+  // Access actions
+  void add_action(std::string name, AnimationAction<ObjectFrame> *new_action) override \
+      {ObjectDocument::add_action(name, new_action);}
+  AnimationAction<ObjectFrame>* get_action(std::string name) override \
+      {return ObjectDocument::get_action(name);}
 };
 
-#endif  // SRC_MODEL_INCLUDE_OBJECT_DOCUMENT_H_
+#endif  // SRC_MODEL_INCLUDE_JSON_OBJECT_H_

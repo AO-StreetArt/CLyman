@@ -22,12 +22,13 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "model/include/object_document.h"
-#include "model/include/object_interface.h"
-#include "model/include/object_factory.h"
-#include "app/include/clyman_utils.h"
+#include "json_object.h"
+#include "object_interface.h"
+#include "data_factory.h"
 #include "data_list.h"
 #include "object_list_interface.h"
+
+#include "app/include/clyman_utils.h"
 
 #ifndef SRC_API_INCLUDE_JSON_OBJECT_LIST_H_
 #define SRC_API_INCLUDE_JSON_OBJECT_LIST_H_
@@ -38,15 +39,13 @@ using ObjectDataList = DataList<ObjectInterface*>;
 // It is responsible for parsing requests from external clients,
 // and writing the responses to go back to those external clients.
 class JsonObjectList : public ObjectDataList, public ObjectListInterface {
-  // Object Factory
-  ObjectFactory ofactory;
+  // Data Factory
+  DataFactory ofactory;
 
  public:
   // Constructor
   JsonObjectList() : ObjectDataList() {}
   ~JsonObjectList() {}
-  // Inbound Message Translation methods
-  JsonObjectList(const rapidjson::Document& d);
   // Copy Constructor
   JsonObjectList(const JsonObjectList &olist) : ObjectDataList(olist) {}
   // Message Type

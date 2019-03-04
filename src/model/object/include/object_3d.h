@@ -19,7 +19,6 @@ limitations under the License.
 #include <algorithm>
 #include <exception>
 #include "transforms.h"
-#include "data_frameable.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_3D_H_
 #define SRC_MODEL_INCLUDE_OBJECT_3D_H_
@@ -48,7 +47,7 @@ struct Object3dException: public std::exception {
 };
 
 // The Object3d class stores data for a single object in 3-space.
-class Object3d : public FrameableData {
+class Object3d {
   // Transformation matrix
   Transformation *trans = NULL;
 

@@ -34,7 +34,7 @@ limitations under the License.
 
 #include "Poco/Net/HTTPServerRequest.h"
 
-#include "model/include/animation_graph_handle.h"
+#include "model/core/include/animation_graph_handle.h"
 
 #ifndef SRC_APP_INCLUDE_IVAN_UTILS_H_
 #define SRC_APP_INCLUDE_IVAN_UTILS_H_
@@ -194,54 +194,38 @@ inline int find_json_int_elt_in_doc(const rapidjson::Document &d, \
 inline void parse_json_graph_handle(rapidjson::GenericArray<true, rapidjson::GenericValue<rapidjson::UTF8<> > >::ValueType& itr, \
     AnimationGraphHandle *handle) {
   // Left Handle
+  for (auto& elt_itr : itr.GetObject()) {
+    std::string param_name = elt_itr.name.GetString();
 
-  // Get the type of handle
-  auto lt_iter = itr.FindMember("left_type");
-  if (lt_iter != itr.MemberEnd()) {
-    if (lt_iter->value.IsString()) {
-      handle->set_lh_type(lt_iter->value.GetString());
-    }
-  }
-  auto lx_itr = itr.FindMember("left_x");
-  if (lx_itr != itr.MemberEnd()) {
-    if (lx_itr->value.IsDouble()) {
-      handle->set_lh_x(lx_itr->value.GetDouble());
-    } else if (lx_itr->value.IsInt()) {
-      handle->set_lh_x(static_cast<double>(lx_itr->value.GetInt()));
-    }
-  }
-  auto ly_itr = itr.FindMember("left_y");
-  if (ly_itr != itr.MemberEnd()) {
-    if (ly_itr->value.IsNumber()) {
-      handle->set_lh_y(ly_itr->value.GetDouble());
-    } else if (ly_itr->value.IsInt()) {
-      handle->set_lh_y(static_cast<double>(ly_itr->value.GetInt()));
-    }
-  }
+    // Set string properties
+    if (elt_itr.value.IsString()) {
+      if (param_name.compare("left_type")) {
+        handle->set_lh_type(elt_itr.value.GetString());
+      } else if (param_name.compare("right_type")) {
+        handle->set_rh_type(elt_itr.value.GetString());
+      }
 
-  // Right Handle
+    // Set numerical properties
+    } else if (elt_itr.value.IsNumber()) {
 
-  // Get the type of handle
-  auto rt_itr = itr.FindMember("right_type");
-  if (rt_itr != itr.MemberEnd()) {
-    if (rt_itr->value.IsString()) {
-      handle->set_rh_type(rt_itr->value.GetString());
-    }
-  }
-  auto rx_itr = itr.FindMember("right_x");
-  if (rx_itr != itr.MemberEnd()) {
-    if (rx_itr->value.IsNumber()) {
-      handle->set_rh_x(rx_itr->value.GetDouble());
-    } else if (rx_itr->value.IsInt()) {
-      handle->set_rh_x(static_cast<double>(rx_itr->value.GetInt()));
-    }
-  }
-  auto ry_itr = itr.FindMember("right_y");
-  if (ry_itr != itr.MemberEnd()) {
-    if (ry_itr->value.IsNumber()) {
-      handle->set_rh_y(ry_itr->value.GetDouble());
-    } else if (ry_itr->value.IsInt()) {
-      handle->set_rh_y(static_cast<double>(ry_itr->value.GetInt()));
+      // Get the parameter value
+      double param_value = 0.0;
+      if (elt_itr.value.IsDouble()) {
+        param_value = elt_itr.value.GetDouble();
+      } else if (elt_itr.value.IsInt()) {
+        param_value = static_cast<double>(elt_itr.value.GetInt());
+      }
+
+      // Set the actual property value
+      if (param_name.compare("left_x")) {
+        handle->set_lh_x(param_value);
+      } else if (param_name.compare("left_y")) {
+        handle->set_lh_y(param_value);
+      } else if (param_name.compare("right_x")) {
+        handle->set_rh_y(param_value);
+      } else if (param_name.compare("right_y")) {
+        handle->set_rh_y(param_value);
+      }
     }
   }
 }

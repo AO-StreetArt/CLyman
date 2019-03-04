@@ -18,17 +18,25 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <exception>
-#include "object_frame_interface.h"
-#include "animation_property.h"
+#include "object_frame.h"
+#include "property_interface.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
 #define SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
 
 // An Object Interface defines the functions for the Object-3D Data Model
 // Represents a single document in Mongo
-class ObjectInterface : public ObjectFrameInterface {
+class ObjectInterface {
  public:
   virtual ~ObjectInterface() {}
+  // Object Key
+  // The OID of the object in Mongo
+  virtual std::string get_key() const = 0;
+  virtual void set_key(std::string new_key) = 0;
+  // Parent Key
+  // The OID of the original object in Mongo
+  virtual std::string get_parent() const = 0;
+  virtual void set_parent(std::string new_key) = 0;
   // Object Name
   // Non-Unique Object identifier
   virtual std::string get_name() const = 0;
@@ -56,6 +64,10 @@ class ObjectInterface : public ObjectFrameInterface {
   // from a parent object.
   virtual std::string get_asset_sub_id() const = 0;
   virtual void set_asset_sub_id(std::string new_asset_sub_id) = 0;
+  // Transform methods
+  virtual void transform(Transformation *t) = 0;
+  virtual bool has_transform() const = 0;
+  virtual Transformation* get_transform() const = 0;
   // Object Assets
   // A Unique ID corresponding to a record in the asset module
   // Represents mesh files, texture files, shader scripts, etc
@@ -67,19 +79,17 @@ class ObjectInterface : public ObjectFrameInterface {
   // Object Properties
   // Named sets of values that can be keyframed seperately
   virtual int num_props() const = 0;
-  virtual void add_prop(AnimationProperty *new_prop) = 0;
-  virtual AnimationProperty* get_prop(int index) const = 0;
+  virtual void add_prop(PropertyInterface *new_prop) = 0;
+  virtual PropertyInterface* get_prop(int index) const = 0;
   virtual void remove_prop(int index) = 0;
   virtual void clear_props() = 0;
-  // Take a target object and apply it's fields as changes to this Object
-  virtual void merge(ObjectInterface *target) = 0;
-  // Take a target object and overwrite this object's fields with it
-  virtual void overwrite(ObjectInterface *target) = 0;
+  // Convert to an Event JSON
+  virtual void to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& writer, int mtype) = 0;
   virtual std::string to_transform_json(int mtype) = 0;
   virtual std::string to_transform_json() = 0;
-  // Get the animation frame
-  virtual AnimationFrameInterface* get_animation_frame() = 0;
-  virtual void set_animation_frame(AnimationFrameInterface *new_aframe) = 0;
+  // Access actions
+  virtual void add_action(std::string name, AnimationAction<ObjectFrame> *new_action) = 0;
+  virtual AnimationAction<ObjectFrame>* get_action(std::string name) = 0;
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_

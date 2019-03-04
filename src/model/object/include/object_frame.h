@@ -15,32 +15,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <string>
+#include "object_3d.h"
+#include "animation_frame.h"
+#include "animation_graph_handle.h"
 
-#include "animation_frame_interface.h"
+#ifndef SRC_MODEL_INCLUDE_OBJECT_FRAME_H_
+#define SRC_MODEL_INCLUDE_OBJECT_FRAME_H_
 
-#ifndef SRC_MODEL_INCLUDE_ANIMATION_FRAME_H_
-#define SRC_MODEL_INCLUDE_ANIMATION_FRAME_H_
-
-// An Animation Frame Interface defines the functions for the Animation-Frame Data Model
-// Represents a single animation frame document in Mongo.  Stores information
-// from Animation Curves, namely graph handles associated to keyframes.  These
-// are used by animators to tweak and refine animations.
-class AnimationFrame : public AnimationFrameInterface {
+// An Object Frame is an animation frame with a transform for 3d objects
+class ObjectFrame : public AnimationFrame, public Object3d {
   std::vector<AnimationGraphHandle*> translation;
   std::vector<AnimationGraphHandle*> rotation;
   std::vector<AnimationGraphHandle*> scale;
  public:
-   AnimationFrame() {
-     for (int i=0; i<3; i++) {
-       translation.push_back(new AnimationGraphHandle);
-       rotation.push_back(new AnimationGraphHandle);
-       scale.push_back(new AnimationGraphHandle);
-     }
-     rotation.push_back(new AnimationGraphHandle);
-   }
-   AnimationFrame(const AnimationFrame& obj) = delete;
-  ~AnimationFrame() {
+  // Constructors
+  ObjectFrame() : AnimationFrame(), Object3d() {
+    for (int i=0; i<3; i++) {
+      translation.push_back(new AnimationGraphHandle);
+      rotation.push_back(new AnimationGraphHandle);
+      scale.push_back(new AnimationGraphHandle);
+    }
+    rotation.push_back(new AnimationGraphHandle);
+  }
+  // Destructor
+  ~ObjectFrame() {
     for (int i=0; i<3; i++) {
       delete translation[i];
       delete rotation[i];
@@ -48,6 +46,8 @@ class AnimationFrame : public AnimationFrameInterface {
     }
     delete rotation[3];
   }
+  // Explicitly disable copy constructor
+  ObjectFrame(const ObjectFrame& obj) = delete;
 
   // Access and set the Translation Graph Handles
   AnimationGraphHandle* get_translation(int index) {return translation[index];}
@@ -62,4 +62,4 @@ class AnimationFrame : public AnimationFrameInterface {
   void set_scale(int index, AnimationGraphHandle* new_handle) {scale[index] = new_handle;}
 };
 
-#endif  // SRC_MODEL_INCLUDE_ANIMATION_FRAME_H_
+#endif  // SRC_MODEL_INCLUDE_OBJECT_FRAME_H_
