@@ -22,9 +22,9 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "json_object.h"
-#include "object_interface.h"
-#include "data_factory.h"
+#include "model/object/include/json_object.h"
+#include "model/object/include/object_interface.h"
+#include "model/factory/include/data_factory.h"
 #include "data_list.h"
 #include "object_list_interface.h"
 

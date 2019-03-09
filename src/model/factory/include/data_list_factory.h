@@ -15,10 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "object_list_interface.h"
-#include "json_object_list.h"
-#include "property_list_interface.h"
-#include "json_property_list.h"
+#include "model/list/include/object_list_interface.h"
+#include "model/list/include/json_object_list.h"
+#include "model/list/include/property_list_interface.h"
+#include "model/list/include/json_property_list.h"
 
 #ifndef SRC_API_INCLUDE_DATA_LIST_FACTORY_H_
 #define SRC_API_INCLUDE_DATA_LIST_FACTORY_H_

@@ -20,12 +20,12 @@ limitations under the License.
 #include <exception>
 #include "object_3d.h"
 #include "object_interface.h"
-#include "data_related.h"
-#include "property_interface.h"
+#include "app/include/clyman_utils.h"
+#include "model/core/include/data_related.h"
+#include "model/core/include/animation_graph_handle.h"
+#include "model/property/include/property_interface.h"
 #include "object_frame.h"
 #include "object_document.h"
-#include "animation_graph_handle.h"
-#include "app/include/clyman_utils.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -92,17 +92,13 @@ class JsonObject : public ObjectDocument, public ObjectInterface {
   std::string get_asset(int index) const override {return RelatedData::get_asset(index);}
   void remove_asset(int index) override {RelatedData::remove_asset(index);}
   void clear_assets() override {RelatedData::clear_assets();}
-  // Object Properties
-  int num_props() const override {return ObjectDocument::num_props();}
-  void add_prop(PropertyInterface *new_prop) override {ObjectDocument::add_prop(new_prop);}
-  PropertyInterface* get_prop(int index) const override {return ObjectDocument::get_prop(index);}
-  void remove_prop(int index) override {ObjectDocument::remove_prop(index);}
-  void clear_props() override {ObjectDocument::clear_props();}
   // Access actions
   void add_action(std::string name, AnimationAction<ObjectFrame> *new_action) override \
       {ObjectDocument::add_action(name, new_action);}
   AnimationAction<ObjectFrame>* get_action(std::string name) override \
       {return ObjectDocument::get_action(name);}
+  std::map<std::string, AnimationAction<ObjectFrame>*>* get_actions() override \
+      {return ObjectDocument::get_actions();}
 };
 
 #endif  // SRC_MODEL_INCLUDE_JSON_OBJECT_H_

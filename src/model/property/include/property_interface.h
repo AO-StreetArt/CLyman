@@ -19,8 +19,8 @@ limitations under the License.
 #include <vector>
 #include <exception>
 #include <iterator>
-#include "animation_action.h"
 #include "property_frame.h"
+#include "model/core/include/animation_action.h"
 
 #ifndef SRC_MODEL_INCLUDE_PROPERTY_INTERFACE_H_
 #define SRC_MODEL_INCLUDE_PROPERTY_INTERFACE_H_
@@ -66,6 +66,7 @@ class PropertyInterface {
   // Access actions
   virtual void add_action(std::string name, AnimationAction<PropertyFrame> *new_action) = 0;
   virtual AnimationAction<PropertyFrame>* get_action(std::string name) = 0;
+  virtual std::map<std::string, AnimationAction<PropertyFrame>*>* get_actions() = 0;
 };
 
 #endif  // SRC_MODEL_INCLUDE_PROPERTY_INTERFACE_H_

@@ -35,7 +35,7 @@ limitations under the License.
 // Represents a single document in Mongo
 class JsonProperty : public AnimationProperty, public PropertyInterface {
  public:
-  JsonProperty();
+  JsonProperty() : AnimationProperty() {}
   // Copy Constructor
   JsonProperty(const AnimationProperty &o) = delete;
   JsonProperty(const PropertyInterface &o) = delete;
@@ -76,6 +76,8 @@ class JsonProperty : public AnimationProperty, public PropertyInterface {
       {AnimationProperty::add_action(name, new_action);}
   AnimationAction<PropertyFrame>* get_action(std::string name) override \
       {return AnimationProperty::get_action(name);}
+  std::map<std::string, AnimationAction<PropertyFrame>*>* get_actions() override \
+      {return AnimationProperty::get_actions();}
 };
 
 #endif  // SRC_MODEL_INCLUDE_JSON_PROPERTY_H_

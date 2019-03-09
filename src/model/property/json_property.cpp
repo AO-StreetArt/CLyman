@@ -47,7 +47,7 @@ void JsonProperty::to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& wr
   // Write animations array
   writer.Key("actions");
   writer.StartArray();
-  for (auto action_itr = AnimationProperty::get_actions().begin(); action_itr != AnimationProperty::get_actions().end(); ++action_itr) {
+  for (auto action_itr = AnimationProperty::get_actions()->begin(); action_itr != AnimationProperty::get_actions()->end(); ++action_itr) {
     writer.StartObject();
     write_json_string_elt(writer, "name", action_itr->first);
     write_json_string_elt(writer, "description", action_itr->second->get_description());

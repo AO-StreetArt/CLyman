@@ -18,12 +18,12 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <exception>
-#include "object_3d.h"
-#include "data_related.h"
-#include "property_interface.h"
-#include "object_frame.h"
-#include "animation_graph_handle.h"
 #include "app/include/clyman_utils.h"
+#include "model/core/include/animation_graph_handle.h"
+#include "model/core/include/data_related.h"
+#include "model/property/include/property_interface.h"
+#include "object_3d.h"
+#include "object_frame.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -47,8 +47,6 @@ class ObjectDocument : public RelatedData, public Object3d {
   std::string owner;
   // Map of actions containing keyframes
   std::map<std::string, AnimationAction<ObjectFrame>*> action_map;
-  // Vector of properties
-  std::vector<PropertyInterface*> properties;
  public:
   // Constructors
   ObjectDocument() : RelatedData(), Object3d() {}
@@ -58,7 +56,8 @@ class ObjectDocument : public RelatedData, public Object3d {
   ObjectDocument(const ObjectInterface &o) = delete;
 
   // Destructor
-  virtual ~ObjectDocument() {clear_props();}
+  virtual ~ObjectDocument() {for (auto map_itr = action_map.begin(); map_itr != action_map.end(); ++map_itr) \
+      {delete map_itr->second;}}
 
   // String Getters
   std::string get_name() const {return name;}
@@ -71,18 +70,6 @@ class ObjectDocument : public RelatedData, public Object3d {
   void set_type(std::string new_type) {type.assign(new_type);}
   void set_subtype(std::string new_subtype) {subtype.assign(new_subtype);}
   void set_owner(std::string new_owner) {owner.assign(new_owner);}
-
-  // Object Properties
-  int num_props() const {return properties.size();}
-  void add_prop(PropertyInterface *new_prop) {properties.push_back(new_prop);}
-  PropertyInterface* get_prop(int index) const {return properties[index];}
-  void remove_prop(int index) {properties.erase(properties.begin()+index);}
-  void clear_props() {
-    for (unsigned int i = 0; i < properties.size(); i++) {
-      delete properties[i];
-    }
-    properties.clear();
-  }
 
   // Access actions
   void add_action(std::string name, AnimationAction<ObjectFrame> *new_action) \

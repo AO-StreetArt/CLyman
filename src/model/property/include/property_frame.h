@@ -15,8 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include "model/core/include/animation_frame.h"
 #include "property_3d.h"
-#include "animation_frame.h"
 
 #ifndef SRC_MODEL_INCLUDE_PROPERTY_FRAME_H_
 #define SRC_MODEL_INCLUDE_PROPERTY_FRAME_H_

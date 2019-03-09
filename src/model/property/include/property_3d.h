@@ -18,8 +18,6 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <exception>
-#include "animation_graph_handle.h"
-#include "data_related.h"
 #include "app/include/clyman_utils.h"
 
 #include "rapidjson/document.h"

@@ -15,12 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This implements the Configuration Manager
-
-// This takes in a Command Line Interpreter, and based on the options provided,
-// decides how the application needs to be configured.  It may configure either
-// from a configuration file, or from a Consul agent
-
 #include <iostream>
 #include <boost/cstdint.hpp>
 

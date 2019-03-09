@@ -15,9 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include "model/core/include/animation_frame.h"
+#include "model/core/include/animation_graph_handle.h"
 #include "object_3d.h"
-#include "animation_frame.h"
-#include "animation_graph_handle.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_FRAME_H_
 #define SRC_MODEL_INCLUDE_OBJECT_FRAME_H_

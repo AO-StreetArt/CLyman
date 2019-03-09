@@ -18,11 +18,11 @@ limitations under the License.
 #include <string>
 #include <iterator>
 #include <map>
-#include "animation_action.h"
+#include "model/core/include/animation_action.h"
+#include "model/core/include/data_related.h"
 #include "property_frame.h"
 #include "property_interface.h"
 #include "property_3d.h"
-#include "data_related.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -56,7 +56,7 @@ class AnimationProperty : public Property3d, public RelatedData {
       {action_map.emplace(name, new_action);}
   AnimationAction<PropertyFrame>* get_action(std::string name) \
       {return action_map[name];}
-  std::map<std::string, AnimationAction<PropertyFrame>*> get_actions() {return action_map;}
+  std::map<std::string, AnimationAction<PropertyFrame>*>* get_actions() {return &action_map;}
 };
 
 #endif  // SRC_MODEL_INCLUDE_ANIMATION_PROPERTY_H_

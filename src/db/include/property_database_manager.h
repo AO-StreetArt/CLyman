@@ -15,26 +15,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This implements the Configuration Manager
-
-// This takes in a Command Line Interpreter, and based on the options provided,
-// decides how the application needs to be configured.  It may configure either
-// from a configuration file, or from a Consul agent
 
 #include <iostream>
 #include <boost/cstdint.hpp>
 
-#include "model/include/object_factory.h"
-#include "model/include/property_interface.h"
-
-#include "api/include/object_list_factory.h"
-#include "api/include/property_list_interface.h"
+#include "model/core/include/animation_action.h"
+#include "model/factory/include/data_factory.h"
+#include "model/property/include/property_interface.h"
+#include "model/property/include/property_frame.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/list/include/property_list_interface.h"
 
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/builder/stream/helpers.hpp>
 #include <bsoncxx/types.hpp>
 #include <bsoncxx/json.hpp>
+#include <bsoncxx/stdx/string_view.hpp>
+#include <bsoncxx/string/to_string.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
 #include <mongocxx/pool.hpp>
@@ -46,6 +44,10 @@ limitations under the License.
 #include "rapidjson/error/en.h"
 
 #include "app/include/clyman_utils.h"
+#include "model/core/include/animation_action.h"
+#include "model/object/include/object_frame.h"
+#include "model/property/include/property_frame.h"
+
 
 #include "core_database_manager.h"
 
@@ -63,7 +65,7 @@ class PropertyDatabaseManager : public CoreDatabaseManager {
   std::string coll_name;
   int max_retries = 11;
   // Factories
-  ObjectFactory object_factory;
+  DataFactory object_factory;
 
   // Execute a Creation or Update Transaction
   void prop_transaction(DatabaseResponse &response, PropertyInterface *obj, \
@@ -77,6 +79,8 @@ class PropertyDatabaseManager : public CoreDatabaseManager {
 
   // Convert a BSON Document View to an Object Interface
   void bson_to_prop(bsoncxx::document::view& result, PropertyInterface *obj);
+
+  void build_prop_doc(bsoncxx::builder::stream::document &builder, PropertyInterface *obj, bool include_actions);
 
  public:
   PropertyDatabaseManager(AOSSL::NetworkApplicationProfile *profile, std::string conn, \

@@ -15,10 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "object_interface.h"
-#include "json_object.h"
-#include "property_interface.h"
-#include "json_property.h"
+#include "model/object/include/object_interface.h"
+#include "model/object/include/json_object.h"
+#include "model/property/include/property_interface.h"
+#include "model/property/include/json_property.h"
 
 #ifndef SRC_MODEL_INCLUDE_DATA_FACTORY_H_
 #define SRC_MODEL_INCLUDE_DATA_FACTORY_H_

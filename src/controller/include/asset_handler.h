@@ -25,9 +25,12 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "db/include/db_manager_interface.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
+#include "db/include/db_manager_interface.h"
+#include "model/factory/include/data_factory.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/list/include/object_list_interface.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -43,8 +46,8 @@ class AssetRequestHandler: public Poco::Net::HTTPRequestHandler {
   AOSSL::KeyValueStoreInterface *config = nullptr;
   DatabaseManagerInterface *db_manager = nullptr;
   int msg_type = -1;
-  ObjectListFactory object_list_factory;
-  ObjectFactory object_factory;
+  DataListFactory object_list_factory;
+  DataFactory object_factory;
   ClusterManager *cluster_manager = nullptr;
   Poco::Logger& logger;
   std::string object_id;

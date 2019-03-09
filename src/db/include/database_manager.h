@@ -24,10 +24,11 @@ limitations under the License.
 #include <iostream>
 #include <boost/cstdint.hpp>
 
-#include "model/include/object_interface.h"
-#include "model/include/transforms.h"
-
-#include "api/include/object_list_interface.h"
+#include "model/object/include/transforms.h"
+#include "model/object/include/object_interface.h"
+#include "model/list/include/object_list_interface.h"
+#include "model/list/include/property_list_interface.h"
+#include "model/property/include/property_interface.h"
 
 #include "aossl/profile/include/network_app_profile.h"
 #include "aossl/consul/include/consul_interface.h"

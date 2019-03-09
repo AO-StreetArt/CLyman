@@ -24,14 +24,12 @@ limitations under the License.
 #include <iostream>
 #include <boost/cstdint.hpp>
 
-#include "model/include/object_factory.h"
-#include "model/include/property_interface.h"
-#include "model/include/object_interface.h"
-#include "model/include/transforms.h"
-
-#include "api/include/object_list_factory.h"
-#include "api/include/object_list_interface.h"
-#include "api/include/property_list_interface.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/object/include/transforms.h"
+#include "model/object/include/object_interface.h"
+#include "model/list/include/object_list_interface.h"
+#include "model/list/include/property_list_interface.h"
+#include "model/property/include/property_interface.h"
 
 #ifndef SRC_APPLICATION_INCLUDE_DB_MANAGER_INTERFACE_H_
 #define SRC_APPLICATION_INCLUDE_DB_MANAGER_INTERFACE_H_

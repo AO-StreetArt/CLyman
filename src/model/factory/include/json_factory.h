@@ -19,15 +19,14 @@ limitations under the License.
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#include "object_interface.h"
-#include "json_object.h"
-#include "object_list_interface.h"
-#include "json_object_list.h"
-
-#include "property_interface.h"
-#include "json_property.h"
-#include "property_list_interface.h"
-#include "json_property_list.h"
+#include "model/object/include/object_interface.h"
+#include "model/object/include/json_object.h"
+#include "model/property/include/property_interface.h"
+#include "model/property/include/json_property.h"
+#include "model/list/include/object_list_interface.h"
+#include "model/list/include/json_object_list.h"
+#include "model/list/include/property_list_interface.h"
+#include "model/list/include/json_property_list.h"
 
 #ifndef SRC_MODEL_INCLUDE_JSON_FACTORY_H_
 #define SRC_MODEL_INCLUDE_JSON_FACTORY_H_

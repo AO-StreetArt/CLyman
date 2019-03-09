@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "include/obj3_database_manager.h"
 
-void ObjectDatabaseManager::add_handles_to_doc(bsoncxx::builder::stream::document &builder, AnimationFrameInterface *aframe) {
+void ObjectDatabaseManager::add_handles_to_doc(bsoncxx::builder::stream::document &builder, ObjectFrame *aframe) {
     auto aframe_doc = bsoncxx::builder::stream::document{};
     if (aframe) {
       aframe_doc << "active" << true;
@@ -67,8 +67,6 @@ void ObjectDatabaseManager::build_create_doc(bsoncxx::builder::stream::document 
   builder << "subtype" << obj->get_subtype();
   builder << "owner" << obj->get_owner();
   builder << "scene" << obj->get_scene();
-  builder << "frame" << obj->get_frame();
-  builder << "timestamp" << obj->get_timestamp();
 
   // Add the Assets
   auto asset_array = bsoncxx::builder::stream::array{};
@@ -90,8 +88,49 @@ void ObjectDatabaseManager::build_create_doc(bsoncxx::builder::stream::document 
   }
   builder << "transform" << transform_doc;
 
-  // Add the AnimationFrame
-  add_handles_to_doc(builder, obj->get_animation_frame());
+  // Write Actions entries
+  auto actions_outer_doc = bsoncxx::builder::stream::document{};
+  for (auto action_itr = obj->get_actions()->begin(); action_itr != obj->get_actions()->end(); ++action_itr) {
+    auto action_doc = bsoncxx::builder::stream::document{};
+    action_doc << "name" << action_itr->first;
+    action_doc << "description" << action_itr->second->get_description();
+    action_doc << "owner" << action_itr->second->get_owner();
+    auto frames_outer_doc = bsoncxx::builder::stream::document{};
+    for (auto frame_itr = action_itr->second->get_keyframes()->begin(); frame_itr != action_itr->second->get_keyframes()->end(); ++frame_itr) {
+      auto frame_doc = bsoncxx::builder::stream::document{};
+
+      // Add frame elements
+      frame_doc << "owner" << frame_itr->second->get_owner();
+      frame_doc << "frame" << frame_itr->second->get_frame();
+
+      // TODO: Write Transform
+      // Add the Transform
+      auto transform_doc = bsoncxx::builder::stream::document{};
+      std::string key_values[16] = {"r1_c1", "r1_c2", "r1_c3", "r1_c4", \
+          "r2_c1", "r2_c2", "r2_c3", "r2_c4", "r3_c1", "r3_c2", "r3_c3", "r3_c4", \
+          "r4_c1", "r4_c2", "r4_c3", "r4_c4"};
+      for (int j = 0; j < 4; j++) {
+        for (int k = 0; k < 4; k++) {
+          int index = (4 * j) + k;
+          transform_doc << key_values[index] << frame_itr->second->get_transform()->get_transform_element(j, k);
+        }
+      }
+      frame_doc << "transform" << transform_doc;
+
+      // TODO: Write animation frame
+      add_handles_to_doc(frame_doc, frame_itr->second);
+
+      // Add the frame doc to the outer frame doc
+      frames_outer_doc << std::to_string(frame_itr->first) << frame_doc;
+    }
+
+    // Add the frames outer doc to the action doc
+    action_doc << "frames" << frames_outer_doc;
+
+    // Add the action document to the outer actions document
+    actions_outer_doc << action_itr->first << action_doc;
+  }
+  builder << "actions" << actions_outer_doc;
 }
 
 void ObjectDatabaseManager::build_query_doc(bsoncxx::builder::stream::document &builder, ObjectInterface *obj) {
@@ -116,12 +155,6 @@ void ObjectDatabaseManager::build_query_doc(bsoncxx::builder::stream::document &
   }
   if (!(obj->get_scene().empty())) {
     builder << "scene" << obj->get_scene();
-  }
-  if ((obj->get_frame() == -9999) || (obj->get_frame() > -1)) {
-    builder << "frame" << obj->get_frame();
-  }
-  if (obj->get_timestamp() > -1) {
-    builder << "timestamp" << obj->get_timestamp();
   }
   if (obj->num_assets() == 1) {
     // If we have only one element, then search for docs
@@ -162,12 +195,6 @@ void ObjectDatabaseManager::build_update_doc(bsoncxx::builder::stream::document 
   if (!(obj->get_scene().empty())) {
     set_doc << "scene" << obj->get_scene();
   }
-  if (obj->get_frame() > -1) {
-    set_doc << "frame" << obj->get_frame();
-  }
-  if (obj->get_timestamp() > -1) {
-    set_doc << "timestamp" << obj->get_timestamp();
-  }
   if (obj->has_transform()) {
     // Add the Transform
     auto transform_doc = bsoncxx::builder::stream::document{};
@@ -181,11 +208,6 @@ void ObjectDatabaseManager::build_update_doc(bsoncxx::builder::stream::document 
       }
     }
     set_doc << "transform" << transform_doc;
-  }
-
-  // Add the AnimationFrame
-  if (obj->get_animation_frame()) {
-    add_handles_to_doc(set_doc, obj->get_animation_frame());
   }
   builder << "$set" << set_doc;
 
@@ -294,79 +316,163 @@ void ObjectDatabaseManager::transaction(DatabaseResponse &response, ObjectInterf
 void ObjectDatabaseManager::bson_to_obj3(bsoncxx::document::view& result, ObjectInterface *obj) {
   // Parse basic values
   bsoncxx::document::element key_element = result["_id"];
-  obj->set_key(key_element.get_oid().value.to_string());
+  if (key_element && key_element.type() == bsoncxx::type::k_oid) {
+    auto key_elt_val_str = key_element.get_oid().value.to_string();
+    obj->set_key(key_elt_val_str);
+  }
   bsoncxx::document::element name_element = result["name"];
-  obj->set_name(name_element.get_utf8().value.to_string());
+  if (name_element && name_element.type() == bsoncxx::type::k_utf8) {
+    auto name_elt_val_str = name_element.get_utf8().value.to_string();
+    obj->set_name(name_elt_val_str);
+  }
   bsoncxx::document::element parent_element = result["parent"];
-  obj->set_parent(parent_element.get_utf8().value.to_string());
+  if (parent_element && parent_element.type() == bsoncxx::type::k_utf8) {
+    auto parent_elt_val_str = parent_element.get_utf8().value.to_string();
+    obj->set_parent(parent_elt_val_str);
+  }
   bsoncxx::document::element asset_sub_id_element = result["asset_sub_id"];
-  obj->set_asset_sub_id(asset_sub_id_element.get_utf8().value.to_string());
+  if (asset_sub_id_element && asset_sub_id_element.type() == bsoncxx::type::k_utf8) {
+    auto asset_sid_val_str = asset_sub_id_element.get_utf8().value.to_string();
+    obj->set_asset_sub_id(asset_sid_val_str);
+  }
   bsoncxx::document::element type_element = result["type"];
-  obj->set_type(type_element.get_utf8().value.to_string());
+  if (parent_element && parent_element.type() == bsoncxx::type::k_utf8) {
+    auto parent_elt_val_str = parent_element.get_utf8().value.to_string();
+    obj->set_type(type_element.get_utf8().value.to_string());
+  }
   bsoncxx::document::element subtype_element = result["subtype"];
-  obj->set_subtype(subtype_element.get_utf8().value.to_string());
+  if (parent_element && parent_element.type() == bsoncxx::type::k_utf8) {
+    auto parent_elt_val_str = parent_element.get_utf8().value.to_string();
+    obj->set_subtype(subtype_element.get_utf8().value.to_string());
+  }
   bsoncxx::document::element scene_element = result["scene"];
-  obj->set_scene(scene_element.get_utf8().value.to_string());
+  if (scene_element && scene_element.type() == bsoncxx::type::k_utf8) {
+    auto scene_elt_val_str = scene_element.get_utf8().value.to_string();
+    obj->set_scene(scene_elt_val_str);
+  }
   bsoncxx::document::element owner_element = result["owner"];
-  obj->set_owner(owner_element.get_utf8().value.to_string());
-  bsoncxx::document::element frame_element = result["frame"];
-  obj->set_frame(frame_element.get_int32().value);
-  bsoncxx::document::element timestamp_element = result["timestamp"];
-  obj->set_timestamp(timestamp_element.get_int32().value);
+  if (owner_element && owner_element.type() == bsoncxx::type::k_utf8) {
+    auto owner_elt_val_str = owner_element.get_utf8().value.to_string();
+    obj->set_owner(owner_elt_val_str);
+  }
+
   // Parse the assets array
   bsoncxx::document::element assets_element = result["assets"];
-  bsoncxx::array::view assets_view = assets_element.get_array().value;
-  int assets_array_size = std::distance(assets_view.begin(), assets_view.end());
-  for (int i = 0; i < assets_array_size; i++) {
-    bsoncxx::array::element asset_elt = assets_view[i];
-    obj->add_asset(asset_elt.get_utf8().value.to_string());
+  if (assets_element && assets_element.type() == bsoncxx::type::k_array) {
+    bsoncxx::array::view assets_view = assets_element.get_array().value;
+    int assets_array_size = std::distance(assets_view.begin(), assets_view.end());
+    for (int i = 0; i < assets_array_size; i++) {
+      bsoncxx::array::element asset_elt = assets_view[i];
+      obj->add_asset(asset_elt.get_utf8().value.to_string());
+    }
   }
+
   // Parse the transform array
   const char* key_values[16] = {"r1_c1", "r1_c2", "r1_c3", "r1_c4", \
       "r2_c1", "r2_c2", "r2_c3", "r2_c4", "r3_c1", "r3_c2", "r3_c3", "r3_c4", \
       "r4_c1", "r4_c2", "r4_c3", "r4_c4"};
   bsoncxx::document::element transform_element = result["transform"];
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      int index = (4 * i) + j;
-      bsoncxx::document::element transform_elt = transform_element[key_values[index]];
-      obj->get_transform()->set_transform_element(i, j, \
-          transform_elt.get_double().value);
+  if (transform_element && transform_element.type() == bsoncxx::type::k_array) {
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        int index = (4 * i) + j;
+        bsoncxx::document::element transform_elt = transform_element[key_values[index]];
+        obj->get_transform()->set_transform_element(i, j, \
+            transform_elt.get_double().value);
+      }
     }
   }
-  // Parse the Animation Frame
-  bsoncxx::document::element aframe_elt = result["animation_frame"];
-  auto aframe_active_elt = aframe_elt["active"];
-  if (aframe_active_elt.get_bool().value) {
-    obj->set_animation_frame(new AnimationFrame);
-    auto aft_element = aframe_elt["translation_handle"];
-    for (int i = 0; i < 3; i++) {
-      bsoncxx::document::element aft_inner_elt;
-      if (i == 0) aft_inner_elt = aft_element["x"];
-      if (i == 1) aft_inner_elt = aft_element["y"];
-      if (i == 2) aft_inner_elt = aft_element["z"];
-      CoreDatabaseManager::get_handle_from_element(aft_inner_elt, \
-          obj->get_animation_frame()->get_translation(i));
+
+  // Parse the actions array
+  for (auto element : result["actions"].get_array().value) {
+    AnimationAction<ObjectFrame> *new_action = new AnimationAction<ObjectFrame>();
+
+    if (element.type() == bsoncxx::type::k_document) {
+      auto action_doc = element.get_document().view();
+      auto name_element = action_doc["name"];
+      if (name_element && name_element.type() == bsoncxx::type::k_utf8) {
+        auto name_elt_val_str = name_element.get_utf8().value.to_string();
+        new_action->set_name(name_elt_val_str);
+      }
+      auto desc_element = action_doc["description"];
+      if (desc_element && desc_element.type() == bsoncxx::type::k_utf8) {
+        auto desc_elt_val_str = desc_element.get_utf8().value.to_string();
+        new_action->set_description(desc_elt_val_str);
+      }
+      auto owner_element = action_doc["owner"];
+      if (owner_element && owner_element.type() == bsoncxx::type::k_utf8) {
+        auto owner_elt_val_str = owner_element.get_utf8().value.to_string();
+        new_action->set_owner(owner_elt_val_str);
+      }
+      // Iterate over keyframes
+      auto frames_element = action_doc["keyframes"];
+      if (frames_element && frames_element.type() == bsoncxx::type::k_array) {
+        for (auto frame_elt : frames_element.get_array().value) {
+          ObjectFrame *new_frame = new ObjectFrame();
+
+          // Add frame attributes
+          auto frame_int_elt = frame_elt["frame"];
+          if (frame_int_elt && frame_int_elt.type() == bsoncxx::type::k_int32) {
+            new_frame->set_frame(frame_int_elt.get_int32().value);
+          }
+          auto frame_owner_elt = frame_elt["owner"];
+          if (frame_owner_elt && frame_owner_elt.type() == bsoncxx::type::k_utf8) {
+            new_frame->set_owner(frame_owner_elt.get_utf8().value.to_string());
+          }
+
+          // Parse the transform array
+          const char* key_values[16] = {"r1_c1", "r1_c2", "r1_c3", "r1_c4", \
+              "r2_c1", "r2_c2", "r2_c3", "r2_c4", "r3_c1", "r3_c2", "r3_c3", "r3_c4", \
+              "r4_c1", "r4_c2", "r4_c3", "r4_c4"};
+          bsoncxx::document::element transform_element = frame_elt["transform"];
+          for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+              int index = (4 * i) + j;
+              bsoncxx::document::element transform_elt = transform_element[key_values[index]];
+              new_frame->get_transform()->set_transform_element(i, j, \
+                  transform_elt.get_double().value);
+            }
+          }
+
+          // Parse the Animation Frame
+          bsoncxx::document::element aframe_elt = frame_elt["animation_frame"];
+          auto aframe_active_elt = aframe_elt["active"];
+          if (aframe_active_elt.get_bool().value) {
+            auto aft_element = aframe_elt["translation_handle"];
+            for (int i = 0; i < 3; i++) {
+              bsoncxx::document::element aft_inner_elt;
+              if (i == 0) aft_inner_elt = aft_element["x"];
+              if (i == 1) aft_inner_elt = aft_element["y"];
+              if (i == 2) aft_inner_elt = aft_element["z"];
+              CoreDatabaseManager::get_handle_from_element(aft_inner_elt, \
+                  new_frame->get_translation(i));
+            }
+            auto afr_elt = aframe_elt["rotation_handle"];
+            for (int i = 0; i < 4; i++) {
+              bsoncxx::document::element afr_inner_elt;
+              if (i == 0) afr_inner_elt = afr_elt["w"];
+              if (i == 1) afr_inner_elt = afr_elt["x"];
+              if (i == 2) afr_inner_elt = afr_elt["y"];
+              if (i == 3) afr_inner_elt = afr_elt["z"];
+              CoreDatabaseManager::get_handle_from_element(afr_inner_elt, \
+                  new_frame->get_rotation(i));
+            }
+            auto afs_element = aframe_elt["scale_handle"];
+            for (int i = 0; i < 3; i++) {
+              bsoncxx::document::element afs_inner_elt;
+              if (i == 0) afs_inner_elt = afs_element["x"];
+              if (i == 1) afs_inner_elt = afs_element["y"];
+              if (i == 2) afs_inner_elt = afs_element["z"];
+              CoreDatabaseManager::get_handle_from_element(afs_inner_elt, \
+                  new_frame->get_scale(i));
+            }
+          }
+
+          new_action->add_keyframe(new_frame->get_frame(), new_frame);
+        }
+      }
     }
-    auto afr_elt = aframe_elt["rotation_handle"];
-    for (int i = 0; i < 4; i++) {
-      bsoncxx::document::element afr_inner_elt;
-      if (i == 0) afr_inner_elt = afr_elt["w"];
-      if (i == 1) afr_inner_elt = afr_elt["x"];
-      if (i == 2) afr_inner_elt = afr_elt["y"];
-      if (i == 3) afr_inner_elt = afr_elt["z"];
-      CoreDatabaseManager::get_handle_from_element(afr_inner_elt, \
-          obj->get_animation_frame()->get_rotation(i));
-    }
-    auto afs_element = aframe_elt["scale_handle"];
-    for (int i = 0; i < 3; i++) {
-      bsoncxx::document::element afs_inner_elt;
-      if (i == 0) afs_inner_elt = afs_element["x"];
-      if (i == 1) afs_inner_elt = afs_element["y"];
-      if (i == 2) afs_inner_elt = afs_element["z"];
-      CoreDatabaseManager::get_handle_from_element(afs_inner_elt, \
-          obj->get_animation_frame()->get_scale(i));
-    }
+    obj->add_action(new_action->get_name(), new_action);
   }
 }
 

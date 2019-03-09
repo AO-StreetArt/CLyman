@@ -40,8 +40,9 @@ limitations under the License.
 
 #include "db/include/database_manager.h"
 
-#include "model/include/object_interface.h"
-#include "model/include/object_factory.h"
+#include "model/object/include/object_interface.h"
+#include "model/property/include/property_interface.h"
+#include "model/factory/include/json_factory.h"
 
 #ifndef SRC_APP_INCLUDE_EVENT_STREAM_PROCESS_H_
 #define SRC_APP_INCLUDE_EVENT_STREAM_PROCESS_H_
@@ -59,7 +60,7 @@ class EventSender : public Poco::Runnable {
   DatabaseManager *db_manager = nullptr;
   ClusterManager *cluster_manager = nullptr;
   Poco::Logger& logger;
-  ObjectFactory object_factory;
+  JsonFactory object_factory;
 public:
   EventSender(char *evt, boost::asio::io_service &ios, DatabaseManager *db, EventStreamPublisher *pub, ClusterManager *cluster) : logger(Poco::Logger::get("Event")) {
     event = evt;

@@ -25,9 +25,14 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "db/include/db_manager_interface.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
+#include "db/include/db_manager_interface.h"
+#include "model/object/include/object_interface.h"
+#include "model/list/include/object_list_interface.h"
+#include "model/factory/include/json_factory.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/factory/include/data_factory.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -43,8 +48,9 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
   AOSSL::KeyValueStoreInterface *config = nullptr;
   DatabaseManagerInterface *db_manager = nullptr;
   int msg_type = -1;
-  ObjectListFactory object_list_factory;
-  ObjectFactory object_factory;
+  DataListFactory object_list_factory;
+  JsonFactory json_factory;
+  DataFactory object_factory;
   EventStreamPublisher *publisher = nullptr;
   ClusterManager *cluster_manager = nullptr;
   Poco::Logger& logger;
@@ -117,7 +123,7 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
       response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
       ObjectListInterface *inp_doc = nullptr;
       try {
-        inp_doc = object_list_factory.build_object_list(doc);
+        inp_doc = json_factory.build_object_list(doc);
       } catch (std::exception& e) {
         logger.error("Exception encountered building Object List");
         logger.error(e.what());

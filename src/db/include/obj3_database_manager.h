@@ -15,21 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This implements the Configuration Manager
-
-// This takes in a Command Line Interpreter, and based on the options provided,
-// decides how the application needs to be configured.  It may configure either
-// from a configuration file, or from a Consul agent
-
 #include <iostream>
 #include <boost/cstdint.hpp>
 
-#include "model/include/object_factory.h"
-#include "model/include/object_interface.h"
-#include "model/include/transforms.h"
-
-#include "api/include/object_list_factory.h"
-#include "api/include/object_list_interface.h"
+#include "model/core/include/animation_action.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/list/include/object_list_interface.h"
+#include "model/factory/include/data_factory.h"
+#include "model/object/include/object_interface.h"
+#include "model/object/include/transforms.h"
+#include "model/object/include/object_frame.h"
+#include "model/property/include/property_frame.h"
 
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
@@ -65,9 +61,9 @@ class ObjectDatabaseManager : public PropertyDatabaseManager {
   std::string coll_name;
   int max_retries = 11;
   // Factories
-  ObjectFactory object_factory;
+  DataFactory object_factory;
 
-  void add_handles_to_doc(bsoncxx::builder::stream::document &builder, AnimationFrameInterface *aframe);
+  void add_handles_to_doc(bsoncxx::builder::stream::document &builder, ObjectFrame *aframe);
 
   // Build a Bson document to use for creation
   void build_create_doc(bsoncxx::builder::stream::document &builder, \

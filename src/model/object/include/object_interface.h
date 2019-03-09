@@ -18,8 +18,8 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <exception>
+#include "model/property/include/property_interface.h"
 #include "object_frame.h"
-#include "property_interface.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
 #define SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_
@@ -76,13 +76,6 @@ class ObjectInterface {
   virtual std::string get_asset(int index) const = 0;
   virtual void remove_asset(int index) = 0;
   virtual void clear_assets() = 0;
-  // Object Properties
-  // Named sets of values that can be keyframed seperately
-  virtual int num_props() const = 0;
-  virtual void add_prop(PropertyInterface *new_prop) = 0;
-  virtual PropertyInterface* get_prop(int index) const = 0;
-  virtual void remove_prop(int index) = 0;
-  virtual void clear_props() = 0;
   // Convert to an Event JSON
   virtual void to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& writer, int mtype) = 0;
   virtual std::string to_transform_json(int mtype) = 0;
@@ -90,6 +83,7 @@ class ObjectInterface {
   // Access actions
   virtual void add_action(std::string name, AnimationAction<ObjectFrame> *new_action) = 0;
   virtual AnimationAction<ObjectFrame>* get_action(std::string name) = 0;
+  virtual std::map<std::string, AnimationAction<ObjectFrame>*>* get_actions() = 0;
 };
 
 #endif  // SRC_MODEL_INCLUDE_OBJECT_INTERFACE_H_

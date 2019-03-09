@@ -25,9 +25,14 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "db/include/db_manager_interface.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
+#include "db/include/db_manager_interface.h"
+#include "model/property/include/property_interface.h"
+#include "model/list/include/property_list_interface.h"
+#include "model/factory/include/json_factory.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/factory/include/data_factory.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -43,8 +48,9 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
   AOSSL::KeyValueStoreInterface *config = nullptr;
   DatabaseManagerInterface *db_manager = nullptr;
   int msg_type = -1;
-  ObjectListFactory object_list_factory;
-  ObjectFactory object_factory;
+  DataListFactory prop_list_factory;
+  DataFactory prop_factory;
+  JsonFactory json_factory;
   EventStreamPublisher *publisher = nullptr;
   ClusterManager *cluster_manager = nullptr;
   Poco::Logger& logger;
@@ -98,7 +104,7 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
     // parse the post input data into a Scene List
     rapidjson::Document doc;
     char *tmpStr = clyman_request_body_to_json_document(request, doc);
-    PropertyListInterface *response_body = object_list_factory.build_json_property_list();
+    PropertyListInterface *response_body = prop_list_factory.build_json_property_list();
     response_body->set_msg_type(msg_type);
     response_body->set_error_code(NO_ERROR);
     if (doc.HasParseError()) {
@@ -117,7 +123,7 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
       response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
       PropertyListInterface *inp_doc = nullptr;
       try {
-        inp_doc = object_list_factory.build_property_list(doc);
+        inp_doc = json_factory.build_property_list(doc);
       } catch (std::exception& e) {
         logger.error("Exception encountered building Property List");
         logger.error(e.what());
@@ -132,7 +138,7 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
         // send downstream updates, and persist the result
         for (int i = 0; i < inp_doc->num_props(); i++) {
           // Add to the output message list
-          PropertyInterface *new_out_doc = object_factory.build_property();
+          PropertyInterface *new_out_doc = prop_factory.build_property();
           // get the object out of the input message list
           PropertyInterface* in_doc = inp_doc->get_prop(i);
           if (!(object_id.empty())) in_doc->set_key(object_id);

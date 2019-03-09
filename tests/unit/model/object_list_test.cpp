@@ -15,10 +15,11 @@ limitations under the License.
 #include <string>
 #include <iostream>
 
-#include "include/object_list_interface.h"
-#include "include/object_list_factory.h"
+#include "include/data_factory.h"
+#include "include/data_list_factory.h"
+#include "include/json_factory.h"
 #include "include/object_interface.h"
-#include "include/object_factory.h"
+#include "include/object_list_interface.h"
 #include "include/transforms.h"
 
 #include "rapidjson/document.h"
@@ -34,8 +35,6 @@ ObjectDocument* build_test_document(std::string key, std::string name, \
     test_object->set_type(type);
     test_object->set_subtype(subtype);
     test_object->set_owner(owner);
-    test_object->set_frame(0);
-    test_object->set_timestamp(123456789);
     return test_object;
 }
 
