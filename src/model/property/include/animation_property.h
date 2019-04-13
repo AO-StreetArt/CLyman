@@ -54,8 +54,13 @@ class AnimationProperty : public Property3d, public RelatedData {
   // Access actions
   void add_action(std::string name, AnimationAction<PropertyFrame> *new_action) \
       {action_map.emplace(name, new_action);}
-  AnimationAction<PropertyFrame>* get_action(std::string name) \
-      {return action_map[name];}
+  AnimationAction<PropertyFrame>* get_action(std::string name) {
+    auto action_itr = action_map.find(name);
+    if (action_itr != action_map.end()) {
+      return action_itr->second;
+    }
+    return nullptr;
+  }
   std::map<std::string, AnimationAction<PropertyFrame>*>* get_actions() {return &action_map;}
 };
 

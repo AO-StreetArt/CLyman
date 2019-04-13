@@ -55,6 +55,22 @@ const int PROP_DEL = 11;
 const int PROP_QUERY = 12;
 const int ASSET_ADD = 13;
 const int ASSET_DEL = 14;
+const int OBJ_FRAME_CRT = 15;
+const int OBJ_FRAME_UPD = 16;
+const int OBJ_FRAME_GET = 17;
+const int OBJ_FRAME_DEL = 18;
+const int OBJ_ACTION_CRT = 19;
+const int OBJ_ACTION_UPD = 20;
+const int OBJ_ACTION_GET = 21;
+const int OBJ_ACTION_DEL = 22;
+const int PROP_FRAME_CRT = 23;
+const int PROP_FRAME_UPD = 24;
+const int PROP_FRAME_GET = 25;
+const int PROP_FRAME_DEL = 26;
+const int PROP_ACTION_CRT = 27;
+const int PROP_ACTION_UPD = 28;
+const int PROP_ACTION_GET = 29;
+const int PROP_ACTION_DEL = 30;
 const int KILL = 999;
 const int PING = 555;
 
@@ -199,9 +215,9 @@ inline void parse_json_graph_handle(rapidjson::GenericArray<true, rapidjson::Gen
 
     // Set string properties
     if (elt_itr.value.IsString()) {
-      if (param_name.compare("left_type")) {
+      if (param_name == "left_type") {
         handle->set_lh_type(elt_itr.value.GetString());
-      } else if (param_name.compare("right_type")) {
+      } else if (param_name == "right_type") {
         handle->set_rh_type(elt_itr.value.GetString());
       }
 
@@ -217,13 +233,13 @@ inline void parse_json_graph_handle(rapidjson::GenericArray<true, rapidjson::Gen
       }
 
       // Set the actual property value
-      if (param_name.compare("left_x")) {
+      if (param_name == "left_x") {
         handle->set_lh_x(param_value);
-      } else if (param_name.compare("left_y")) {
+      } else if (param_name == "left_y") {
         handle->set_lh_y(param_value);
-      } else if (param_name.compare("right_x")) {
+      } else if (param_name == "right_x") {
         handle->set_rh_y(param_value);
-      } else if (param_name.compare("right_y")) {
+      } else if (param_name == "right_y") {
         handle->set_rh_y(param_value);
       }
     }

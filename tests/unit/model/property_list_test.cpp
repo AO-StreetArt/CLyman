@@ -16,9 +16,10 @@ limitations under the License.
 #include <iostream>
 
 #include "include/property_list_interface.h"
-#include "include/object_list_factory.h"
+#include "include/data_list_factory.h"
 #include "include/property_interface.h"
-#include "include/object_factory.h"
+#include "include/data_factory.h"
+#include "include/json_factory.h"
 
 #include "rapidjson/document.h"
 
@@ -27,8 +28,9 @@ limitations under the License.
 TEST_CASE( "Test Property List Data Structure", "[unit]" ) {
   std::cout << "Test Property List" << std::endl;
   const float TOLERANCE = 0.1f;
-  ObjectListFactory olfactory;
-  ObjectFactory ofactory;
+  DataListFactory olfactory;
+  DataFactory ofactory;
+  JsonFactory json_factory;
 
   PropertyInterface *test_property = ofactory.build_property();
   test_property->set_key(std::string("12345"));
@@ -36,15 +38,7 @@ TEST_CASE( "Test Property List Data Structure", "[unit]" ) {
   test_property->set_parent(std::string("testParent"));
   test_property->set_scene(std::string("testScene"));
   test_property->set_asset_sub_id(std::string("testAssetSubId"));
-  test_property->set_frame(1);
-  test_property->set_timestamp(123456789);
   test_property->add_value(100.0);
-  test_property->get_handle(0)->set_lh_type(std::string("vector"));
-  test_property->get_handle(0)->set_lh_x(10.0);
-  test_property->get_handle(0)->set_lh_y(5.0);
-  test_property->get_handle(0)->set_rh_type(std::string("free"));
-  test_property->get_handle(0)->set_rh_x(4.0);
-  test_property->get_handle(0)->set_rh_y(3.0);
 
   PropertyListInterface *test_list = olfactory.build_json_property_list();
   test_list->add_prop(test_property);
@@ -61,7 +55,7 @@ TEST_CASE( "Test Property List Data Structure", "[unit]" ) {
   const char * json_cstr = json_string.c_str();
   d.Parse(json_cstr);
 
-  PropertyListInterface *jparsed_list = olfactory.build_property_list(d);
+  PropertyListInterface *jparsed_list = json_factory.build_property_list(d);
 
   REQUIRE(jparsed_list->get_msg_type() == 1);
   REQUIRE(jparsed_list->get_transaction_id() == "123456789");
@@ -74,15 +68,6 @@ TEST_CASE( "Test Property List Data Structure", "[unit]" ) {
   REQUIRE(jparsed_list->get_prop(0)->get_parent() == "testParent");
   REQUIRE(jparsed_list->get_prop(0)->get_scene() == "testScene");
   REQUIRE(jparsed_list->get_prop(0)->get_asset_sub_id() == "testAssetSubId");
-  REQUIRE(jparsed_list->get_prop(0)->get_frame() == 1);
-  REQUIRE(jparsed_list->get_prop(0)->get_timestamp() == 123456789);
-  REQUIRE(std::abs(jparsed_list->get_prop(0)->get_value(0)) - 100.0 < TOLERANCE);
-  REQUIRE(jparsed_list->get_prop(0)->get_handle(0)->get_lh_type() == "vector");
-  REQUIRE(std::abs(jparsed_list->get_prop(0)->get_handle(0)->get_lh_x()) - 10.0 < TOLERANCE);
-  REQUIRE(std::abs(jparsed_list->get_prop(0)->get_handle(0)->get_lh_y()) - 5.0 < TOLERANCE);
-  REQUIRE(jparsed_list->get_prop(0)->get_handle(0)->get_rh_type() == "free");
-  REQUIRE(std::abs(jparsed_list->get_prop(0)->get_handle(0)->get_rh_x()) - 4.0 < TOLERANCE);
-  REQUIRE(std::abs(jparsed_list->get_prop(0)->get_handle(0)->get_rh_y()) - 3.0 < TOLERANCE);
 
   // Teardown
   delete test_list;

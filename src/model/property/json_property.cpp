@@ -36,10 +36,7 @@ void JsonProperty::to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& wr
     writer.Key("values");
     writer.StartArray();
     for (unsigned int i = 0; i < Property3d::num_values(); i++) {
-      writer.StartObject();
-      writer.Key("value");
       writer.Double(Property3d::get_value(i));
-      writer.EndObject();
     }
     writer.EndArray();
   }

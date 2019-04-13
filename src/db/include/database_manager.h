@@ -131,6 +131,67 @@ class DatabaseManager : public ObjectDatabaseManager, public DatabaseManagerInte
   void unlock_object(DatabaseResponse& response, std::string& object_id, std::string& device_id) {
     ObjectDatabaseManager::unlock_object(response, object_id, device_id);
   }
+
+  //! Create an Object Action
+  void create_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<ObjectFrame> *action, std::string& name) override {
+    ObjectDatabaseManager::create_action(response, parent_key, action, name);
+  }
+
+  //! Update an Object Action
+  //! The supplied key will be used as the key to update in the DB
+  void update_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<ObjectFrame> *action, std::string& name) override {
+    ObjectDatabaseManager::update_action(response, parent_key, action, name);
+  }
+
+  //! Delete an Object Action
+  void delete_object_action(DatabaseResponse& response, std::string& parent_key, std::string& name) override {
+    ObjectDatabaseManager::delete_object_action(response, parent_key, name);
+  }
+
+  //! Create an Object Keyframe
+  void create_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, ObjectFrame *frame, int frame_index) override {
+    ObjectDatabaseManager::create_keyframe(response, object_key, action_name, frame, frame_index);
+  }
+
+  void update_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, ObjectFrame *frame, int frame_index) override {
+    ObjectDatabaseManager::update_keyframe(response, object_key, action_name, frame, frame_index);
+  }
+
+  //! Delete an Object Keyframe
+  void delete_object_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, int frame_index) override {
+    ObjectDatabaseManager::delete_object_keyframe(response, object_key, action_name, frame_index);
+  }
+
+  //! Create a Property Action
+  //! The newly generated key for the action will be populated
+  //! into the key parameter.
+  void create_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<PropertyFrame> *action, std::string& action_name) override {
+    PropertyDatabaseManager::create_action(response, parent_key, action, action_name);
+  }
+
+  //! Update a Property Action
+  void update_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<PropertyFrame> *action, std::string& action_name) override {
+    PropertyDatabaseManager::update_action(response, parent_key, action, action_name);
+  }
+
+  //! Delete a Property Action
+  void delete_property_action(DatabaseResponse& response, std::string& parent_key, std::string& action_name) override {
+    PropertyDatabaseManager::delete_property_action(response, parent_key, action_name);
+  }
+
+  //! Create a Property Keyframe
+  void create_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, PropertyFrame *frame, int frame_index) override {
+    PropertyDatabaseManager::create_keyframe(response, property_key, action_name, frame, frame_index);
+  }
+
+  void update_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, PropertyFrame *frame, int frame_index) override {
+    PropertyDatabaseManager::update_keyframe(response, property_key, action_name, frame, frame_index);
+  }
+
+  //! Delete an Property Keyframe
+  void delete_property_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, int frame_index) override {
+    PropertyDatabaseManager::delete_property_keyframe(response, property_key, action_name, frame_index);
+  }
 };
 
 #endif  // SRC_APPLICATION_INCLUDE_DATABASE_MANAGER_H_

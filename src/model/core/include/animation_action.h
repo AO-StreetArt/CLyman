@@ -19,13 +19,15 @@ limitations under the License.
 #include <iterator>
 #include <map>
 
+#include "data_related.h"
+
 #ifndef SRC_MODEL_INCLUDE_ANIMATION_ACTION_H_
 #define SRC_MODEL_INCLUDE_ANIMATION_ACTION_H_
 
 // An Animation Action is a set of keyframes which can be applied to a given
 // set of objects to produce an animation or a piece of an animation
 template <class T>
-class AnimationAction {
+class AnimationAction : public RelatedData {
   std::string name;
   std::string description;
   std::string owner;

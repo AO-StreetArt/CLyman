@@ -18,12 +18,13 @@ limitations under the License.
 #include "model/core/include/animation_frame.h"
 #include "model/core/include/animation_graph_handle.h"
 #include "object_3d.h"
+#include "model/core/include/data_related.h"
 
 #ifndef SRC_MODEL_INCLUDE_OBJECT_FRAME_H_
 #define SRC_MODEL_INCLUDE_OBJECT_FRAME_H_
 
 // An Object Frame is an animation frame with a transform for 3d objects
-class ObjectFrame : public AnimationFrame, public Object3d {
+class ObjectFrame : public AnimationFrame, public Object3d, public RelatedData {
   std::vector<AnimationGraphHandle*> translation;
   std::vector<AnimationGraphHandle*> rotation;
   std::vector<AnimationGraphHandle*> scale;

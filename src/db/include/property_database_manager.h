@@ -67,9 +67,34 @@ class PropertyDatabaseManager : public CoreDatabaseManager {
   // Factories
   DataFactory object_factory;
 
+  void add_prop_frame_to_doc(bsoncxx::builder::stream::document &builder, PropertyFrame *aframe);
+
+  void add_prop_action_to_doc(bsoncxx::builder::stream::document &action_doc, AnimationAction<PropertyFrame> *action);
+
   // Execute a Creation or Update Transaction
   void prop_transaction(DatabaseResponse &response, PropertyInterface *obj, \
+      AnimationAction<PropertyFrame> *action, PropertyFrame *aframe, \
       std::string& key, int transaction_type, bool is_append_operation);
+
+  // Execute a transaction, with default value for is_append_operation
+  void prop_transaction(DatabaseResponse &response, PropertyInterface *obj, \
+      std::string& key, int transaction_type, bool is_append_operation) {
+    prop_transaction(response, obj, nullptr, nullptr, key, transaction_type, true);
+  }
+
+  // Execute a transaction, with default value for is_append_operation
+  void prop_transaction(DatabaseResponse &response, \
+      AnimationAction<PropertyFrame> *action, std::string& key, \
+      int transaction_type) {
+    prop_transaction(response, nullptr, action, nullptr, key, transaction_type, true);
+  }
+
+  // Execute a transaction, with default value for is_append_operation
+  void prop_transaction(DatabaseResponse &response, \
+      AnimationAction<PropertyFrame> *action, PropertyFrame *frame, \
+      std::string& key, int transaction_type) {
+    prop_transaction(response, nullptr, action, frame, key, transaction_type, true);
+  }
 
   // Execute a transaction, with default value for is_append_operation
   void prop_transaction(DatabaseResponse &response, PropertyInterface *obj, \
@@ -139,6 +164,51 @@ class PropertyDatabaseManager : public CoreDatabaseManager {
 
   //! Delete an Object in Mongo
   void delete_property(DatabaseResponse& response, std::string& key);
+
+  //! Create a Property Action
+  //! The newly generated key for the action will be populated
+  //! into the key parameter.
+  void create_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<PropertyFrame> *action, std::string& action_name) {
+    action->set_name(action_name);
+    prop_transaction(response, action, parent_key, _DB_MONGO_ACTION_INSERT_);
+  }
+
+  //! Update a Property Action
+  void update_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<PropertyFrame> *action, std::string& action_name) {
+    action->set_name(action_name);
+    prop_transaction(response, action, parent_key, _DB_MONGO_ACTION_UPDATE_);
+  }
+
+  //! Delete a Property Action
+  void delete_property_action(DatabaseResponse& response, std::string& parent_key, std::string& action_name) {
+    AnimationAction<PropertyFrame> action;
+    action.set_name(action_name);
+    prop_transaction(response, &action, parent_key, _DB_MONGO_ACTION_REMOVE_);
+  }
+
+  //! Create a Property Keyframe
+  void create_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, PropertyFrame *frame, int frame_index) {
+    AnimationAction<PropertyFrame> action;
+    action.set_name(action_name);
+    frame->set_frame(frame_index);
+    prop_transaction(response, &action, frame, property_key, _DB_MONGO_FRAME_INSERT_);
+  }
+
+  void update_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, PropertyFrame *frame, int frame_index) {
+    AnimationAction<PropertyFrame> action;
+    action.set_name(action_name);
+    frame->set_frame(frame_index);
+    prop_transaction(response, &action, frame, property_key, _DB_MONGO_FRAME_UPDATE_);
+  }
+
+  //! Delete an Property Keyframe
+  void delete_property_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, int frame_index) {
+    AnimationAction<PropertyFrame> action;
+    action.set_name(action_name);
+    PropertyFrame frame;
+    frame.set_frame(frame_index);
+    prop_transaction(response, &action, &frame, property_key, _DB_MONGO_FRAME_REMOVE_);
+  }
 };
 
 #endif  // SRC_APPLICATION_INCLUDE_PROPERTY_DATABASE_MANAGER_H_

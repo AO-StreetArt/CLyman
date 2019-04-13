@@ -15,11 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This implements the Configuration Manager
-
-// This takes in a Command Line Interpreter, and based on the options provided,
-// decides how the application needs to be configured.  It may configure either
-// from a configuration file, or from a Consul agent
+// Factory responsible for creating correct handlers
+// based on request attributes.
 
 #include <iostream>
 
@@ -28,8 +25,16 @@ limitations under the License.
 #include "asset_handler.h"
 #include "heartbeat_handler.h"
 #include "property_base_handler.h"
+#include "property_action_base_handler.h"
+#include "property_action_delete_handler.h"
+#include "property_frame_base_handler.h"
+#include "property_frame_delete_handler.h"
 #include "property_key_handler.h"
 #include "object_base_handler.h"
+#include "object_action_base_handler.h"
+#include "object_action_delete_handler.h"
+#include "object_frame_base_handler.h"
+#include "object_frame_delete_handler.h"
 #include "object_key_handler.h"
 #include "object_lock_handler.h"
 #include "app/include/event_sender.h"
@@ -136,6 +141,30 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
       } else if (uri_path.size() == 3 && uri_path[1] == "property") {
         // Property Update
         return new PropertyBaseRequestHandler(config, db_manager, publisher, cluster_info, PROP_UPD, uri_path[2]);
+      } else if (uri_path.size() == 4 && uri_path[1] == "object" && uri_path[3] == "action") {
+        // Object Action Create
+        return new ObjectActionBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_ACTION_CRT, uri_path[2]);
+      } else if (uri_path.size() == 5 && uri_path[1] == "object" && uri_path[3] == "action") {
+        // Object Action Update
+        return new ObjectActionBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_ACTION_UPD, uri_path[2], uri_path[4]);
+      } else if (uri_path.size() == 6 && uri_path[1] == "object" && uri_path[3] == "action" && uri_path[5] == "keyframe") {
+        // Object Frame Create
+        return new ObjectFrameBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_FRAME_CRT, uri_path[2], uri_path[4]);
+      } else if (uri_path.size() == 7 && uri_path[1] == "object" && uri_path[3] == "action" && uri_path[5] == "keyframe") {
+        // Object Frame Update
+        return new ObjectFrameBaseRequestHandler(config, db_manager, publisher, cluster_info, OBJ_FRAME_UPD, uri_path[2], uri_path[4], uri_path[6]);
+      } else if (uri_path.size() == 4 && uri_path[1] == "property" && uri_path[3] == "action") {
+        // Property Action Create
+        return new PropertyActionBaseRequestHandler(config, db_manager, publisher, cluster_info, PROP_ACTION_CRT, uri_path[2]);
+      } else if (uri_path.size() == 5 && uri_path[1] == "property" && uri_path[3] == "action") {
+        // Property Action Update
+        return new PropertyActionBaseRequestHandler(config, db_manager, publisher, cluster_info, PROP_ACTION_UPD, uri_path[2], uri_path[4]);
+      } else if (uri_path.size() == 6 && uri_path[1] == "property" && uri_path[3] == "action" && uri_path[5] == "keyframe") {
+        // Property Frame Create
+        return new PropertyFrameBaseRequestHandler(config, db_manager, publisher, cluster_info, PROP_FRAME_CRT, uri_path[2], uri_path[4]);
+      } else if (uri_path.size() == 7 && uri_path[1] == "property" && uri_path[3] == "action" && uri_path[5] == "keyframe") {
+        // Property Frame Update
+        return new PropertyFrameBaseRequestHandler(config, db_manager, publisher, cluster_info, PROP_FRAME_UPD, uri_path[2], uri_path[4], uri_path[6]);
       }
     } else if (uri_path.size() > 1 && uri_path[0] == "v1" && request.getMethod() == "GET") {
       if (uri_path.size() > 3 && uri_path[1] == "object" && uri_path[3] == "lock") {
@@ -168,6 +197,18 @@ class ObjectHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory {
         return new PropertyKeyRequestHandler(config, db_manager, publisher, cluster_info, PROP_DEL, uri_path[2]);
       } else if (uri_path.size() == 5 && uri_path[1] == "object" && uri_path[3] == "asset") {
         return new AssetRequestHandler(config, db_manager, cluster_info, ASSET_DEL, uri_path[2], uri_path[4]);
+      } else if (uri_path.size() == 5 && uri_path[1] == "object" && uri_path[3] == "action") {
+        // Object Action Delete
+        return new ObjectActionDeleteRequestHandler(config, db_manager, publisher, cluster_info, OBJ_ACTION_DEL, uri_path[2], uri_path[4]);
+      } else if (uri_path.size() == 5 && uri_path[1] == "property" && uri_path[3] == "action") {
+        // Property Action Delete
+        return new PropertyActionDeleteRequestHandler(config, db_manager, publisher, cluster_info, PROP_ACTION_DEL, uri_path[2], uri_path[4]);
+      } else if (uri_path.size() == 7 && uri_path[1] == "object" && uri_path[3] == "action" && uri_path[5] == "keyframe") {
+        // Object Frame Delete
+        return new ObjectFrameDeleteRequestHandler(config, db_manager, publisher, cluster_info, OBJ_FRAME_DEL, uri_path[2], uri_path[4], uri_path[6]);
+      } else if (uri_path.size() == 7 && uri_path[1] == "property" && uri_path[3] == "action" && uri_path[5] == "keyframe") {
+        // Property Frame Delete
+        return new PropertyFrameDeleteRequestHandler(config, db_manager, publisher, cluster_info, PROP_FRAME_DEL, uri_path[2], uri_path[4], uri_path[6]);
       }
     } else if (uri_path.size() > 1 && uri_path[0] == "v1" && request.getMethod() == "PUT") {
       if (uri_path.size() == 5 && uri_path[1] == "object" && uri_path[3] == "asset") {

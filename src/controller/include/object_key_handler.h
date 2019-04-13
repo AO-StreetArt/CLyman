@@ -31,6 +31,7 @@ limitations under the License.
 #include "model/factory/include/data_factory.h"
 #include "model/factory/include/data_list_factory.h"
 #include "model/list/include/object_list_interface.h"
+#include "clyman_handler.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -42,15 +43,7 @@ limitations under the License.
 #ifndef SRC_CONTROLLER_INCLUDE_OBJECT_KEY_HANDLER_H_
 #define SRC_CONTROLLER_INCLUDE_OBJECT_KEY_HANDLER_H_
 
-class ObjectKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
-  AOSSL::KeyValueStoreInterface *config = nullptr;
-  DatabaseManagerInterface *db_manager = nullptr;
-  int msg_type = -1;
-  DataListFactory object_list_factory;
-  DataFactory object_factory;
-  EventStreamPublisher *publisher = nullptr;
-  ClusterManager *cluster_manager = nullptr;
-  Poco::Logger& logger;
+class ObjectKeyRequestHandler: public ClymanHandler, public Poco::Net::HTTPRequestHandler {
   std::string object_id;
   void process_get_message(std::string key, ObjectListInterface *response_body) {
     logger.information("Processing Get Message");
@@ -73,20 +66,17 @@ class ObjectKeyRequestHandler: public Poco::Net::HTTPRequestHandler {
   }
  public:
   ObjectKeyRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      EventStreamPublisher *pub, ClusterManager *cluster, int mtype) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;publisher=pub;}
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype) : ClymanHandler(conf, db, pub, cluster, mtype) {}
   ObjectKeyRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      EventStreamPublisher *pub, ClusterManager *cluster, int mtype, std::string id) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;object_id.assign(id);publisher=pub;}
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype, std::string id) : ClymanHandler(conf, db, pub, cluster, mtype) {
+    object_id.assign(id);
+  }
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     logger.debug("Responding to Object Request");
-    response.setChunkedTransferEncoding(true);
-    response.setContentType("application/json");
     // parse the post input data into a Scene List
     rapidjson::Document doc;
     ObjectListInterface *response_body = object_list_factory.build_json_object_list();
-    response_body->set_msg_type(msg_type);
-    response_body->set_error_code(NO_ERROR);
+    ClymanHandler::init_response(response, response_body);
     response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
 
     // Send an update to downstream services

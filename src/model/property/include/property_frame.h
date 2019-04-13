@@ -17,12 +17,13 @@ limitations under the License.
 
 #include "model/core/include/animation_frame.h"
 #include "property_3d.h"
+#include "model/core/include/data_related.h"
 
 #ifndef SRC_MODEL_INCLUDE_PROPERTY_FRAME_H_
 #define SRC_MODEL_INCLUDE_PROPERTY_FRAME_H_
 
 // A Property Frame is an animation frame with an array of property values
-class PropertyFrame : public AnimationFrame, public Property3d {
+class PropertyFrame : public AnimationFrame, public Property3d, public RelatedData {
   std::vector<AnimationGraphHandle*> handles;
  public:
   // Constructors

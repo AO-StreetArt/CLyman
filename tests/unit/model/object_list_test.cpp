@@ -26,9 +26,10 @@ limitations under the License.
 
 #include "catch.hpp"
 
-ObjectDocument* build_test_document(std::string key, std::string name, \
+ObjectInterface* build_test_document(std::string key, std::string name, \
   std::string scene, std::string type, std::string subtype, std::string owner) {
-    ObjectDocument *test_object = new ObjectDocument;
+    DataFactory dfactory;
+    ObjectInterface *test_object = dfactory.build_object();
     test_object->set_key(key);
     test_object->set_name(name);
     test_object->set_scene(scene);
@@ -39,7 +40,9 @@ ObjectDocument* build_test_document(std::string key, std::string name, \
 }
 
 TEST_CASE( "Test Object List Data Structure", "[unit]" ) {
-  ObjectListFactory ofactory;
+  std::cout << "Test Object List" << std::endl;
+  DataListFactory ofactory;
+  JsonFactory json_factory;
 
   // Setup
   std::string key1 = "abcdef";
@@ -55,13 +58,13 @@ TEST_CASE( "Test Object List Data Structure", "[unit]" ) {
   std::string owner1 = "abcdefghijklmnop";
   std::string owner2 = "abcdefghijklmnopq";
 
-  ObjectDocument *test_object = build_test_document(key1, name1, scene1, \
+  ObjectInterface *test_object = build_test_document(key1, name1, scene1, \
     type1, subtype1, owner1);
-  ObjectDocument *test_object2 = build_test_document(key2, name2, scene2, \
+  ObjectInterface *test_object2 = build_test_document(key2, name2, scene2, \
     type2, subtype2, owner2);
-  ObjectDocument *test_object3 = build_test_document(key1, name1, scene1, \
+  ObjectInterface *test_object3 = build_test_document(key1, name1, scene1, \
     type1, subtype1, owner1);
-  ObjectDocument *test_object4 = build_test_document(key2, name2, scene2, \
+  ObjectInterface *test_object4 = build_test_document(key2, name2, scene2, \
     type2, subtype2, owner2);
 
   std::string asset1 = "12345";
@@ -111,8 +114,8 @@ TEST_CASE( "Test Object List Data Structure", "[unit]" ) {
   std::string tran_id = "123456789";
   olist->set_transaction_id(tran_id);
   REQUIRE(olist->get_transaction_id() == "123456789");
-  olist->set_num_records(3);
-  REQUIRE(olist->get_num_records() == 3);
+  olist->set_num_records(2);
+  REQUIRE(olist->get_num_records() == 2);
   olist->add_object(test_object);
   REQUIRE(olist->num_objects() == 1);
   olist->add_object(test_object2);
@@ -124,9 +127,10 @@ TEST_CASE( "Test Object List Data Structure", "[unit]" ) {
   std::string json_string;
   olist->to_msg_string(json_string);
   const char * json_cstr = json_string.c_str();
+  std::cout << json_cstr << std::endl;
   d.Parse(json_cstr);
 
-  ObjectListInterface *jparsed_olist = ofactory.build_object_list(d);
+  ObjectListInterface *jparsed_olist = json_factory.build_object_list(d);
   //ObjectList *jparsed_olist = new ObjectList(d);
 
   REQUIRE(jparsed_olist->get_msg_type() == 1);

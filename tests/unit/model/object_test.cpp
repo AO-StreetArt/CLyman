@@ -18,10 +18,11 @@ limitations under the License.
 
 #include "include/transforms.h"
 #include "include/object_interface.h"
-#include "include/object_factory.h"
-#include "include/animation_frame_interface.h"
-#include "include/animation_frame.h"
+#include "include/json_object.h"
+#include "include/json_factory.h"
+#include "include/animation_action.h"
 #include "include/animation_graph_handle.h"
+#include "include/object_frame.h"
 
 #include "catch.hpp"
 
@@ -30,7 +31,7 @@ TEST_CASE( "Test Object Data Structure", "[unit]" ) {
   const float TOLERANCE = 0.1f;
   const int PI = 3.1415f;
   // Constructor tests
-  ObjectDocument test_object;
+  JsonObject test_object;
   REQUIRE(test_object.get_key() == "");
   REQUIRE(test_object.get_name() == "");
   REQUIRE(test_object.get_scene() == "");
@@ -51,8 +52,6 @@ TEST_CASE( "Test Object Data Structure", "[unit]" ) {
   test_object.set_subtype(test_subtype);
   std::string test_owner = "abcdefghijkl";
   test_object.set_owner(test_owner);
-  test_object.set_frame(0);
-  test_object.set_timestamp(123456789);
 
   REQUIRE(test_object.get_key() == "abcdefg");
   REQUIRE(test_object.get_name() == "abcdefgh");
@@ -127,26 +126,41 @@ TEST_CASE( "Test Object Data Structure", "[unit]" ) {
   REQUIRE(test_object.get_transform()->get_transform_element(2, 3) + 1.0f \
     < TOLERANCE);
 
-  // Animation Frame Tests
-  AnimationFrame *aframe = new AnimationFrame;
-  test_object.set_animation_frame(aframe);
-  REQUIRE(test_object.get_animation_frame()->get_translation(0)->get_lh_type().empty());
+  // Action Tests
+  AnimationAction<ObjectFrame> *action = new AnimationAction<ObjectFrame>;
+  ObjectFrame *frame = new ObjectFrame;
+  frame->set_frame(1);
+  REQUIRE(frame->get_translation(0)->get_lh_type().empty());
   std::string aftype("test");
-  test_object.get_animation_frame()->get_translation(0)->set_lh_type(aftype);
+  frame->get_translation(0)->set_lh_type(aftype);
 
+  std::string action_name("testAction");
+  std::string action_desc("This is a test action");
+  action->set_name(action_name);
+  action->set_description(action_desc);
+  action->add_keyframe(1, frame);
+  test_object.add_action(action->get_name(), action);
+  REQUIRE(test_object.get_action(action_name)->get_name() == "testAction");
+  REQUIRE(test_object.get_action(action_name)->get_description() == "This is a test action");
+  REQUIRE(test_object.get_action(action_name)->get_keyframe(1)->get_translation(0)->get_lh_type() == "test");
+
+  // Json Tests
   std::string obj_json = test_object.to_transform_json();
   std::cout << obj_json << std::endl;
   rapidjson::Document d;
   d.Parse<rapidjson::kParseStopWhenDoneFlag>(obj_json.c_str());
 
-  ObjectFactory ofactory;
+  JsonFactory ofactory;
   ObjectInterface *translated_object = ofactory.build_object(d);
 
   REQUIRE(translated_object->get_key() == "abcdefg");
   REQUIRE(translated_object->get_name() == "abcdefgh");
   REQUIRE(translated_object->get_scene() == "abcdefghi");
-  REQUIRE(translated_object->get_frame() == 0);
-  REQUIRE(translated_object->get_animation_frame()->get_translation(0)->get_lh_type() == "test");
+  REQUIRE(translated_object->get_action(action_name)->get_name() == "testAction");
+  REQUIRE(translated_object->get_action(action_name)->get_description() == "This is a test action");
+  REQUIRE(translated_object->get_action(action_name));
+  REQUIRE(translated_object->get_action(action_name)->get_keyframe(1));
+  REQUIRE(translated_object->get_action(action_name)->get_keyframe(1)->get_translation(0)->get_lh_type() == "test");
 
   std::cout << translated_object->get_transform()->to_string() << std::endl;
   REQUIRE(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
@@ -163,51 +177,6 @@ TEST_CASE( "Test Object Data Structure", "[unit]" ) {
     < TOLERANCE);
   REQUIRE(translated_object->get_transform()->get_transform_element(2, 3) + 1.0f \
     < TOLERANCE);
-
-  // Merge Test
-  ObjectDocument *obj_update = new ObjectDocument;
-  std::string upd_key = "new_key";
-  obj_update->set_key(upd_key);
-  std::string upd_name = "new_name";
-  obj_update->set_name(upd_name);
-  std::string upd_owner = "new_owner";
-  obj_update->set_owner(upd_owner);
-
-  Translation *trans2 = new Translation(1.0, 1.0, 1.0);
-  obj_update->transform(trans2);
-
-  delete trans2;
-
-  std::string upd_asset = "another_asset";
-  obj_update->add_asset(upd_asset);
-
-  translated_object->merge(obj_update);
-
-  REQUIRE(translated_object->get_key() == "new_key");
-  REQUIRE(translated_object->get_name() == "new_name");
-  REQUIRE(translated_object->get_scene() == "abcdefghi");
-  REQUIRE(translated_object->get_owner() == "new_owner");
-
-  REQUIRE(translated_object->num_assets() == 1);
-  REQUIRE(translated_object->get_asset(0) == "another_asset");
-
-  std::cout << translated_object->get_transform()->to_string() << std::endl;
-  REQUIRE(translated_object->get_transform()->get_transform_element(0, 0) - 2.0f \
-    < TOLERANCE);
-  REQUIRE(translated_object->get_transform()->get_transform_element(1, 1) + 1.8f \
-    < TOLERANCE);
-  REQUIRE(translated_object->get_transform()->get_transform_element(2, 2) + 1.8f \
-    < TOLERANCE);
-  REQUIRE(translated_object->get_transform()->get_transform_element(3, 3) - 1.0f \
-    < TOLERANCE);
-  REQUIRE(translated_object->get_transform()->get_transform_element(0, 3) - 3.0f \
-    < TOLERANCE);
-  REQUIRE(translated_object->get_transform()->get_transform_element(1, 3) + 1.64f \
-    < TOLERANCE);
-  REQUIRE(translated_object->get_transform()->get_transform_element(2, 3) + 0.0f \
-    < TOLERANCE);
-
-  delete obj_update;
 
   delete translated_object;
 

@@ -31,6 +31,7 @@ limitations under the License.
 #include "model/factory/include/data_factory.h"
 #include "model/factory/include/data_list_factory.h"
 #include "model/list/include/object_list_interface.h"
+#include "clyman_handler.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -42,14 +43,7 @@ limitations under the License.
 #ifndef SRC_CONTROLLER_INCLUDE_ASSET_HANDLER_H_
 #define SRC_CONTROLLER_INCLUDE_ASSET_HANDLER_H_
 
-class AssetRequestHandler: public Poco::Net::HTTPRequestHandler {
-  AOSSL::KeyValueStoreInterface *config = nullptr;
-  DatabaseManagerInterface *db_manager = nullptr;
-  int msg_type = -1;
-  DataListFactory object_list_factory;
-  DataFactory object_factory;
-  ClusterManager *cluster_manager = nullptr;
-  Poco::Logger& logger;
+class AssetRequestHandler: public ClymanHandler, public Poco::Net::HTTPRequestHandler {
   std::string object_id;
   std::string asset_id;
   void process_add_message(std::string obj_key, std::string asset_key, ObjectListInterface *response_body) {
@@ -88,15 +82,14 @@ class AssetRequestHandler: public Poco::Net::HTTPRequestHandler {
   }
  public:
   AssetRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      ClusterManager *cluster, int mtype, std::string object, std::string asset) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;object_id.assign(object);asset_id.assign(asset);}
+      ClusterManager *cluster, int mtype, std::string object, std::string asset) : ClymanHandler(conf, db, nullptr, cluster, mtype) {
+    object_id.assign(object);
+    asset_id.assign(asset);
+  }
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     logger.debug("Responding to Asset Request");
-    response.setChunkedTransferEncoding(true);
-    response.setContentType("application/json");
     ObjectListInterface *response_body = object_list_factory.build_json_object_list();
-    response_body->set_msg_type(msg_type);
-    response_body->set_error_code(NO_ERROR);
+    ClymanHandler::init_response(response, response_body);
 
     try {
       if (msg_type == ASSET_ADD) {

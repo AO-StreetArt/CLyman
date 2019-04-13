@@ -33,6 +33,7 @@ limitations under the License.
 #include "model/factory/include/json_factory.h"
 #include "model/factory/include/data_list_factory.h"
 #include "model/factory/include/data_factory.h"
+#include "clyman_handler.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -44,17 +45,11 @@ limitations under the License.
 #ifndef SRC_CONTROLLER_INCLUDE_OBJECT_BASE_HANDLER_H_
 #define SRC_CONTROLLER_INCLUDE_OBJECT_BASE_HANDLER_H_
 
-class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
-  AOSSL::KeyValueStoreInterface *config = nullptr;
-  DatabaseManagerInterface *db_manager = nullptr;
-  int msg_type = -1;
-  DataListFactory object_list_factory;
-  JsonFactory json_factory;
-  DataFactory object_factory;
-  EventStreamPublisher *publisher = nullptr;
-  ClusterManager *cluster_manager = nullptr;
-  Poco::Logger& logger;
+class ObjectBaseRequestHandler: public ClymanHandler, public Poco::Net::HTTPRequestHandler {
+  // The ID of the Object being handled
   std::string object_id;
+
+  // Execute a create action against the DB
   void process_create_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
     logger.information("Processing Creation Message");
     // Persist the creation message
@@ -69,6 +64,8 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
       response_body->set_error_message(response.error_message);
     }
   }
+
+  // Execute an update action against the DB
   void process_update_message(ObjectInterface* in_doc, ObjectInterface* out_doc, ObjectListInterface *response_body) {
     logger.information("Processing Update Message");
     // Persist the update message
@@ -85,28 +82,28 @@ class ObjectBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
       response_body->set_error_message(response.error_message);
     }
   }
+
+  // Execute a Query action against the DB
   void process_query_message(ObjectInterface* in_doc, ObjectListInterface *response_body, int max_results) {
     logger.information("Processing Query Message");
     // Execute the query message and build a result
     db_manager->object_query(response_body, in_doc, max_results);
   }
+
  public:
   ObjectBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      EventStreamPublisher *pub, ClusterManager *cluster, int mtype) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;publisher=pub;cluster_manager=cluster;}
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype) : \
+      ClymanHandler(conf, db, pub, cluster, mtype) {}
   ObjectBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      EventStreamPublisher *pub, ClusterManager *cluster, int mtype, std::string id) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;publisher=pub;cluster_manager=cluster;object_id.assign(id);}
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype, std::string id) : \
+      ClymanHandler(conf, db, pub, cluster, mtype) {object_id.assign(id);}
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     logger.debug("Responding to Object Request");
-    response.setChunkedTransferEncoding(true);
-    response.setContentType("application/json");
     // parse the post input data into a Scene List
     rapidjson::Document doc;
     char *tmpStr = clyman_request_body_to_json_document(request, doc);
     ObjectListInterface *response_body = object_list_factory.build_json_object_list();
-    response_body->set_msg_type(msg_type);
-    response_body->set_error_code(NO_ERROR);
+    ClymanHandler::init_response(response, response_body);
     if (doc.HasParseError()) {
       logger.debug("Parsing Error Detected");
       // Set up parse error response

@@ -28,6 +28,9 @@ void JsonObject::to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& writ
   write_json_string_elt(writer, "key", RelatedData::get_key());
   write_json_string_elt(writer, "name", ObjectDocument::get_name());
   write_json_string_elt(writer, "scene", RelatedData::get_scene());
+  write_json_string_elt(writer, "type", ObjectDocument::get_type());
+  write_json_string_elt(writer, "subtype", ObjectDocument::get_subtype());
+  write_json_string_elt(writer, "owner", ObjectDocument::get_owner());
 
   // Write Transform
   if (Object3d::has_transform()) {
@@ -41,6 +44,14 @@ void JsonObject::to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& writ
     writer.EndArray();
   }
 
+  // Write Assets
+  writer.Key("assets");
+  writer.StartArray();
+  for (int i = 0; i < RelatedData::num_assets(); i++) {
+    writer.String(RelatedData::get_asset(i).c_str(), (rapidjson::SizeType)RelatedData::get_asset(i).length());
+  }
+  writer.EndArray();
+
   // Write actions
   writer.Key("actions");
   writer.StartArray();
@@ -48,6 +59,7 @@ void JsonObject::to_json_writer(rapidjson::Writer<rapidjson::StringBuffer>& writ
     writer.StartObject();
     write_json_string_elt(writer, "name", action_itr->first);
     write_json_string_elt(writer, "description", action_itr->second->get_description());
+    write_json_string_elt(writer, "key", action_itr->second->get_key());
 
     // Write keyframes
     writer.Key("keyframes");
