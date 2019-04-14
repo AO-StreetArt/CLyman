@@ -6,7 +6,7 @@ import requests
 
 # Send a post request to Crazy Ivan, return the key of the scene from response
 def send_http_request(url, postData):
-    r = requests.post(url, data=postData)
+    r = requests.post(url, data=postData, auth=('clyman', 'clymanAdminPassword'))
     response_json = r.json()
     return response_json['objects'][0]['key']
 

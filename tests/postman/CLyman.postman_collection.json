@@ -1187,7 +1187,19 @@
 			],
 			"request": {
 				"auth": {
-					"type": "noauth"
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "clymanAdminPassword",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "clyman",
+							"type": "string"
+						}
+					]
 				},
 				"method": "DELETE",
 				"header": [
