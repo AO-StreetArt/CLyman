@@ -59,7 +59,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "b532ca99-ed5b-47f7-9493-58ca95225b33",
+						"id": "a6844823-27e1-41e5-a6f8-9c79dbe54da6",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
@@ -70,6 +70,7 @@
 							"    pm.expect(pm.response.responseTime).to.be.below(500);",
 							"});",
 							"",
+							"var jsonData = pm.response.json();",
 							"",
 							"pm.environment.unset(\"OBJECT_ID\");",
 							"",
@@ -1148,11 +1149,11 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "3eb65207-d8c9-4d21-98d6-6506908f65f6",
+						"id": "0321d8d5-4204-4894-8156-46c6e15b4842",
 						"type": "text/javascript",
 						"exec": [
-							"pm.test(\"Status code is not 200\", function () {",
-							"    pm.response.to.not.have.status(200);",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
 							"});",
 							"",
 							"pm.test(\"Response time is less than 500ms\", function () {",
@@ -1476,7 +1477,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "5927d0c7-af67-4931-a28c-dafcaa4033d9",
+						"id": "435181ab-2572-40ea-8bfc-5da4e7c8ae5f",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
@@ -1486,6 +1487,8 @@
 							"pm.test(\"Response time is less than 500ms\", function () {",
 							"    pm.expect(pm.response.responseTime).to.be.below(500);",
 							"});",
+							"",
+							"var jsonData = pm.response.json();",
 							"",
 							"",
 							"pm.environment.unset(\"PROPERTY_ID\");",
