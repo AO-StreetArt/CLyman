@@ -1212,11 +1212,11 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "a44781f0-9cba-47ff-8022-0b9f7665c42a",
+						"id": "900760e4-6417-43bd-a425-3ad76e9a3d3e",
 						"type": "text/javascript",
 						"exec": [
-							"pm.test(\"Status code is not 200\", function () {",
-							"    pm.response.to.not.have.status(200);",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
 							"});",
 							"",
 							"pm.test(\"Response time is less than 500ms\", function () {",
@@ -1477,7 +1477,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "435181ab-2572-40ea-8bfc-5da4e7c8ae5f",
+						"id": "5856fe31-4567-453a-9424-0fd04dd6c69b",
 						"type": "text/javascript",
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
@@ -1493,7 +1493,7 @@
 							"",
 							"pm.environment.unset(\"PROPERTY_ID\");",
 							"",
-							"pm.environment.set(\"PROPERTY_ID\", jsonData.objects[0].key);"
+							"pm.environment.set(\"PROPERTY_ID\", jsonData.properties[0].key);"
 						]
 					}
 				}
@@ -2503,11 +2503,11 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "d850a820-2f86-481d-a5d5-c4c8cc49cd44",
+						"id": "7ae21615-dfe4-4bd5-9d08-e6537d1278c8",
 						"type": "text/javascript",
 						"exec": [
-							"pm.test(\"Status code is not 200\", function () {",
-							"    pm.response.to.not.have.status(200);",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
 							"});",
 							"",
 							"pm.test(\"Response time is less than 500ms\", function () {",
