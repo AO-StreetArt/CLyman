@@ -2443,8 +2443,8 @@
 						"id": "30a36d0c-90d3-4480-ab27-b7eb77dc3773",
 						"type": "text/javascript",
 						"exec": [
-							"pm.test(\"Status code is not 200\", function () {",
-							"    pm.response.to.not.have.status(200);",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
 							"});",
 							"",
 							"pm.test(\"Response time is less than 500ms\", function () {",
@@ -2506,8 +2506,8 @@
 						"id": "7ae21615-dfe4-4bd5-9d08-e6537d1278c8",
 						"type": "text/javascript",
 						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
+							"pm.test(\"Status code is not 200\", function () {",
+							"    pm.response.to.not.have.status(200);",
 							"});",
 							"",
 							"pm.test(\"Response time is less than 500ms\", function () {",
