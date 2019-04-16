@@ -105,13 +105,81 @@ Object Unlock
 
 .. include:: _examples/object/object_unlock.rst
 
+Object Action Create
+--------------------
+
+.. http:post:: /v1/object/{key}/action
+
+   An action is a named set of keyframes, each holding the position of the object
+   at that frame.  This endpoint allows creation of a new action against an
+   existing object.
+
+   :statuscode 200: Success
+
+.. include:: _examples/object/object_action_create.rst
+
+Object Action Update
+--------------------
+
+.. http:post:: /v1/object/{key}/action/{name}
+
+   This endpoint allows for updating fields within an action.
+
+   :statuscode 200: Success
+
+.. include:: _examples/object/object_action_update.rst
+
+Object Action Delete
+--------------------
+
+.. http:delete:: /v1/object/{key}/action/{name}
+
+   This endpoint allows for removing actions from an object.
+
+   :statuscode 200: Success
+
+.. include:: _examples/object/object_action_delete.rst
+
+Object Frame Creation
+---------------------
+
+.. http:post:: /v1/object/{key}/action/{name}/keyframe
+
+   This endpoint allows for adding keyframes to existing actions.
+
+   :statuscode 200: Success
+
+.. include:: _examples/object/object_frame_create.rst
+
+Object Frame Update
+-------------------
+
+.. http:post:: /v1/object/{key}/action/{name}/keyframe/{frame}
+
+   This endpoint allows for updating elements within a keyframe.
+
+   :statuscode 200: Success
+
+.. include:: _examples/object/object_frame_update.rst
+
+Object Frame Delete
+-------------------
+
+.. http:delete:: /v1/object/{key}/action/{name}/keyframe/{frame}
+
+   This endpoint removes a keyframe from an existing action.
+
+   :statuscode 200: Success
+
+.. include:: _examples/object/object_frame_delete.rst
+
+
 Asset Addition
 ~~~~~~~~~~~~~~
 
 .. http:put:: /v1/object/{object_key}/asset/{asset_key}
 
-   We can add an asset to an object easily with this API, which requires
-   no message body.
+   We can add an asset to an object easily with this API.
 
    :statuscode 200: Success
 
@@ -122,8 +190,7 @@ Asset Removal
 
 .. http:delete:: /v1/object/{object_key}/asset/{asset_key}
 
-   We can remove an asset from an object easily with this API, which requires
-   no message body.
+   We can remove an asset from an object easily with this API.
 
    :statuscode 200: Success
 
