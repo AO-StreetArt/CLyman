@@ -104,33 +104,57 @@ void CoreDatabaseManager::init() {
 }
 
 void CoreDatabaseManager::get_handle_from_element(bsoncxx::document::element value_elt, AnimationGraphHandle *handle) {
-    auto val_ltype_elt = value_elt["left_type"];
-    auto val_rtype_elt = value_elt["right_type"];
+  auto val_ltype_elt = value_elt["left_type"];
+  if (val_ltype_elt && val_ltype_elt.type() == bsoncxx::type::k_utf8) {
     handle->set_lh_type(val_ltype_elt.get_utf8().value.to_string());
+  }
+  auto val_rtype_elt = value_elt["right_type"];
+  if (val_rtype_elt && val_rtype_elt.type() == bsoncxx::type::k_utf8) {
     handle->set_rh_type(val_rtype_elt.get_utf8().value.to_string());
-    auto val_lx_elt = value_elt["left_x"];
+  }
+  auto val_lx_elt = value_elt["left_x"];
+  if (val_lx_elt && val_lx_elt.type() == bsoncxx::type::k_double) {
     handle->set_lh_x(val_lx_elt.get_double().value);
-    auto val_ly_elt = value_elt["left_y"];
+  }
+  auto val_ly_elt = value_elt["left_y"];
+  if (val_ly_elt && val_ly_elt.type() == bsoncxx::type::k_double) {
     handle->set_lh_y(val_ly_elt.get_double().value);
-    auto val_rx_elt = value_elt["right_x"];
+  }
+  auto val_rx_elt = value_elt["right_x"];
+  if (val_rx_elt && val_rx_elt.type() == bsoncxx::type::k_double) {
     handle->set_rh_x(val_rx_elt.get_double().value);
-    auto val_ry_elt = value_elt["right_y"];
+  }
+  auto val_ry_elt = value_elt["right_y"];
+  if (val_ry_elt && val_ry_elt.type() == bsoncxx::type::k_double) {
     handle->set_rh_y(val_ry_elt.get_double().value);
+  }
 }
 
 void CoreDatabaseManager::get_handle_from_element(bsoncxx::array::element value_elt, AnimationGraphHandle *handle) {
-    auto val_ltype_elt = value_elt["left_type"];
-    auto val_rtype_elt = value_elt["right_type"];
+  auto val_ltype_elt = value_elt["left_type"];
+  if (val_ltype_elt && val_ltype_elt.type() == bsoncxx::type::k_utf8) {
     handle->set_lh_type(val_ltype_elt.get_utf8().value.to_string());
+  }
+  auto val_rtype_elt = value_elt["right_type"];
+  if (val_rtype_elt && val_rtype_elt.type() == bsoncxx::type::k_utf8) {
     handle->set_rh_type(val_rtype_elt.get_utf8().value.to_string());
-    auto val_lx_elt = value_elt["left_x"];
+  }
+  auto val_lx_elt = value_elt["left_x"];
+  if (val_lx_elt && val_lx_elt.type() == bsoncxx::type::k_double) {
     handle->set_lh_x(val_lx_elt.get_double().value);
-    auto val_ly_elt = value_elt["left_y"];
+  }
+  auto val_ly_elt = value_elt["left_y"];
+  if (val_ly_elt && val_ly_elt.type() == bsoncxx::type::k_double) {
     handle->set_lh_y(val_ly_elt.get_double().value);
-    auto val_rx_elt = value_elt["right_x"];
+  }
+  auto val_rx_elt = value_elt["right_x"];
+  if (val_rx_elt && val_rx_elt.type() == bsoncxx::type::k_double) {
     handle->set_rh_x(val_rx_elt.get_double().value);
-    auto val_ry_elt = value_elt["right_y"];
+  }
+  auto val_ry_elt = value_elt["right_y"];
+  if (val_ry_elt && val_ry_elt.type() == bsoncxx::type::k_double) {
     handle->set_rh_y(val_ry_elt.get_double().value);
+  }
 }
 
 void CoreDatabaseManager::add_graph_handle_to_document(\

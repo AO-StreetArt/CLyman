@@ -1,4 +1,4 @@
-..  http:example:: curl wget httpie python-requests
+..  http:example:: curl
     :response: property_create_response.rst
 
     POST /v1/property HTTP/1.1
@@ -13,17 +13,38 @@
         	"parent":"testParent",
         	"asset_sub_id":"testAssetSubId",
         	"scene":"testScene",
-        	"frame":1,
-        	"timestamp":123456789,
+        	"actions": [
+    			{
+    				"name": "testAction",
+    				"description": "this is a description",
+    				"keyframes": [
+    					{
+    						"frame":1,
+    						"values":[
+    				    		{
+    				    			"value":100.0,
+    				    			"left_type":"vector",
+    				    			"left_x":10.0,
+    				    			"left_y":5.0,
+    				    			"right_type":"free",
+    				    			"right_x":4.0,
+    				    			"right_y":3.0
+
+    				    		}
+    				    	]
+    					}
+    				]
+    			}
+    		],
         	"values":[
         		{
-        			"value":100,
+        			"value":100.0,
         			"left_type":"vector",
-        			"left_x":10,
-        			"left_y":5,
+        			"left_x":10.0,
+        			"left_y":5.0,
         			"right_type":"free",
-        			"right_x":4,
-        			"right_y":3
+        			"right_x":4.0,
+        			"right_y":3.0
 
         		}
         	]

@@ -24,14 +24,15 @@ limitations under the License.
 #include <iostream>
 #include <boost/cstdint.hpp>
 
-#include "model/include/object_factory.h"
-#include "model/include/property_interface.h"
-#include "model/include/object_interface.h"
-#include "model/include/transforms.h"
-
-#include "api/include/object_list_factory.h"
-#include "api/include/object_list_interface.h"
-#include "api/include/property_list_interface.h"
+#include "model/core/include/animation_action.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/object/include/object_frame.h"
+#include "model/object/include/transforms.h"
+#include "model/object/include/object_interface.h"
+#include "model/list/include/object_list_interface.h"
+#include "model/list/include/property_list_interface.h"
+#include "model/property/include/property_frame.h"
+#include "model/property/include/property_interface.h"
 
 #ifndef SRC_APPLICATION_INCLUDE_DB_MANAGER_INTERFACE_H_
 #define SRC_APPLICATION_INCLUDE_DB_MANAGER_INTERFACE_H_
@@ -43,6 +44,14 @@ const int _DB_MONGO_GET_ = 3;
 const int _DB_MONGO_QUERY_ = 4;
 const int _DB_MONGO_LOCK_ = 5;
 const int _DB_MONGO_UNLOCK_ = 6;
+const int _DB_MONGO_ACTION_INSERT_ = 7;
+const int _DB_MONGO_ACTION_UPDATE_ = 8;
+const int _DB_MONGO_ACTION_REMOVE_ = 9;
+const int _DB_MONGO_ACTION_GET_ = 10;
+const int _DB_MONGO_FRAME_INSERT_ = 11;
+const int _DB_MONGO_FRAME_UPDATE_ = 12;
+const int _DB_MONGO_FRAME_REMOVE_ = 13;
+const int _DB_MONGO_FRAME_GET_ = 14;
 
 //! Encapsulates a response from the DatabaseManager
 struct DatabaseResponse {
@@ -105,6 +114,44 @@ class DatabaseManagerInterface {
 
   //! Unlock an object from a particular device
   virtual void unlock_object(DatabaseResponse& response, std::string& object_id, std::string& device_id) = 0;
+
+  //! Create an Object Action
+  virtual void create_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<ObjectFrame> *action, std::string& name) = 0;
+
+  //! Update an Object Action
+  //! The supplied key will be used as the key to update in the DB
+  virtual void update_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<ObjectFrame> *action, std::string& name) = 0;
+
+  //! Delete an Object Action
+  virtual void delete_object_action(DatabaseResponse& response, std::string& parent_key, std::string& name) = 0;
+
+  //! Create a Property Action
+  virtual void create_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<PropertyFrame> *action, std::string& name) = 0;
+
+  //! Update a Property Action
+  //! The supplied key will be used as the key to update in the DB
+  virtual void update_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<PropertyFrame> *action, std::string& name) = 0;
+
+  //! Delete a Property Action
+  virtual void delete_property_action(DatabaseResponse& response, std::string& parent_key, std::string& name) = 0;
+
+  //! Create an Object Keyframe
+  virtual void create_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, ObjectFrame *frame, int frame_index) = 0;
+
+  //! Update an Object Keyframe
+  virtual void update_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, ObjectFrame *frame, int frame_index) = 0;
+
+  //! Delete an Object Keyframe
+  virtual void delete_object_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, int frame_index) = 0;
+
+  //! Create a Property Keyframe
+  virtual void create_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, PropertyFrame *frame, int frame_index) = 0;
+
+  //! Update a Property Keyframe
+  virtual void update_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, PropertyFrame *frame, int frame_index) = 0;
+
+  //! Delete an Property Keyframe
+  virtual void delete_property_keyframe(DatabaseResponse& response, std::string& property_key, std::string& action_name, int frame_index) = 0;
 };
 
 #endif  // SRC_APPLICATION_INCLUDE_DB_MANAGER_INTERFACE_H_

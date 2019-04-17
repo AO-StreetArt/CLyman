@@ -4,8 +4,8 @@ Property API
 ============
 
 A Property is a set of between 1 and 4 double values, which may
-or not be associated to properties.  Properties can also support frames and/or
-timestamps, just like properties, but cannot be locked and have no transformations.
+or not be associated to objects.  Properties can also support frames,
+just like objects, but cannot be locked and have no transformations.
 
 Properties are meant to be interacted with by individual devices,
 and these changes will be streamed to other devices via the Events API.
@@ -72,3 +72,71 @@ Property Query
    :statuscode 200: Success
 
 .. include:: _examples/property/property_query.rst
+
+Property Action Create
+--------------------
+
+.. http:post:: /v1/property/{key}/action
+
+   An action is a named set of keyframes, each holding the value of the property
+   at that frame.  This endpoint allows creation of a new action against an
+   existing property.
+
+   :statuscode 200: Success
+
+.. include:: _examples/property/property_action_create.rst
+
+Property Action Update
+--------------------
+
+.. http:post:: /v1/property/{key}/action/{name}
+
+   This endpoint allows for updating fields within an action.
+
+   :statuscode 200: Success
+
+.. include:: _examples/property/property_action_update.rst
+
+Property Action Delete
+--------------------
+
+.. http:delete:: /v1/property/{key}/action/{name}
+
+   This endpoint allows for removing actions from an property.
+
+   :statuscode 200: Success
+
+.. include:: _examples/property/property_action_delete.rst
+
+Property Frame Creation
+---------------------
+
+.. http:post:: /v1/property/{key}/action/{name}/keyframe
+
+   This endpoint allows for adding keyframes to existing actions.
+
+   :statuscode 200: Success
+
+.. include:: _examples/property/property_frame_create.rst
+
+Property Frame Update
+-------------------
+
+.. http:post:: /v1/property/{key}/action/{name}/keyframe/{frame}
+
+   This endpoint allows for updating elements within a keyframe.
+
+   :statuscode 200: Success
+
+.. include:: _examples/property/property_frame_update.rst
+
+Property Frame Delete
+-------------------
+
+.. http:delete:: /v1/property/{key}/action/{name}/keyframe/{frame}
+
+   This endpoint removes a keyframe from an existing action.
+
+   :statuscode 200: Success
+
+.. include:: _examples/property/property_frame_delete.rst

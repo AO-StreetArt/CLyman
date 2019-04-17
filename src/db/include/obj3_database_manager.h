@@ -15,21 +15,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// This implements the Configuration Manager
-
-// This takes in a Command Line Interpreter, and based on the options provided,
-// decides how the application needs to be configured.  It may configure either
-// from a configuration file, or from a Consul agent
-
 #include <iostream>
 #include <boost/cstdint.hpp>
 
-#include "model/include/object_factory.h"
-#include "model/include/object_interface.h"
-#include "model/include/transforms.h"
-
-#include "api/include/object_list_factory.h"
-#include "api/include/object_list_interface.h"
+#include "model/core/include/animation_action.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/list/include/object_list_interface.h"
+#include "model/factory/include/data_factory.h"
+#include "model/object/include/object_interface.h"
+#include "model/object/include/transforms.h"
+#include "model/object/include/object_frame.h"
+#include "model/property/include/property_frame.h"
 
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
@@ -65,9 +61,19 @@ class ObjectDatabaseManager : public PropertyDatabaseManager {
   std::string coll_name;
   int max_retries = 11;
   // Factories
-  ObjectFactory object_factory;
+  DataFactory object_factory;
 
-  void add_handles_to_doc(bsoncxx::builder::stream::document &builder, AnimationFrameInterface *aframe);
+  // Internal methods for getting data model classes out of BSON documents
+  void get_frame_from_doc(bsoncxx::document::element &elt, ObjectFrame *aframe, int frame_index);
+
+  void get_action_from_doc(bsoncxx::document::element &elt, AnimationAction<ObjectFrame> *action, std::string& action_name);
+
+  // Internal methods for constructing BSON documents of data model children
+  void add_handles_to_doc(bsoncxx::builder::stream::document &builder, ObjectFrame *aframe);
+
+  void add_obj_frame_to_doc(bsoncxx::builder::stream::document &builder, ObjectFrame *aframe);
+
+  void add_obj_action_to_doc(bsoncxx::builder::stream::document &builder, AnimationAction<ObjectFrame> *action);
 
   // Build a Bson document to use for creation
   void build_create_doc(bsoncxx::builder::stream::document &builder, \
@@ -82,7 +88,28 @@ class ObjectDatabaseManager : public PropertyDatabaseManager {
 
   // Execute a Creation or Update Transaction
   void transaction(DatabaseResponse &response, ObjectInterface *obj, \
+      AnimationAction<ObjectFrame> *action, ObjectFrame *aframe, \
       std::string& key, int transaction_type, bool is_append_operation);
+
+  // Execute a transaction, with default value for is_append_operation
+  void transaction(DatabaseResponse &response, ObjectInterface *obj, \
+      std::string& key, int transaction_type, bool is_append_operation) {
+    transaction(response, obj, nullptr, nullptr, key, transaction_type, true);
+  }
+
+  // Execute a transaction, with default value for is_append_operation
+  void transaction(DatabaseResponse &response, \
+      AnimationAction<ObjectFrame> *action, std::string& key, \
+      int transaction_type) {
+    transaction(response, nullptr, action, nullptr, key, transaction_type, true);
+  }
+
+  // Execute a transaction, with default value for is_append_operation
+  void transaction(DatabaseResponse &response, \
+      AnimationAction<ObjectFrame> *action, ObjectFrame *frame, \
+      std::string& key, int transaction_type) {
+    transaction(response, nullptr, action, frame, key, transaction_type, true);
+  }
 
   // Execute a transaction, with default value for is_append_operation
   void transaction(DatabaseResponse &response, ObjectInterface *obj, \
@@ -153,6 +180,50 @@ class ObjectDatabaseManager : public PropertyDatabaseManager {
     ObjectInterface *query_obj = object_factory.build_object();
     query_obj->set_owner(device_id);
     transaction(response, query_obj, object_id, _DB_MONGO_UNLOCK_);
+  }
+
+  //! Create an Object Action
+  void create_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<ObjectFrame> *action, std::string& name) {
+    action->set_name(name);
+    transaction(response, action, parent_key, _DB_MONGO_ACTION_INSERT_);
+  }
+
+  //! Update an Object Action
+  //! The supplied key will be used as the key to update in the DB
+  void update_action(DatabaseResponse& response, std::string& parent_key, AnimationAction<ObjectFrame> *action, std::string& name) {
+    action->set_name(name);
+    transaction(response, action, parent_key, _DB_MONGO_ACTION_UPDATE_);
+  }
+
+  //! Delete an Object Action
+  void delete_object_action(DatabaseResponse& response, std::string& parent_key, std::string& name) {
+    AnimationAction<ObjectFrame> action;
+    action.set_name(name);
+    transaction(response, &action, parent_key, _DB_MONGO_ACTION_REMOVE_);
+  }
+
+  //! Create an Object Keyframe
+  void create_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, ObjectFrame *frame, int frame_index) {
+    AnimationAction<ObjectFrame> action;
+    action.set_name(action_name);
+    frame->set_frame(frame_index);
+    transaction(response, &action, frame, object_key, _DB_MONGO_FRAME_INSERT_);
+  }
+
+  void update_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, ObjectFrame *frame, int frame_index) {
+    AnimationAction<ObjectFrame> action;
+    action.set_name(action_name);
+    frame->set_frame(frame_index);
+    transaction(response, &action, frame, object_key, _DB_MONGO_FRAME_UPDATE_);
+  }
+
+  //! Delete an Object Keyframe
+  void delete_object_keyframe(DatabaseResponse& response, std::string& object_key, std::string& action_name, int frame_index) {
+    AnimationAction<ObjectFrame> action;
+    action.set_name(action_name);
+    ObjectFrame frame;
+    frame.set_frame(frame_index);
+    transaction(response, &action, &frame, object_key, _DB_MONGO_FRAME_REMOVE_);
   }
 };
 

@@ -9,7 +9,9 @@ export POCO_LIBS = -lPocoNetSSL -lPocoCrypto -lPocoNet -lPocoUtil -lPocoFoundati
 export LIBS = $(AOSSL_LIBS) $(POCO_LIBS) -lboost_system -lpthread
 INCL_DIRS = -I. -I$(CURDIR)/src/ -I/usr/local/include -I/usr/local/include/mongocxx/v_noabi -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/bsoncxx/v_noabi -I/usr/local/include/libbson-1.0
 LINK_DIRS = -L/usr/local/lib
-SUB_OBJECTS = src/model/object_document.o src/model/animation_property.o src/api/json_object_list.o src/api/json_property_list.o src/db/core_database_manager.o src/db/property_database_manager.o src/db/obj3_database_manager.o
+MODEL_SUB_OBJECTS = src/model/object/json_object.o src/model/property/json_property.o src/model/list/json_object_list.o src/model/list/json_property_list.o src/model/factory/json_factory.o
+DB_SUB_OBJECTS = src/db/core_database_manager.o src/db/property_database_manager.o src/db/obj3_database_manager.o
+SUB_OBJECTS = $(MODEL_SUB_OBJECTS) $(DB_SUB_OBJECTS)
 INSTALL_CONFIG_DIR = /etc/clyman
 INSTALL_LOG_DIR = /var/log/clyman
 INSTALL_DIR = /usr/local/bin
@@ -59,7 +61,7 @@ install_log:
 # --------------------------- Clean Project ---------------------------------- #
 
 clean:
-	rm clyman src/*/*.o tests/tests
+	rm clyman src/*/*.o src/*/*/*.o tests/tests
 
 reset: clean
 	rm tests/test_main.o

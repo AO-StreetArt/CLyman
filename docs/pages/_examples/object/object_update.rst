@@ -1,4 +1,4 @@
-..  http:example:: curl wget httpie python-requests
+..  http:example:: curl
     :response: object_update_response.rst
 
     POST /v1/object/{key} HTTP/1.1
@@ -9,10 +9,9 @@
       "msg_type": 0,
       "objects":[
         {
-    		"name": "Test Object 123464",
-    		"type": "Curve",
-    		"subtype": "Sphere",
-    		"frame": 0
-    	}
+      		"name": "Test Object 123464",
+      		"type": "Curve",
+      		"subtype": "Sphere"
+      	}
       ]
     }

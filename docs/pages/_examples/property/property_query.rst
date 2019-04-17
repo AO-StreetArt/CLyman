@@ -1,8 +1,7 @@
-..  http:example:: curl wget httpie python-requests
-    :response: property_query_response.rst
+..  http:example:: curl
 
     POST /v1/property/query HTTP/1.1
-    Host: localhost:5885
+    Host: localhost:8768
     Content-Type: application/json
 
     {

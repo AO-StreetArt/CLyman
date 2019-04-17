@@ -51,25 +51,8 @@ of course, update a property with an event as well:
 
 This will overwrite the current value of this property to 100.0.
 
-Keep in mind that Events work on the premise of overwrites for any field in the
-event.  You should, therefore, include any information (such as graph handles)
-onto the objects that you are actually utilizing.  For a framed property using
-graph handles, this might look a bit more like:
-
-.. code-block:: json
-
-   {
-     "msg_type": 9,
-     "key": "5b98880a270698496c36e392",
-     "frame": 100,
-     "values": [{"value": 100.0,
-                "left_type": "vector",
-                "left_x": 10.0,
-                "left_y":10.0,
-                "right_type": "vector",
-                "right_x": 10.0,
-                "right_y":10.0}]
-   }
+Updates can occur on keyframes as well in addition to objects, using the
+same JSON format as the HTTP API.
 
 Event Output
 ------------
@@ -77,8 +60,8 @@ Event Output
 Event output follows the same basic format as the input, however there are
 multiple additional message types that may be received.
 
-While input events can only be Object or Property Updates, output events can
-include:
+While input events can only be Updates, output events can include the following
+msg_type values:
 
 * 0 - Object Create
 * 1 - Object Update
@@ -86,3 +69,15 @@ include:
 * 8 - Property Create
 * 9 - Property Update
 * 11 - Property Delete
+* 15 - Object Frame Create
+* 16 - Object Frame Update
+* 18 - Object Frame Delete
+* 19 - Object Action Create
+* 20 - Object Action Update
+* 22 - Object Action Delete
+* 23 - Property Frame Create
+* 24 - Property Frame Update
+* 26 - Property Frame Delete
+* 27 - Property Action Create
+* 28 - Property Action Update
+* 30 - Property Action Delete

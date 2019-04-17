@@ -25,9 +25,15 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "db/include/db_manager_interface.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
+#include "db/include/db_manager_interface.h"
+#include "model/property/include/property_interface.h"
+#include "model/list/include/property_list_interface.h"
+#include "model/factory/include/json_factory.h"
+#include "model/factory/include/data_list_factory.h"
+#include "model/factory/include/data_factory.h"
+#include "clyman_handler.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -39,18 +45,9 @@ limitations under the License.
 #ifndef SRC_CONTROLLER_INCLUDE_PROPERTY_BASE_HANDLER_H_
 #define SRC_CONTROLLER_INCLUDE_PROPERTY_BASE_HANDLER_H_
 
-class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
-  AOSSL::KeyValueStoreInterface *config = nullptr;
-  DatabaseManagerInterface *db_manager = nullptr;
-  int msg_type = -1;
-  ObjectListFactory object_list_factory;
-  ObjectFactory object_factory;
-  EventStreamPublisher *publisher = nullptr;
-  ClusterManager *cluster_manager = nullptr;
-  Poco::Logger& logger;
+class PropertyBaseRequestHandler: public ClymanHandler, public Poco::Net::HTTPRequestHandler {
   std::string object_id;
   void process_create_message(PropertyInterface* in_doc, PropertyInterface* out_doc, PropertyListInterface *response_body) {
-    logger.information("Processing Creation Message");
     // Persist the creation message
     std::string new_object_key;
     logger.information("Creating Property with Name: " + in_doc->get_name());
@@ -64,7 +61,6 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
     }
   }
   void process_update_message(PropertyInterface* in_doc, PropertyListInterface *response_body) {
-    logger.information("Processing Update Message");
     // Persist the update message
     logger.information("Updating Property with Name: " + in_doc->get_name());
     DatabaseResponse response;
@@ -86,21 +82,18 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
   }
  public:
   PropertyBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      EventStreamPublisher *pub, ClusterManager *cluster, int mtype) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;publisher=pub;cluster_manager=cluster;}
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype) : ClymanHandler(conf, db, pub, cluster, mtype) {}
   PropertyBaseRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      EventStreamPublisher *pub, ClusterManager *cluster, int mtype, std::string id) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;publisher=pub;cluster_manager=cluster;object_id.assign(id);}
+      EventStreamPublisher *pub, ClusterManager *cluster, int mtype, std::string id) : ClymanHandler(conf, db, pub, cluster, mtype) {
+    object_id.assign(id);
+  }
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     logger.debug("Responding to Property Request");
-    response.setChunkedTransferEncoding(true);
-    response.setContentType("application/json");
     // parse the post input data into a Scene List
     rapidjson::Document doc;
     char *tmpStr = clyman_request_body_to_json_document(request, doc);
     PropertyListInterface *response_body = object_list_factory.build_json_property_list();
-    response_body->set_msg_type(msg_type);
-    response_body->set_error_code(NO_ERROR);
+    ClymanHandler::init_response(response, response_body);
     if (doc.HasParseError()) {
       logger.debug("Parsing Error Detected");
       // Set up parse error response
@@ -117,7 +110,7 @@ class PropertyBaseRequestHandler: public Poco::Net::HTTPRequestHandler {
       response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
       PropertyListInterface *inp_doc = nullptr;
       try {
-        inp_doc = object_list_factory.build_property_list(doc);
+        inp_doc = json_factory.build_property_list(doc);
       } catch (std::exception& e) {
         logger.error("Exception encountered building Property List");
         logger.error(e.what());

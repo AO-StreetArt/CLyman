@@ -25,9 +25,13 @@ limitations under the License.
 #include <boost/cstdint.hpp>
 
 #include "app/include/clyman_utils.h"
-#include "db/include/db_manager_interface.h"
 #include "app/include/event_sender.h"
 #include "app/include/cluster_manager.h"
+#include "db/include/db_manager_interface.h"
+#include "model/list/include/data_list_interface.h"
+#include "model/factory/include/data_factory.h"
+#include "model/factory/include/data_list_factory.h"
+#include "clyman_handler.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -39,14 +43,7 @@ limitations under the License.
 #ifndef SRC_CONTROLLER_INCLUDE_OBJECT_LOCK_HANDLER_H_
 #define SRC_CONTROLLER_INCLUDE_OBJECT_LOCK_HANDLER_H_
 
-class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
-  AOSSL::KeyValueStoreInterface *config = nullptr;
-  DatabaseManagerInterface *db_manager = nullptr;
-  int msg_type = -1;
-  ObjectListFactory object_list_factory;
-  ObjectFactory object_factory;
-  ClusterManager *cluster_manager = nullptr;
-  Poco::Logger& logger;
+class ObjectLockRequestHandler: public ClymanHandler, public Poco::Net::HTTPRequestHandler {
   std::string object_id;
   std::string device_id;
   void process_lock_message(std::string obj_key, std::string dev_key, ObjectListInterface *response_body) {
@@ -79,15 +76,14 @@ class ObjectLockRequestHandler: public Poco::Net::HTTPRequestHandler {
   }
  public:
   ObjectLockRequestHandler(AOSSL::KeyValueStoreInterface *conf, DatabaseManagerInterface *db, \
-      ClusterManager *cluster, int mtype, std::string id, std::string dev_id) : logger(Poco::Logger::get("Data")) \
-      {config=conf;msg_type=mtype;db_manager=db;cluster_manager=cluster;object_id.assign(id);device_id.assign(dev_id);}
+      ClusterManager *cluster, int mtype, std::string id, std::string dev_id) : ClymanHandler(conf, db, nullptr, cluster, mtype) {
+    object_id.assign(id);
+    device_id.assign(dev_id);
+  }
   void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) {
     logger.debug("Responding to Object Request");
-    response.setChunkedTransferEncoding(true);
-    response.setContentType("application/json");
     ObjectListInterface *response_body = object_list_factory.build_json_object_list();
-    response_body->set_msg_type(msg_type);
-    response_body->set_error_code(NO_ERROR);
+    ClymanHandler::init_response(response, response_body);
 
     try {
       if (msg_type == OBJ_LOCK) {

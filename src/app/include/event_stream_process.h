@@ -40,8 +40,9 @@ limitations under the License.
 
 #include "db/include/database_manager.h"
 
-#include "model/include/object_interface.h"
-#include "model/include/object_factory.h"
+#include "model/object/include/object_interface.h"
+#include "model/property/include/property_interface.h"
+#include "model/factory/include/json_factory.h"
 
 #ifndef SRC_APP_INCLUDE_EVENT_STREAM_PROCESS_H_
 #define SRC_APP_INCLUDE_EVENT_STREAM_PROCESS_H_
@@ -59,7 +60,7 @@ class EventSender : public Poco::Runnable {
   DatabaseManager *db_manager = nullptr;
   ClusterManager *cluster_manager = nullptr;
   Poco::Logger& logger;
-  ObjectFactory object_factory;
+  JsonFactory object_factory;
 public:
   EventSender(char *evt, boost::asio::io_service &ios, DatabaseManager *db, EventStreamPublisher *pub, ClusterManager *cluster) : logger(Poco::Logger::get("Event")) {
     event = evt;
@@ -87,11 +88,11 @@ public:
         ObjectInterface* in_doc = nullptr;
         PropertyInterface* in_prop = nullptr;
         // Build the input and output documents
-        if (msg_type == OBJ_UPD) {
+        if (msg_type == OBJ_UPD || msg_type == OBJ_ACTION_UPD || msg_type == OBJ_FRAME_UPD) {
           in_doc = object_factory.build_object(doc);
           message.assign(in_doc->get_scene() + \
               std::string("\n") + in_doc->to_transform_json());
-        } else if (msg_type == PROP_UPD) {
+        } else if (msg_type == PROP_UPD || msg_type == PROP_ACTION_UPD || msg_type == PROP_FRAME_UPD) {
           in_prop = object_factory.build_property(doc);
           in_prop->to_json(message);
           message.assign(in_prop->get_scene() + std::string("\n") + message);
@@ -112,6 +113,50 @@ public:
           } else if (msg_type == PROP_UPD) {
             new_object_key = in_prop->get_key();
             db_manager->update_property(response, in_prop, new_object_key);
+          } else if (msg_type == OBJ_ACTION_UPD) {
+            new_object_key = in_doc->get_key();
+            for (auto action_itr = in_doc->get_actions()->begin(); action_itr != in_doc->get_actions()->end(); ++action_itr) {
+              std::string action_name(action_itr->first);
+              db_manager->update_action(response, new_object_key, action_itr->second, action_name);
+              if (!(response.success)) {
+                logger.error("Error Updating Action in Database:");
+                logger.error(response.error_message);
+              }
+            }
+          } else if (msg_type == PROP_ACTION_UPD) {
+            new_object_key = in_prop->get_key();
+            for (auto action_itr = in_prop->get_actions()->begin(); action_itr != in_prop->get_actions()->end(); ++action_itr) {
+              std::string action_name(action_itr->first);
+              db_manager->update_action(response, new_object_key, action_itr->second, action_name);
+              if (!(response.success)) {
+                logger.error("Error Updating Action in Database:");
+                logger.error(response.error_message);
+              }
+            }
+          } else if (msg_type == OBJ_FRAME_UPD) {
+            new_object_key = in_doc->get_key();
+            for (auto action_itr = in_doc->get_actions()->begin(); action_itr != in_doc->get_actions()->end(); ++action_itr) {
+              std::string action_name(action_itr->first);
+              for (auto keyframe_itr = action_itr->second->get_keyframes()->begin(); keyframe_itr != action_itr->second->get_keyframes()->end(); ++keyframe_itr) {
+                db_manager->update_keyframe(response, new_object_key, action_name, keyframe_itr->second, keyframe_itr->first);
+                if (!(response.success)) {
+                  logger.error("Error Updating Frame in Database:");
+                  logger.error(response.error_message);
+                }
+              }
+            }
+          } else if (msg_type == PROP_FRAME_UPD) {
+            new_object_key = in_prop->get_key();
+            for (auto action_itr = in_doc->get_actions()->begin(); action_itr != in_doc->get_actions()->end(); ++action_itr) {
+              std::string action_name(action_itr->first);
+              for (auto keyframe_itr = action_itr->second->get_keyframes()->begin(); keyframe_itr != action_itr->second->get_keyframes()->end(); ++keyframe_itr) {
+                db_manager->update_keyframe(response, new_object_key, action_name, keyframe_itr->second, keyframe_itr->first);
+                if (!(response.success)) {
+                  logger.error("Error Updating Frame in Database:");
+                  logger.error(response.error_message);
+                }
+              }
+            }
           }
         } catch (std::exception& e) {
           logger.error("Error Persisting Update: ");
