@@ -313,7 +313,7 @@ void ObjectDatabaseManager::transaction(DatabaseResponse &response, ObjectInterf
         frame_doc << (key_start + ".frame") << aframe->get_frame();
 
         // Add the Transform
-        std::string trn_key_start = key_start + ".frames." + std::to_string(aframe->get_frame()) + ".transform.";
+        std::string trn_key_start = key_start + ".transform.";
         std::string key_values[16] = {"r1_c1", "r1_c2", "r1_c3", "r1_c4", \
             "r2_c1", "r2_c2", "r2_c3", "r2_c4", "r3_c1", "r3_c2", "r3_c3", "r3_c4", \
             "r4_c1", "r4_c2", "r4_c3", "r4_c4"};

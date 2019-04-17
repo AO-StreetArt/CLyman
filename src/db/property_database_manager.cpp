@@ -208,7 +208,7 @@ void PropertyDatabaseManager::prop_transaction(DatabaseResponse &response, \
 
         // Write Values entries
         for (unsigned int i = 0; i < 4; i++) {
-          std::string val_key_start = key_start + ".frames." + std::to_string(aframe->get_frame()) + ".values.";
+          std::string val_key_start = key_start + ".values.";
           if (i == 0) val_key_start.append("w.");
           if (i == 1) val_key_start.append("x.");
           if (i == 2) val_key_start.append("y.");
