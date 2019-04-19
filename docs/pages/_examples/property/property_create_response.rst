@@ -3,6 +3,10 @@ Location: http://localhost:8768/v1/property
 Content-Type: application/json
 
 {
-  "num_records":1,
-  "objects":[{"key":"jklmnop"}]
+  "num_records": 1,
+  "objects": [
+    {
+      "key": "jklmnop"
+    }
+  ]
 }

@@ -6,5 +6,5 @@
 
 		{
 			"name": "testAction",
-			"description": "this is another description",
+			"description": "this is another description"
 		}

@@ -74,7 +74,7 @@ Property Query
 .. include:: _examples/property/property_query.rst
 
 Property Action Create
---------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. http:post:: /v1/property/{key}/action
 
@@ -87,7 +87,7 @@ Property Action Create
 .. include:: _examples/property/property_action_create.rst
 
 Property Action Update
---------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. http:post:: /v1/property/{key}/action/{name}
 
@@ -98,7 +98,7 @@ Property Action Update
 .. include:: _examples/property/property_action_update.rst
 
 Property Action Delete
---------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. http:delete:: /v1/property/{key}/action/{name}
 
@@ -109,7 +109,7 @@ Property Action Delete
 .. include:: _examples/property/property_action_delete.rst
 
 Property Frame Creation
----------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. http:post:: /v1/property/{key}/action/{name}/keyframe
 
@@ -120,7 +120,7 @@ Property Frame Creation
 .. include:: _examples/property/property_frame_create.rst
 
 Property Frame Update
--------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 .. http:post:: /v1/property/{key}/action/{name}/keyframe/{frame}
 
@@ -131,7 +131,7 @@ Property Frame Update
 .. include:: _examples/property/property_frame_update.rst
 
 Property Frame Delete
--------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 .. http:delete:: /v1/property/{key}/action/{name}/keyframe/{frame}
 

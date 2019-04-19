@@ -6,8 +6,6 @@
     Content-Type: application/json
 
     {
-    		{
-    				"name": "testAction",
-    				"description": "this is another description",
-    		}
+      "name": "testAction",
+      "description": "this is another description"
     }
