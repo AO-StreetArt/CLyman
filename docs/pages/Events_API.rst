@@ -14,7 +14,7 @@ salt.
 Event Input
 -----------
 
-The event is a JSON message, which can take one of two formats but
+The event is a JSON message, which can take one of several formats but
 always includes the field "msg_type".  The first format is an Object Overwrite,
 which follows the same JSON-schema as the :ref:`Object Update HTTP API <object_api>`.
 The second format is a Property Overwrite, which follows the same JSON-schema as
@@ -52,7 +52,7 @@ of course, update a property with an event as well:
 This will overwrite the current value of this property to 100.0.
 
 Updates can occur on keyframes as well in addition to objects, using the
-same JSON format as the HTTP API.
+same JSON format as the HTTP API.  See the listing of valid msg_type values below.
 
 Event Output
 ------------

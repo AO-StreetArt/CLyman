@@ -128,8 +128,8 @@ html_theme_options = {
         ("Getting Started", "pages/quickstart"),
         ("HTTP API", "pages/api"),
         ("Advanced Topics", "pages/advanced_index"),
-        ("Aesel Docs", "https://aesel.readthedocs.io/en/latest/index.html"),
-        ("Aesel API", "https://aesel.readthedocs.io/en/latest/pages/DVS_API.html")
+        ("Aesel Docs", "https://aesel.readthedocs.io/en/latest/index.html", True),
+        ("Aesel API", "https://aesel.readthedocs.io/en/latest/pages/DVS_API.html", True)
     ],
 
     # Render the next and previous page links in navbar. (Default: true)
