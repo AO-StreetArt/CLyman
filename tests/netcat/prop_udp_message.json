@@ -1,0 +1,25 @@
+{
+  "key":"_PROP_KEY_",
+  "msg_type": 24,
+  "actions": [
+    {
+      "name": "testAction",
+      "keyframes": [
+        {
+          "frame":1,
+          "values":[
+            {
+              "value":150.0,
+              "left_type":"vector",
+              "left_x":10.0,
+              "left_y":5.0,
+              "right_type":"free",
+              "right_x":4.0,
+              "right_y":3.0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

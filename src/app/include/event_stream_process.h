@@ -147,7 +147,7 @@ public:
             }
           } else if (msg_type == PROP_FRAME_UPD) {
             new_object_key = in_prop->get_key();
-            for (auto action_itr = in_doc->get_actions()->begin(); action_itr != in_doc->get_actions()->end(); ++action_itr) {
+            for (auto action_itr = in_prop->get_actions()->begin(); action_itr != in_prop->get_actions()->end(); ++action_itr) {
               std::string action_name(action_itr->first);
               for (auto keyframe_itr = action_itr->second->get_keyframes()->begin(); keyframe_itr != action_itr->second->get_keyframes()->end(); ++keyframe_itr) {
                 db_manager->update_keyframe(response, new_object_key, action_name, keyframe_itr->second, keyframe_itr->first);
